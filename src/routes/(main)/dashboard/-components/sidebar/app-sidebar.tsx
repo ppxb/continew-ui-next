@@ -45,7 +45,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="scroll-fade-y">
         <NavMain items={sidebarItems} />
       </SidebarContent>
       <SidebarFooter>
