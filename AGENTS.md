@@ -39,26 +39,29 @@ Do not modify files inside `src/components/ui/` or `src/components/calendar/`. K
 
 ## Setup
 
-This project uses npm.
+This project uses pnpm.
 
 ```bash
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
 Available commands:
 
 ```bash
-npm run build
-npm run lint
-npm run format
-npm run check
-npm run check:fix
-npm run generate-routes
-npm run generate:presets
+pnpm build
+pnpm lint
+pnpm lint:fix
+pnpm fmt
+pnpm fmt:check
+pnpm typecheck
+pnpm generate-routes
+pnpm generate:presets
 ```
 
-There is currently no automated test command. Run build, lint, check, typecheck, or other validation commands only when the user explicitly requests that validation.
+The pre-commit hook regenerates the theme presets, stages `src/lib/preferences/theme.ts`, and then runs lint-staged (`oxlint --fix` and `oxfmt`) on the staged files. `generate:presets` runs on Node's built-in TypeScript support, so Node `^20.19.0 || >=22.18.0` is required.
+
+There is currently no automated test command. Run build, lint, typecheck, or other validation commands only when the user explicitly requests that validation.
 
 ## Co-location-based structure
 
@@ -100,7 +103,8 @@ Keep a component inside its route until it is reused by another feature. Do not 
 
 - TypeScript strict mode is enabled. Use precise types and avoid `any`.
 - Use the existing `@/` import aliases.
-- Follow the Biome configuration: double quotes, semicolons, two-space indentation, sorted imports, and a 120-character line width.
+- Follow the oxfmt configuration in `.oxfmtrc.json`: single quotes, no semicolons, two-space indentation, no trailing commas, and a 120-character line width.
+- Follow the oxlint configuration in `.oxlintrc.json`. Keep imports grouped and sorted by hand; `sortImports` stays disabled in oxfmt so that side-effect CSS import order is preserved.
 - Avoid unnecessary dependencies.
 - Keep changes focused and do not refactor unrelated files.
 - Preserve user changes in a dirty worktree and do not commit unless explicitly requested.
@@ -110,4 +114,3 @@ Keep a component inside its route until it is reused by another feature. Do not 
 - Use conventional commit prefixes such as `feat:`, `fix:`, `refactor:`, `docs:`, and `chore:`.
 - Include screenshots for new screens and material visual changes. Include mobile and dark-theme states when relevant.
 - Explain new reusable patterns or dependencies in the pull request.
-- Follow `CONTRIBUTING.md` for the contribution workflow.

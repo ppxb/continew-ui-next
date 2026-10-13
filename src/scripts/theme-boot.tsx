@@ -5,12 +5,12 @@
  * Runs early in <head> to apply the correct data attributes before hydration,
  * preventing layout or theme flicker and keeping the root document fully static.
  */
-import { fontBootRegistry } from "@/lib/fonts/registry";
-import { PREFERENCE_REGISTRY } from "@/lib/preferences/preferences-config";
+import { fontBootRegistry } from '@/lib/fonts/registry'
+import { PREFERENCE_REGISTRY } from '@/lib/preferences/preferences-config'
 
 export function ThemeBootScript() {
-  const registry = JSON.stringify(PREFERENCE_REGISTRY);
-  const fonts = JSON.stringify(fontBootRegistry);
+  const registry = JSON.stringify(PREFERENCE_REGISTRY)
+  const fonts = JSON.stringify(fontBootRegistry)
 
   const code = `
     (function () {
@@ -149,8 +149,7 @@ export function ThemeBootScript() {
         console.warn("ThemeBootScript error:", e);
       }
     })();
-  `;
+  `
 
-  /* biome-ignore lint/security/noDangerouslySetInnerHtml: required for pre-hydration boot script */
-  return <script dangerouslySetInnerHTML={{ __html: code }} />;
+  return <script dangerouslySetInnerHTML={{ __html: code }} />
 }
