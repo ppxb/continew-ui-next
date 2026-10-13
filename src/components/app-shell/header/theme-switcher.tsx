@@ -29,7 +29,7 @@ export function ThemeSwitcher() {
         <Sun className="hidden dark:block [html[data-theme-mode=system]_&]:hidden" />
         <Moon className="block dark:hidden [html[data-theme-mode=system]_&]:hidden" />
       </TooltipTrigger>
-      <TooltipContent side="bottom">切换主题</TooltipContent>
+      <TooltipContent side="bottom" sideOffset={8}>切换主题</TooltipContent>
     </Tooltip>
   )
 }

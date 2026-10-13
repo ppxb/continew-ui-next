@@ -2,7 +2,7 @@ import { Link } from '@tanstack/react-router'
 
 import { CircleUser, LogOut } from 'lucide-react'
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Avatar, AvatarBadge, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,6 +15,9 @@ import { useLogout } from '@/hooks/use-logout'
 import { getInitials } from '@/lib/utils'
 import { useAuthStore } from '@/stores/auth/auth-provider'
 
+/** Temporary stand-in until the backend serves a real avatar. */
+const AVATAR_URL = 'https://github.com/shadcn.png'
+
 /** Current user menu: identity, department, roles and logout. */
 export function UserMenu() {
   const user = useAuthStore(state => state.user)
@@ -25,14 +28,15 @@ export function UserMenu() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger nativeButton={false} render={<Avatar className="size-9 rounded-lg" />}>
-        <AvatarImage src={user?.avatar || undefined} alt={name} />
+      <DropdownMenuTrigger nativeButton={false} render={<Avatar className="hover:cursor-pointer" />}>
+        <AvatarImage src={AVATAR_URL} />
         <AvatarFallback>{getInitials(name)}</AvatarFallback>
+        <AvatarBadge className="bg-green-600 dark:bg-green-800" />
       </DropdownMenuTrigger>
       <DropdownMenuContent className="min-w-56 space-y-1 rounded-lg" side="bottom" align="end" sideOffset={4}>
         <div className="flex items-center gap-2 px-1 py-1.5">
           <Avatar className="size-9 rounded-lg">
-            <AvatarImage src={user?.avatar || undefined} alt={name} />
+            <AvatarImage src={AVATAR_URL} />
             <AvatarFallback>{getInitials(name)}</AvatarFallback>
           </Avatar>
           <div className="grid min-w-0 flex-1 text-left text-sm leading-tight">

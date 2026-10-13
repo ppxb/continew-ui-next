@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import type { ContentLayout, NavbarStyle, SidebarCollapsible, SidebarVariant } from '@/lib/preferences/layout'
 import { THEME_PRESET_OPTIONS, type ThemeMode, type ThemePreset } from '@/lib/preferences/theme'
 import { usePreferencesStore } from '@/stores/preferences/preferences-provider'
@@ -49,9 +50,12 @@ export function LayoutControls() {
 
   return (
     <Popover>
-      <PopoverTrigger render={<Button size="icon" />}>
-        <Settings />
-      </PopoverTrigger>
+      <Tooltip>
+        <TooltipTrigger render={<PopoverTrigger render={<Button size="icon-sm" variant="outline" />} />}>
+          <Settings />
+        </TooltipTrigger>
+        <TooltipContent side="bottom" sideOffset={8}>偏好设置</TooltipContent>
+      </Tooltip>
       <PopoverContent align="end">
         <div className="flex flex-col gap-5">
           <div className="space-y-1.5">
