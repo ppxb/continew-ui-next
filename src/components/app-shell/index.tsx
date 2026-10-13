@@ -1,6 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react'
 
-import type { QueryClient } from '@tanstack/react-query'
 import { cn } from 'cn'
 
 import { Separator } from '@/components/ui/separator'
@@ -31,7 +30,6 @@ export function readShellPreferences() {
 export type ShellPreferences = ReturnType<typeof readShellPreferences>
 
 type ShellLoaderContext = {
-  context: { queryClient: QueryClient }
   location: { href: string; pathname: string }
 }
 
@@ -42,8 +40,8 @@ type ShellLoaderContext = {
  * guard runs before the request, so the session is re-checked afterwards: a session
  * that expired while the menu was loading must not render the shell.
  */
-export async function loadAppShell({ context, location }: ShellLoaderContext): Promise<ShellPreferences> {
-  await ensureMenuLoaded(context.queryClient)
+export async function loadAppShell({ location }: ShellLoaderContext): Promise<ShellPreferences> {
+  await ensureMenuLoaded()
   requireAuth({ location })
 
   return readShellPreferences()
