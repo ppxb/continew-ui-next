@@ -1,46 +1,46 @@
-import { addDays, format } from "date-fns";
-import { ClipboardCheck, Globe, Orbit, Plus } from "lucide-react";
+import { addDays, format } from 'date-fns'
+import { ClipboardCheck, Globe, Orbit, Plus } from 'lucide-react'
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardAction, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardAction, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Progress } from '@/components/ui/progress'
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
-const today = new Date();
+const today = new Date()
 
 const projects = [
   {
-    title: "Q2 Roadmap",
-    status: "In Progress",
-    description: "Ship better, ship smarter.",
+    title: 'Q2 Roadmap',
+    status: 'In Progress',
+    description: 'Ship better, ship smarter.',
     progress: 68,
-    due: `Due ${format(addDays(today, 9), "MMM d")}`,
-    icon: Orbit,
+    due: `Due ${format(addDays(today, 9), 'MMM d')}`,
+    icon: Orbit
   },
   {
-    title: "Website Redesign",
-    status: "Planning",
-    description: "Clean, modern, and fast.",
+    title: 'Website Redesign',
+    status: 'Planning',
+    description: 'Clean, modern, and fast.',
     progress: 42,
-    due: `Due ${format(addDays(today, 21), "MMM d")}`,
-    icon: Globe,
+    due: `Due ${format(addDays(today, 21), 'MMM d')}`,
+    icon: Globe
   },
   {
-    title: "Onboarding",
-    status: "Planning",
-    description: "Trim first-run steps.",
+    title: 'Onboarding',
+    status: 'Planning',
+    description: 'Trim first-run steps.',
     progress: 31,
-    due: `Due ${format(addDays(today, 18), "MMM d")}`,
-    icon: ClipboardCheck,
-  },
-] as const;
+    due: `Due ${format(addDays(today, 18), 'MMM d')}`,
+    icon: ClipboardCheck
+  }
+] as const
 
 const projectFilterItems = [
-  { value: "active", label: "Active" },
-  { value: "planning", label: "Planning" },
-  { value: "completed", label: "Completed" },
-] as const;
+  { value: 'active', label: 'Active' },
+  { value: 'planning', label: 'Planning' },
+  { value: 'completed', label: 'Completed' }
+] as const
 
 export function ProjectsSection() {
   return (
@@ -54,7 +54,7 @@ export function ProjectsSection() {
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                {projectFilterItems.map((item) => (
+                {projectFilterItems.map(item => (
                   <SelectItem key={item.value} value={item.value}>
                     {item.label}
                   </SelectItem>
@@ -70,7 +70,7 @@ export function ProjectsSection() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
-        {projects.map((project) => (
+        {projects.map(project => (
           <Card key={project.title} className="shadow-xs">
             <CardHeader>
               <CardTitle>
@@ -99,5 +99,5 @@ export function ProjectsSection() {
         ))}
       </div>
     </section>
-  );
+  )
 }

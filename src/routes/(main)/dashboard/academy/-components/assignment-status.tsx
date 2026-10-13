@@ -1,53 +1,53 @@
-import { ArrowRight } from "lucide-react";
-import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
+import { ArrowRight } from 'lucide-react'
+import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts'
 
-import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   type ChartConfig,
   ChartContainer,
   ChartLegend,
   ChartLegendContent,
   ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
+  ChartTooltipContent
+} from '@/components/ui/chart'
 
 const chartData = [
-  { className: "G11A", submitted: 14, pending: 18, overdue: 2 },
-  { className: "G11B", submitted: 22, pending: 7, overdue: 3 },
-  { className: "G11C", submitted: 10, pending: 19, overdue: 5 },
-  { className: "G11D", submitted: 17, pending: 15, overdue: 6 },
-  { className: "G11E", submitted: 24, pending: 4, overdue: 2 },
-];
+  { className: 'G11A', submitted: 14, pending: 18, overdue: 2 },
+  { className: 'G11B', submitted: 22, pending: 7, overdue: 3 },
+  { className: 'G11C', submitted: 10, pending: 19, overdue: 5 },
+  { className: 'G11D', submitted: 17, pending: 15, overdue: 6 },
+  { className: 'G11E', submitted: 24, pending: 4, overdue: 2 }
+]
 
 function SubmittedLegendIcon() {
-  return <span className="block size-2 rounded-[2px] bg-chart-3" />;
+  return <span className="block size-2 rounded-[2px] bg-chart-3" />
 }
 
 function PendingLegendIcon() {
-  return <span className="block size-2 rounded-[2px] bg-chart-2" />;
+  return <span className="block size-2 rounded-[2px] bg-chart-2" />
 }
 
 function OverdueLegendIcon() {
-  return <span className="block size-2 rounded-[2px] bg-destructive" />;
+  return <span className="block size-2 rounded-[2px] bg-destructive" />
 }
 
 const chartConfig = {
   submitted: {
-    label: "Submitted",
-    color: "var(--chart-3)",
-    icon: SubmittedLegendIcon,
+    label: 'Submitted',
+    color: 'var(--chart-3)',
+    icon: SubmittedLegendIcon
   },
   pending: {
-    label: "Pending",
-    color: "var(--chart-2)",
-    icon: PendingLegendIcon,
+    label: 'Pending',
+    color: 'var(--chart-2)',
+    icon: PendingLegendIcon
   },
   overdue: {
-    label: "Overdue",
-    color: "var(--destructive)",
-    icon: OverdueLegendIcon,
-  },
-} satisfies ChartConfig;
+    label: 'Overdue',
+    color: 'var(--destructive)',
+    icon: OverdueLegendIcon
+  }
+} satisfies ChartConfig
 
 function AssignmentDotPattern({ color, id }: { color: string; id: string }) {
   return (
@@ -56,7 +56,7 @@ function AssignmentDotPattern({ color, id }: { color: string; id: string }) {
       <circle cx="1.5" cy="1.5" r="0.8" fill={color} fillOpacity="0.25" />
       <circle cx="4.5" cy="4.5" r="0.8" fill={color} fillOpacity="0.25" />
     </pattern>
-  );
+  )
 }
 
 export function AssignmentStatus() {
@@ -64,7 +64,7 @@ export function AssignmentStatus() {
     <Card className="h-full">
       <CardHeader>
         <CardTitle className="text-sm">Assignment Status</CardTitle>
-        <CardAction className="flex items-center gap-1 text-muted-foreground text-xs">
+        <CardAction className="flex items-center gap-1 text-xs text-muted-foreground">
           View Report <ArrowRight className="size-4" />
         </CardAction>
       </CardHeader>
@@ -108,5 +108,5 @@ export function AssignmentStatus() {
         </ChartContainer>
       </CardContent>
     </Card>
-  );
+  )
 }

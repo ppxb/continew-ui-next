@@ -1,8 +1,8 @@
-import { SaudiRiyal } from "lucide-react";
+import { SaudiRiyal } from 'lucide-react'
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { formatCurrency } from "@/lib/utils";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
+import { formatCurrency } from '@/lib/utils'
 
 export function NetWorth() {
   return (
@@ -20,16 +20,16 @@ export function NetWorth() {
       <CardContent className="space-y-4">
         <div className="space-y-0.5">
           <div className="flex items-center justify-between">
-            <p className="font-medium text-xl tabular-nums">{formatCurrency(84250, { noDecimals: true })}</p>
+            <p className="text-xl font-medium tabular-nums">{formatCurrency(84250, { noDecimals: true })}</p>
             <span className="text-xs">+$3,680 MoM</span>
           </div>
-          <p className="text-muted-foreground text-xs">This month</p>
+          <p className="text-xs text-muted-foreground">This month</p>
         </div>
 
         <Separator />
 
-        <p className="text-muted-foreground text-xs">Across all linked accounts</p>
+        <p className="text-xs text-muted-foreground">Across all linked accounts</p>
       </CardContent>
     </Card>
-  );
+  )
 }

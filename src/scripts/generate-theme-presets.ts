@@ -55,8 +55,9 @@ const presets = files.map(file => {
   const label = labelMatch?.[1]?.trim() ?? file.replace('.css', '')
   const value = valueMatch?.[1]?.trim() ?? file.replace('.css', '')
 
-  const lightPrimaryMatch = content.match(/:root\[data-theme-preset="[^"]*"\][\s\S]*?--primary:\s*([^;]+);/)
-  const darkPrimaryMatch = content.match(/\.dark:root\[data-theme-preset="[^"]*"\][\s\S]*?--primary:\s*([^;]+);/)
+  // Attribute selectors may be single- or double-quoted depending on the formatter.
+  const lightPrimaryMatch = content.match(/:root\[data-theme-preset=["'][^"']*["']\][\s\S]*?--primary:\s*([^;]+);/)
+  const darkPrimaryMatch = content.match(/\.dark:root\[data-theme-preset=["'][^"']*["']\][\s\S]*?--primary:\s*([^;]+);/)
 
   const primary = {
     light: lightPrimaryMatch?.[1]?.trim() ?? '',

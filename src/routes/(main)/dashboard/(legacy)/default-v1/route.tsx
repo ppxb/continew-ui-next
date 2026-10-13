@@ -1,13 +1,13 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from '@tanstack/react-router'
 
-import { ChartAreaInteractive } from "./-components/chart-area-interactive";
-import data from "./-components/data.json";
-import { ProposalSectionsTable } from "./-components/proposal-sections-table/table";
-import { SectionCards } from "./-components/section-cards";
+import { ChartAreaInteractive } from './-components/chart-area-interactive'
+import data from './-components/data.json'
+import { ProposalSectionsTable } from './-components/proposal-sections-table/table'
+import { SectionCards } from './-components/section-cards'
 
-export const Route = createFileRoute("/(main)/dashboard/(legacy)/default-v1")({
-  component: Page,
-});
+export const Route = createFileRoute('/(main)/dashboard/(legacy)/default-v1')({
+  component: Page
+})
 
 function Page() {
   return (
@@ -16,5 +16,5 @@ function Page() {
       <ChartAreaInteractive />
       <ProposalSectionsTable data={data} />
     </div>
-  );
+  )
 }

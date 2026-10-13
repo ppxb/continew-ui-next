@@ -1,11 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from '@tanstack/react-router'
 
-import { Calendar } from "./-components/calendar";
+import { Calendar } from './-components/calendar'
 
-export const Route = createFileRoute("/(main)/dashboard/calendar")({
-  component: Page,
-});
+export const Route = createFileRoute('/(main)/dashboard/calendar')({
+  component: Page
+})
 
 function Page() {
-  return <Calendar />;
+  return <Calendar />
 }

@@ -1,7 +1,7 @@
-import { Link } from "@tanstack/react-router";
+import { Link } from '@tanstack/react-router'
 
-import { Command } from "lucide-react";
-import { useShallow } from "zustand/react/shallow";
+import { Command } from 'lucide-react'
+import { useShallow } from 'zustand/react/shallow'
 
 import {
   Sidebar,
@@ -10,28 +10,28 @@ import {
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
-  SidebarMenuItem,
-} from "@/components/ui/sidebar";
-import { APP_CONFIG } from "@/config/app-config";
-import { rootUser } from "@/data/users";
-import { sidebarItems } from "@/navigation/sidebar/sidebar-items";
-import { usePreferencesStore } from "@/stores/preferences/preferences-provider";
+  SidebarMenuItem
+} from '@/components/ui/sidebar'
+import { APP_CONFIG } from '@/config/app-config'
+import { rootUser } from '@/data/users'
+import { sidebarItems } from '@/navigation/sidebar/sidebar-items'
+import { usePreferencesStore } from '@/stores/preferences/preferences-provider'
 
-import { NavMain } from "./nav-main";
-import { NavUser } from "./nav-user";
-import { SupportCard } from "./support-card";
+import { NavMain } from './nav-main'
+import { NavUser } from './nav-user'
+import { SupportCard } from './support-card'
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { sidebarVariant, sidebarCollapsible, isSynced } = usePreferencesStore(
-    useShallow((s) => ({
+    useShallow(s => ({
       sidebarVariant: s.values.sidebar_variant,
       sidebarCollapsible: s.values.sidebar_collapsible,
-      isSynced: s.isSynced,
-    })),
-  );
+      isSynced: s.isSynced
+    }))
+  )
 
-  const variant = isSynced ? sidebarVariant : props.variant;
-  const collapsible = isSynced ? sidebarCollapsible : props.collapsible;
+  const variant = isSynced ? sidebarVariant : props.variant
+  const collapsible = isSynced ? sidebarCollapsible : props.collapsible
 
   return (
     <Sidebar {...props} variant={variant} collapsible={collapsible}>
@@ -40,7 +40,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton render={<Link to="/dashboard/default" />}>
               <Command />
-              <span className="font-semibold text-base">{APP_CONFIG.name}</span>
+              <span className="text-base font-semibold">{APP_CONFIG.name}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -53,5 +53,5 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavUser user={rootUser} />
       </SidebarFooter>
     </Sidebar>
-  );
+  )
 }

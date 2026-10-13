@@ -1,14 +1,14 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from '@tanstack/react-router'
 
-import { ActionsManagerQueue } from "./-components/analytics-actions-manager-queue";
-import { ActionsRiskLedger } from "./-components/analytics-actions-risk-ledger";
-import { DriversCoverageTriage } from "./-components/analytics-drivers-coverage-triage";
-import { DriversForecastTarget } from "./-components/analytics-drivers-forecast-target";
-import { AnalyticsOverview } from "./-components/analytics-overview";
+import { ActionsManagerQueue } from './-components/analytics-actions-manager-queue'
+import { ActionsRiskLedger } from './-components/analytics-actions-risk-ledger'
+import { DriversCoverageTriage } from './-components/analytics-drivers-coverage-triage'
+import { DriversForecastTarget } from './-components/analytics-drivers-forecast-target'
+import { AnalyticsOverview } from './-components/analytics-overview'
 
-export const Route = createFileRoute("/(main)/dashboard/(legacy)/analytics-v1")({
-  component: Page,
-});
+export const Route = createFileRoute('/(main)/dashboard/(legacy)/analytics-v1')({
+  component: Page
+})
 
 function Page() {
   return (
@@ -25,5 +25,5 @@ function Page() {
 
       <ActionsRiskLedger />
     </div>
-  );
+  )
 }

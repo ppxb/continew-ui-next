@@ -1,15 +1,15 @@
-import type * as React from "react";
+import type * as React from 'react'
 
-import { cn } from "cn";
-import type { SimpleIcon as SimpleIconType } from "simple-icons";
+import { cn } from 'cn'
+import type { SimpleIcon as SimpleIconType } from 'simple-icons'
 
 type SimpleIconProps = {
-  icon: SimpleIconType;
-  className?: string;
-} & React.SVGProps<SVGSVGElement>;
+  icon: SimpleIconType
+  className?: string
+} & React.SVGProps<SVGSVGElement>
 
 export function SimpleIcon({ icon, className, ...props }: SimpleIconProps) {
-  const { title, path } = icon;
+  const { title, path } = icon
 
   return (
     <svg
@@ -17,11 +17,11 @@ export function SimpleIcon({ icon, className, ...props }: SimpleIconProps) {
       aria-label={title}
       aria-hidden="false"
       focusable="false"
-      className={cn("size-5 fill-foreground", className)}
+      className={cn('size-5 fill-foreground', className)}
       {...props}
     >
       <title>{title}</title>
       <path d={path} />
     </svg>
-  );
+  )
 }

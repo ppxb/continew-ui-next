@@ -1,15 +1,15 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from '@tanstack/react-router'
 
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarProvider } from '@/components/ui/sidebar'
 
-import { Chat } from "./-components/chat";
-import { ChatHeader } from "./-components/chat-header";
-import { ChatSidebar } from "./-components/chat-sidebar";
-import { conversations } from "./-components/data";
+import { Chat } from './-components/chat'
+import { ChatHeader } from './-components/chat-header'
+import { ChatSidebar } from './-components/chat-sidebar'
+import { conversations } from './-components/data'
 
-export const Route = createFileRoute("/(main)/chat")({
-  component: Page,
-});
+export const Route = createFileRoute('/(main)/chat')({
+  component: Page
+})
 
 function Page() {
   return (
@@ -22,5 +22,5 @@ function Page() {
         </div>
       </SidebarProvider>
     </div>
-  );
+  )
 }

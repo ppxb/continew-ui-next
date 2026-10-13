@@ -1,19 +1,19 @@
-import { cn } from "cn";
-import { CalendarDays, CalendarRange } from "lucide-react";
+import { cn } from 'cn'
+import { CalendarDays, CalendarRange } from 'lucide-react'
 
-import { Button } from "@/components/ui/button";
-import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from '@/components/ui/button'
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
-const proposalSent = 12;
-const proposalGoal = 18;
-const proposalProgressPercentage = Math.round((proposalSent / proposalGoal) * 100);
-const proposalGoalBarCount = 42;
-const activeProposalBars = Math.round((proposalSent / proposalGoal) * proposalGoalBarCount);
+const proposalSent = 12
+const proposalGoal = 18
+const proposalProgressPercentage = Math.round((proposalSent / proposalGoal) * 100)
+const proposalGoalBarCount = 42
+const activeProposalBars = Math.round((proposalSent / proposalGoal) * proposalGoalBarCount)
 
 const proposalGoalBars = Array.from({ length: proposalGoalBarCount }, (_, index) => ({
   id: `proposal-goal-${index + 1}`,
-  active: index < activeProposalBars,
-}));
+  active: index < activeProposalBars
+}))
 
 export function TaskReminders() {
   return (
@@ -30,7 +30,7 @@ export function TaskReminders() {
         </CardHeader>
         <CardContent>
           <div className="space-y-1">
-            <div className="flex items-center justify-between text-muted-foreground text-xs tabular-nums">
+            <div className="flex items-center justify-between text-xs text-muted-foreground tabular-nums">
               <div className="flex flex-col items-center gap-1">
                 <span>08:45</span>
                 <span className="h-2 w-px bg-border" />
@@ -57,7 +57,7 @@ export function TaskReminders() {
                     <CalendarRange className="size-3.5" />
                   </div>
                   <div className="min-w-0">
-                    <div className="truncate font-medium text-primary-foreground text-xs leading-none">
+                    <div className="truncate text-xs leading-none font-medium text-primary-foreground">
                       Product demo with Tim
                     </div>
                     <div className="truncate text-[10px] text-primary-foreground/75">Weblabs Studio</div>
@@ -76,28 +76,28 @@ export function TaskReminders() {
         </CardHeader>
         <CardContent className="flex flex-col gap-1">
           <div className="flex items-end justify-between gap-3">
-            <div className="font-medium text-2xl tabular-nums leading-none">
-              {proposalSent} <span className="font-normal text-base text-muted-foreground">sent</span>
+            <div className="text-2xl leading-none font-medium tabular-nums">
+              {proposalSent} <span className="text-base font-normal text-muted-foreground">sent</span>
             </div>
-            <div className="text-muted-foreground text-sm tabular-nums">{proposalGoal} target</div>
+            <div className="text-sm text-muted-foreground tabular-nums">{proposalGoal} target</div>
           </div>
           <div className="flex h-10 w-full items-end gap-0.5">
-            {proposalGoalBars.map((bar) => (
+            {proposalGoalBars.map(bar => (
               <div key={bar.id} className="flex flex-1 justify-center">
                 <div
                   className={cn(
-                    "h-10 w-1.5 rounded-full",
-                    bar.active ? "bg-muted-foreground/75" : "bg-muted-foreground/25",
+                    'h-10 w-1.5 rounded-full',
+                    bar.active ? 'bg-muted-foreground/75' : 'bg-muted-foreground/25'
                   )}
                 />
               </div>
             ))}
           </div>
-          <p className="text-muted-foreground text-sm">
+          <p className="text-sm text-muted-foreground">
             {proposalProgressPercentage}% of this month&apos;s proposal target reached.
           </p>
         </CardContent>
       </Card>
     </section>
-  );
+  )
 }

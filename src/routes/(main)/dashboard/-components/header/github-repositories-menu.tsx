@@ -29,9 +29,7 @@ const repositories = [
 export function GitHubRepositoriesMenu() {
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger
-        render={<Button size="icon" aria-label="Open project repositories on GitHub" />}
-      >
+      <DropdownMenuTrigger render={<Button size="icon" aria-label="Open project repositories on GitHub" />}>
         <SimpleIcon icon={siGithub} className="fill-primary-foreground" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">

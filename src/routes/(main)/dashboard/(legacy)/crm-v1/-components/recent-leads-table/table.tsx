@@ -1,11 +1,11 @@
-import * as React from "react";
+import * as React from 'react'
 
 import {
   type ColumnFiltersState,
   type ColumnVisibilityState,
   type PaginationState,
-  useTable,
-} from "@tanstack/react-table";
+  useTable
+} from '@tanstack/react-table'
 
 import {
   ChevronDownIcon,
@@ -14,49 +14,49 @@ import {
   ChevronsLeftIcon,
   ChevronsRightIcon,
   Download,
-  Settings2,
-} from "lucide-react";
+  Settings2
+} from 'lucide-react'
 
-import { Button } from "@/components/ui/button";
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from '@/components/ui/button'
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { dataTableFeatures } from "@/lib/data-table-features";
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
+import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { dataTableFeatures } from '@/lib/data-table-features'
 
-import { recentLeadsColumns } from "./columns";
-import type { RecentLeadRow } from "./schema";
+import { recentLeadsColumns } from './columns'
+import type { RecentLeadRow } from './schema'
 
 const COLUMN_LABELS: Record<string, string> = {
-  id: "Ref",
-  name: "Name",
-  company: "Company",
-  status: "Status",
-  source: "Source",
-  lastActivity: "Last Activity",
-};
+  id: 'Ref',
+  name: 'Name',
+  company: 'Company',
+  status: 'Status',
+  source: 'Source',
+  lastActivity: 'Last Activity'
+}
 
-const pageSizeItems = [10, 20, 30, 40, 50].map((pageSize) => ({
+const pageSizeItems = [10, 20, 30, 40, 50].map(pageSize => ({
   value: `${pageSize}`,
-  label: `${pageSize}`,
-}));
+  label: `${pageSize}`
+}))
 
 export function RecentLeadsTable({ data }: { data: RecentLeadRow[] }) {
-  const [rowSelection, setRowSelection] = React.useState({});
-  const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>({});
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [rowSelection, setRowSelection] = React.useState({})
+  const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>({})
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
-    pageSize: 10,
-  });
+    pageSize: 10
+  })
 
   const table = useTable({
     features: dataTableFeatures,
@@ -66,15 +66,15 @@ export function RecentLeadsTable({ data }: { data: RecentLeadRow[] }) {
       rowSelection,
       columnVisibility,
       columnFilters,
-      pagination,
+      pagination
     },
-    getRowId: (row) => row.id,
+    getRowId: row => row.id,
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
     onColumnVisibilityChange: setColumnVisibility,
     onColumnFiltersChange: setColumnFilters,
-    onPaginationChange: setPagination,
-  });
+    onPaginationChange: setPagination
+  })
 
   return (
     <Card>
@@ -94,12 +94,12 @@ export function RecentLeadsTable({ data }: { data: RecentLeadRow[] }) {
                   <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
                   {table
                     .getAllColumns()
-                    .filter((column) => typeof column.accessorFn !== "undefined" && column.getCanHide())
-                    .map((column) => (
+                    .filter(column => typeof column.accessorFn !== 'undefined' && column.getCanHide())
+                    .map(column => (
                       <DropdownMenuCheckboxItem
                         key={column.id}
                         checked={column.getIsVisible()}
-                        onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                        onCheckedChange={value => column.toggleVisibility(!!value)}
                       >
                         {COLUMN_LABELS[column.id] ?? column.id}
                       </DropdownMenuCheckboxItem>
@@ -118,9 +118,9 @@ export function RecentLeadsTable({ data }: { data: RecentLeadRow[] }) {
         <div className="overflow-hidden rounded-md border">
           <Table>
             <TableHeader className="bg-muted">
-              {table.getHeaderGroups().map((headerGroup) => (
+              {table.getHeaderGroups().map(headerGroup => (
                 <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
+                  {headerGroup.headers.map(header => (
                     <TableHead key={header.id} colSpan={header.colSpan}>
                       {header.isPlaceholder ? null : <table.FlexRender header={header} />}
                     </TableHead>
@@ -130,9 +130,9 @@ export function RecentLeadsTable({ data }: { data: RecentLeadRow[] }) {
             </TableHeader>
             <TableBody className="**:data-[slot=table-cell]:first:w-8">
               {table.getRowModel().rows.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id} data-state={table.state.rowSelection[row.id] && "selected"}>
-                    {row.getVisibleCells().map((cell) => (
+                table.getRowModel().rows.map(row => (
+                  <TableRow key={row.id} data-state={table.state.rowSelection[row.id] && 'selected'}>
+                    {row.getVisibleCells().map(cell => (
                       <TableCell key={cell.id}>
                         <table.FlexRender cell={cell} />
                       </TableCell>
@@ -150,19 +150,19 @@ export function RecentLeadsTable({ data }: { data: RecentLeadRow[] }) {
           </Table>
         </div>
         <div className="flex items-center justify-between gap-4">
-          <div className="hidden flex-1 text-muted-foreground text-sm lg:flex">
+          <div className="hidden flex-1 text-sm text-muted-foreground lg:flex">
             {table.getFilteredSelectedRowModel().rows.length} of {table.getFilteredRowModel().rows.length} row(s)
             selected.
           </div>
           <div className="flex w-full items-center gap-8 lg:w-fit">
             <div className="hidden items-center gap-2 lg:flex">
-              <Label htmlFor="recent-leads-rows-per-page" className="font-medium text-sm">
+              <Label htmlFor="recent-leads-rows-per-page" className="text-sm font-medium">
                 Rows per page
               </Label>
               <Select
                 value={`${table.state.pagination.pageSize}`}
-                onValueChange={(value) => {
-                  table.setPageSize(Number(value));
+                onValueChange={value => {
+                  table.setPageSize(Number(value))
                 }}
                 items={pageSizeItems}
               >
@@ -171,7 +171,7 @@ export function RecentLeadsTable({ data }: { data: RecentLeadRow[] }) {
                 </SelectTrigger>
                 <SelectContent side="top">
                   <SelectGroup>
-                    {pageSizeItems.map((item) => (
+                    {pageSizeItems.map(item => (
                       <SelectItem key={item.value} value={item.value}>
                         {item.label}
                       </SelectItem>
@@ -180,7 +180,7 @@ export function RecentLeadsTable({ data }: { data: RecentLeadRow[] }) {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex w-fit items-center justify-center font-medium text-sm">
+            <div className="flex w-fit items-center justify-center text-sm font-medium">
               Page {table.state.pagination.pageIndex + 1} of {table.getPageCount()}
             </div>
             <div className="ml-auto flex items-center gap-2 lg:ml-0">
@@ -228,5 +228,5 @@ export function RecentLeadsTable({ data }: { data: RecentLeadRow[] }) {
         </div>
       </CardContent>
     </Card>
-  );
+  )
 }

@@ -1,7 +1,7 @@
-import { siX } from "simple-icons";
+import { siX } from 'simple-icons'
 
-import { SimpleIcon } from "@/components/simple-icon";
-import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { SimpleIcon } from '@/components/simple-icon'
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 export function SupportCard() {
   return (
@@ -19,7 +19,7 @@ export function SupportCard() {
           >
             <SimpleIcon icon={siX} aria-hidden className="size-3 fill-foreground" />
           </a>
-          &nbsp;or by{" "}
+          &nbsp;or by{' '}
           <a
             href="https://github.com/arhamkhnz#want-to-connect"
             target="_blank"
@@ -32,5 +32,5 @@ export function SupportCard() {
         </CardDescription>
       </CardHeader>
     </Card>
-  );
+  )
 }

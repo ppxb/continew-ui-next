@@ -1,18 +1,18 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from '@tanstack/react-router'
 
-import { BookOpenCheck, Megaphone, Plus } from "lucide-react";
+import { BookOpenCheck, Megaphone, Plus } from 'lucide-react'
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button'
 
-import { AssignmentStatus } from "./-components/assignment-status";
-import { ClassSchedule } from "./-components/class-schedule";
-import { KpiCards } from "./-components/kpi-cards";
-import { PerformanceHighlights } from "./-components/performance-highlights";
-import { UpcomingEvents } from "./-components/upcoming-events";
+import { AssignmentStatus } from './-components/assignment-status'
+import { ClassSchedule } from './-components/class-schedule'
+import { KpiCards } from './-components/kpi-cards'
+import { PerformanceHighlights } from './-components/performance-highlights'
+import { UpcomingEvents } from './-components/upcoming-events'
 
-export const Route = createFileRoute("/(main)/dashboard/academy")({
-  component: Page,
-});
+export const Route = createFileRoute('/(main)/dashboard/academy')({
+  component: Page
+})
 
 function Page() {
   return (
@@ -20,7 +20,7 @@ function Page() {
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div className="space-y-1">
           <h1 className="text-3xl tracking-tight">Academy Dashboard</h1>
-          <p className="text-muted-foreground text-sm">
+          <p className="text-sm text-muted-foreground">
             Good morning, Teacher. Here's a quick overview of today's activity.
           </p>
         </div>
@@ -61,5 +61,5 @@ function Page() {
         </div>
       </div>
     </div>
-  );
+  )
 }

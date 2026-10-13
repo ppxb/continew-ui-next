@@ -1,27 +1,27 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from '@tanstack/react-router'
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
-import { AnalyticsKpiStrip } from "./-components/analytics-kpi-strip";
-import { AnalyticsToolbar } from "./-components/analytics-toolbar";
-import { RealtimeVisitors } from "./-components/realtime-visitors";
-import { TopPages } from "./-components/top-pages";
-import { TopTrafficSources } from "./-components/top-traffic-sources";
-import { TrafficQuality } from "./-components/traffic-quality";
+import { AnalyticsKpiStrip } from './-components/analytics-kpi-strip'
+import { AnalyticsToolbar } from './-components/analytics-toolbar'
+import { RealtimeVisitors } from './-components/realtime-visitors'
+import { TopPages } from './-components/top-pages'
+import { TopTrafficSources } from './-components/top-traffic-sources'
+import { TrafficQuality } from './-components/traffic-quality'
 
 // Import this stylesheet in any page or component that renders country flag classes.
-import "@/styles/flag-icons/flags.css";
+import '@/styles/flag-icons/flags.css'
 
-export const Route = createFileRoute("/(main)/dashboard/analytics")({
-  component: Page,
-});
+export const Route = createFileRoute('/(main)/dashboard/analytics')({
+  component: Page
+})
 
 function Page() {
   return (
     <div className="flex flex-col gap-4">
       <div className="space-y-1">
         <h1 className="text-3xl tracking-tight">Hello, Aiy</h1>
-        <p className="text-muted-foreground text-sm">
+        <p className="text-sm text-muted-foreground">
           Monitor traffic, engagement, and conversion performance in one view.
         </p>
       </div>
@@ -62,29 +62,29 @@ function Page() {
         </TabsContent>
 
         <TabsContent value="audience">
-          <div className="flex h-64 items-center justify-center rounded-xl border border-border border-dashed text-muted-foreground">
+          <div className="flex h-64 items-center justify-center rounded-xl border border-dashed border-border text-muted-foreground">
             Audience view coming soon.
           </div>
         </TabsContent>
 
         <TabsContent value="acquisition">
-          <div className="flex h-64 items-center justify-center rounded-xl border border-border border-dashed text-muted-foreground">
+          <div className="flex h-64 items-center justify-center rounded-xl border border-dashed border-border text-muted-foreground">
             Acquisition view coming soon.
           </div>
         </TabsContent>
 
         <TabsContent value="engagement">
-          <div className="flex h-64 items-center justify-center rounded-xl border border-border border-dashed text-muted-foreground">
+          <div className="flex h-64 items-center justify-center rounded-xl border border-dashed border-border text-muted-foreground">
             Engagement view coming soon.
           </div>
         </TabsContent>
 
         <TabsContent value="conversions">
-          <div className="flex h-64 items-center justify-center rounded-xl border border-border border-dashed text-muted-foreground">
+          <div className="flex h-64 items-center justify-center rounded-xl border border-dashed border-border text-muted-foreground">
             Conversions view coming soon.
           </div>
         </TabsContent>
       </Tabs>
     </div>
-  );
+  )
 }

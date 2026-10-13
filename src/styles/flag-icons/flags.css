@@ -1,5 +1,5 @@
-[class*=" flag:"],
-[class^="flag:"] {
+[class*=' flag:'],
+[class^='flag:'] {
   display: inline-block;
   background-size: cover;
   --CountryFlagIcon-height: 1em;

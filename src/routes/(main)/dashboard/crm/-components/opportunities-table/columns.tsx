@@ -1,116 +1,116 @@
-import type { ColumnDef } from "@tanstack/react-table";
-import { Subscribe } from "@tanstack/react-table";
+import type { ColumnDef } from '@tanstack/react-table'
+import { Subscribe } from '@tanstack/react-table'
 
-import { cn } from "cn";
-import { Pencil } from "lucide-react";
+import { cn } from 'cn'
+import { Pencil } from 'lucide-react'
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import type { DataTableFeatures } from "@/lib/data-table-features";
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import type { DataTableFeatures } from '@/lib/data-table-features'
 
-import type { OpportunityRow } from "./schema";
+import type { OpportunityRow } from './schema'
 
 const healthStripSlots = Array.from({ length: 18 }, (_, index) => ({
   id: `strip-${index + 1}`,
-  threshold: index + 1,
-}));
+  threshold: index + 1
+}))
 
-function getHealthScore(health: OpportunityRow["health"]) {
+function getHealthScore(health: OpportunityRow['health']) {
   switch (health) {
-    case "On Track":
-      return 18;
-    case "Needs Review":
-      return 11;
-    case "At Risk":
-      return 7;
-    case "On Hold":
-      return 4;
+    case 'On Track':
+      return 18
+    case 'Needs Review':
+      return 11
+    case 'At Risk':
+      return 7
+    case 'On Hold':
+      return 4
     default:
-      return 0;
+      return 0
   }
 }
 
 export const opportunitiesColumns: ColumnDef<DataTableFeatures, OpportunityRow>[] = [
   {
-    id: "select",
+    id: 'select',
     header: ({ table }) => (
       <Subscribe source={table.atoms.rowSelection}>
         {() => (
           <Checkbox
             checked={table.getIsAllPageRowsSelected()}
             indeterminate={!table.getIsAllPageRowsSelected() && table.getIsSomePageRowsSelected()}
-            onCheckedChange={(value) => table.toggleAllPageRowsSelected(value)}
+            onCheckedChange={value => table.toggleAllPageRowsSelected(value)}
             aria-label="Select all opportunities"
           />
         )}
       </Subscribe>
     ),
     cell: ({ row }) => (
-      <Subscribe source={row.table.atoms.rowSelection} selector={(selection) => Boolean(selection?.[row.id])}>
-        {(checked) => (
+      <Subscribe source={row.table.atoms.rowSelection} selector={selection => Boolean(selection?.[row.id])}>
+        {checked => (
           <Checkbox
             checked={checked}
-            onCheckedChange={(value) => row.toggleSelected(value)}
+            onCheckedChange={value => row.toggleSelected(value)}
             aria-label={`Select ${row.original.account}`}
           />
         )}
       </Subscribe>
     ),
-    enableHiding: false,
+    enableHiding: false
   },
   {
-    accessorKey: "id",
-    header: "ID",
+    accessorKey: 'id',
+    header: 'ID',
     cell: ({ row }) => <div className="text-sm tracking-tight">{row.original.id}</div>,
-    enableHiding: false,
+    enableHiding: false
   },
   {
-    accessorKey: "account",
-    header: "Account",
-    cell: ({ row }) => <div className="font-medium text-sm">{row.original.account}</div>,
+    accessorKey: 'account',
+    header: 'Account',
+    cell: ({ row }) => <div className="text-sm font-medium">{row.original.account}</div>
   },
   {
-    accessorKey: "stage",
-    header: "Stage",
+    accessorKey: 'stage',
+    header: 'Stage',
     cell: ({ row }) => (
       <Badge variant="outline" className="rounded-full px-2.5">
         {row.original.stage}
       </Badge>
     ),
-    filterFn: "equalsString",
+    filterFn: 'equalsString'
   },
   {
-    accessorKey: "priority",
-    header: "Priority",
-    cell: ({ row }) => <div className="text-sm">{row.original.priority}</div>,
+    accessorKey: 'priority',
+    header: 'Priority',
+    cell: ({ row }) => <div className="text-sm">{row.original.priority}</div>
   },
   {
-    accessorKey: "health",
-    header: "Health",
+    accessorKey: 'health',
+    header: 'Health',
     cell: ({ row }) => (
       <div className="flex items-end gap-0.5" title={row.original.health}>
         <span className="sr-only">{row.original.health}</span>
-        {healthStripSlots.map((slot) => (
+        {healthStripSlots.map(slot => (
           <div
             key={`${row.original.id}-${slot.id}`}
             className={cn(
-              "h-5 w-1 rounded-full",
-              slot.threshold <= getHealthScore(row.original.health) ? "bg-green-500/85" : "bg-green-500/15",
+              'h-5 w-1 rounded-full',
+              slot.threshold <= getHealthScore(row.original.health) ? 'bg-green-500/85' : 'bg-green-500/15'
             )}
           />
         ))}
       </div>
     ),
-    filterFn: "equalsString",
+    filterFn: 'equalsString'
   },
   {
-    accessorKey: "value",
-    header: "Value",
-    cell: ({ row }) => <div className="font-medium text-sm tabular-nums">{row.original.value}</div>,
+    accessorKey: 'value',
+    header: 'Value',
+    cell: ({ row }) => <div className="text-sm font-medium tabular-nums">{row.original.value}</div>
   },
   {
-    id: "actions",
+    id: 'actions',
     header: () => <div className="text-right">Edit</div>,
     cell: () => (
       <div className="text-right">
@@ -124,6 +124,6 @@ export const opportunitiesColumns: ColumnDef<DataTableFeatures, OpportunityRow>[
         </Button>
       </div>
     ),
-    enableHiding: false,
-  },
-];
+    enableHiding: false
+  }
+]

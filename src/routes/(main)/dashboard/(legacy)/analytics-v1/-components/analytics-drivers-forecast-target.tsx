@@ -1,50 +1,50 @@
-import { Bar, CartesianGrid, ComposedChart, Dot, LabelList, Line, ReferenceLine, XAxis, YAxis } from "recharts";
+import { Bar, CartesianGrid, ComposedChart, Dot, LabelList, Line, ReferenceLine, XAxis, YAxis } from 'recharts'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 
 const forecastChartConfig = {
   closedWon: {
-    label: "Closed Won",
-    color: "var(--chart-1)",
+    label: 'Closed Won',
+    color: 'var(--chart-1)'
   },
   weightedPipeline: {
-    label: "Weighted Pipeline",
-    color: "var(--chart-2)",
+    label: 'Weighted Pipeline',
+    color: 'var(--chart-2)'
   },
   target: {
-    label: "Target",
-    color: "var(--muted-foreground)",
-  },
-} satisfies ChartConfig;
+    label: 'Target',
+    color: 'var(--muted-foreground)'
+  }
+} satisfies ChartConfig
 
 type TrendPoint = {
-  period: string;
-  closedWon: number;
-  weightedPipeline: number;
-  target: number;
-  deltaLabel?: string;
-};
+  period: string
+  closedWon: number
+  weightedPipeline: number
+  target: number
+  deltaLabel?: string
+}
 
 const CHART_DATA: TrendPoint[] = [
-  { period: "W1", closedWon: 68.6, weightedPipeline: 152.4, target: 100 },
-  { period: "W2", closedWon: 87.1, weightedPipeline: 158.1, target: 100 },
-  { period: "W3", closedWon: 77.1, weightedPipeline: 154.8, target: 100 },
-  { period: "W4", closedWon: 94.3, weightedPipeline: 162.2, target: 100 },
-  { period: "W5", closedWon: 80.6, weightedPipeline: 160.4, target: 100 },
-  { period: "W6", closedWon: 100, weightedPipeline: 168.5, target: 100 },
-  { period: "W7", closedWon: 87.5, weightedPipeline: 172.1, target: 100 },
-  { period: "W8", closedWon: 95.8, weightedPipeline: 178.3, target: 100 },
-  { period: "W9", closedWon: 100, weightedPipeline: 181.0, target: 100 },
-  { period: "W10", closedWon: 95.9, weightedPipeline: 185.4, target: 100 },
-  { period: "W11", closedWon: 104.1, weightedPipeline: 188.7, target: 100 },
-  { period: "W12", closedWon: 109.5, weightedPipeline: 192.1, target: 100, deltaLabel: "+9.5pp" },
-];
+  { period: 'W1', closedWon: 68.6, weightedPipeline: 152.4, target: 100 },
+  { period: 'W2', closedWon: 87.1, weightedPipeline: 158.1, target: 100 },
+  { period: 'W3', closedWon: 77.1, weightedPipeline: 154.8, target: 100 },
+  { period: 'W4', closedWon: 94.3, weightedPipeline: 162.2, target: 100 },
+  { period: 'W5', closedWon: 80.6, weightedPipeline: 160.4, target: 100 },
+  { period: 'W6', closedWon: 100, weightedPipeline: 168.5, target: 100 },
+  { period: 'W7', closedWon: 87.5, weightedPipeline: 172.1, target: 100 },
+  { period: 'W8', closedWon: 95.8, weightedPipeline: 178.3, target: 100 },
+  { period: 'W9', closedWon: 100, weightedPipeline: 181.0, target: 100 },
+  { period: 'W10', closedWon: 95.9, weightedPipeline: 185.4, target: 100 },
+  { period: 'W11', closedWon: 104.1, weightedPipeline: 188.7, target: 100 },
+  { period: 'W12', closedWon: 109.5, weightedPipeline: 192.1, target: 100, deltaLabel: '+9.5pp' }
+]
 
 export function DriversForecastTarget() {
-  const chartData = CHART_DATA;
-  const pipelineMin = Math.min(...CHART_DATA.map((point) => point.weightedPipeline));
-  const pipelineMax = Math.max(...CHART_DATA.map((point) => point.weightedPipeline));
+  const chartData = CHART_DATA
+  const pipelineMin = Math.min(...CHART_DATA.map(point => point.weightedPipeline))
+  const pipelineMax = Math.max(...CHART_DATA.map(point => point.weightedPipeline))
 
   return (
     <Card className="shadow-xs">
@@ -63,25 +63,25 @@ export function DriversForecastTarget() {
             <CartesianGrid vertical={false} stroke="var(--border)" strokeOpacity={0.25} />
             <XAxis dataKey="period" tickLine={false} axisLine={false} tickMargin={10} />
             <YAxis
-              tickFormatter={(value) => `${Math.round(value)}%`}
+              tickFormatter={value => `${Math.round(value)}%`}
               tickLine={false}
               axisLine={false}
               tickMargin={8}
               width={44}
-              domain={[0, "auto"]}
+              domain={[0, 'auto']}
               ticks={[0, 50, 100, 150, 200]}
             />
             <YAxis yAxisId="pipeline" hide domain={[pipelineMin, pipelineMax]} />
             <ChartTooltip
               cursor={false}
-              content={(props) => (
+              content={props => (
                 <ChartTooltipContent
                   active={props.active}
                   label={props.label}
                   className="w-48"
-                  payload={(props.payload ?? []).map((item) => ({
+                  payload={(props.payload ?? []).map(item => ({
                     ...item,
-                    value: typeof item.value === "number" ? `${item.value.toFixed(1)}%` : item.value,
+                    value: typeof item.value === 'number' ? `${item.value.toFixed(1)}%` : item.value
                   }))}
                 />
               )}
@@ -126,15 +126,15 @@ export function DriversForecastTarget() {
         </ChartContainer>
       </CardContent>
     </Card>
-  );
+  )
 }
 
 function MetricChip({ label, value, note }: { label: string; value: string; note: string }) {
   return (
     <div className="rounded-md border bg-muted/35 px-3 py-2.5">
-      <p className="text-muted-foreground text-xs">{label}</p>
-      <p className="font-semibold text-lg tabular-nums">{value}</p>
-      <p className="text-muted-foreground text-xs">{note}</p>
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="text-lg font-semibold tabular-nums">{value}</p>
+      <p className="text-xs text-muted-foreground">{note}</p>
     </div>
-  );
+  )
 }

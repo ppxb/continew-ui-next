@@ -1,49 +1,49 @@
-import { Ellipsis } from "lucide-react";
-import { Bar, BarChart, CartesianGrid, LabelList, type LabelProps, XAxis, YAxis } from "recharts";
+import { Ellipsis } from 'lucide-react'
+import { Bar, BarChart, CartesianGrid, LabelList, type LabelProps, XAxis, YAxis } from 'recharts'
 
-import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 const chartConfig = {
   visitors: {
-    color: "var(--chart-1)",
-    label: "Visitors",
-  },
-} satisfies ChartConfig;
+    color: 'var(--chart-1)',
+    label: 'Visitors'
+  }
+} satisfies ChartConfig
 
 type TrafficSourceDatum = {
-  label: string;
-  source: string;
-  visitors: number;
-};
+  label: string
+  source: string
+  visitors: number
+}
 
 const sourcesData: TrafficSourceDatum[] = [
-  { label: "89.4k", source: "Organic Search", visitors: 89_400 },
-  { label: "55.2k", source: "Direct", visitors: 55_200 },
-  { label: "38.1k", source: "Social", visitors: 38_100 },
-  { label: "30.4k", source: "Referral", visitors: 30_400 },
-  { label: "22.7k", source: "Paid", visitors: 22_700 },
-];
+  { label: '89.4k', source: 'Organic Search', visitors: 89_400 },
+  { label: '55.2k', source: 'Direct', visitors: 55_200 },
+  { label: '38.1k', source: 'Social', visitors: 38_100 },
+  { label: '30.4k', source: 'Referral', visitors: 30_400 },
+  { label: '22.7k', source: 'Paid', visitors: 22_700 }
+]
 
 const campaignsData: TrafficSourceDatum[] = [
-  { label: "16.8k", source: "Spring Launch", visitors: 16_800 },
-  { label: "12.0k", source: "Newsletter", visitors: 12_000 },
-  { label: "7.7k", source: "Retargeting", visitors: 7700 },
-  { label: "5.9k", source: "Brand Search", visitors: 5900 },
-  { label: "4.3k", source: "Partners", visitors: 4300 },
-];
+  { label: '16.8k', source: 'Spring Launch', visitors: 16_800 },
+  { label: '12.0k', source: 'Newsletter', visitors: 12_000 },
+  { label: '7.7k', source: 'Retargeting', visitors: 7700 },
+  { label: '5.9k', source: 'Brand Search', visitors: 5900 },
+  { label: '4.3k', source: 'Partners', visitors: 4300 }
+]
 
 const referrersData: TrafficSourceDatum[] = [
-  { label: "18.4k", source: "Google", visitors: 18_400 },
-  { label: "8.9k", source: "LinkedIn", visitors: 8900 },
-  { label: "5.7k", source: "Product Hunt", visitors: 5700 },
-  { label: "4.8k", source: "GitHub", visitors: 4800 },
-  { label: "3.6k", source: "Medium", visitors: 3600 },
-];
+  { label: '18.4k', source: 'Google', visitors: 18_400 },
+  { label: '8.9k', source: 'LinkedIn', visitors: 8900 },
+  { label: '5.7k', source: 'Product Hunt', visitors: 5700 },
+  { label: '4.8k', source: 'GitHub', visitors: 4800 },
+  { label: '3.6k', source: 'Medium', visitors: 3600 }
+]
 
 const renderValueLabel = (props: LabelProps) => {
-  const { height, value, y } = props;
+  const { height, value, y } = props
 
   return (
     <text
@@ -57,8 +57,8 @@ const renderValueLabel = (props: LabelProps) => {
     >
       {value}
     </text>
-  );
-};
+  )
+}
 
 function TrafficSourceBarChart({ data }: { data: TrafficSourceDatum[] }) {
   return (
@@ -69,7 +69,7 @@ function TrafficSourceBarChart({ data }: { data: TrafficSourceDatum[] }) {
         layout="vertical"
         margin={{
           left: 0,
-          right: 48,
+          right: 48
         }}
       >
         <CartesianGrid horizontal={false} vertical={false} />
@@ -82,7 +82,7 @@ function TrafficSourceBarChart({ data }: { data: TrafficSourceDatum[] }) {
         </Bar>
       </BarChart>
     </ChartContainer>
-  );
+  )
 }
 
 export function TopTrafficSources() {
@@ -122,5 +122,5 @@ export function TopTrafficSources() {
         </Tabs>
       </CardContent>
     </Card>
-  );
+  )
 }

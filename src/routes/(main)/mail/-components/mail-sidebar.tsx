@@ -1,9 +1,9 @@
-import * as React from "react";
+import * as React from 'react'
 
-import { cn } from "cn";
-import { Check, EllipsisVertical, LogOut, PenLine, Settings2, UserPlus, UsersRound } from "lucide-react";
+import { cn } from 'cn'
+import { Check, EllipsisVertical, LogOut, PenLine, Settings2, UserPlus, UsersRound } from 'lucide-react'
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,9 +13,9 @@ import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Separator } from "@/components/ui/separator";
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
+import { Separator } from '@/components/ui/separator'
 import {
   Sidebar,
   SidebarContent,
@@ -27,17 +27,17 @@ import {
   SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
-} from "@/components/ui/sidebar";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { getInitials } from "@/lib/utils";
+  useSidebar
+} from '@/components/ui/sidebar'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { getInitials } from '@/lib/utils'
 
-import { accounts, type MailNavItem, mailNavigation } from "./data";
+import { accounts, type MailNavItem, mailNavigation } from './data'
 
 export function MailSidebar() {
-  const { state } = useSidebar();
-  const isCollapsed = state === "collapsed";
-  const [selectedAccount, setSelectedAccount] = React.useState(accounts[0]);
+  const { state } = useSidebar()
+  const isCollapsed = state === 'collapsed'
+  const [selectedAccount, setSelectedAccount] = React.useState(accounts[0])
 
   return (
     <Sidebar collapsible="icon" className="absolute inset-y-0 h-full **:data-[sidebar=sidebar]:bg-background">
@@ -69,16 +69,16 @@ export function MailSidebar() {
             <>
               <ToggleGroup
                 value={[String(selectedAccount.id)]}
-                onValueChange={(value) => {
-                  const account = accounts.find((item) => item.id === Number(value[0]));
+                onValueChange={value => {
+                  const account = accounts.find(item => item.id === Number(value[0]))
 
                   if (account) {
-                    setSelectedAccount(account);
+                    setSelectedAccount(account)
                   }
                 }}
                 spacing={2}
               >
-                {accounts.map((account) => (
+                {accounts.map(account => (
                   <ToggleGroupItem
                     key={account.id}
                     className={accountTriggerClassName}
@@ -103,11 +103,11 @@ export function MailSidebar() {
         <Separator />
 
         <div className="flex flex-col gap-1.5 group-data-[state=collapsed]:hidden">
-          <div className="font-medium text-sm leading-none">{selectedAccount.label}</div>
-          <div className="truncate text-muted-foreground text-sm leading-none">{selectedAccount.email}</div>
+          <div className="text-sm leading-none font-medium">{selectedAccount.label}</div>
+          <div className="truncate text-sm leading-none text-muted-foreground">{selectedAccount.email}</div>
         </div>
 
-        <Button size={isCollapsed ? "icon-sm" : "sm"} variant="outline" className="group-data-[state=expanded]:w-full">
+        <Button size={isCollapsed ? 'icon-sm' : 'sm'} variant="outline" className="group-data-[state=expanded]:w-full">
           <PenLine data-icon="inline-start" />
           <span className="group-data-[state=collapsed]:hidden">New email</span>
         </Button>
@@ -126,7 +126,7 @@ export function MailSidebar() {
         <SidebarMenu className="gap-1">{mailNavigation.navFooter.map(renderNavItem)}</SidebarMenu>
       </SidebarFooter>
     </Sidebar>
-  );
+  )
 }
 
 function renderNavItem(nav: MailNavItem) {
@@ -138,18 +138,18 @@ function renderNavItem(nav: MailNavItem) {
       </SidebarMenuButton>
       {nav.label && <SidebarMenuBadge className="font-medium">{nav.label}</SidebarMenuBadge>}
     </SidebarMenuItem>
-  );
+  )
 }
 
 const accountTriggerClassName = cn(
-  "relative size-7 min-w-7 rounded-sm p-0 transition-colors",
-  "bg-primary text-primary-foreground text-xs hover:bg-primary/90 hover:text-primary-foreground",
-  "aria-pressed:bg-primary aria-pressed:text-primary-foreground",
-  "aria-pressed:ring aria-pressed:ring-green-600",
-  "focus-visible:border-transparent focus-visible:ring-0",
-);
+  'relative size-7 min-w-7 rounded-sm p-0 transition-colors',
+  'bg-primary text-xs text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground',
+  'aria-pressed:bg-primary aria-pressed:text-primary-foreground',
+  'aria-pressed:ring aria-pressed:ring-green-600',
+  'focus-visible:border-transparent focus-visible:ring-0'
+)
 
-type Account = (typeof accounts)[number];
+type Account = (typeof accounts)[number]
 
 function AccountMarker({ account, isSelected = false }: { account: Account; isSelected?: boolean }) {
   return (
@@ -157,14 +157,14 @@ function AccountMarker({ account, isSelected = false }: { account: Account; isSe
       {getInitials(account.label).slice(0, 1)}
       <span
         className={cn(
-          "absolute right-0 bottom-0 z-10 hidden size-2.5 items-center justify-center rounded-full bg-green-600 text-primary-foreground ring-[1.25px] ring-background group-aria-pressed/toggle:flex",
-          isSelected && "flex",
+          'absolute right-0 bottom-0 z-10 hidden size-2.5 items-center justify-center rounded-full bg-green-600 text-primary-foreground ring-[1.25px] ring-background group-aria-pressed/toggle:flex',
+          isSelected && 'flex'
         )}
       >
         <Check className="size-2" />
       </span>
     </>
-  );
+  )
 }
 
 function AccountMenuContent({
@@ -173,10 +173,10 @@ function AccountMenuContent({
   showAccounts = false,
   ...props
 }: {
-  selectedAccountId: number;
-  onSelectAccount: (account: Account) => void;
-  showAccounts?: boolean;
-} & Pick<React.ComponentProps<typeof DropdownMenuContent>, "align" | "side">) {
+  selectedAccountId: number
+  onSelectAccount: (account: Account) => void
+  showAccounts?: boolean
+} & Pick<React.ComponentProps<typeof DropdownMenuContent>, 'align' | 'side'>) {
   return (
     <DropdownMenuContent className="w-56" {...props}>
       {showAccounts && (
@@ -185,19 +185,19 @@ function AccountMenuContent({
             <DropdownMenuLabel>Accounts</DropdownMenuLabel>
             <DropdownMenuRadioGroup
               value={String(selectedAccountId)}
-              onValueChange={(value) => {
-                const account = accounts.find((item) => item.id === Number(value));
+              onValueChange={value => {
+                const account = accounts.find(item => item.id === Number(value))
 
                 if (account) {
-                  onSelectAccount(account);
+                  onSelectAccount(account)
                 }
               }}
             >
-              {accounts.map((account) => (
+              {accounts.map(account => (
                 <DropdownMenuRadioItem key={account.id} value={String(account.id)} closeOnClick>
                   <div className="flex min-w-0 flex-col">
                     <span>{account.label}</span>
-                    <span className="truncate text-muted-foreground text-xs">{account.email}</span>
+                    <span className="truncate text-xs text-muted-foreground">{account.email}</span>
                   </div>
                 </DropdownMenuRadioItem>
               ))}
@@ -228,5 +228,5 @@ function AccountMenuContent({
         </DropdownMenuItem>
       </DropdownMenuGroup>
     </DropdownMenuContent>
-  );
+  )
 }

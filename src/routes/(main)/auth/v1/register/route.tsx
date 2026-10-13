@@ -1,13 +1,13 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from '@tanstack/react-router'
 
-import { Command } from "lucide-react";
+import { Command } from 'lucide-react'
 
-import { RegisterForm } from "../../-components/register-form";
-import { GoogleButton } from "../../-components/social-auth/google-button";
+import { RegisterForm } from '../../-components/register-form'
+import { GoogleButton } from '../../-components/social-auth/google-button'
 
-export const Route = createFileRoute("/(main)/auth/v1/register")({
-  component: RegisterV1,
-});
+export const Route = createFileRoute('/(main)/auth/v1/register')({
+  component: RegisterV1
+})
 
 function RegisterV1() {
   return (
@@ -23,8 +23,8 @@ function RegisterV1() {
           <div className="space-y-4">
             <RegisterForm />
             <GoogleButton className="w-full" variant="outline" />
-            <p className="text-center text-muted-foreground text-xs">
-              Already have an account?{" "}
+            <p className="text-center text-xs text-muted-foreground">
+              Already have an account?{' '}
               <Link to="/auth/v1/login" className="text-primary">
                 Login
               </Link>
@@ -38,12 +38,12 @@ function RegisterV1() {
           <div className="space-y-6">
             <Command className="mx-auto size-12 text-primary-foreground" />
             <div className="space-y-2">
-              <h1 className="font-light text-5xl text-primary-foreground">Welcome!</h1>
-              <p className="text-primary-foreground/80 text-xl">You&apos;re in the right place.</p>
+              <h1 className="text-5xl font-light text-primary-foreground">Welcome!</h1>
+              <p className="text-xl text-primary-foreground/80">You&apos;re in the right place.</p>
             </div>
           </div>
         </div>
       </div>
     </div>
-  );
+  )
 }

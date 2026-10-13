@@ -1,11 +1,11 @@
-import * as React from "react";
+import * as React from 'react'
 
-import { type ColumnFiltersState, type PaginationState, type SortingState, useTable } from "@tanstack/react-table";
+import { type ColumnFiltersState, type PaginationState, type SortingState, useTable } from '@tanstack/react-table'
 
-import { ArrowUpDown, ArrowUpRight, Download, MoreHorizontal } from "lucide-react";
+import { ArrowUpDown, ArrowUpRight, Download, MoreHorizontal } from 'lucide-react'
 
-import { Button } from "@/components/ui/button";
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from '@/components/ui/button'
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Pagination,
   PaginationContent,
@@ -13,31 +13,31 @@ import {
   PaginationItem,
   PaginationLink,
   PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { dataTableFeatures } from "@/lib/data-table-features";
+  PaginationPrevious
+} from '@/components/ui/pagination'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { dataTableFeatures } from '@/lib/data-table-features'
 
-import { recentOrdersColumns } from "./recent-orders-table/columns";
-import recentOrdersData from "./recent-orders-table/data.json";
+import { recentOrdersColumns } from './recent-orders-table/columns'
+import recentOrdersData from './recent-orders-table/data.json'
 import {
   formatOrderCount,
   formatSelectedOrderCount,
-  preventPaginationNavigation,
-} from "./recent-orders-table/formatters";
-import { type OrderFilter, type OrderRow, orderFilters } from "./recent-orders-table/schema";
+  preventPaginationNavigation
+} from './recent-orders-table/formatters'
+import { type OrderFilter, type OrderRow, orderFilters } from './recent-orders-table/schema'
 
-const recentOrders = recentOrdersData as OrderRow[];
+const recentOrders = recentOrdersData as OrderRow[]
 
 export function RecentOrders() {
-  const [rowSelection, setRowSelection] = React.useState({});
-  const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [rowSelection, setRowSelection] = React.useState({})
+  const [sorting, setSorting] = React.useState<SortingState>([])
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
-    pageSize: 10,
-  });
+    pageSize: 10
+  })
 
   const table = useTable({
     features: dataTableFeatures,
@@ -47,40 +47,40 @@ export function RecentOrders() {
       rowSelection,
       sorting,
       columnFilters,
-      pagination,
+      pagination
     },
-    getRowId: (row) => row.id,
+    getRowId: row => row.id,
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
-    onPaginationChange: setPagination,
-  });
+    onPaginationChange: setPagination
+  })
 
-  const activeFilter = (table.getColumn("statusSummary")?.getFilterValue() as OrderFilter | undefined) ?? "All";
-  const orderCount = table.getFilteredRowModel().rows.length;
-  const selectedOrderCount = table.getSelectedRowModel().rows.length;
-  const visibleOrderCount = table.getRowModel().rows.length;
-  const currentPage = table.state.pagination.pageIndex + 1;
-  const pageCount = table.getPageCount();
+  const activeFilter = (table.getColumn('statusSummary')?.getFilterValue() as OrderFilter | undefined) ?? 'All'
+  const orderCount = table.getFilteredRowModel().rows.length
+  const selectedOrderCount = table.getSelectedRowModel().rows.length
+  const visibleOrderCount = table.getRowModel().rows.length
+  const currentPage = table.state.pagination.pageIndex + 1
+  const pageCount = table.getPageCount()
   const orderCountDescription =
-    selectedOrderCount > 0 ? formatSelectedOrderCount(selectedOrderCount) : formatOrderCount(activeFilter, orderCount);
+    selectedOrderCount > 0 ? formatSelectedOrderCount(selectedOrderCount) : formatOrderCount(activeFilter, orderCount)
   const pageNumbers = React.useMemo(() => {
     if (pageCount <= 3) {
-      return Array.from({ length: pageCount }, (_, index) => index + 1);
+      return Array.from({ length: pageCount }, (_, index) => index + 1)
     }
 
-    if (currentPage <= 2) return [1, 2, 3];
-    if (currentPage >= pageCount - 1) return [pageCount - 2, pageCount - 1, pageCount];
+    if (currentPage <= 2) return [1, 2, 3]
+    if (currentPage >= pageCount - 1) return [pageCount - 2, pageCount - 1, pageCount]
 
-    return [currentPage - 1, currentPage, currentPage + 1];
-  }, [currentPage, pageCount]);
+    return [currentPage - 1, currentPage, currentPage + 1]
+  }, [currentPage, pageCount])
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-normal text-muted-foreground text-sm">Recent Orders</CardTitle>
-        <CardDescription className="text-foreground text-xl tabular-nums leading-none tracking-tight">
+        <CardTitle className="text-sm font-normal text-muted-foreground">Recent Orders</CardTitle>
+        <CardDescription className="text-xl leading-none tracking-tight text-foreground tabular-nums">
           {orderCountDescription}
         </CardDescription>
         <CardAction className="flex items-center gap-1">
@@ -100,17 +100,17 @@ export function RecentOrders() {
         <div className="flex items-center justify-between px-4">
           <ToggleGroup
             className="bg-muted p-0.75 text-muted-foreground **:data-[slot=toggle-group-item]:rounded-md **:data-[slot=toggle-group-item]:border **:data-[slot=toggle-group-item]:border-transparent **:data-[slot=toggle-group-item]:text-foreground/60 **:data-[slot=toggle-group-item]:hover:text-foreground [&_[data-slot=toggle-group-item][data-pressed]]:bg-background [&_[data-slot=toggle-group-item][data-pressed]]:text-foreground [&_[data-slot=toggle-group-item][data-pressed]]:shadow-sm dark:[&_[data-slot=toggle-group-item][data-pressed]]:border-input dark:[&_[data-slot=toggle-group-item][data-pressed]]:bg-input/30"
-            onValueChange={(value) => {
-              const filter = value[0] as OrderFilter | undefined;
-              if (!filter) return;
-              table.getColumn("statusSummary")?.setFilterValue(filter === "All" ? undefined : filter);
-              table.setPageIndex(0);
+            onValueChange={value => {
+              const filter = value[0] as OrderFilter | undefined
+              if (!filter) return
+              table.getColumn('statusSummary')?.setFilterValue(filter === 'All' ? undefined : filter)
+              table.setPageIndex(0)
             }}
             size="sm"
             spacing={1}
             value={[activeFilter]}
           >
-            {orderFilters.map((filter) => (
+            {orderFilters.map(filter => (
               <ToggleGroupItem key={filter} value={filter}>
                 {filter}
               </ToggleGroupItem>
@@ -120,7 +120,7 @@ export function RecentOrders() {
           <Button
             size="icon-sm"
             variant="outline"
-            onClick={() => table.getColumn("date")?.toggleSorting(table.getColumn("date")?.getIsSorted() === "asc")}
+            onClick={() => table.getColumn('date')?.toggleSorting(table.getColumn('date')?.getIsSorted() === 'asc')}
           >
             <ArrowUpDown />
           </Button>
@@ -128,10 +128,10 @@ export function RecentOrders() {
 
         <div className="overflow-hidden">
           <Table className="**:data-[slot='table-cell']:px-4.5 **:data-[slot='table-head']:px-4.5">
-            <TableHeader className="border-t **:data-[slot='table-head']:h-11 **:data-[slot='table-head']:font-normal **:data-[slot='table-head']:text-foreground **:data-[slot='table-head']:text-sm">
-              {table.getHeaderGroups().map((headerGroup) => (
+            <TableHeader className="border-t **:data-[slot='table-head']:h-11 **:data-[slot='table-head']:text-sm **:data-[slot='table-head']:font-normal **:data-[slot='table-head']:text-foreground">
+              {table.getHeaderGroups().map(headerGroup => (
                 <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
+                  {headerGroup.headers.map(header => (
                     <TableHead key={header.id} colSpan={header.colSpan}>
                       {header.isPlaceholder ? null : <table.FlexRender header={header} />}
                     </TableHead>
@@ -139,11 +139,11 @@ export function RecentOrders() {
                 </TableRow>
               ))}
             </TableHeader>
-            <TableBody className="**:data-[slot='table-row']:border-border/50 **:data-[slot='table-cell']:px-4 **:data-[slot='table-cell']:py-3 **:data-[slot='table-row']:hover:bg-transparent">
+            <TableBody className="**:data-[slot='table-cell']:px-4 **:data-[slot='table-cell']:py-3 **:data-[slot='table-row']:border-border/50 **:data-[slot='table-row']:hover:bg-transparent">
               {table.getRowModel().rows.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id} data-state={table.state.rowSelection[row.id] && "selected"}>
-                    {row.getVisibleCells().map((cell) => (
+                table.getRowModel().rows.map(row => (
+                  <TableRow key={row.id} data-state={table.state.rowSelection[row.id] && 'selected'}>
+                    {row.getVisibleCells().map(cell => (
                       <TableCell key={cell.id}>
                         <table.FlexRender cell={cell} />
                       </TableCell>
@@ -162,7 +162,7 @@ export function RecentOrders() {
         </div>
 
         <div className="flex items-center justify-between gap-4 px-4 pb-1">
-          <p className="text-muted-foreground text-sm">
+          <p className="text-sm text-muted-foreground">
             Viewing {visibleOrderCount} out of {orderCount.toLocaleString()} orders
           </p>
 
@@ -170,11 +170,11 @@ export function RecentOrders() {
             <PaginationContent className="gap-1.5">
               <PaginationItem>
                 <PaginationPrevious
-                  className={!table.getCanPreviousPage() ? "pointer-events-none opacity-50" : undefined}
+                  className={!table.getCanPreviousPage() ? 'pointer-events-none opacity-50' : undefined}
                   href="#"
-                  onClick={(event) => {
-                    preventPaginationNavigation(event);
-                    table.previousPage();
+                  onClick={event => {
+                    preventPaginationNavigation(event)
+                    table.previousPage()
                   }}
                 />
               </PaginationItem>
@@ -183,14 +183,14 @@ export function RecentOrders() {
                   <PaginationEllipsis />
                 </PaginationItem>
               ) : null}
-              {pageNumbers.map((pageNumber) => (
+              {pageNumbers.map(pageNumber => (
                 <PaginationItem key={`page-${pageNumber}`}>
                   <PaginationLink
                     href="#"
                     isActive={table.state.pagination.pageIndex === pageNumber - 1}
-                    onClick={(event) => {
-                      preventPaginationNavigation(event);
-                      table.setPageIndex(pageNumber - 1);
+                    onClick={event => {
+                      preventPaginationNavigation(event)
+                      table.setPageIndex(pageNumber - 1)
                     }}
                   >
                     {pageNumber}
@@ -204,11 +204,11 @@ export function RecentOrders() {
               ) : null}
               <PaginationItem>
                 <PaginationNext
-                  className={!table.getCanNextPage() ? "pointer-events-none opacity-50" : undefined}
+                  className={!table.getCanNextPage() ? 'pointer-events-none opacity-50' : undefined}
                   href="#"
-                  onClick={(event) => {
-                    preventPaginationNavigation(event);
-                    table.nextPage();
+                  onClick={event => {
+                    preventPaginationNavigation(event)
+                    table.nextPage()
                   }}
                 />
               </PaginationItem>
@@ -217,5 +217,5 @@ export function RecentOrders() {
         </div>
       </CardContent>
     </Card>
-  );
+  )
 }

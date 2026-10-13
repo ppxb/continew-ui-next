@@ -1,37 +1,37 @@
-import { Fragment, useState } from "react";
+import { Fragment, useState } from 'react'
 
-import { cn } from "cn";
+import { cn } from 'cn'
 
-import { Alert, AlertAction, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertAction, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
-import type { PatientRecord } from "./data";
-import { PatientCard } from "./patient-card";
-import { PatientDetail } from "./patient-detail";
-import { PatientTrends } from "./patient-trends";
+import type { PatientRecord } from './data'
+import { PatientCard } from './patient-card'
+import { PatientDetail } from './patient-detail'
+import { PatientTrends } from './patient-trends'
 
 interface PatientMonitoringProps {
-  patients: PatientRecord[];
+  patients: PatientRecord[]
 }
 
 export function PatientMonitoring({ patients }: PatientMonitoringProps) {
-  const [selectedPatientId, setSelectedPatientId] = useState("cardiac-04");
-  const [acknowledgedPatientIds, setAcknowledgedPatientIds] = useState<string[]>([]);
-  const selectedPatient = patients.find((patient) => patient.id === selectedPatientId) ?? patients[0];
-  const acknowledged = acknowledgedPatientIds.includes(selectedPatient.id);
-  const hasActiveAlarm = selectedPatient.status === "alarm" && !acknowledged;
+  const [selectedPatientId, setSelectedPatientId] = useState('cardiac-04')
+  const [acknowledgedPatientIds, setAcknowledgedPatientIds] = useState<string[]>([])
+  const selectedPatient = patients.find(patient => patient.id === selectedPatientId) ?? patients[0]
+  const acknowledged = acknowledgedPatientIds.includes(selectedPatient.id)
+  const hasActiveAlarm = selectedPatient.status === 'alarm' && !acknowledged
 
   function acknowledgePatient(patientId: string) {
-    setAcknowledgedPatientIds((current) => (current.includes(patientId) ? current : [...current, patientId]));
+    setAcknowledgedPatientIds(current => (current.includes(patientId) ? current : [...current, patientId]))
   }
 
   return (
     <div className="grid min-w-0 flex-1 lg:grid-cols-[20rem_minmax(0,1fr)]">
-      <div className="grid grid-cols-2 content-start *:border-border *:border-r *:border-b *:even:border-r-0">
-        {patients.map((patient) => (
+      <div className="grid grid-cols-2 content-start *:border-r *:border-b *:border-border *:even:border-r-0">
+        {patients.map(patient => (
           <PatientCard
             acknowledged={acknowledgedPatientIds.includes(patient.id)}
             active={patient.id === selectedPatient.id}
@@ -50,7 +50,7 @@ export function PatientMonitoring({ patients }: PatientMonitoringProps) {
             </Badge>
             <span className="text-lg">{selectedPatient.name}</span>
           </div>
-          <div className="text-muted-foreground text-sm">
+          <div className="text-sm text-muted-foreground">
             {selectedPatient.age} {selectedPatient.sex} · {selectedPatient.diagnosis}
           </div>
         </div>
@@ -59,16 +59,14 @@ export function PatientMonitoring({ patients }: PatientMonitoringProps) {
         {selectedPatient.alarm && (
           <Alert
             className={cn(
-              "min-h-9 rounded-none border-x-0 border-t-0 pr-32",
-              hasActiveAlarm
-                ? "border-amber-500 bg-amber-400 text-amber-950"
-                : "border-border bg-muted text-foreground",
+              'min-h-9 rounded-none border-x-0 border-t-0 pr-32',
+              hasActiveAlarm ? 'border-amber-500 bg-amber-400 text-amber-950' : 'border-border bg-muted text-foreground'
             )}
             variant="default"
           >
             <AlertTitle>{selectedPatient.alarm}</AlertTitle>
             {selectedPatient.alarmDuration && (
-              <AlertDescription className={cn(hasActiveAlarm && "text-amber-950")}>
+              <AlertDescription className={cn(hasActiveAlarm && 'text-amber-950')}>
                 Active for {selectedPatient.alarmDuration}
               </AlertDescription>
             )}
@@ -80,7 +78,7 @@ export function PatientMonitoring({ patients }: PatientMonitoringProps) {
                 size="sm"
                 variant="secondary"
               >
-                {acknowledged ? "Acknowledged" : "Acknowledge"}
+                {acknowledged ? 'Acknowledged' : 'Acknowledge'}
               </Button>
             </AlertAction>
           </Alert>
@@ -90,7 +88,7 @@ export function PatientMonitoring({ patients }: PatientMonitoringProps) {
 
         <Tabs className="min-h-0 flex-1 gap-0" defaultValue="trends">
           <TabsList
-            className="w-full justify-start gap-0 border-b p-0 *:h-full *:max-w-32 *:rounded-none *:border-0 *:border-border *:border-r *:after:-bottom-px!"
+            className="w-full justify-start gap-0 border-b p-0 *:h-full *:max-w-32 *:rounded-none *:border-0 *:border-r *:border-border *:after:-bottom-px!"
             variant="line"
           >
             <TabsTrigger value="real-time">Real time</TabsTrigger>
@@ -103,12 +101,12 @@ export function PatientMonitoring({ patients }: PatientMonitoringProps) {
             className="m-0 flex flex-col items-center justify-center gap-1 px-4 text-center"
             value="real-time"
           >
-            <p className="font-medium text-sm">Live monitoring is active</p>
-            <p className="text-muted-foreground text-xs">Waveforms and vital signs update continuously above.</p>
+            <p className="text-sm font-medium">Live monitoring is active</p>
+            <p className="text-xs text-muted-foreground">Waveforms and vital signs update continuously above.</p>
           </TabsContent>
           <TabsContent className="m-0" value="events">
             <div className="min-h-44">
-              <div className="grid grid-cols-[4rem_1fr] bg-muted/40 px-4 py-2 font-medium text-muted-foreground text-xs">
+              <div className="grid grid-cols-[4rem_1fr] bg-muted/40 px-4 py-2 text-xs font-medium text-muted-foreground">
                 <span>Time</span>
                 <span>Event</span>
               </div>
@@ -131,13 +129,13 @@ export function PatientMonitoring({ patients }: PatientMonitoringProps) {
             className="m-0 flex flex-col items-center justify-center gap-1 px-4 text-center"
             value="disclosure"
           >
-            <p className="font-medium text-sm">Full disclosure recording is active</p>
-            <p className="text-muted-foreground text-xs">
+            <p className="text-sm font-medium">Full disclosure recording is active</p>
+            <p className="text-xs text-muted-foreground">
               Continuous waveform history is available for the last 24 hours.
             </p>
           </TabsContent>
         </Tabs>
       </div>
     </div>
-  );
+  )
 }

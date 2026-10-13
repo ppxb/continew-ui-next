@@ -1,37 +1,37 @@
-import { RestrictToVerticalAxis } from "@dnd-kit/abstract/modifiers";
-import { DragDropProvider, type DragEndEvent } from "@dnd-kit/react";
-import { isSortable, useSortable } from "@dnd-kit/react/sortable";
-import { cn } from "cn";
-import { GripVertical, Plus, Trash2 } from "lucide-react";
-import type { UseFormRegister } from "react-hook-form";
-import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
+import { RestrictToVerticalAxis } from '@dnd-kit/abstract/modifiers'
+import { DragDropProvider, type DragEndEvent } from '@dnd-kit/react'
+import { isSortable, useSortable } from '@dnd-kit/react/sortable'
+import { cn } from 'cn'
+import { GripVertical, Plus, Trash2 } from 'lucide-react'
+import type { UseFormRegister } from 'react-hook-form'
+import { useFieldArray, useFormContext, useWatch } from 'react-hook-form'
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { formatCurrency } from "@/lib/utils";
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { formatCurrency } from '@/lib/utils'
 
-import { getLineAmount, type InvoiceFormValues, type InvoiceLineItem } from "./data";
+import { getLineAmount, type InvoiceFormValues, type InvoiceLineItem } from './data'
 
 export function InvoiceItems() {
-  const { control, register } = useFormContext<InvoiceFormValues>();
+  const { control, register } = useFormContext<InvoiceFormValues>()
   const { append, fields, move, remove } = useFieldArray({
     control,
-    name: "items",
-    keyName: "fieldKey",
-  });
-  const items = useWatch({ control, name: "items" }) ?? [];
+    name: 'items',
+    keyName: 'fieldKey'
+  })
+  const items = useWatch({ control, name: 'items' }) ?? []
   function handleDragEnd(event: DragEndEvent) {
-    const { source } = event.operation;
+    const { source } = event.operation
 
     if (event.canceled || !isSortable(source) || source.initialIndex === source.index) {
-      return;
+      return
     }
 
-    move(source.initialIndex, source.index);
+    move(source.initialIndex, source.index)
   }
 
   function handleAddItem() {
-    append({ id: `item-${Date.now()}`, description: "", quantity: 1, unitPrice: 0 });
+    append({ id: `item-${Date.now()}`, description: '', quantity: 1, unitPrice: 0 })
   }
 
   return (
@@ -45,7 +45,7 @@ export function InvoiceItems() {
       </div>
 
       <div className="flex flex-col gap-2">
-        <div className="hidden items-center gap-2 px-1 font-medium text-muted-foreground text-xs md:grid md:grid-cols-[24px_minmax(0,1fr)_64px_112px_112px_32px]">
+        <div className="hidden items-center gap-2 px-1 text-xs font-medium text-muted-foreground md:grid md:grid-cols-[24px_minmax(0,1fr)_64px_112px_112px_32px]">
           <span />
           <span>Description</span>
           <span className="px-2">Units</span>
@@ -70,7 +70,7 @@ export function InvoiceItems() {
         </DragDropProvider>
       </div>
     </section>
-  );
+  )
 }
 
 function SortableInvoiceItemRow({
@@ -78,29 +78,29 @@ function SortableInvoiceItemRow({
   index,
   item,
   register,
-  onRemove,
+  onRemove
 }: {
-  id: string;
-  index: number;
-  item?: InvoiceLineItem;
-  register: UseFormRegister<InvoiceFormValues>;
-  onRemove: () => void;
+  id: string
+  index: number
+  item?: InvoiceLineItem
+  register: UseFormRegister<InvoiceFormValues>
+  onRemove: () => void
 }) {
   const { handleRef, isDragging, ref } = useSortable({
     id,
     index,
-    type: "invoice-item",
-    accept: "invoice-item",
-    group: "invoice-items",
-    modifiers: [RestrictToVerticalAxis],
-  });
+    type: 'invoice-item',
+    accept: 'invoice-item',
+    group: 'invoice-items',
+    modifiers: [RestrictToVerticalAxis]
+  })
 
   return (
     <div
       ref={ref}
       className={cn(
-        "grid min-w-0 grid-cols-[24px_minmax(0,0.8fr)_minmax(0,1fr)_32px] items-center gap-2 rounded-lg md:grid-cols-[24px_minmax(0,1fr)_64px_112px_112px_32px]",
-        isDragging && "relative z-10 opacity-50",
+        'grid min-w-0 grid-cols-[24px_minmax(0,0.8fr)_minmax(0,1fr)_32px] items-center gap-2 rounded-lg md:grid-cols-[24px_minmax(0,1fr)_64px_112px_112px_32px]',
+        isDragging && 'relative z-10 opacity-50'
       )}
     >
       <Button
@@ -132,7 +132,7 @@ function SortableInvoiceItemRow({
         aria-label={`Item ${index + 1} unit price`}
         {...register(`items.${index}.unitPrice` as const, { valueAsNumber: true })}
       />
-      <div className="min-w-0 text-right font-medium text-sm max-md:col-span-3 max-md:col-start-2 max-md:row-start-3 max-md:flex max-md:items-center max-md:justify-between max-md:text-left">
+      <div className="min-w-0 text-right text-sm font-medium max-md:col-span-3 max-md:col-start-2 max-md:row-start-3 max-md:flex max-md:items-center max-md:justify-between max-md:text-left">
         <span className="hidden text-muted-foreground max-md:inline">Line total</span>
         <span>{formatInvoiceCurrency(getLineAmount(item))}</span>
       </div>
@@ -147,12 +147,12 @@ function SortableInvoiceItemRow({
         <Trash2 />
       </Button>
     </div>
-  );
+  )
 }
 
 function formatInvoiceCurrency(value: number) {
   return formatCurrency(Number.isFinite(value) ? value : 0, {
     minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+    maximumFractionDigits: 2
+  })
 }

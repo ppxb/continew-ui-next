@@ -1,25 +1,25 @@
-import { Settings } from "lucide-react";
-import { useShallow } from "zustand/react/shallow";
+import { Settings } from 'lucide-react'
+import { useShallow } from 'zustand/react/shallow'
 
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { type FontKey, fontOptions } from "@/lib/fonts/registry";
-import type { ContentLayout, NavbarStyle, SidebarCollapsible, SidebarVariant } from "@/lib/preferences/layout";
-import { THEME_PRESET_OPTIONS, type ThemeMode, type ThemePreset } from "@/lib/preferences/theme";
-import { usePreferencesStore } from "@/stores/preferences/preferences-provider";
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { type FontKey, fontOptions } from '@/lib/fonts/registry'
+import type { ContentLayout, NavbarStyle, SidebarCollapsible, SidebarVariant } from '@/lib/preferences/layout'
+import { THEME_PRESET_OPTIONS, type ThemeMode, type ThemePreset } from '@/lib/preferences/theme'
+import { usePreferencesStore } from '@/stores/preferences/preferences-provider'
 
 export function LayoutControls() {
   const { values, resolvedThemeMode, setPreference, resetPreferences } = usePreferencesStore(
-    useShallow((state) => ({
+    useShallow(state => ({
       values: state.values,
       resolvedThemeMode: state.resolvedThemeMode,
       setPreference: state.setPreference,
-      resetPreferences: state.resetPreferences,
-    })),
-  );
+      resetPreferences: state.resetPreferences
+    }))
+  )
 
   const {
     theme_mode: themeMode,
@@ -28,36 +28,36 @@ export function LayoutControls() {
     navbar_style: navbarStyle,
     sidebar_variant: variant,
     sidebar_collapsible: collapsible,
-    font,
-  } = values;
+    font
+  } = values
 
-  const themePresetItems = THEME_PRESET_OPTIONS.map((preset) => ({
+  const themePresetItems = THEME_PRESET_OPTIONS.map(preset => ({
     value: preset.value,
     label: (
       <span className="flex items-center gap-1.5">
         <span
           className="size-2.5 rounded-full"
           style={{
-            backgroundColor: (resolvedThemeMode ?? "light") === "dark" ? preset.primary.dark : preset.primary.light,
+            backgroundColor: (resolvedThemeMode ?? 'light') === 'dark' ? preset.primary.dark : preset.primary.light
           }}
         />
         {preset.label}
       </span>
-    ),
-  }));
-  const fontItems = fontOptions.map((option) => ({
+    )
+  }))
+  const fontItems = fontOptions.map(option => ({
     value: option.key,
-    label: option.label,
-  }));
+    label: option.label
+  }))
 
   const onThemePresetChange = (preset: ThemePreset) => {
-    setPreference("theme_preset", preset);
-  };
+    setPreference('theme_preset', preset)
+  }
 
-  const onFontChange = (value: FontKey | "") => {
-    if (!value) return;
-    setPreference("font", value);
-  };
+  const onFontChange = (value: FontKey | '') => {
+    if (!value) return
+    setPreference('font', value)
+  }
 
   return (
     <Popover>
@@ -67,18 +67,18 @@ export function LayoutControls() {
       <PopoverContent align="end">
         <div className="flex flex-col gap-5">
           <div className="space-y-1.5">
-            <h4 className="font-medium text-sm leading-none">Preferences</h4>
-            <p className="text-muted-foreground text-xs">Customize your dashboard layout preferences.</p>
+            <h4 className="text-sm leading-none font-medium">Preferences</h4>
+            <p className="text-xs text-muted-foreground">Customize your dashboard layout preferences.</p>
           </div>
           <div className="space-y-3 **:data-[slot=toggle-group]:w-full **:data-[slot=toggle-group-item]:flex-1 **:data-[slot=toggle-group-item]:text-xs">
             <div className="space-y-1">
-              <Label className="font-medium text-xs">Theme Preset</Label>
+              <Label className="text-xs font-medium">Theme Preset</Label>
               <Select
                 items={themePresetItems}
                 value={themePreset}
-                onValueChange={(value) => {
-                  if (!value) return;
-                  void onThemePresetChange(value as ThemePreset);
+                onValueChange={value => {
+                  if (!value) return
+                  void onThemePresetChange(value as ThemePreset)
                 }}
               >
                 <SelectTrigger size="sm" className="w-full text-xs">
@@ -86,14 +86,13 @@ export function LayoutControls() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    {THEME_PRESET_OPTIONS.map((preset) => (
+                    {THEME_PRESET_OPTIONS.map(preset => (
                       <SelectItem key={preset.value} className="text-xs" value={preset.value}>
                         <span className="flex items-center gap-2">
                           <span
                             className="size-2.5 rounded-full"
                             style={{
-                              backgroundColor:
-                                resolvedThemeMode === "dark" ? preset.primary.dark : preset.primary.light,
+                              backgroundColor: resolvedThemeMode === 'dark' ? preset.primary.dark : preset.primary.light
                             }}
                           />
                           {preset.label}
@@ -106,13 +105,13 @@ export function LayoutControls() {
             </div>
 
             <div className="space-y-1">
-              <Label className="font-medium text-xs">Fonts</Label>
+              <Label className="text-xs font-medium">Fonts</Label>
               <Select
                 items={fontItems}
                 value={font}
-                onValueChange={(value) => {
-                  if (!value) return;
-                  void onFontChange(value as FontKey);
+                onValueChange={value => {
+                  if (!value) return
+                  void onFontChange(value as FontKey)
                 }}
               >
                 <SelectTrigger size="sm" className="w-full text-xs">
@@ -120,7 +119,7 @@ export function LayoutControls() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    {fontOptions.map((font) => (
+                    {fontOptions.map(font => (
                       <SelectItem key={font.key} className="text-xs" value={font.key}>
                         {font.label}
                       </SelectItem>
@@ -131,15 +130,15 @@ export function LayoutControls() {
             </div>
 
             <div className="space-y-1">
-              <Label className="font-medium text-xs">Theme Mode</Label>
+              <Label className="text-xs font-medium">Theme Mode</Label>
               <ToggleGroup
                 size="sm"
                 spacing={0}
                 variant="outline"
                 value={[themeMode]}
                 onValueChange={([mode]) => {
-                  if (!mode) return;
-                  setPreference("theme_mode", mode as ThemeMode);
+                  if (!mode) return
+                  setPreference('theme_mode', mode as ThemeMode)
                 }}
               >
                 <ToggleGroupItem value="light" aria-label="Toggle light">
@@ -155,15 +154,15 @@ export function LayoutControls() {
             </div>
 
             <div className="space-y-1">
-              <Label className="font-medium text-xs">Page Layout</Label>
+              <Label className="text-xs font-medium">Page Layout</Label>
               <ToggleGroup
                 size="sm"
                 spacing={0}
                 variant="outline"
                 value={[contentLayout]}
                 onValueChange={([layout]) => {
-                  if (!layout) return;
-                  setPreference("content_layout", layout as ContentLayout);
+                  if (!layout) return
+                  setPreference('content_layout', layout as ContentLayout)
                 }}
               >
                 <ToggleGroupItem value="centered" aria-label="Toggle centered">
@@ -176,15 +175,15 @@ export function LayoutControls() {
             </div>
 
             <div className="space-y-1">
-              <Label className="font-medium text-xs">Navbar Behavior</Label>
+              <Label className="text-xs font-medium">Navbar Behavior</Label>
               <ToggleGroup
                 size="sm"
                 spacing={0}
                 variant="outline"
                 value={[navbarStyle]}
                 onValueChange={([style]) => {
-                  if (!style) return;
-                  setPreference("navbar_style", style as NavbarStyle);
+                  if (!style) return
+                  setPreference('navbar_style', style as NavbarStyle)
                 }}
               >
                 <ToggleGroupItem value="sticky" aria-label="Toggle sticky">
@@ -197,15 +196,15 @@ export function LayoutControls() {
             </div>
 
             <div className="space-y-1">
-              <Label className="font-medium text-xs">Sidebar Style</Label>
+              <Label className="text-xs font-medium">Sidebar Style</Label>
               <ToggleGroup
                 size="sm"
                 spacing={0}
                 variant="outline"
                 value={[variant]}
                 onValueChange={([nextVariant]) => {
-                  if (!nextVariant) return;
-                  setPreference("sidebar_variant", nextVariant as SidebarVariant);
+                  if (!nextVariant) return
+                  setPreference('sidebar_variant', nextVariant as SidebarVariant)
                 }}
               >
                 <ToggleGroupItem value="inset" aria-label="Toggle inset">
@@ -221,15 +220,15 @@ export function LayoutControls() {
             </div>
 
             <div className="space-y-1">
-              <Label className="font-medium text-xs">Sidebar Collapse Mode</Label>
+              <Label className="text-xs font-medium">Sidebar Collapse Mode</Label>
               <ToggleGroup
                 size="sm"
                 spacing={0}
                 variant="outline"
                 value={[collapsible]}
                 onValueChange={([nextCollapsible]) => {
-                  if (!nextCollapsible) return;
-                  setPreference("sidebar_collapsible", nextCollapsible as SidebarCollapsible);
+                  if (!nextCollapsible) return
+                  setPreference('sidebar_collapsible', nextCollapsible as SidebarCollapsible)
                 }}
               >
                 <ToggleGroupItem value="icon" aria-label="Toggle icon">
@@ -248,5 +247,5 @@ export function LayoutControls() {
         </div>
       </PopoverContent>
     </Popover>
-  );
+  )
 }

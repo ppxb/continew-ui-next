@@ -1,16 +1,16 @@
-import { Download, FileText, LockKeyhole } from "lucide-react";
+import { Download, FileText, LockKeyhole } from 'lucide-react'
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
-import type { ProfileDocument } from "./profile-data";
+import type { ProfileDocument } from './profile-data'
 
 export function ProfileDocuments({ documents }: { documents: ProfileDocument[] }) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-4">
-        <h2 className="font-heading font-medium text-base">Documents</h2>
+        <h2 className="font-heading text-base font-medium">Documents</h2>
         <Button size="sm">
           <FileText data-icon="inline-start" />
           Add document
@@ -31,7 +31,7 @@ export function ProfileDocuments({ documents }: { documents: ProfileDocument[] }
           </TableRow>
         </TableHeader>
         <TableBody>
-          {documents.map((document) => (
+          {documents.map(document => (
             <TableRow key={document.id}>
               <TableCell className="font-medium">{document.name}</TableCell>
               <TableCell className="text-muted-foreground">{document.category}</TableCell>
@@ -43,7 +43,7 @@ export function ProfileDocuments({ documents }: { documents: ProfileDocument[] }
               </TableCell>
               <TableCell className="text-right">
                 {document.isRestricted ? (
-                  <span className="inline-flex items-center gap-1.5 text-muted-foreground text-xs" title="Restricted">
+                  <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground" title="Restricted">
                     <LockKeyhole aria-hidden="true" className="size-3.5" />
                     Restricted
                   </span>
@@ -58,5 +58,5 @@ export function ProfileDocuments({ documents }: { documents: ProfileDocument[] }
         </TableBody>
       </Table>
     </div>
-  );
+  )
 }

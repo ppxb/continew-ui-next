@@ -1,6 +1,6 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
+import { Button } from '@/components/ui/button'
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Progress } from '@/components/ui/progress'
 
 export function WeeklySummaryCard() {
   return (
@@ -21,5 +21,5 @@ export function WeeklySummaryCard() {
         </div>
       </CardContent>
     </Card>
-  );
+  )
 }

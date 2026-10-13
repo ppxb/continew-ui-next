@@ -1,50 +1,50 @@
-import { useState } from "react";
+import { useState } from 'react'
 
-import { type ColumnFiltersState, type PaginationState, useTable } from "@tanstack/react-table";
+import { type ColumnFiltersState, type PaginationState, useTable } from '@tanstack/react-table'
 
-import { AlertTriangle, ChevronRight, FileUp, Search } from "lucide-react";
+import { AlertTriangle, ChevronRight, FileUp, Search } from 'lucide-react'
 
-import { Alert, AlertAction, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { dataTableFeatures } from "@/lib/data-table-features";
+import { Alert, AlertAction, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { dataTableFeatures } from '@/lib/data-table-features'
 
-import { rolesColumns } from "./roles-table/columns";
-import type { Role } from "./roles-table/data";
-import { RolesTable } from "./roles-table/table";
+import { rolesColumns } from './roles-table/columns'
+import type { Role } from './roles-table/data'
+import { RolesTable } from './roles-table/table'
 
 function getRoleTypeFilter(groupFilter: string) {
-  if (groupFilter === "System roles") {
-    return "System";
+  if (groupFilter === 'System roles') {
+    return 'System'
   }
 
-  if (groupFilter === "Custom roles") {
-    return "Custom";
+  if (groupFilter === 'Custom roles') {
+    return 'Custom'
   }
 
-  return "All";
+  return 'All'
 }
 
 function getRoleGroupFilterValue(typeFilter: string | null) {
-  if (typeFilter === "System") {
-    return "System roles";
+  if (typeFilter === 'System') {
+    return 'System roles'
   }
 
-  if (typeFilter === "Custom") {
-    return "Custom roles";
+  if (typeFilter === 'Custom') {
+    return 'Custom roles'
   }
 
-  return undefined;
+  return undefined
 }
 
 export function Roles({ roles }: { roles: Role[] }) {
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
-    pageSize: 12,
-  });
+    pageSize: 12
+  })
 
   const table = useTable({
     features: dataTableFeatures,
@@ -53,29 +53,29 @@ export function Roles({ roles }: { roles: Role[] }) {
     defaultColumn: {
       size: 140,
       minSize: 80,
-      maxSize: 420,
+      maxSize: 420
     },
     state: { columnFilters, pagination },
     onColumnFiltersChange: setColumnFilters,
     onPaginationChange: setPagination,
     autoResetPageIndex: false,
     initialState: {
-      columnVisibility: { group: false, search: false },
-    },
-  });
+      columnVisibility: { group: false, search: false }
+    }
+  })
 
-  const search = (table.getColumn("search")?.getFilterValue() as string | undefined) ?? "";
-  const groupFilter = (table.getColumn("group")?.getFilterValue() as string | undefined) ?? "";
-  const typeFilter = getRoleTypeFilter(groupFilter);
-  const ownerFilter = (table.getColumn("owner")?.getFilterValue() as string | undefined) ?? "All";
-  const statusFilter = (table.getColumn("status")?.getFilterValue() as string | undefined) ?? "All";
+  const search = (table.getColumn('search')?.getFilterValue() as string | undefined) ?? ''
+  const groupFilter = (table.getColumn('group')?.getFilterValue() as string | undefined) ?? ''
+  const typeFilter = getRoleTypeFilter(groupFilter)
+  const ownerFilter = (table.getColumn('owner')?.getFilterValue() as string | undefined) ?? 'All'
+  const statusFilter = (table.getColumn('status')?.getFilterValue() as string | undefined) ?? 'All'
 
   return (
     <div className="flex h-full flex-col gap-4">
       <div className="flex flex-col items-start gap-4 sm:flex-row sm:justify-between">
         <div className="flex flex-col gap-1">
           <h1 className="text-3xl tracking-tight">Roles & Permissions</h1>
-          <p className="text-muted-foreground text-sm">Manage access roles and permissions across your organization.</p>
+          <p className="text-sm text-muted-foreground">Manage access roles and permissions across your organization.</p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -121,9 +121,9 @@ export function Roles({ roles }: { roles: Role[] }) {
                     className="h-7"
                     placeholder="Search roles..."
                     value={search}
-                    onChange={(e) => {
-                      table.getColumn("search")?.setFilterValue(e.target.value || undefined);
-                      table.setPageIndex(0);
+                    onChange={e => {
+                      table.getColumn('search')?.setFilterValue(e.target.value || undefined)
+                      table.setPageIndex(0)
                     }}
                   />
                 </InputGroup>
@@ -131,9 +131,9 @@ export function Roles({ roles }: { roles: Role[] }) {
                 <div className="flex flex-wrap items-center gap-2">
                   <Select
                     value={typeFilter}
-                    onValueChange={(v) => {
-                      table.getColumn("group")?.setFilterValue(getRoleGroupFilterValue(v));
-                      table.setPageIndex(0);
+                    onValueChange={v => {
+                      table.getColumn('group')?.setFilterValue(getRoleGroupFilterValue(v))
+                      table.setPageIndex(0)
                     }}
                   >
                     <SelectTrigger size="sm">
@@ -151,9 +151,9 @@ export function Roles({ roles }: { roles: Role[] }) {
 
                   <Select
                     value={ownerFilter}
-                    onValueChange={(v) => {
-                      table.getColumn("owner")?.setFilterValue(v === "All" ? undefined : v);
-                      table.setPageIndex(0);
+                    onValueChange={v => {
+                      table.getColumn('owner')?.setFilterValue(v === 'All' ? undefined : v)
+                      table.setPageIndex(0)
                     }}
                   >
                     <SelectTrigger size="sm">
@@ -173,9 +173,9 @@ export function Roles({ roles }: { roles: Role[] }) {
 
                   <Select
                     value={statusFilter}
-                    onValueChange={(v) => {
-                      table.getColumn("status")?.setFilterValue(v === "All" ? undefined : v);
-                      table.setPageIndex(0);
+                    onValueChange={v => {
+                      table.getColumn('status')?.setFilterValue(v === 'All' ? undefined : v)
+                      table.setPageIndex(0)
                     }}
                   >
                     <SelectTrigger size="sm">
@@ -198,16 +198,16 @@ export function Roles({ roles }: { roles: Role[] }) {
           </div>
         </TabsContent>
         <TabsContent value="permission-sets">
-          <div className="flex h-full items-center justify-center rounded-md border border-dashed text-muted-foreground text-sm">
+          <div className="flex h-full items-center justify-center rounded-md border border-dashed text-sm text-muted-foreground">
             Permission Sets Coming Soon
           </div>
         </TabsContent>
         <TabsContent value="access-reviews">
-          <div className="flex h-full items-center justify-center rounded-md border border-dashed text-muted-foreground text-sm">
+          <div className="flex h-full items-center justify-center rounded-md border border-dashed text-sm text-muted-foreground">
             Access Reviews Coming Soon
           </div>
         </TabsContent>
       </Tabs>
     </div>
-  );
+  )
 }

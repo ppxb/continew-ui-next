@@ -1,86 +1,86 @@
-import { ArrowUpRight } from "lucide-react";
-import { Bar, BarChart, LabelList, type LabelProps, XAxis, YAxis } from "recharts";
-import { siEbay, siGoogle, siMeta, siShopify, siTiktok } from "simple-icons";
+import { ArrowUpRight } from 'lucide-react'
+import { Bar, BarChart, LabelList, type LabelProps, XAxis, YAxis } from 'recharts'
+import { siEbay, siGoogle, siMeta, siShopify, siTiktok } from 'simple-icons'
 
-import { SimpleIcon } from "@/components/simple-icon";
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { type ChartConfig, ChartContainer } from "@/components/ui/chart";
+import { SimpleIcon } from '@/components/simple-icon'
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { type ChartConfig, ChartContainer } from '@/components/ui/chart'
 
 const trafficSources = [
   {
-    name: "Meta",
-    visits: "5,640",
+    name: 'Meta',
+    visits: '5,640',
     share: 38,
-    change: "+18%",
-    icon: siMeta,
+    change: '+18%',
+    icon: siMeta
   },
   {
-    name: "Google",
-    visits: "3,740",
+    name: 'Google',
+    visits: '3,740',
     share: 25,
-    change: "-6%",
-    icon: siGoogle,
+    change: '-6%',
+    icon: siGoogle
   },
   {
-    name: "Shopify",
-    visits: "2,960",
+    name: 'Shopify',
+    visits: '2,960',
     share: 20,
-    change: "+7%",
-    icon: siShopify,
+    change: '+7%',
+    icon: siShopify
   },
   {
-    name: "TikTok",
-    visits: "1,340",
+    name: 'TikTok',
+    visits: '1,340',
     share: 10,
-    change: "+9%",
-    icon: siTiktok,
+    change: '+9%',
+    icon: siTiktok
   },
   {
-    name: "eBay",
-    visits: "1,080",
+    name: 'eBay',
+    visits: '1,080',
     share: 7,
-    change: "-3%",
-    icon: siEbay,
-  },
-] as const;
+    change: '-3%',
+    icon: siEbay
+  }
+] as const
 
 const trafficSourcesConfig = {
   share: {
-    label: "Visits",
-    color: "var(--chart-1)",
-  },
-} satisfies ChartConfig;
+    label: 'Visits',
+    color: 'var(--chart-1)'
+  }
+} satisfies ChartConfig
 
 type IconLabelProps = {
-  height?: number | string;
-  index?: number;
-  width?: number | string;
-  x?: number | string;
-  y?: number | string;
-};
+  height?: number | string
+  index?: number
+  width?: number | string
+  x?: number | string
+  y?: number | string
+}
 
 type SourceLabelProps = LabelProps & {
-  index?: number;
-};
+  index?: number
+}
 
 type SourceChangeLabelProps = LabelProps & {
-  value?: number | string;
-};
+  value?: number | string
+}
 
 function getNumber(value: number | string | undefined) {
-  return typeof value === "number" ? value : Number(value);
+  return typeof value === 'number' ? value : Number(value)
 }
 
 function TrafficSourceIconLabel({ height, index, width, x, y }: IconLabelProps) {
-  if (typeof index !== "number") {
-    return null;
+  if (typeof index !== 'number') {
+    return null
   }
 
-  const source = trafficSources[index];
-  const xValue = getNumber(x);
-  const yValue = getNumber(y);
-  const widthValue = getNumber(width);
-  const heightValue = getNumber(height);
+  const source = trafficSources[index]
+  const xValue = getNumber(x)
+  const yValue = getNumber(y)
+  const widthValue = getNumber(width)
+  const heightValue = getNumber(height)
 
   if (
     !source ||
@@ -89,32 +89,32 @@ function TrafficSourceIconLabel({ height, index, width, x, y }: IconLabelProps) 
     Number.isNaN(widthValue) ||
     Number.isNaN(heightValue)
   ) {
-    return null;
+    return null
   }
 
-  const iconSize = 16;
-  const iconX = Math.max(xValue + 10, xValue + widthValue - iconSize - 10);
-  const iconY = yValue + (heightValue - iconSize) / 2;
+  const iconSize = 16
+  const iconX = Math.max(xValue + 10, xValue + widthValue - iconSize - 10)
+  const iconY = yValue + (heightValue - iconSize) / 2
 
   return (
     <foreignObject height={iconSize} x={iconX} y={iconY} width={iconSize}>
       <SimpleIcon icon={source.icon} className="size-4 fill-foreground" />
     </foreignObject>
-  );
+  )
 }
 
 function TrafficSourceNameLabel({ height, index, x, y }: SourceLabelProps) {
-  if (typeof index !== "number") {
-    return null;
+  if (typeof index !== 'number') {
+    return null
   }
 
-  const source = trafficSources[index];
-  const xValue = getNumber(x);
-  const yValue = getNumber(y);
-  const heightValue = getNumber(height);
+  const source = trafficSources[index]
+  const xValue = getNumber(x)
+  const yValue = getNumber(y)
+  const heightValue = getNumber(height)
 
   if (!source || Number.isNaN(xValue) || Number.isNaN(yValue) || Number.isNaN(heightValue)) {
-    return null;
+    return null
   }
 
   return (
@@ -126,22 +126,22 @@ function TrafficSourceNameLabel({ height, index, x, y }: SourceLabelProps) {
         {source.visits}
       </tspan>
     </text>
-  );
+  )
 }
 
 function TrafficSourceChangeLabel({ height, value, y }: SourceChangeLabelProps) {
-  const yValue = getNumber(y);
-  const heightValue = getNumber(height);
+  const yValue = getNumber(y)
+  const heightValue = getNumber(height)
 
-  if (typeof value !== "string" || Number.isNaN(yValue) || Number.isNaN(heightValue)) {
-    return null;
+  if (typeof value !== 'string' || Number.isNaN(yValue) || Number.isNaN(heightValue)) {
+    return null
   }
 
-  const isNegative = value.startsWith("-");
+  const isNegative = value.startsWith('-')
 
   return (
     <text
-      className={isNegative ? "fill-destructive" : "fill-green-700 dark:fill-green-300"}
+      className={isNegative ? 'fill-destructive' : 'fill-green-700 dark:fill-green-300'}
       dominantBaseline="middle"
       dx={-6}
       fontSize={13}
@@ -151,15 +151,15 @@ function TrafficSourceChangeLabel({ height, value, y }: SourceChangeLabelProps) 
     >
       {value}
     </text>
-  );
+  )
 }
 
 export function TrafficSources() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-normal text-muted-foreground text-sm">Traffic Sources</CardTitle>
-        <CardDescription className="text-foreground text-xl tabular-nums leading-none tracking-tight">
+        <CardTitle className="text-sm font-normal text-muted-foreground">Traffic Sources</CardTitle>
+        <CardDescription className="text-xl leading-none tracking-tight text-foreground tabular-nums">
           14.8K visits
         </CardDescription>
         <CardAction>
@@ -199,7 +199,7 @@ export function TrafficSources() {
             <XAxis dataKey="share" domain={[0, 100]} hide type="number" />
             <YAxis dataKey="name" hide type="category" />
             <Bar
-              background={{ fill: "url(#ecommerce-traffic-source-background-pattern)", radius: 8 }}
+              background={{ fill: 'url(#ecommerce-traffic-source-background-pattern)', radius: 8 }}
               barSize={36}
               dataKey="share"
               fill="var(--color-share)"
@@ -218,5 +218,5 @@ export function TrafficSources() {
         </ChartContainer>
       </CardContent>
     </Card>
-  );
+  )
 }

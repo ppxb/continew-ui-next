@@ -1,9 +1,9 @@
-import { Box, Container, Filter, PlusCircle, RefreshCw, Search, Server, Settings } from "lucide-react";
+import { Box, Container, Filter, PlusCircle, RefreshCw, Search, Server, Settings } from 'lucide-react'
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
-import { Kbd } from "@/components/ui/kbd";
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
+import { Kbd } from '@/components/ui/kbd'
 
 export function InfrastructureHeader() {
   return (
@@ -11,16 +11,16 @@ export function InfrastructureHeader() {
       <div className="flex flex-col gap-2">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex min-w-0 flex-col gap-1">
-            <h1 className="font-medium text-2xl leading-tight tracking-tight sm:text-3xl sm:leading-none">
+            <h1 className="text-2xl leading-tight font-medium tracking-tight sm:text-3xl sm:leading-none">
               Infrastructure Overview
             </h1>
-            <p className="text-muted-foreground text-sm">
+            <p className="text-sm text-muted-foreground">
               Monitor environments, server health, uptime, and resource usage across every project.
             </p>
           </div>
 
           <div className="flex w-full items-center justify-between gap-2 sm:w-auto sm:justify-end">
-            <span className="whitespace-nowrap text-muted-foreground text-sm">Last updated: 30s ago</span>
+            <span className="text-sm whitespace-nowrap text-muted-foreground">Last updated: 30s ago</span>
             <div className="flex items-center gap-2">
               <Button variant="outline" size="icon-sm">
                 <RefreshCw />
@@ -89,5 +89,5 @@ export function InfrastructureHeader() {
         </div>
       </div>
     </div>
-  );
+  )
 }

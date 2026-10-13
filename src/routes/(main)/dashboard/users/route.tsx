@@ -1,12 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from '@tanstack/react-router'
 
-import { users } from "./-components/data";
-import { Users } from "./-components/users";
+import { users } from './-components/data'
+import { Users } from './-components/users'
 
-export const Route = createFileRoute("/(main)/dashboard/users")({
-  component: Page,
-});
+export const Route = createFileRoute('/(main)/dashboard/users')({
+  component: Page
+})
 
 function Page() {
-  return <Users users={users} />;
+  return <Users users={users} />
 }

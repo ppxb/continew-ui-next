@@ -1,4 +1,4 @@
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency } from '@/lib/utils'
 
 import {
   getInvoiceDiscount,
@@ -10,13 +10,13 @@ import {
   getLineAmount,
   INVOICE_PAPER_HEIGHT,
   INVOICE_PAPER_WIDTH,
-  type InvoiceFormValues,
-} from "./data";
+  type InvoiceFormValues
+} from './data'
 
 export function InvoicePaper({ invoice }: { invoice: InvoiceFormValues }) {
-  const taxOption = getInvoiceTaxOption(invoice);
-  const discountValue = Number.isFinite(invoice.discountValue) ? invoice.discountValue : 0;
-  const discountLabel = invoice.discountType === "percent" ? `Discount ${discountValue}%` : "Discount";
+  const taxOption = getInvoiceTaxOption(invoice)
+  const discountValue = Number.isFinite(invoice.discountValue) ? invoice.discountValue : 0
+  const discountLabel = invoice.discountType === 'percent' ? `Discount ${discountValue}%` : 'Discount'
 
   return (
     <article
@@ -32,7 +32,7 @@ export function InvoicePaper({ invoice }: { invoice: InvoiceFormValues }) {
             <rect y="28" width="20" height="20" rx="3" fill="currentColor" />
             <rect x="28" y="28" width="20" height="20" rx="3" fill="currentColor" />
           </svg>
-          <h2 className="text-4xl uppercase tracking-widest">Invoice</h2>
+          <h2 className="text-4xl tracking-widest uppercase">Invoice</h2>
         </div>
 
         <section className="grid grid-cols-2 gap-14 text-sm leading-relaxed">
@@ -52,7 +52,7 @@ export function InvoicePaper({ invoice }: { invoice: InvoiceFormValues }) {
           <div>
             <p className="mb-4 font-semibold uppercase">From</p>
             <p>{invoice.from.name}</p>
-            {invoice.from.addressLines.map((line) => (
+            {invoice.from.addressLines.map(line => (
               <p key={line}>{line}</p>
             ))}
             <p>Tax ID: {invoice.from.taxId}</p>
@@ -60,7 +60,7 @@ export function InvoicePaper({ invoice }: { invoice: InvoiceFormValues }) {
           <div>
             <p className="mb-4 font-semibold uppercase">Bill to</p>
             <p>{invoice.to.name}</p>
-            {invoice.to.addressLines.map((line) => (
+            {invoice.to.addressLines.map(line => (
               <p key={line}>{line}</p>
             ))}
             <p>Tax ID: {invoice.to.taxId}</p>
@@ -76,10 +76,10 @@ export function InvoicePaper({ invoice }: { invoice: InvoiceFormValues }) {
             <span className="text-right">Unit cost</span>
             <span className="text-right">Line total</span>
           </div>
-          {getInvoiceItems(invoice).map((item) => (
+          {getInvoiceItems(invoice).map(item => (
             <div
               key={item.id}
-              className="grid grid-cols-[1fr_74px_116px_116px] border-[oklch(0.86_0_0)] border-b px-3 py-4"
+              className="grid grid-cols-[1fr_74px_116px_116px] border-b border-[oklch(0.86_0_0)] px-3 py-4"
             >
               <span>{item.description}</span>
               <span className="text-right">{item.quantity}</span>
@@ -107,7 +107,7 @@ export function InvoicePaper({ invoice }: { invoice: InvoiceFormValues }) {
                 <span>{formatInvoiceCurrency(getInvoiceTax(invoice))}</span>
               </div>
             </div>
-            <div className="border-current border-y-2 py-3">
+            <div className="border-y-2 border-current py-3">
               <div className="flex justify-between gap-8">
                 <span className="font-semibold uppercase">Balance due</span>
                 <span className="font-semibold">{formatInvoiceCurrency(getInvoiceTotal(invoice))}</span>
@@ -117,7 +117,7 @@ export function InvoicePaper({ invoice }: { invoice: InvoiceFormValues }) {
         </div>
       </div>
 
-      <footer className="absolute right-12.25 bottom-11 left-12.25 grid grid-cols-2 gap-14 text-neutral-500 text-sm leading-relaxed">
+      <footer className="absolute right-12.25 bottom-11 left-12.25 grid grid-cols-2 gap-14 text-sm leading-relaxed text-neutral-500">
         <div>
           <p>{invoice.from.email}</p>
           <p>{invoice.from.phone}</p>
@@ -129,12 +129,12 @@ export function InvoicePaper({ invoice }: { invoice: InvoiceFormValues }) {
         </div>
       </footer>
     </article>
-  );
+  )
 }
 
 function formatInvoiceCurrency(value: number) {
   return formatCurrency(Number.isFinite(value) ? value : 0, {
     minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+    maximumFractionDigits: 2
+  })
 }

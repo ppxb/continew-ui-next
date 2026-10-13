@@ -1,21 +1,21 @@
-import { Ellipsis, RotateCcw, Search, SlidersHorizontal } from "lucide-react";
+import { Ellipsis, RotateCcw, Search, SlidersHorizontal } from 'lucide-react'
 
-import { Button } from "@/components/ui/button";
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
-import { Separator } from "@/components/ui/separator";
-import { SidebarTrigger } from "@/components/ui/sidebar";
+import { Button } from '@/components/ui/button'
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
+import { Separator } from '@/components/ui/separator'
+import { SidebarTrigger } from '@/components/ui/sidebar'
 
-import type { Mail } from "./data";
-import { MailList } from "./mail-list";
+import type { Mail } from './data'
+import { MailList } from './mail-list'
 
 interface MailInboxProps {
-  mails: Mail[];
-  onSelectMail?: (mail: Mail) => void;
+  mails: Mail[]
+  onSelectMail?: (mail: Mail) => void
 }
 
 export function MailInbox({ mails, onSelectMail }: MailInboxProps) {
-  const pinnedMails = mails.filter((mail) => mail.isPinned);
-  const unpinnedMails = mails.filter((mail) => !mail.isPinned);
+  const pinnedMails = mails.filter(mail => mail.isPinned)
+  const unpinnedMails = mails.filter(mail => !mail.isPinned)
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-3 pt-3">
@@ -23,7 +23,7 @@ export function MailInbox({ mails, onSelectMail }: MailInboxProps) {
         <div className="flex items-center">
           <SidebarTrigger />
           <Separator orientation="vertical" className="mr-2 ml-1 h-4 data-vertical:self-center" />
-          <h1 className="font-medium text-xl leading-none">Inbox</h1>
+          <h1 className="text-xl leading-none font-medium">Inbox</h1>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon-sm" aria-label="Filter inbox">
@@ -55,19 +55,19 @@ export function MailInbox({ mails, onSelectMail }: MailInboxProps) {
         <MailList
           groups={[
             {
-              id: "pinned",
-              title: "Pinned",
-              items: pinnedMails,
+              id: 'pinned',
+              title: 'Pinned',
+              items: pinnedMails
             },
             {
-              id: "inbox",
-              title: "Inbox",
-              items: unpinnedMails,
-            },
+              id: 'inbox',
+              title: 'Inbox',
+              items: unpinnedMails
+            }
           ]}
           onSelectMail={onSelectMail}
         />
       </div>
     </div>
-  );
+  )
 }

@@ -1,12 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from '@tanstack/react-router'
 
-import { MetricCards } from "./-components/metric-cards";
-import { PerformanceOverview } from "./-components/performance-overview";
-import { SubscriberOverview } from "./-components/subscriber-overview";
+import { MetricCards } from './-components/metric-cards'
+import { PerformanceOverview } from './-components/performance-overview'
+import { SubscriberOverview } from './-components/subscriber-overview'
 
-export const Route = createFileRoute("/(main)/dashboard/default")({
-  component: Page,
-});
+export const Route = createFileRoute('/(main)/dashboard/default')({
+  component: Page
+})
 
 function Page() {
   return (
@@ -15,5 +15,5 @@ function Page() {
       <PerformanceOverview />
       <SubscriberOverview />
     </div>
-  );
+  )
 }

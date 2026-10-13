@@ -1,30 +1,30 @@
-import { Clock, Folder, MoreVertical } from "lucide-react";
+import { Clock, Folder, MoreVertical } from 'lucide-react'
 
-import { Button } from "@/components/ui/button";
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from '@/components/ui/button'
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty";
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 
-import type { FileManagerFolder } from "./data";
+import type { FileManagerFolder } from './data'
 
 export function FoldersSection({ folders }: { folders: FileManagerFolder[] }) {
   return (
     <section className="flex flex-col gap-2" aria-labelledby="folders-heading">
       <div className="flex items-center justify-between">
-        <h2 id="folders-heading" className="font-medium text-lg">
+        <h2 id="folders-heading" className="text-lg font-medium">
           Folders
         </h2>
-        <span className="text-muted-foreground text-sm">{folders.length} folders</span>
+        <span className="text-sm text-muted-foreground">{folders.length} folders</span>
       </div>
       {folders.length > 0 ? (
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {folders.map((folder) => (
+          {folders.map(folder => (
             <Card key={folder.id} size="sm">
               <CardHeader>
                 <div className="flex min-w-0 items-center gap-2">
@@ -53,7 +53,7 @@ export function FoldersSection({ folders }: { folders: FileManagerFolder[] }) {
                   </DropdownMenu>
                 </CardAction>
               </CardHeader>
-              <CardContent className="flex items-center justify-between gap-3 text-muted-foreground text-xs">
+              <CardContent className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
                 <div className="flex items-center gap-1.5">
                   <Clock className="size-3.5" />
                   <span>Updated {folder.updatedAt}</span>
@@ -75,5 +75,5 @@ export function FoldersSection({ folders }: { folders: FileManagerFolder[] }) {
         </Empty>
       )}
     </section>
-  );
+  )
 }

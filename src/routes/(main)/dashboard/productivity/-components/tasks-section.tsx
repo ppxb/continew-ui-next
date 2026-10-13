@@ -1,35 +1,35 @@
-import * as React from "react";
+import * as React from 'react'
 
-import { Calendar1, Plus } from "lucide-react";
+import { Calendar1, Plus } from 'lucide-react'
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 type Task = {
-  title: string;
-  tag: string;
-  time: string;
-  checked: boolean;
-};
+  title: string
+  tag: string
+  time: string
+  checked: boolean
+}
 
 const taskRangeItems = [
-  { value: "today", label: "Today" },
-  { value: "tomorrow", label: "Tomorrow" },
-  { value: "this-week", label: "This Week" },
-] as const;
+  { value: 'today', label: 'Today' },
+  { value: 'tomorrow', label: 'Tomorrow' },
+  { value: 'this-week', label: 'This Week' }
+] as const
 
 const tasks: Task[] = [
-  { title: "Finalize Q2 roadmap", tag: "Work", time: "10:00 AM", checked: false },
-  { title: "Review design system updates", tag: "Design", time: "11:30 AM", checked: true },
-  { title: "Reply to important emails", tag: "Admin", time: "2:00 PM", checked: false },
-  { title: "Plan creator content for this week", tag: "Content", time: "4:30 PM", checked: false },
-  { title: "Prepare weekly team sync notes", tag: "Planning", time: "6:00 PM", checked: false },
-];
+  { title: 'Finalize Q2 roadmap', tag: 'Work', time: '10:00 AM', checked: false },
+  { title: 'Review design system updates', tag: 'Design', time: '11:30 AM', checked: true },
+  { title: 'Reply to important emails', tag: 'Admin', time: '2:00 PM', checked: false },
+  { title: 'Plan creator content for this week', tag: 'Content', time: '4:30 PM', checked: false },
+  { title: 'Prepare weekly team sync notes', tag: 'Planning', time: '6:00 PM', checked: false }
+]
 
 export function TasksSection() {
-  const [items, setItems] = React.useState(tasks);
+  const [items, setItems] = React.useState(tasks)
 
   return (
     <section className="flex flex-col gap-2">
@@ -42,7 +42,7 @@ export function TasksSection() {
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                {taskRangeItems.map((item) => (
+                {taskRangeItems.map(item => (
                   <SelectItem key={item.value} value={item.value}>
                     {item.label}
                   </SelectItem>
@@ -59,15 +59,15 @@ export function TasksSection() {
 
       <div className="overflow-hidden rounded-xl border bg-background shadow-xs">
         <div className="divide-y">
-          {items.map((task) => (
+          {items.map(task => (
             <div key={task.title} className="flex items-center gap-2 p-4">
               <Checkbox
                 checked={task.checked}
                 aria-label={task.title}
-                onCheckedChange={(checked) => {
-                  setItems((current) =>
-                    current.map((item) => (item.title === task.title ? { ...item, checked: checked === true } : item)),
-                  );
+                onCheckedChange={checked => {
+                  setItems(current =>
+                    current.map(item => (item.title === task.title ? { ...item, checked: checked === true } : item))
+                  )
                 }}
               />
               <div className="min-w-0 flex-1">
@@ -78,7 +78,7 @@ export function TasksSection() {
                       {task.tag}
                     </Badge>
                   </div>
-                  <div className="flex shrink-0 items-center gap-3 text-muted-foreground text-sm">
+                  <div className="flex shrink-0 items-center gap-3 text-sm text-muted-foreground">
                     <span>{task.time}</span>
                     <Calendar1 className="size-4" />
                   </div>
@@ -89,5 +89,5 @@ export function TasksSection() {
         </div>
       </div>
     </section>
-  );
+  )
 }

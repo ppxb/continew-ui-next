@@ -1,7 +1,7 @@
-import { TrendingUp } from "lucide-react";
+import { TrendingUp } from 'lucide-react'
 
-import { Button } from "@/components/ui/button";
-import { Item, ItemActions, ItemContent, ItemDescription, ItemMedia, ItemTitle } from "@/components/ui/item";
+import { Button } from '@/components/ui/button'
+import { Item, ItemActions, ItemContent, ItemDescription, ItemMedia, ItemTitle } from '@/components/ui/item'
 
 export function FinanceNotification() {
   return (
@@ -19,5 +19,5 @@ export function FinanceNotification() {
         </Button>
       </ItemActions>
     </Item>
-  );
+  )
 }

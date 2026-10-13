@@ -1,32 +1,32 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from '@tanstack/react-router'
 
-import { format } from "date-fns";
-import { Download, RotateCw, Settings2 } from "lucide-react";
+import { format } from 'date-fns'
+import { Download, RotateCw, Settings2 } from 'lucide-react'
 
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from '@/components/ui/button'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
-import { BalanceDistributionCard } from "./-components/balance-distribution-card";
-import { FinanceNotification } from "./-components/finance-notification";
-import { IncomeBreakdown } from "./-components/income-breakdown";
-import { OverviewKpis } from "./-components/overview-kpis";
-import { QuickActions } from "./-components/quick-actions";
-import { TransactionsOverviewCard } from "./-components/transactions-overview-card";
-import { UpcomingTransactions } from "./-components/upcoming-transactions";
-import { Wallet } from "./-components/wallet";
+import { BalanceDistributionCard } from './-components/balance-distribution-card'
+import { FinanceNotification } from './-components/finance-notification'
+import { IncomeBreakdown } from './-components/income-breakdown'
+import { OverviewKpis } from './-components/overview-kpis'
+import { QuickActions } from './-components/quick-actions'
+import { TransactionsOverviewCard } from './-components/transactions-overview-card'
+import { UpcomingTransactions } from './-components/upcoming-transactions'
+import { Wallet } from './-components/wallet'
 
-export const Route = createFileRoute("/(main)/dashboard/finance")({
-  component: Page,
-});
+export const Route = createFileRoute('/(main)/dashboard/finance')({
+  component: Page
+})
 
 function Page() {
-  const formattedDate = format(new Date(), "EEEE, do MMMM yyyy");
+  const formattedDate = format(new Date(), 'EEEE, do MMMM yyyy')
 
   return (
     <div className="flex flex-col gap-4">
       <div className="space-y-1">
         <h1 className="text-3xl tracking-tight">Personal Finances</h1>
-        <p className="text-muted-foreground text-sm">{formattedDate}</p>
+        <p className="text-sm text-muted-foreground">{formattedDate}</p>
       </div>
 
       <Tabs defaultValue="30-days" className="flex flex-col gap-4">
@@ -38,7 +38,7 @@ function Page() {
           </TabsList>
 
           <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-1.5 text-muted-foreground text-xs">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <RotateCw className="size-4" />
               <span>Updated 5 min ago</span>
             </div>
@@ -88,17 +88,17 @@ function Page() {
         </TabsContent>
 
         <TabsContent value="12-months">
-          <div className="flex h-64 items-center justify-center rounded-xl border border-border border-dashed text-muted-foreground">
+          <div className="flex h-64 items-center justify-center rounded-xl border border-dashed border-border text-muted-foreground">
             Accounts view coming soon.
           </div>
         </TabsContent>
 
         <TabsContent value="custom">
-          <div className="flex h-64 items-center justify-center rounded-xl border border-border border-dashed text-muted-foreground">
+          <div className="flex h-64 items-center justify-center rounded-xl border border-dashed border-border text-muted-foreground">
             Transactions view coming soon.
           </div>
         </TabsContent>
       </Tabs>
     </div>
-  );
+  )
 }

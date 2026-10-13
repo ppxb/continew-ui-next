@@ -1,24 +1,24 @@
-import { Controller, useFormContext, useWatch } from "react-hook-form";
+import { Controller, useFormContext, useWatch } from 'react-hook-form'
 
-import { Field, FieldLabel } from "@/components/ui/field";
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Field, FieldLabel } from '@/components/ui/field'
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
-import { type InvoiceFormValues, invoiceTaxOptions } from "./data";
+import { type InvoiceFormValues, invoiceTaxOptions } from './data'
 
-const taxItems = invoiceTaxOptions.map((taxOption) => ({
+const taxItems = invoiceTaxOptions.map(taxOption => ({
   value: taxOption.id,
-  label: `${taxOption.name} (${taxOption.rate}%)`,
-}));
+  label: `${taxOption.name} (${taxOption.rate}%)`
+}))
 
 const discountTypeItems = [
-  { value: "fixed", label: "Fixed amount" },
-  { value: "percent", label: "Percent" },
-] as const;
+  { value: 'fixed', label: 'Fixed amount' },
+  { value: 'percent', label: 'Percent' }
+] as const
 
 export function InvoiceAdjustments() {
-  const { control, register } = useFormContext<InvoiceFormValues>();
-  const discountType = useWatch({ control, name: "discountType" });
+  const { control, register } = useFormContext<InvoiceFormValues>()
+  const discountType = useWatch({ control, name: 'discountType' })
 
   return (
     <section className="flex flex-col gap-4">
@@ -37,7 +37,7 @@ export function InvoiceAdjustments() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    {taxItems.map((item) => (
+                    {taxItems.map(item => (
                       <SelectItem key={item.value} value={item.value}>
                         {item.label}
                       </SelectItem>
@@ -62,7 +62,7 @@ export function InvoiceAdjustments() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      {discountTypeItems.map((item) => (
+                      {discountTypeItems.map(item => (
                         <SelectItem key={item.value} value={item.value}>
                           {item.label}
                         </SelectItem>
@@ -80,13 +80,13 @@ export function InvoiceAdjustments() {
                 type="number"
                 step="0.01"
                 aria-label="Discount value"
-                {...register("discountValue", { valueAsNumber: true })}
+                {...register('discountValue', { valueAsNumber: true })}
               />
-              <InputGroupAddon align="inline-end">{discountType === "fixed" ? "$" : "%"}</InputGroupAddon>
+              <InputGroupAddon align="inline-end">{discountType === 'fixed' ? '$' : '%'}</InputGroupAddon>
             </InputGroup>
           </Field>
         </div>
       </div>
     </section>
-  );
+  )
 }

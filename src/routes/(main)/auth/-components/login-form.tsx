@@ -1,39 +1,39 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Controller, useForm } from "react-hook-form";
-import { z } from "zod";
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Controller, useForm } from 'react-hook-form'
+import { z } from 'zod'
 
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Field, FieldContent, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import { toast } from "@/components/ui/toast";
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Field, FieldContent, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
+import { toast } from '@/components/ui/toast'
 
 const formSchema = z.object({
-  email: z.email({ message: "Please enter a valid email address." }),
-  password: z.string().min(6, { message: "Password must be at least 6 characters." }),
-  remember: z.boolean().optional(),
-});
+  email: z.email({ message: 'Please enter a valid email address.' }),
+  password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
+  remember: z.boolean().optional()
+})
 
 const onSubmit = (data: z.infer<typeof formSchema>) => {
   toast.add({
-    title: "You submitted the following values",
+    title: 'You submitted the following values',
     description: (
       <pre className="mt-2 w-[320px] rounded-md bg-neutral-950 p-4">
         <code className="text-white">{JSON.stringify(data, null, 2)}</code>
       </pre>
-    ),
-  });
-};
+    )
+  })
+}
 
 export function LoginForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: "",
-      password: "",
-      remember: false,
-    },
-  });
+      email: '',
+      password: '',
+      remember: false
+    }
+  })
 
   return (
     <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
@@ -83,7 +83,7 @@ export function LoginForm() {
                 id="login-remember"
                 name={field.name}
                 checked={field.value}
-                onCheckedChange={(checked) => field.onChange(Boolean(checked))}
+                onCheckedChange={checked => field.onChange(Boolean(checked))}
                 aria-invalid={fieldState.invalid}
               />
               <FieldContent>
@@ -100,5 +100,5 @@ export function LoginForm() {
         Login
       </Button>
     </form>
-  );
+  )
 }

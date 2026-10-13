@@ -1,16 +1,16 @@
-import { Download, MoreVertical, Share2, Star, Trash2 } from "lucide-react";
+import { Download, MoreVertical, Share2, Star, Trash2 } from 'lucide-react'
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
 
-import type { FileManagerFile } from "./data";
+import type { FileManagerFile } from './data'
 
 export function FileActions({ file, onToggleStar }: { file: FileManagerFile; onToggleStar: () => void }) {
   return (
@@ -22,7 +22,7 @@ export function FileActions({ file, onToggleStar }: { file: FileManagerFile; onT
         <DropdownMenuGroup>
           <DropdownMenuItem onSelect={onToggleStar}>
             <Star />
-            {file.starred ? "Remove from starred" : "Add to starred"}
+            {file.starred ? 'Remove from starred' : 'Add to starred'}
           </DropdownMenuItem>
           <DropdownMenuItem>
             <Download />
@@ -42,5 +42,5 @@ export function FileActions({ file, onToggleStar }: { file: FileManagerFile; onT
         </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
-  );
+  )
 }

@@ -1,42 +1,42 @@
-import { cn } from "cn";
-import { CartesianGrid, Line, LineChart, YAxis } from "recharts";
+import { cn } from 'cn'
+import { CartesianGrid, Line, LineChart, YAxis } from 'recharts'
 
-import { type ChartConfig, ChartContainer } from "@/components/ui/chart";
+import { type ChartConfig, ChartContainer } from '@/components/ui/chart'
 
-import { getInnerVerticalGridCoordinates } from "./chart-grid";
-import type { PatientRecord } from "./data";
-import { type TrendKind, type TrendPoint, usePatientTrendSeries } from "./use-patient-vital-series";
+import { getInnerVerticalGridCoordinates } from './chart-grid'
+import type { PatientRecord } from './data'
+import { type TrendKind, type TrendPoint, usePatientTrendSeries } from './use-patient-vital-series'
 
 interface PatientTrendsProps {
-  patient: PatientRecord;
+  patient: PatientRecord
 }
 
 interface VitalTrendChartProps {
-  ariaLabel: string;
-  data: TrendPoint[];
-  domain: [number, number];
-  kind: TrendKind;
-  ticks: number[];
+  ariaLabel: string
+  data: TrendPoint[]
+  domain: [number, number]
+  kind: TrendKind
+  ticks: number[]
 }
 
 const trendChartConfig = {
   value: {
-    label: "Value",
-    color: "currentColor",
-  },
-} satisfies ChartConfig;
+    label: 'Value',
+    color: 'currentColor'
+  }
+} satisfies ChartConfig
 
 const trendClasses: Record<TrendKind, string> = {
-  "heart-rate": "text-lime-500 dark:text-lime-400",
-  map: "text-red-500 dark:text-red-400",
-  spo2: "text-cyan-500 dark:text-cyan-400",
-};
+  'heart-rate': 'text-lime-500 dark:text-lime-400',
+  map: 'text-red-500 dark:text-red-400',
+  spo2: 'text-cyan-500 dark:text-cyan-400'
+}
 
 function VitalTrendChart({ ariaLabel, data, domain, kind, ticks }: VitalTrendChartProps) {
   return (
     <ChartContainer
       aria-label={ariaLabel}
-      className={cn("aspect-auto h-full min-h-12 w-full border-current border-r", trendClasses[kind])}
+      className={cn('aspect-auto h-full min-h-12 w-full border-r border-current', trendClasses[kind])}
       config={trendChartConfig}
       initialDimension={{ width: 600, height: 48 }}
       role="img"
@@ -62,7 +62,7 @@ function VitalTrendChart({ ariaLabel, data, domain, kind, ticks }: VitalTrendCha
         />
       </LineChart>
     </ChartContainer>
-  );
+  )
 }
 
 function TrendStrip({
@@ -70,30 +70,30 @@ function TrendStrip({
   label,
   patient,
   unit,
-  value,
+  value
 }: {
-  kind: TrendKind;
-  label: string;
-  patient: PatientRecord;
-  unit: string;
-  value: number;
+  kind: TrendKind
+  label: string
+  patient: PatientRecord
+  unit: string
+  value: number
 }) {
-  const series = usePatientTrendSeries({ kind, patient });
-  const scale = [...series.ticks].reverse();
+  const series = usePatientTrendSeries({ kind, patient })
+  const scale = [...series.ticks].reverse()
   const color = cn(
-    kind === "heart-rate" && "text-lime-500 dark:text-lime-400",
-    kind === "spo2" && "text-cyan-500 dark:text-cyan-400",
-    kind === "map" && "text-red-500 dark:text-red-400",
-  );
+    kind === 'heart-rate' && 'text-lime-500 dark:text-lime-400',
+    kind === 'spo2' && 'text-cyan-500 dark:text-cyan-400',
+    kind === 'map' && 'text-red-500 dark:text-red-400'
+  )
 
   return (
-    <div className="grid min-h-12 grid-cols-[4rem_2rem_minmax(0,1fr)_2.5rem] items-stretch gap-1 border-border border-b">
+    <div className="grid min-h-12 grid-cols-[4rem_2rem_minmax(0,1fr)_2.5rem] items-stretch gap-1 border-b border-border">
       <div className="flex flex-col justify-start p-2">
-        <div className={cn("font-medium text-xs", color)}>{label}</div>
+        <div className={cn('text-xs font-medium', color)}>{label}</div>
         <div className="text-[10px] text-muted-foreground">{unit}</div>
       </div>
       <div className="flex h-full min-h-12 flex-col justify-between text-right text-[10px] text-muted-foreground tabular-nums">
-        {scale.map((tick) => (
+        {scale.map(tick => (
           <span key={tick}>{tick}</span>
         ))}
       </div>
@@ -104,9 +104,9 @@ function TrendStrip({
         kind={kind}
         ticks={series.ticks}
       />
-      <div className={cn("self-end pr-1 text-right font-medium text-sm tabular-nums", color)}>{value}</div>
+      <div className={cn('self-end pr-1 text-right text-sm font-medium tabular-nums', color)}>{value}</div>
     </div>
-  );
+  )
 }
 
 export function PatientTrends({ patient }: PatientTrendsProps) {
@@ -128,9 +128,9 @@ export function PatientTrends({ patient }: PatientTrendsProps) {
         </div>
       </div>
       <div className="px-3 py-2">
-        <div className="mb-2 font-medium text-xs">Recent events</div>
+        <div className="mb-2 text-xs font-medium">Recent events</div>
         <div className="flex flex-col gap-2">
-          {patient.recentEvents.map((event) => (
+          {patient.recentEvents.map(event => (
             <div className="grid grid-cols-[3rem_1fr] text-[11px]" key={`${event.time}-${event.label}`}>
               <span className="text-muted-foreground tabular-nums">{event.time}</span>
               <span>{event.label}</span>
@@ -139,5 +139,5 @@ export function PatientTrends({ patient }: PatientTrendsProps) {
         </div>
       </div>
     </div>
-  );
+  )
 }

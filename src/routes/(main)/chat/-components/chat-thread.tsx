@@ -1,4 +1,4 @@
-import { cn } from "cn";
+import { cn } from 'cn'
 import {
   AlarmClock,
   ArrowLeft,
@@ -13,50 +13,50 @@ import {
   Sparkles,
   Tag,
   Type,
-  UserRound,
-} from "lucide-react";
+  UserRound
+} from 'lucide-react'
 
-import { Avatar, AvatarBadge, AvatarFallback } from "@/components/ui/avatar";
-import { Bubble, BubbleContent, BubbleGroup, BubbleReactions } from "@/components/ui/bubble";
-import { Button } from "@/components/ui/button";
+import { Avatar, AvatarBadge, AvatarFallback } from '@/components/ui/avatar'
+import { Bubble, BubbleContent, BubbleGroup, BubbleReactions } from '@/components/ui/bubble'
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupTextarea } from "@/components/ui/input-group";
-import { Marker, MarkerContent } from "@/components/ui/marker";
-import { Message, MessageAvatar, MessageContent, MessageFooter } from "@/components/ui/message";
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupTextarea } from '@/components/ui/input-group'
+import { Marker, MarkerContent } from '@/components/ui/marker'
+import { Message, MessageAvatar, MessageContent, MessageFooter } from '@/components/ui/message'
 import {
   MessageScroller,
   MessageScrollerButton,
   MessageScrollerContent,
   MessageScrollerItem,
   MessageScrollerProvider,
-  MessageScrollerViewport,
-} from "@/components/ui/message-scroller";
-import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { getInitials } from "@/lib/utils";
+  MessageScrollerViewport
+} from '@/components/ui/message-scroller'
+import { Separator } from '@/components/ui/separator'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { getInitials } from '@/lib/utils'
 
-import { type Message as ChatMessage, type Contact, currentUser } from "./data";
+import { type Message as ChatMessage, type Contact, currentUser } from './data'
 
 interface ChatThreadProps {
-  contact: Contact;
-  messages: ChatMessage[];
-  onOpenContact?: () => void;
-  onBack?: () => void;
-  showBackButton?: boolean;
-  className?: string;
+  contact: Contact
+  messages: ChatMessage[]
+  onOpenContact?: () => void
+  onBack?: () => void
+  showBackButton?: boolean
+  className?: string
 }
 
 export function ChatThread({ contact, messages, onOpenContact, onBack, showBackButton, className }: ChatThreadProps) {
   return (
-    <div className={cn("flex h-full flex-col py-3", className)}>
+    <div className={cn('flex h-full flex-col py-3', className)}>
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between gap-4 px-2">
           <div className="flex items-center gap-3">
@@ -76,8 +76,8 @@ export function ChatThread({ contact, messages, onOpenContact, onBack, showBackB
               <AvatarBadge className="bg-green-600 dark:bg-green-800" />
             </Avatar>
             <div>
-              <div className="font-medium text-sm">{contact.name}</div>
-              <div className="text-muted-foreground text-xs leading-3">{contact.role}</div>
+              <div className="text-sm font-medium">{contact.name}</div>
+              <div className="text-xs leading-3 text-muted-foreground">{contact.role}</div>
             </div>
           </div>
 
@@ -139,24 +139,24 @@ export function ChatThread({ contact, messages, onOpenContact, onBack, showBackB
                 <MarkerContent>May 6, 2026</MarkerContent>
               </Marker>
 
-              {messages.map((message) => {
-                const isOutbound = message.align === "end";
-                const reactionAlign = isOutbound ? "start" : "end";
-                const senderName = isOutbound ? currentUser.name : contact.name;
+              {messages.map(message => {
+                const isOutbound = message.align === 'end'
+                const reactionAlign = isOutbound ? 'start' : 'end'
+                const senderName = isOutbound ? currentUser.name : contact.name
 
                 return (
                   <MessageScrollerItem
                     key={message.id}
                     messageId={String(message.id)}
-                    scrollAnchor={message.align === "end"}
+                    scrollAnchor={message.align === 'end'}
                   >
                     <Message align={message.align}>
                       <MessageAvatar>
                         <Avatar>
                           <AvatarFallback
                             className={cn(
-                              "bg-muted text-foreground text-xs",
-                              isOutbound && "bg-primary text-primary-foreground",
+                              'bg-muted text-xs text-foreground',
+                              isOutbound && 'bg-primary text-primary-foreground'
                             )}
                           >
                             {getInitials(senderName)}
@@ -166,7 +166,7 @@ export function ChatThread({ contact, messages, onOpenContact, onBack, showBackB
 
                       <MessageContent>
                         <BubbleGroup>
-                          <Bubble variant={isOutbound ? "default" : "muted"} align={message.align}>
+                          <Bubble variant={isOutbound ? 'default' : 'muted'} align={message.align}>
                             <BubbleContent>{message.text}</BubbleContent>
                             {message.reaction ? (
                               <BubbleReactions aria-label={`Reaction: ${message.reaction}`} align={reactionAlign}>
@@ -179,7 +179,7 @@ export function ChatThread({ contact, messages, onOpenContact, onBack, showBackB
                       </MessageContent>
                     </Message>
                   </MessageScrollerItem>
-                );
+                )
               })}
             </MessageScrollerContent>
           </MessageScrollerViewport>
@@ -191,7 +191,7 @@ export function ChatThread({ contact, messages, onOpenContact, onBack, showBackB
         <Tabs defaultValue="reply" className="gap-0 rounded-md border">
           <TabsList
             variant="line"
-            className="w-full justify-start gap-2 border-b px-3 **:data-[slot=tabs-trigger]:border-x-0 **:data-[slot=tabs-trigger]:px-6 group-data-horizontal/tabs:h-10"
+            className="w-full justify-start gap-2 border-b px-3 group-data-horizontal/tabs:h-10 **:data-[slot=tabs-trigger]:border-x-0 **:data-[slot=tabs-trigger]:px-6"
           >
             <TabsTrigger value="reply" className="flex-none px-1">
               Reply
@@ -210,18 +210,18 @@ export function ChatThread({ contact, messages, onOpenContact, onBack, showBackB
         </Tabs>
       </div>
     </div>
-  );
+  )
 }
 
 function MessageComposer({ placeholder }: { placeholder: string }) {
   return (
     <form
       className="w-full"
-      onSubmit={(event) => {
-        event.preventDefault();
+      onSubmit={event => {
+        event.preventDefault()
       }}
     >
-      <InputGroup className="border-0 bg-transparent shadow-none has-[[data-slot=input-group-control]:focus-visible]:border-0 has-[[data-slot][aria-invalid=true]]:border-0 has-[[data-slot=input-group-control]:focus-visible]:ring-0 has-[[data-slot][aria-invalid=true]]:ring-0 dark:bg-transparent dark:has-[[data-slot][aria-invalid=true]]:ring-0">
+      <InputGroup className="border-0 bg-transparent shadow-none has-[[data-slot=input-group-control]:focus-visible]:border-0 has-[[data-slot=input-group-control]:focus-visible]:ring-0 has-[[data-slot][aria-invalid=true]]:border-0 has-[[data-slot][aria-invalid=true]]:ring-0 dark:bg-transparent dark:has-[[data-slot][aria-invalid=true]]:ring-0">
         <InputGroupTextarea
           placeholder={placeholder}
           className="min-h-14 px-3 py-2.5 text-sm ring-0 focus-visible:ring-0 aria-invalid:ring-0 dark:aria-invalid:ring-0"
@@ -249,5 +249,5 @@ function MessageComposer({ placeholder }: { placeholder: string }) {
         </InputGroupAddon>
       </InputGroup>
     </form>
-  );
+  )
 }

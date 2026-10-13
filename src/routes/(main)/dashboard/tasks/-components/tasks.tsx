@@ -1,15 +1,15 @@
-import * as React from "react";
+import * as React from 'react'
 
 import {
   type ColumnFiltersState,
   type ColumnVisibilityState,
   type PaginationState,
   type SortingState,
-  useTable,
-} from "@tanstack/react-table";
+  useTable
+} from '@tanstack/react-table'
 
-import { cn } from "cn";
-import { ChevronsLeft, ChevronsRight } from "lucide-react";
+import { cn } from 'cn'
+import { ChevronsLeft, ChevronsRight } from 'lucide-react'
 
 import {
   Pagination,
@@ -18,44 +18,44 @@ import {
   PaginationItem,
   PaginationLink,
   PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { dataTableFeatures } from "@/lib/data-table-features";
+  PaginationPrevious
+} from '@/components/ui/pagination'
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { dataTableFeatures } from '@/lib/data-table-features'
 
-import { columns } from "./columns";
-import type { Task } from "./data";
-import { TasksToolbar } from "./tasks-toolbar";
+import { columns } from './columns'
+import type { Task } from './data'
+import { TasksToolbar } from './tasks-toolbar'
 
 interface TasksProps {
-  data: Task[];
+  data: Task[]
 }
 
 function preventPaginationNavigation(event: React.MouseEvent<HTMLAnchorElement>) {
-  event.preventDefault();
+  event.preventDefault()
 }
 
 function getPageNumbers(currentPage: number, pageCount: number) {
   if (pageCount <= 3) {
-    return Array.from({ length: pageCount }, (_, index) => index + 1);
+    return Array.from({ length: pageCount }, (_, index) => index + 1)
   }
 
-  if (currentPage <= 2) return [1, 2, 3];
-  if (currentPage >= pageCount - 1) return [pageCount - 2, pageCount - 1, pageCount];
+  if (currentPage <= 2) return [1, 2, 3]
+  if (currentPage >= pageCount - 1) return [pageCount - 2, pageCount - 1, pageCount]
 
-  return [currentPage - 1, currentPage, currentPage + 1];
+  return [currentPage - 1, currentPage, currentPage + 1]
 }
 
 export function Tasks({ data }: TasksProps) {
-  const [rowSelection, setRowSelection] = React.useState({});
-  const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>({});
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [rowSelection, setRowSelection] = React.useState({})
+  const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>({})
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+  const [sorting, setSorting] = React.useState<SortingState>([])
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
-    pageSize: 10,
-  });
+    pageSize: 10
+  })
 
   const table = useTable({
     features: dataTableFeatures,
@@ -66,22 +66,22 @@ export function Tasks({ data }: TasksProps) {
       columnVisibility,
       rowSelection,
       columnFilters,
-      pagination,
+      pagination
     },
-    getRowId: (row) => row.id,
+    getRowId: row => row.id,
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
-    onPaginationChange: setPagination,
-  });
-  const pageIndex = table.state.pagination.pageIndex;
-  const pageCount = Math.max(table.getPageCount(), 1);
-  const currentPage = Math.min(pageIndex + 1, pageCount);
-  const pageNumbers = getPageNumbers(currentPage, pageCount);
-  const canPreviousPage = table.getCanPreviousPage();
-  const canNextPage = table.getCanNextPage();
+    onPaginationChange: setPagination
+  })
+  const pageIndex = table.state.pagination.pageIndex
+  const pageCount = Math.max(table.getPageCount(), 1)
+  const currentPage = Math.min(pageIndex + 1, pageCount)
+  const pageNumbers = getPageNumbers(currentPage, pageCount)
+  const canPreviousPage = table.getCanPreviousPage()
+  const canNextPage = table.getCanNextPage()
 
   return (
     <div className="overflow-hidden rounded-xl border border-border/70 bg-background">
@@ -90,9 +90,9 @@ export function Tasks({ data }: TasksProps) {
       </div>
       <Table className="**:data-[slot=table-cell]:px-4 **:data-[slot=table-head]:px-4">
         <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => (
+          {table.getHeaderGroups().map(headerGroup => (
             <TableRow key={headerGroup.id} className="hover:bg-transparent">
-              {headerGroup.headers.map((header) => (
+              {headerGroup.headers.map(header => (
                 <TableHead key={header.id} className="h-11 font-medium text-muted-foreground" colSpan={header.colSpan}>
                   {header.isPlaceholder ? null : <table.FlexRender header={header} />}
                 </TableHead>
@@ -102,13 +102,13 @@ export function Tasks({ data }: TasksProps) {
         </TableHeader>
         <TableBody>
           {table.getRowModel().rows?.length ? (
-            table.getRowModel().rows.map((row) => (
+            table.getRowModel().rows.map(row => (
               <TableRow
                 key={row.id}
                 className="border-border/60 hover:bg-muted/20"
-                data-state={table.state.rowSelection[row.id] && "selected"}
+                data-state={table.state.rowSelection[row.id] && 'selected'}
               >
-                {row.getVisibleCells().map((cell) => (
+                {row.getVisibleCells().map(cell => (
                   <TableCell key={cell.id} className="py-3 align-middle">
                     <table.FlexRender cell={cell} />
                   </TableCell>
@@ -125,17 +125,17 @@ export function Tasks({ data }: TasksProps) {
         </TableBody>
       </Table>
       <div className="flex flex-col gap-3 border-t px-4 py-4 md:flex-row md:items-center md:justify-between">
-        <div className="text-muted-foreground text-sm">
+        <div className="text-sm text-muted-foreground">
           {table.getFilteredSelectedRowModel().rows.length} of {table.getFilteredRowModel().rows.length} row(s)
           selected.
         </div>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end sm:gap-6 lg:gap-8">
           <div className="flex items-center gap-2">
-            <p className="font-medium text-muted-foreground text-sm">Rows per page</p>
+            <p className="text-sm font-medium text-muted-foreground">Rows per page</p>
             <Select
               value={`${table.state.pagination.pageSize}`}
-              onValueChange={(value) => {
-                table.setPageSize(Number(value));
+              onValueChange={value => {
+                table.setPageSize(Number(value))
               }}
             >
               <SelectTrigger className="h-8 w-18">
@@ -143,7 +143,7 @@ export function Tasks({ data }: TasksProps) {
               </SelectTrigger>
               <SelectContent side="top">
                 <SelectGroup>
-                  {[10, 20, 30, 40, 50].map((pageSize) => (
+                  {[10, 20, 30, 40, 50].map(pageSize => (
                     <SelectItem key={pageSize} value={`${pageSize}`}>
                       {pageSize}
                     </SelectItem>
@@ -152,7 +152,7 @@ export function Tasks({ data }: TasksProps) {
               </SelectContent>
             </Select>
           </div>
-          <div className="flex w-24 items-center justify-start font-medium text-sm sm:justify-center">
+          <div className="flex w-24 items-center justify-start text-sm font-medium sm:justify-center">
             Page {currentPage} of {pageCount}
           </div>
           <Pagination className="mx-0 w-auto justify-start sm:justify-end">
@@ -162,10 +162,10 @@ export function Tasks({ data }: TasksProps) {
                   href="#"
                   aria-label="Go to first page"
                   aria-disabled={!canPreviousPage}
-                  className={cn(!canPreviousPage && "pointer-events-none opacity-50")}
-                  onClick={(event) => {
-                    preventPaginationNavigation(event);
-                    if (canPreviousPage) table.setPageIndex(0);
+                  className={cn(!canPreviousPage && 'pointer-events-none opacity-50')}
+                  onClick={event => {
+                    preventPaginationNavigation(event)
+                    if (canPreviousPage) table.setPageIndex(0)
                   }}
                 >
                   <ChevronsLeft />
@@ -176,10 +176,10 @@ export function Tasks({ data }: TasksProps) {
                   href="#"
                   text="Prev"
                   aria-disabled={!canPreviousPage}
-                  className={cn(!canPreviousPage && "pointer-events-none opacity-50")}
-                  onClick={(event) => {
-                    preventPaginationNavigation(event);
-                    if (canPreviousPage) table.previousPage();
+                  className={cn(!canPreviousPage && 'pointer-events-none opacity-50')}
+                  onClick={event => {
+                    preventPaginationNavigation(event)
+                    if (canPreviousPage) table.previousPage()
                   }}
                 />
               </PaginationItem>
@@ -188,14 +188,14 @@ export function Tasks({ data }: TasksProps) {
                   <PaginationEllipsis />
                 </PaginationItem>
               ) : null}
-              {pageNumbers.map((pageNumber) => (
+              {pageNumbers.map(pageNumber => (
                 <PaginationItem key={pageNumber}>
                   <PaginationLink
                     href="#"
                     isActive={pageIndex === pageNumber - 1}
-                    onClick={(event) => {
-                      preventPaginationNavigation(event);
-                      table.setPageIndex(pageNumber - 1);
+                    onClick={event => {
+                      preventPaginationNavigation(event)
+                      table.setPageIndex(pageNumber - 1)
                     }}
                   >
                     {pageNumber}
@@ -211,10 +211,10 @@ export function Tasks({ data }: TasksProps) {
                 <PaginationNext
                   href="#"
                   aria-disabled={!canNextPage}
-                  className={cn(!canNextPage && "pointer-events-none opacity-50")}
-                  onClick={(event) => {
-                    preventPaginationNavigation(event);
-                    if (canNextPage) table.nextPage();
+                  className={cn(!canNextPage && 'pointer-events-none opacity-50')}
+                  onClick={event => {
+                    preventPaginationNavigation(event)
+                    if (canNextPage) table.nextPage()
                   }}
                 />
               </PaginationItem>
@@ -223,10 +223,10 @@ export function Tasks({ data }: TasksProps) {
                   href="#"
                   aria-label="Go to last page"
                   aria-disabled={!canNextPage}
-                  className={cn(!canNextPage && "pointer-events-none opacity-50")}
-                  onClick={(event) => {
-                    preventPaginationNavigation(event);
-                    if (canNextPage) table.setPageIndex(pageCount - 1);
+                  className={cn(!canNextPage && 'pointer-events-none opacity-50')}
+                  onClick={event => {
+                    preventPaginationNavigation(event)
+                    if (canNextPage) table.setPageIndex(pageCount - 1)
                   }}
                 >
                   <ChevronsRight />
@@ -237,5 +237,5 @@ export function Tasks({ data }: TasksProps) {
         </div>
       </div>
     </div>
-  );
+  )
 }

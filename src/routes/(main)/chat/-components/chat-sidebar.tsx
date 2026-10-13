@@ -1,8 +1,8 @@
-import { EllipsisVertical, LogOut, Settings, UserRound } from "lucide-react";
-import { siFacebook, siInstagram, siWhatsapp } from "simple-icons";
+import { EllipsisVertical, LogOut, Settings, UserRound } from 'lucide-react'
+import { siFacebook, siInstagram, siWhatsapp } from 'simple-icons'
 
-import { SimpleIcon } from "@/components/simple-icon";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { SimpleIcon } from '@/components/simple-icon'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,9 +10,9 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Separator } from "@/components/ui/separator";
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
+import { Separator } from '@/components/ui/separator'
 import {
   Sidebar,
   SidebarContent,
@@ -22,23 +22,19 @@ import {
   SidebarMenu,
   SidebarMenuBadge,
   SidebarMenuButton,
-  SidebarMenuItem,
-  useSidebar,
-} from "@/components/ui/sidebar";
-import { getInitials } from "@/lib/utils";
+  SidebarMenuItem
+} from '@/components/ui/sidebar'
+import { getInitials } from '@/lib/utils'
 
-import { channelItems, currentUser, navItems, viewItems } from "./data";
+import { channelItems, currentUser, navItems, viewItems } from './data'
 
 const channelBrandIcons = {
   whatsapp: siWhatsapp,
   instagram: siInstagram,
-  facebook: siFacebook,
-} as const;
+  facebook: siFacebook
+} as const
 
 export function ChatSidebar() {
-  const { state } = useSidebar();
-  const _isCollapsed = state === "collapsed";
-
   return (
     <Sidebar
       collapsible="offcanvas"
@@ -47,7 +43,7 @@ export function ChatSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarMenu className="gap-1">
-            {navItems.map((item) => (
+            {navItems.map(item => (
               <SidebarMenuItem key={item.id}>
                 <SidebarMenuButton className="[&_svg]:size-3.5" size="sm" isActive={item.isActive} tooltip={item.title}>
                   <item.icon />
@@ -62,7 +58,7 @@ export function ChatSidebar() {
         <SidebarGroup>
           <SidebarGroupLabel className="font-normal">Channels</SidebarGroupLabel>
           <SidebarMenu className="gap-1">
-            {channelItems.map((item) => (
+            {channelItems.map(item => (
               <SidebarMenuItem key={item.id}>
                 <SidebarMenuButton className="[&_svg]:size-3.5" size="sm" isActive={item.isActive} tooltip={item.title}>
                   {item.id in channelBrandIcons ? (
@@ -81,7 +77,7 @@ export function ChatSidebar() {
         <SidebarGroup>
           <SidebarGroupLabel className="font-normal">Views</SidebarGroupLabel>
           <SidebarMenu className="gap-1">
-            {viewItems.map((item) => (
+            {viewItems.map(item => (
               <SidebarMenuItem key={item.id}>
                 <SidebarMenuButton className="[&_svg]:size-3.5" size="sm" isActive={item.isActive} tooltip={item.title}>
                   <item.icon />
@@ -112,7 +108,7 @@ export function ChatSidebar() {
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">{currentUser.name}</span>
-                  <span className="truncate text-muted-foreground text-xs">{currentUser.email}</span>
+                  <span className="truncate text-xs text-muted-foreground">{currentUser.email}</span>
                 </div>
                 <EllipsisVertical className="ml-auto size-4" />
               </DropdownMenuTrigger>
@@ -124,7 +120,7 @@ export function ChatSidebar() {
                     </Avatar>
                     <div className="grid flex-1 text-left text-sm leading-tight">
                       <span className="truncate font-medium">{currentUser.name}</span>
-                      <span className="truncate text-muted-foreground text-xs">{currentUser.email}</span>
+                      <span className="truncate text-xs text-muted-foreground">{currentUser.email}</span>
                     </div>
                   </div>
                 </DropdownMenuLabel>
@@ -150,5 +146,5 @@ export function ChatSidebar() {
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
-  );
+  )
 }

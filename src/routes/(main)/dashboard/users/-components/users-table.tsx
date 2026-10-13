@@ -1,6 +1,6 @@
-import type { MouseEvent } from "react";
+import type { MouseEvent } from 'react'
 
-import type { ReactTable } from "@tanstack/react-table";
+import type { ReactTable } from '@tanstack/react-table'
 
 import {
   Pagination,
@@ -9,44 +9,44 @@ import {
   PaginationItem,
   PaginationLink,
   PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import type { DataTableFeatures } from "@/lib/data-table-features";
+  PaginationPrevious
+} from '@/components/ui/pagination'
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import type { DataTableFeatures } from '@/lib/data-table-features'
 
-import type { UserRow } from "./data";
+import type { UserRow } from './data'
 
 function preventPaginationNavigation(event: MouseEvent<HTMLAnchorElement>) {
-  event.preventDefault();
+  event.preventDefault()
 }
 
 function getPageNumbers(currentPage: number, pageCount: number) {
   if (pageCount <= 3) {
-    return Array.from({ length: pageCount }, (_, index) => index + 1);
+    return Array.from({ length: pageCount }, (_, index) => index + 1)
   }
 
-  if (currentPage <= 2) return [1, 2, 3];
-  if (currentPage >= pageCount - 1) return [pageCount - 2, pageCount - 1, pageCount];
+  if (currentPage <= 2) return [1, 2, 3]
+  if (currentPage >= pageCount - 1) return [pageCount - 2, pageCount - 1, pageCount]
 
-  return [currentPage - 1, currentPage, currentPage + 1];
+  return [currentPage - 1, currentPage, currentPage + 1]
 }
 
 export function UsersTable({ table }: { table: ReactTable<DataTableFeatures, UserRow> }) {
-  const pageCount = Math.max(table.getPageCount(), 1);
-  const currentPage = Math.min(table.state.pagination.pageIndex + 1, pageCount);
-  const pageNumbers = getPageNumbers(currentPage, pageCount);
-  const rowsPerPage = `${table.state.pagination.pageSize}`;
+  const pageCount = Math.max(table.getPageCount(), 1)
+  const currentPage = Math.min(table.state.pagination.pageIndex + 1, pageCount)
+  const pageNumbers = getPageNumbers(currentPage, pageCount)
+  const rowsPerPage = `${table.state.pagination.pageSize}`
 
   return (
     <div className="flex flex-1 flex-col gap-4">
       <div>
         <Table className="**:data-[slot='table-cell']:px-4 **:data-[slot='table-head']:px-4">
           <TableHeader className="[&_tr]:border-t">
-            {table.getHeaderGroups().map((headerGroup) => (
+            {table.getHeaderGroups().map(headerGroup => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
+                {headerGroup.headers.map(header => (
                   <TableHead key={header.id} className="py-4 font-normal">
                     {header.isPlaceholder ? null : <table.FlexRender header={header} />}
                   </TableHead>
@@ -57,13 +57,13 @@ export function UsersTable({ table }: { table: ReactTable<DataTableFeatures, Use
 
           <TableBody>
             {table.getRowModel().rows.length ? (
-              table.getRowModel().rows.map((row) => (
+              table.getRowModel().rows.map(row => (
                 <TableRow
                   key={row.id}
                   className="border-border/60 hover:bg-white/2.5"
-                  data-state={table.state.rowSelection[row.id] && "selected"}
+                  data-state={table.state.rowSelection[row.id] && 'selected'}
                 >
-                  {row.getVisibleCells().map((cell) => (
+                  {row.getVisibleCells().map(cell => (
                     <TableCell key={cell.id} className="px-3 py-4 align-middle">
                       <table.FlexRender cell={cell} />
                     </TableCell>
@@ -84,19 +84,19 @@ export function UsersTable({ table }: { table: ReactTable<DataTableFeatures, Use
       <Separator />
 
       <div className="flex items-center justify-between px-4">
-        <div className="flex items-center gap-4 text-muted-foreground text-sm">
+        <div className="flex items-center gap-4 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
             <span>Rows per page</span>
             <Select
               value={`${table.state.pagination.pageSize}`}
-              onValueChange={(value) => table.setPageSize(Number(value))}
+              onValueChange={value => table.setPageSize(Number(value))}
             >
               <SelectTrigger size="sm" className="w-20" id="users-rows-per-page">
                 <SelectValue placeholder={rowsPerPage} />
               </SelectTrigger>
               <SelectContent side="top">
                 <SelectGroup>
-                  {[10, 20, 30, 40, 50].map((pageSize) => (
+                  {[10, 20, 30, 40, 50].map(pageSize => (
                     <SelectItem key={pageSize} value={`${pageSize}`}>
                       {pageSize}
                     </SelectItem>
@@ -116,10 +116,10 @@ export function UsersTable({ table }: { table: ReactTable<DataTableFeatures, Use
               <PaginationPrevious
                 href="#"
                 text=""
-                className={!table.getCanPreviousPage() ? "pointer-events-none opacity-50" : undefined}
-                onClick={(event) => {
-                  preventPaginationNavigation(event);
-                  table.previousPage();
+                className={!table.getCanPreviousPage() ? 'pointer-events-none opacity-50' : undefined}
+                onClick={event => {
+                  preventPaginationNavigation(event)
+                  table.previousPage()
                 }}
               />
             </PaginationItem>
@@ -128,14 +128,14 @@ export function UsersTable({ table }: { table: ReactTable<DataTableFeatures, Use
                 <PaginationEllipsis />
               </PaginationItem>
             ) : null}
-            {pageNumbers.map((pageNumber) => (
+            {pageNumbers.map(pageNumber => (
               <PaginationItem key={`page-${pageNumber}`}>
                 <PaginationLink
                   href="#"
                   isActive={table.state.pagination.pageIndex === pageNumber - 1}
-                  onClick={(event) => {
-                    preventPaginationNavigation(event);
-                    table.setPageIndex(pageNumber - 1);
+                  onClick={event => {
+                    preventPaginationNavigation(event)
+                    table.setPageIndex(pageNumber - 1)
                   }}
                 >
                   {pageNumber}
@@ -151,10 +151,10 @@ export function UsersTable({ table }: { table: ReactTable<DataTableFeatures, Use
               <PaginationNext
                 href="#"
                 text=""
-                className={!table.getCanNextPage() ? "pointer-events-none opacity-50" : undefined}
-                onClick={(event) => {
-                  preventPaginationNavigation(event);
-                  table.nextPage();
+                className={!table.getCanNextPage() ? 'pointer-events-none opacity-50' : undefined}
+                onClick={event => {
+                  preventPaginationNavigation(event)
+                  table.nextPage()
                 }}
               />
             </PaginationItem>
@@ -162,5 +162,5 @@ export function UsersTable({ table }: { table: ReactTable<DataTableFeatures, Use
         </Pagination>
       </div>
     </div>
-  );
+  )
 }

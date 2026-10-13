@@ -1,45 +1,45 @@
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 
-import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { Progress } from "@/components/ui/progress";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
+import { Progress } from '@/components/ui/progress'
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
-const pipelineChartValues = [34, 38, 31, 47, 42, 51, 44, 40, 58, 46, 43, 49] as const;
+const pipelineChartValues = [34, 38, 31, 47, 42, 51, 44, 40, 58, 46, 43, 49] as const
 
 const pipelineChartConfig = {
   qualified: {
-    label: "Qualified",
-    color: "var(--chart-2)",
-  },
-} satisfies ChartConfig;
+    label: 'Qualified',
+    color: 'var(--chart-2)'
+  }
+} satisfies ChartConfig
 
 const pipelineRangeItems = [
-  { value: "last-30-days", label: "Last 30 days" },
-  { value: "last-quarter", label: "Last quarter" },
-  { value: "last-12-months", label: "Last 12 months" },
-] as const;
+  { value: 'last-30-days', label: 'Last 30 days' },
+  { value: 'last-quarter', label: 'Last quarter' },
+  { value: 'last-12-months', label: 'Last 12 months' }
+] as const
 
-const axisMonthFormatter = new Intl.DateTimeFormat("en-US", { month: "short" });
-const tooltipMonthFormatter = new Intl.DateTimeFormat("en-US", { month: "short", year: "2-digit" });
+const axisMonthFormatter = new Intl.DateTimeFormat('en-US', { month: 'short' })
+const tooltipMonthFormatter = new Intl.DateTimeFormat('en-US', { month: 'short', year: '2-digit' })
 
 function getRollingMonthData(values: readonly number[]) {
   return values.map((qualified, index) => {
-    const date = new Date();
-    date.setMonth(date.getMonth() - (values.length - 1 - index));
+    const date = new Date()
+    date.setMonth(date.getMonth() - (values.length - 1 - index))
 
     return {
       date: date.toISOString(),
-      qualified,
-    };
-  });
+      qualified
+    }
+  })
 }
 
 export function PipelineActivity() {
-  const pipelineChartData = getRollingMonthData(pipelineChartValues);
-  const totalQualified = pipelineChartData.reduce((sum, item) => sum + item.qualified, 0);
-  const discoveryCallsBooked = 184;
-  const discoveryProgress = Math.round((discoveryCallsBooked / totalQualified) * 100);
+  const pipelineChartData = getRollingMonthData(pipelineChartValues)
+  const totalQualified = pipelineChartData.reduce((sum, item) => sum + item.qualified, 0)
+  const discoveryCallsBooked = 184
+  const discoveryProgress = Math.round((discoveryCallsBooked / totalQualified) * 100)
 
   return (
     <div className="grid grid-cols-1 gap-4 xl:grid-cols-12">
@@ -53,7 +53,7 @@ export function PipelineActivity() {
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  {pipelineRangeItems.map((item) => (
+                  {pipelineRangeItems.map(item => (
                     <SelectItem key={item.value} value={item.value}>
                       {item.label}
                     </SelectItem>
@@ -93,14 +93,14 @@ export function PipelineActivity() {
                   tickLine={false}
                   tickMargin={10}
                   axisLine={false}
-                  tickFormatter={(value) => axisMonthFormatter.format(new Date(String(value)))}
+                  tickFormatter={value => axisMonthFormatter.format(new Date(String(value)))}
                 />
                 <YAxis hide />
                 <ChartTooltip
                   content={
                     <ChartTooltipContent
                       hideIndicator
-                      labelFormatter={(value) => tooltipMonthFormatter.format(new Date(String(value)))}
+                      labelFormatter={value => tooltipMonthFormatter.format(new Date(String(value)))}
                     />
                   }
                 />
@@ -117,22 +117,22 @@ export function PipelineActivity() {
 
             <div className="flex flex-col gap-5 rounded-lg p-4 lg:col-span-4">
               <div className="flex flex-col gap-1">
-                <div className="font-medium text-4xl tabular-nums leading-none">
-                  {totalQualified} <span className="font-normal text-lg text-muted-foreground">leads</span>
+                <div className="text-4xl leading-none font-medium tabular-nums">
+                  {totalQualified} <span className="text-lg font-normal text-muted-foreground">leads</span>
                 </div>
-                <p className="text-muted-foreground text-sm">Total qualified leads captured over the last 12 months.</p>
+                <p className="text-sm text-muted-foreground">Total qualified leads captured over the last 12 months.</p>
               </div>
 
               <div className="flex flex-col gap-3 rounded-lg border border-border/60 p-3">
-                <div className="text-[11px] text-muted-foreground uppercase tracking-widest">
+                <div className="text-[11px] tracking-widest text-muted-foreground uppercase">
                   Discovery Calls Booked
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <div className="font-medium text-2xl tabular-nums leading-none">
-                    {discoveryCallsBooked} <span className="font-normal text-muted-foreground text-sm">meetings</span>
+                  <div className="text-2xl leading-none font-medium tabular-nums">
+                    {discoveryCallsBooked} <span className="text-sm font-normal text-muted-foreground">meetings</span>
                   </div>
-                  <p className="text-muted-foreground text-sm">
+                  <p className="text-sm text-muted-foreground">
                     {discoveryProgress}% of qualified leads booked a first call.
                   </p>
                 </div>
@@ -153,5 +153,5 @@ export function PipelineActivity() {
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }

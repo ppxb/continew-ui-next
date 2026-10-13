@@ -1,23 +1,23 @@
-import { useState } from "react";
+import { useState } from 'react'
 
-import { cn } from "cn";
-import { Star } from "lucide-react";
+import { cn } from 'cn'
+import { Star } from 'lucide-react'
 
-import { Button } from "@/components/ui/button";
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from '@/components/ui/button'
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
-import { type FileManagerFile, fileIcons, fileKindLabels } from "./data";
-import { FileActions } from "./file-actions";
+import { type FileManagerFile, fileIcons, fileKindLabels } from './data'
+import { FileActions } from './file-actions'
 
 export function FileGridView({ files }: { files: FileManagerFile[] }) {
-  const [gridFiles, setGridFiles] = useState(files);
+  const [gridFiles, setGridFiles] = useState(files)
   const toggleStar = (fileId: string) =>
-    setGridFiles((current) => current.map((file) => (file.id === fileId ? { ...file, starred: !file.starred } : file)));
+    setGridFiles(current => current.map(file => (file.id === fileId ? { ...file, starred: !file.starred } : file)))
 
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      {gridFiles.map((file) => {
-        const FileIcon = fileIcons[file.kind];
+      {gridFiles.map(file => {
+        const FileIcon = fileIcons[file.kind]
         return (
           <Card key={file.id} size="sm" className="group/file">
             <CardContent>
@@ -27,15 +27,15 @@ export function FileGridView({ files }: { files: FileManagerFile[] }) {
                   variant="secondary"
                   size="icon-sm"
                   className={cn(
-                    "absolute top-2 right-2 opacity-0 focus-visible:opacity-100 group-hover/file:opacity-100",
-                    file.starred && "opacity-100",
+                    'absolute top-2 right-2 opacity-0 group-hover/file:opacity-100 focus-visible:opacity-100',
+                    file.starred && 'opacity-100'
                   )}
                   aria-label={file.starred ? `Unstar ${file.name}` : `Star ${file.name}`}
                   onClick={() => toggleStar(file.id)}
                 >
-                  <Star className={cn(file.starred && "fill-current")} />
+                  <Star className={cn(file.starred && 'fill-current')} />
                 </Button>
-                <div className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-3 text-muted-foreground text-xs">
+                <div className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-3 text-xs text-muted-foreground">
                   <span>{fileKindLabels[file.kind]}</span>
                   <span>{file.size}</span>
                 </div>
@@ -51,8 +51,8 @@ export function FileGridView({ files }: { files: FileManagerFile[] }) {
               </CardAction>
             </CardHeader>
           </Card>
-        );
+        )
       })}
     </div>
-  );
+  )
 }

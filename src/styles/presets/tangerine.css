@@ -3,7 +3,7 @@ label: Tangerine
 value: tangerine  
 */
 
-:root[data-theme-preset="tangerine"] {
+:root[data-theme-preset='tangerine'] {
   --radius: 0.625rem;
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.32 0 0);
@@ -46,7 +46,7 @@ value: tangerine
   --shadow-2xl: 0px 1px 3px 0px hsl(0 0% 0% / 0.25);
 }
 
-.dark:root[data-theme-preset="tangerine"] {
+.dark:root[data-theme-preset='tangerine'] {
   --background: oklch(0.26 0.03 262.67);
   --foreground: oklch(0.92 0 0);
   --card: oklch(0.31 0.03 268.64);

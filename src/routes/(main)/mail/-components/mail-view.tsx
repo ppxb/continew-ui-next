@@ -1,5 +1,5 @@
-import { cn } from "cn";
-import { format } from "date-fns/format";
+import { cn } from 'cn'
+import { format } from 'date-fns/format'
 import {
   Archive,
   ChevronDown,
@@ -16,39 +16,39 @@ import {
   Smile,
   Tag,
   Trash2,
-  X,
-} from "lucide-react";
+  X
+} from 'lucide-react'
 
-import { SimpleIcon } from "@/components/simple-icon";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { SimpleIcon } from '@/components/simple-icon'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from "@/components/ui/input-group";
-import { Separator } from "@/components/ui/separator";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '@/components/ui/input-group'
+import { Separator } from '@/components/ui/separator'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
-import type { Mail } from "./data";
-import { useMail } from "./use-mail";
+import type { Mail } from './data'
+import { useMail } from './use-mail'
 
 interface MailDisplayProps {
-  mail: Mail | null;
-  onClose?: () => void;
+  mail: Mail | null
+  onClose?: () => void
 }
 
 export function MailView({ mail, onClose }: MailDisplayProps) {
-  const [, setMail] = useMail();
+  const [, setMail] = useMail()
 
   function handleClose() {
-    setMail({ selected: null });
-    onClose?.();
+    setMail({ selected: null })
+    onClose?.()
   }
 
   return (
@@ -150,10 +150,10 @@ export function MailView({ mail, onClose }: MailDisplayProps) {
         {mail ? (
           <div className="flex min-h-0 flex-1 flex-col gap-3">
             <div className="space-y-1.5">
-              <div className="font-medium leading-none">{mail.subject}</div>
+              <div className="leading-none font-medium">{mail.subject}</div>
 
-              <div className="text-muted-foreground text-xs leading-none">
-                {format(new Date(mail.receivedAt), "EEE, d MMM yyyy, h:mm a")}
+              <div className="text-xs leading-none text-muted-foreground">
+                {format(new Date(mail.receivedAt), 'EEE, d MMM yyyy, h:mm a')}
               </div>
             </div>
 
@@ -168,17 +168,16 @@ export function MailView({ mail, onClose }: MailDisplayProps) {
                 <div className="flex items-center gap-2">
                   <div className="text-xs">{mail.from.name}</div>
                   <Separator className="h-3 data-vertical:self-center" orientation="vertical" />
-                  <div className="text-muted-foreground text-xs">{mail.from.email}</div>
+                  <div className="text-xs text-muted-foreground">{mail.from.email}</div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="text-muted-foreground text-xs">
-                    To: <span className="text-foreground">{mail.to.map((recipient) => recipient.name).join(", ")}</span>
+                  <div className="text-xs text-muted-foreground">
+                    To: <span className="text-foreground">{mail.to.map(recipient => recipient.name).join(', ')}</span>
                   </div>
 
                   {mail.cc?.length ? (
-                    <div className="text-muted-foreground text-xs">
-                      Cc:{" "}
-                      <span className="text-foreground">{mail.cc.map((recipient) => recipient.name).join(", ")}</span>
+                    <div className="text-xs text-muted-foreground">
+                      Cc: <span className="text-foreground">{mail.cc.map(recipient => recipient.name).join(', ')}</span>
                     </div>
                   ) : null}
                 </div>
@@ -196,9 +195,9 @@ export function MailView({ mail, onClose }: MailDisplayProps) {
                         variant="ghost"
                         size="sm"
                         className={cn(
-                          "group p-0 font-normal text-muted-foreground",
-                          "hover:bg-transparent hover:text-muted-foreground dark:hover:bg-transparent",
-                          "data-[state=open]:bg-transparent data-[state=open]:text-muted-foreground",
+                          'group p-0 font-normal text-muted-foreground',
+                          'hover:bg-transparent hover:text-muted-foreground dark:hover:bg-transparent',
+                          'data-[state=open]:bg-transparent data-[state=open]:text-muted-foreground'
                         )}
                       />
                     }
@@ -209,7 +208,7 @@ export function MailView({ mail, onClose }: MailDisplayProps) {
 
                   <CollapsibleContent>
                     <div className="flex flex-wrap gap-2">
-                      {mail.attachments.map((attachment) => (
+                      {mail.attachments.map(attachment => (
                         <Button size="xs" variant="secondary" key={attachment.id}>
                           <SimpleIcon icon={attachment.icon} className="size-3 fill-current" />
                           <span className="font-normal">{attachment.name}</span>
@@ -224,7 +223,7 @@ export function MailView({ mail, onClose }: MailDisplayProps) {
               </>
             ) : null}
 
-            <div className="scrollbar-none min-h-0 flex-1 overflow-y-auto whitespace-pre-wrap text-sm">{mail.body}</div>
+            <div className="min-h-0 flex-1 scrollbar-none overflow-y-auto text-sm whitespace-pre-wrap">{mail.body}</div>
 
             <div className="mt-auto flex flex-col gap-3">
               <Separator />
@@ -248,9 +247,9 @@ export function MailView({ mail, onClose }: MailDisplayProps) {
             </div>
           </div>
         ) : (
-          <div className="grid h-full place-items-center text-muted-foreground text-sm">No email selected</div>
+          <div className="grid h-full place-items-center text-sm text-muted-foreground">No email selected</div>
         )}
       </div>
     </div>
-  );
+  )
 }

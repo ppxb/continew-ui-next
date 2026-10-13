@@ -1,21 +1,21 @@
-import { BadgeCheck, Ellipsis, Eye, Mail, Pencil, UserRoundX } from "lucide-react";
+import { BadgeCheck, Ellipsis, Eye, Mail, Pencil, UserRoundX } from 'lucide-react'
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
 
-import type { ProfileRecord } from "./profile-data";
+import type { ProfileRecord } from './profile-data'
 
 interface ProfileHeaderProps {
-  profile: ProfileRecord;
+  profile: ProfileRecord
 }
 
 export function ProfileHeader({ profile }: ProfileHeaderProps) {
@@ -44,10 +44,10 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
 
         <div className="flex min-w-0 flex-col gap-2">
           <div className="flex flex-col gap-0.5">
-            <h1 className="truncate font-heading font-semibold text-xl leading-6 tracking-tight sm:text-2xl sm:leading-7">
+            <h1 className="truncate font-heading text-xl leading-6 font-semibold tracking-tight sm:text-2xl sm:leading-7">
               {profile.name}
             </h1>
-            <p className="truncate text-muted-foreground text-sm leading-5">
+            <p className="truncate text-sm leading-5 text-muted-foreground">
               {profile.workEmail} · {profile.jobTitle}
             </p>
           </div>
@@ -106,5 +106,5 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
         </DropdownMenu>
       </div>
     </div>
-  );
+  )
 }

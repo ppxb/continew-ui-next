@@ -1,8 +1,8 @@
-import { Ellipsis } from "lucide-react";
-import { Bar, BarChart, type BarShapeProps, XAxis, YAxis } from "recharts";
+import { Ellipsis } from 'lucide-react'
+import { Bar, BarChart, type BarShapeProps, XAxis, YAxis } from 'recharts'
 
-import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 
 const realtimeData = [
   { minute: 1, visitors: 0 },
@@ -34,31 +34,31 @@ const realtimeData = [
   { minute: 27, visitors: 0 },
   { minute: 28, visitors: 20 },
   { minute: 29, visitors: 0 },
-  { minute: 30, visitors: 4 },
-];
+  { minute: 30, visitors: 4 }
+]
 
 const chartConfig = {
   visitors: {
-    color: "var(--chart-3)",
-    label: "Visitors",
-  },
-} satisfies ChartConfig;
+    color: 'var(--chart-3)',
+    label: 'Visitors'
+  }
+} satisfies ChartConfig
 
 function RealtimeBarShape(props: BarShapeProps) {
-  const { height, payload, width, x, y } = props;
-  const barPayload = payload as (typeof realtimeData)[number] | undefined;
-  const barHeightValue = Number(height);
-  const barWidthValue = Number(width);
-  const xValue = Number(x);
-  const yValue = Number(y);
-  const visitors = barPayload?.visitors ?? 0;
-  const fill = "var(--color-visitors)";
-  const fillOpacity = visitors >= 18 ? 0.95 : 0.4;
-  const baselineFill = visitors === 0 ? "var(--destructive)" : fill;
-  const baselineOpacity = visitors === 0 ? 1 : fillOpacity;
-  const baselineY = yValue + barHeightValue - 2;
-  const barGap = 4;
-  const barHeight = Math.max(0, barHeightValue - barGap);
+  const { height, payload, width, x, y } = props
+  const barPayload = payload as (typeof realtimeData)[number] | undefined
+  const barHeightValue = Number(height)
+  const barWidthValue = Number(width)
+  const xValue = Number(x)
+  const yValue = Number(y)
+  const visitors = barPayload?.visitors ?? 0
+  const fill = 'var(--color-visitors)'
+  const fillOpacity = visitors >= 18 ? 0.95 : 0.4
+  const baselineFill = visitors === 0 ? 'var(--destructive)' : fill
+  const baselineOpacity = visitors === 0 ? 1 : fillOpacity
+  const baselineY = yValue + barHeightValue - 2
+  const barGap = 4
+  const barHeight = Math.max(0, barHeightValue - barGap)
 
   return (
     <g>
@@ -83,7 +83,7 @@ function RealtimeBarShape(props: BarShapeProps) {
         />
       ) : null}
     </g>
-  );
+  )
 }
 
 export function RealtimeVisitors() {
@@ -99,10 +99,10 @@ export function RealtimeVisitors() {
       <CardContent className="flex flex-col gap-4">
         <div className="flex items-end justify-between">
           <div className="flex items-baseline gap-1">
-            <span className="text-2xl tabular-nums leading-none tracking-tight">24</span>
-            <span className="text-muted-foreground text-sm">per minute</span>
+            <span className="text-2xl leading-none tracking-tight tabular-nums">24</span>
+            <span className="text-sm text-muted-foreground">per minute</span>
           </div>
-          <div className="flex items-center gap-2 text-muted-foreground text-sm">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <span className="relative flex size-2">
               <span className="absolute inline-flex size-full animate-ping rounded-full bg-green-500 opacity-75" />
               <span className="relative inline-flex size-2 rounded-full bg-green-500" />
@@ -119,17 +119,17 @@ export function RealtimeVisitors() {
           </BarChart>
         </ChartContainer>
         <div className="grid grid-cols-2">
-          <div className="flex items-center gap-3 border-border/50 border-r border-b pt-1 pr-5 pb-4">
+          <div className="flex items-center gap-3 border-r border-b border-border/50 pt-1 pr-5 pb-4">
             <span aria-hidden="true" className="flag:US shrink-0 rounded-xs text-lg ring-1 ring-foreground/10" />
             <span className="min-w-0 flex-1 truncate text-sm">United States</span>
             <span className="text-sm tabular-nums">14</span>
           </div>
-          <div className="flex items-center gap-3 border-border/50 border-b pt-1 pb-4 pl-5">
+          <div className="flex items-center gap-3 border-b border-border/50 pt-1 pb-4 pl-5">
             <span aria-hidden="true" className="flag:GB shrink-0 rounded-xs text-lg ring-1 ring-foreground/10" />
             <span className="min-w-0 flex-1 truncate text-sm">United Kingdom</span>
             <span className="text-sm tabular-nums">4</span>
           </div>
-          <div className="flex items-center gap-3 border-border/50 border-r pt-4 pr-5 pb-1">
+          <div className="flex items-center gap-3 border-r border-border/50 pt-4 pr-5 pb-1">
             <span aria-hidden="true" className="flag:CA shrink-0 rounded-xs text-lg ring-1 ring-foreground/10" />
             <span className="min-w-0 flex-1 truncate text-sm">Canada</span>
             <span className="text-sm tabular-nums">3</span>
@@ -142,5 +142,5 @@ export function RealtimeVisitors() {
         </div>
       </CardContent>
     </Card>
-  );
+  )
 }

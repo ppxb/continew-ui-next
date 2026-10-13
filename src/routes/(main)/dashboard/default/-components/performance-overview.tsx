@@ -1,16 +1,16 @@
-import { addHours, endOfToday, format, parseISO, subHours } from "date-fns";
-import { Area, CartesianGrid, ComposedChart, Line, XAxis } from "recharts";
+import { addHours, endOfToday, format, parseISO, subHours } from 'date-fns'
+import { Area, CartesianGrid, ComposedChart, Line, XAxis } from 'recharts'
 
-import { Button } from "@/components/ui/button";
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from '@/components/ui/button'
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   type ChartConfig,
   ChartContainer,
   ChartLegend,
   ChartLegendContent,
   ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
+  ChartTooltipContent
+} from '@/components/ui/chart'
 import {
   Select,
   SelectContent,
@@ -18,8 +18,8 @@ import {
   SelectItem,
   SelectLabel,
   SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  SelectValue
+} from '@/components/ui/select'
 
 const chartValues = [
   { newCustomers: 23840, activeAccounts: 6630, returningUsers: 4880 },
@@ -201,39 +201,39 @@ const chartValues = [
   { newCustomers: 13895, activeAccounts: 6050, returningUsers: 4749 },
   { newCustomers: 8293, activeAccounts: 6186, returningUsers: 4595 },
   { newCustomers: 8744, activeAccounts: 6464, returningUsers: 4615 },
-  { newCustomers: 10727, activeAccounts: 6189, returningUsers: 4693 },
-];
+  { newCustomers: 10727, activeAccounts: 6189, returningUsers: 4693 }
+]
 
-const endDate = endOfToday();
-const startDate = subHours(endDate, (chartValues.length - 1) * 12);
+const endDate = endOfToday()
+const startDate = subHours(endDate, (chartValues.length - 1) * 12)
 
 const chartData = chartValues.map((point, index) => ({
-  date: format(addHours(startDate, index * 12), "yyyy-MM-dd"),
-  ...point,
-}));
+  date: format(addHours(startDate, index * 12), 'yyyy-MM-dd'),
+  ...point
+}))
 
 const chartConfig = {
   newCustomers: {
-    label: "New Customers",
-    color: "var(--chart-1)",
+    label: 'New Customers',
+    color: 'var(--chart-1)'
   },
   activeAccounts: {
-    label: "Active Accounts",
-    color: "var(--chart-2)",
+    label: 'Active Accounts',
+    color: 'var(--chart-2)'
   },
   returningUsers: {
-    label: "Returning Users",
-    color: "var(--chart-3)",
-  },
-} satisfies ChartConfig;
+    label: 'Returning Users',
+    color: 'var(--chart-3)'
+  }
+} satisfies ChartConfig
 
-const performancePeriodItems = [{ value: "quarter", label: "3 months" }] as const;
+const performancePeriodItems = [{ value: 'quarter', label: '3 months' }] as const
 
 const performanceSegmentItems = [
-  { value: "all", label: "All segments" },
-  { value: "paid", label: "Paid" },
-  { value: "organic", label: "Organic" },
-] as const;
+  { value: 'all', label: 'All segments' },
+  { value: 'paid', label: 'Paid' },
+  { value: 'organic', label: 'Organic' }
+] as const
 
 export function PerformanceOverview() {
   return (
@@ -241,7 +241,7 @@ export function PerformanceOverview() {
       <CardHeader>
         <CardTitle className="leading-none">Customer Activity</CardTitle>
         <CardDescription>
-          <span className="@[540px]/card:block hidden">Customer activity for the last 3 months</span>
+          <span className="hidden @[540px]/card:block">Customer activity for the last 3 months</span>
           <span className="@[540px]/card:hidden">Last 3 months</span>
         </CardDescription>
         <CardAction className="flex items-center gap-2">
@@ -252,7 +252,7 @@ export function PerformanceOverview() {
             <SelectContent>
               <SelectGroup>
                 <SelectLabel>Period</SelectLabel>
-                {performancePeriodItems.map((item) => (
+                {performancePeriodItems.map(item => (
                   <SelectItem key={item.value} value={item.value}>
                     {item.label}
                   </SelectItem>
@@ -268,7 +268,7 @@ export function PerformanceOverview() {
             <SelectContent>
               <SelectGroup>
                 <SelectLabel>Segments</SelectLabel>
-                {performanceSegmentItems.map((item) => (
+                {performanceSegmentItems.map(item => (
                   <SelectItem key={item.value} value={item.value}>
                     {item.label}
                   </SelectItem>
@@ -300,10 +300,10 @@ export function PerformanceOverview() {
               axisLine={false}
               tickMargin={8}
               minTickGap={48}
-              tickFormatter={(value) =>
-                parseISO(value).toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
+              tickFormatter={value =>
+                parseISO(value).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric'
                 })
               }
             />
@@ -314,7 +314,7 @@ export function PerformanceOverview() {
                 <ChartTooltipContent
                   className="w-50"
                   indicator="line"
-                  labelFormatter={(value) => format(parseISO(value), "d MMMM yyyy")}
+                  labelFormatter={value => format(parseISO(String(value)), 'd MMMM yyyy')}
                 />
               }
             />
@@ -347,5 +347,5 @@ export function PerformanceOverview() {
         </ChartContainer>
       </CardContent>
     </Card>
-  );
+  )
 }

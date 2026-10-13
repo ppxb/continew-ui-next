@@ -21,222 +21,222 @@ import {
   ShoppingBag,
   SquareArrowUpRight,
   UserRound,
-  Users,
-} from "lucide-react";
+  Users
+} from 'lucide-react'
 
-import type { FileRoutesByTo } from "@/routeTree.gen";
+import type { FileRoutesByTo } from '@/routeTree.gen'
 
-export type NavBadge = "new" | "soon";
-export type AppPath = keyof FileRoutesByTo;
+export type NavBadge = 'new' | 'soon'
+export type AppPath = keyof FileRoutesByTo
 
 export interface NavSubItem {
-  id: string;
-  title: string;
-  url: AppPath;
-  icon?: LucideIcon;
-  badge?: NavBadge;
-  disabled?: boolean;
-  newTab?: boolean;
+  id: string
+  title: string
+  url: AppPath
+  icon?: LucideIcon
+  badge?: NavBadge
+  disabled?: boolean
+  newTab?: boolean
 }
 
 interface NavItemBase {
-  id: string;
-  title: string;
-  icon?: LucideIcon;
-  badge?: NavBadge;
-  disabled?: boolean;
-  newTab?: boolean;
+  id: string
+  title: string
+  icon?: LucideIcon
+  badge?: NavBadge
+  disabled?: boolean
+  newTab?: boolean
 }
 
 export interface NavMainLinkItem extends NavItemBase {
-  url: AppPath;
-  subItems?: never;
+  url: AppPath
+  subItems?: never
 }
 
 export interface NavMainParentItem extends NavItemBase {
-  subItems: NavSubItem[];
+  subItems: NavSubItem[]
 }
 
-export type NavMainItem = NavMainLinkItem | NavMainParentItem;
+export type NavMainItem = NavMainLinkItem | NavMainParentItem
 
 export interface NavGroup {
-  id: number;
-  label?: string;
-  items: NavMainItem[];
+  id: number
+  label?: string
+  items: NavMainItem[]
 }
 
 export const sidebarItems: NavGroup[] = [
   {
     id: 1,
-    label: "Dashboards",
+    label: 'Dashboards',
     items: [
       {
-        id: "default",
-        title: "Default",
-        url: "/dashboard/default",
-        icon: LayoutDashboard,
+        id: 'default',
+        title: 'Default',
+        url: '/dashboard/default',
+        icon: LayoutDashboard
       },
       {
-        id: "crm",
-        title: "CRM",
-        url: "/dashboard/crm",
-        icon: ChartBar,
+        id: 'crm',
+        title: 'CRM',
+        url: '/dashboard/crm',
+        icon: ChartBar
       },
       {
-        id: "finance",
-        title: "Finance",
-        url: "/dashboard/finance",
-        icon: Banknote,
+        id: 'finance',
+        title: 'Finance',
+        url: '/dashboard/finance',
+        icon: Banknote
       },
       {
-        id: "analytics",
-        title: "Analytics",
-        url: "/dashboard/analytics",
-        icon: Gauge,
+        id: 'analytics',
+        title: 'Analytics',
+        url: '/dashboard/analytics',
+        icon: Gauge
       },
       {
-        id: "productivity",
-        title: "Productivity",
-        url: "/dashboard/productivity",
-        icon: ListTodo,
+        id: 'productivity',
+        title: 'Productivity',
+        url: '/dashboard/productivity',
+        icon: ListTodo
       },
       {
-        id: "ecommerce",
-        title: "E-commerce",
-        url: "/dashboard/ecommerce",
-        icon: ShoppingBag,
+        id: 'ecommerce',
+        title: 'E-commerce',
+        url: '/dashboard/ecommerce',
+        icon: ShoppingBag
       },
       {
-        id: "academy",
-        title: "Academy",
-        url: "/dashboard/academy",
-        icon: GraduationCap,
+        id: 'academy',
+        title: 'Academy',
+        url: '/dashboard/academy',
+        icon: GraduationCap
       },
       {
-        id: "logistics",
-        title: "Logistics",
-        url: "/dashboard/logistics",
-        icon: Forklift,
+        id: 'logistics',
+        title: 'Logistics',
+        url: '/dashboard/logistics',
+        icon: Forklift
       },
       {
-        id: "infrastructure",
-        title: "Infrastructure",
-        url: "/dashboard/infrastructure",
-        icon: Server,
+        id: 'infrastructure',
+        title: 'Infrastructure',
+        url: '/dashboard/infrastructure',
+        icon: Server
       },
       {
-        id: "file-manager",
-        title: "File Manager",
-        url: "/dashboard/file-manager",
-        icon: FolderOpen,
+        id: 'file-manager',
+        title: 'File Manager',
+        url: '/dashboard/file-manager',
+        icon: FolderOpen
       },
       {
-        id: "patient-monitoring",
-        title: "Patient Monitoring",
-        url: "/dashboard/patient-monitoring",
-        icon: HeartPulse,
-      },
-    ],
+        id: 'patient-monitoring',
+        title: 'Patient Monitoring',
+        url: '/dashboard/patient-monitoring',
+        icon: HeartPulse
+      }
+    ]
   },
   {
     id: 2,
-    label: "Pages",
+    label: 'Pages',
     items: [
       {
-        id: "email",
-        title: "Email",
-        url: "/dashboard/mail",
-        icon: Mail,
+        id: 'email',
+        title: 'Email',
+        url: '/dashboard/mail',
+        icon: Mail
       },
       {
-        id: "chat",
-        title: "Chat",
-        url: "/dashboard/chat",
-        icon: MessageSquare,
+        id: 'chat',
+        title: 'Chat',
+        url: '/dashboard/chat',
+        icon: MessageSquare
       },
       {
-        id: "calendar",
-        title: "Calendar",
-        url: "/dashboard/calendar",
-        icon: Calendar,
+        id: 'calendar',
+        title: 'Calendar',
+        url: '/dashboard/calendar',
+        icon: Calendar
       },
       {
-        id: "kanban",
-        title: "Kanban",
-        url: "/dashboard/kanban",
-        icon: Kanban,
+        id: 'kanban',
+        title: 'Kanban',
+        url: '/dashboard/kanban',
+        icon: Kanban
       },
       {
-        id: "tasks",
-        title: "Tasks",
-        url: "/dashboard/tasks",
-        icon: CheckSquare,
+        id: 'tasks',
+        title: 'Tasks',
+        url: '/dashboard/tasks',
+        icon: CheckSquare
       },
       {
-        id: "invoice",
-        title: "Invoice",
-        url: "/dashboard/invoice",
-        icon: ReceiptText,
+        id: 'invoice',
+        title: 'Invoice',
+        url: '/dashboard/invoice',
+        icon: ReceiptText
       },
       {
-        id: "profile",
-        title: "Profile",
-        url: "/dashboard/profile",
-        icon: UserRound,
+        id: 'profile',
+        title: 'Profile',
+        url: '/dashboard/profile',
+        icon: UserRound
       },
       {
-        id: "users",
-        title: "Users",
-        url: "/dashboard/users",
-        icon: Users,
+        id: 'users',
+        title: 'Users',
+        url: '/dashboard/users',
+        icon: Users
       },
       {
-        id: "roles",
-        title: "Roles",
-        url: "/dashboard/roles",
-        icon: Lock,
+        id: 'roles',
+        title: 'Roles',
+        url: '/dashboard/roles',
+        icon: Lock
       },
       {
-        id: "authentication",
-        title: "Authentication",
+        id: 'authentication',
+        title: 'Authentication',
         icon: Fingerprint,
         subItems: [
-          { id: "auth-login-v1", title: "Login v1", url: "/auth/v1/login", newTab: true },
-          { id: "auth-login-v2", title: "Login v2", url: "/auth/v2/login", newTab: true },
-          { id: "auth-register-v1", title: "Register v1", url: "/auth/v1/register", newTab: true },
-          { id: "auth-register-v2", title: "Register v2", url: "/auth/v2/register", newTab: true },
-        ],
-      },
-    ],
+          { id: 'auth-login-v1', title: 'Login v1', url: '/auth/v1/login', newTab: true },
+          { id: 'auth-login-v2', title: 'Login v2', url: '/auth/v2/login', newTab: true },
+          { id: 'auth-register-v1', title: 'Register v1', url: '/auth/v1/register', newTab: true },
+          { id: 'auth-register-v2', title: 'Register v2', url: '/auth/v2/register', newTab: true }
+        ]
+      }
+    ]
   },
   {
     id: 3,
-    label: "Legacy",
+    label: 'Legacy',
     items: [
       {
-        id: "legacy-dashboards",
-        title: "Dashboards",
+        id: 'legacy-dashboards',
+        title: 'Dashboards',
         subItems: [
-          { id: "legacy-default", title: "Default V1", url: "/dashboard/default-v1" },
-          { id: "legacy-crm", title: "CRM V1", url: "/dashboard/crm-v1" },
-          { id: "legacy-finance", title: "Finance V1", url: "/dashboard/finance-v1" },
-          { id: "legacy-analytics", title: "Analytics V1", url: "/dashboard/analytics-v1" },
-        ],
-      },
-    ],
+          { id: 'legacy-default', title: 'Default V1', url: '/dashboard/default-v1' },
+          { id: 'legacy-crm', title: 'CRM V1', url: '/dashboard/crm-v1' },
+          { id: 'legacy-finance', title: 'Finance V1', url: '/dashboard/finance-v1' },
+          { id: 'legacy-analytics', title: 'Analytics V1', url: '/dashboard/analytics-v1' }
+        ]
+      }
+    ]
   },
   {
     id: 4,
-    label: "Misc",
+    label: 'Misc',
     items: [
       {
-        id: "others",
-        title: "Others",
-        url: "/dashboard/coming-soon",
+        id: 'others',
+        title: 'Others',
+        url: '/dashboard/coming-soon',
         icon: SquareArrowUpRight,
-        badge: "soon",
-        disabled: true,
-      },
-    ],
-  },
-];
+        badge: 'soon',
+        disabled: true
+      }
+    ]
+  }
+]

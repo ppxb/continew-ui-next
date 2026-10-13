@@ -1,45 +1,45 @@
-import { addDays, format } from "date-fns";
-import { Home, Receipt, Sparkles, Zap } from "lucide-react";
-import { siApple, siMastercard } from "simple-icons";
+import { addDays, format } from 'date-fns'
+import { Home, Receipt, Sparkles, Zap } from 'lucide-react'
+import { siApple, siMastercard } from 'simple-icons'
 
-import { SimpleIcon } from "@/components/simple-icon";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { formatCurrency } from "@/lib/utils";
+import { SimpleIcon } from '@/components/simple-icon'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
+import { formatCurrency } from '@/lib/utils'
 
-const now = new Date();
+const now = new Date()
 
 const upcomingPayments = [
   {
     id: 1,
     icon: Home,
-    title: "Apartment Rent",
+    title: 'Apartment Rent',
     amount: 1200,
-    date: `Due on ${format(addDays(now, 2), "do MMMM yyyy")}`,
+    date: `Due on ${format(addDays(now, 2), 'do MMMM yyyy')}`
   },
   {
     id: 2,
     icon: Zap,
-    title: "Electricity Bill",
+    title: 'Electricity Bill',
     amount: 75,
-    date: `Due on ${format(addDays(now, 2), "do MMMM yyyy")}`,
+    date: `Due on ${format(addDays(now, 2), 'do MMMM yyyy')}`
   },
   {
     id: 3,
     icon: Sparkles,
-    title: "ChatGPT Plus",
+    title: 'ChatGPT Plus',
     amount: 20,
-    date: `Due on ${format(addDays(now, 7), "do MMMM yyyy")}`,
+    date: `Due on ${format(addDays(now, 7), 'do MMMM yyyy')}`
   },
   {
     id: 4,
     icon: Receipt,
-    title: "Credit Card Payment",
+    title: 'Credit Card Payment',
     amount: 420,
-    date: `Due on ${format(addDays(now, 9), "do MMMM yyyy")}`,
-  },
-];
+    date: `Due on ${format(addDays(now, 9), 'do MMMM yyyy')}`
+  }
+]
 
 export function CardOverview() {
   return (
@@ -57,24 +57,24 @@ export function CardOverview() {
               </div>
 
               <div className="space-y-1">
-                <p className="font-mono text-primary-foreground/90 text-sm tracking-[0.15em] sm:text-lg">
+                <p className="font-mono text-sm tracking-[0.15em] text-primary-foreground/90 sm:text-lg">
                   •••• •••• •••• 2301
                 </p>
               </div>
 
               <div className="flex items-end justify-between">
                 <div className="space-y-2">
-                  <p className="font-medium font-mono text-primary-foreground text-sm uppercase tracking-wide">
+                  <p className="font-mono text-sm font-medium tracking-wide text-primary-foreground uppercase">
                     Arham Khan
                   </p>
                   <div className="flex gap-6">
                     <div>
-                      <p className="text-[10px] text-primary-foreground/80 uppercase tracking-wider">Valid Thru</p>
-                      <p className="font-mono text-primary-foreground/80 text-xs">06/30</p>
+                      <p className="text-[10px] tracking-wider text-primary-foreground/80 uppercase">Valid Thru</p>
+                      <p className="font-mono text-xs text-primary-foreground/80">06/30</p>
                     </div>
                     <div>
-                      <p className="text-[10px] text-primary-foreground/80 uppercase tracking-wider">CVV</p>
-                      <p className="font-mono text-primary-foreground/80 text-xs">•••</p>
+                      <p className="text-[10px] tracking-wider text-primary-foreground/80 uppercase">CVV</p>
+                      <p className="font-mono text-xs text-primary-foreground/80">•••</p>
                     </div>
                   </div>
                 </div>
@@ -114,23 +114,23 @@ export function CardOverview() {
           <Separator />
 
           <div className="space-y-4">
-            <h6 className="text-muted-foreground text-sm uppercase">Upcoming Payments</h6>
+            <h6 className="text-sm text-muted-foreground uppercase">Upcoming Payments</h6>
 
             <div className="space-y-4">
-              {upcomingPayments.map((transaction) => (
+              {upcomingPayments.map(transaction => (
                 <div key={transaction.id} className="flex items-center gap-2">
                   <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-muted">
                     <transaction.icon className="size-5 text-muted-foreground" />
                   </div>
                   <div className="flex w-full items-end justify-between">
                     <div>
-                      <p className="font-medium text-sm">{transaction.title}</p>
-                      <p className="text-muted-foreground text-xs">{transaction.date}</p>
+                      <p className="text-sm font-medium">{transaction.title}</p>
+                      <p className="text-xs text-muted-foreground">{transaction.date}</p>
                     </div>
                     <div>
-                      <span className="font-medium text-destructive text-sm tabular-nums leading-none">
+                      <span className="text-sm leading-none font-medium text-destructive tabular-nums">
                         {formatCurrency(transaction.amount, {
-                          noDecimals: true,
+                          noDecimals: true
                         })}
                       </span>
                     </div>
@@ -146,5 +146,5 @@ export function CardOverview() {
         </div>
       </CardContent>
     </Card>
-  );
+  )
 }

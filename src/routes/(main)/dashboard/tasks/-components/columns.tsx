@@ -1,12 +1,12 @@
-import type { Column, ColumnDef } from "@tanstack/react-table";
-import { Subscribe } from "@tanstack/react-table";
+import type { Column, ColumnDef } from '@tanstack/react-table'
+import { Subscribe } from '@tanstack/react-table'
 
-import { cn } from "cn";
-import { ArrowDown, ArrowUp, ArrowUpDown, MoreHorizontal, RotateCcw } from "lucide-react";
+import { cn } from 'cn'
+import { ArrowDown, ArrowUp, ArrowUpDown, MoreHorizontal, RotateCcw } from 'lucide-react'
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,30 +18,30 @@ import {
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import type { DataTableFeatures } from "@/lib/data-table-features";
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
+import type { DataTableFeatures } from '@/lib/data-table-features'
 
-import { labels, priorities, statuses, type Task } from "./data";
+import { labels, priorities, statuses, type Task } from './data'
 
 const statusStyles: Record<string, string> = {
-  backlog: "border-muted-foreground/20 bg-muted text-muted-foreground",
-  todo: "border-sky-500/20 bg-sky-500/10 text-sky-700 dark:text-sky-300",
-  "in progress": "border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300",
-  done: "border-green-500/20 bg-green-500/10 text-green-700 dark:text-green-300",
-  canceled: "border-muted-foreground/20 bg-muted text-muted-foreground",
-};
+  backlog: 'border-muted-foreground/20 bg-muted text-muted-foreground',
+  todo: 'border-sky-500/20 bg-sky-500/10 text-sky-700 dark:text-sky-300',
+  'in progress': 'border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-300',
+  done: 'border-green-500/20 bg-green-500/10 text-green-700 dark:text-green-300',
+  canceled: 'border-muted-foreground/20 bg-muted text-muted-foreground'
+}
 
-function SortIcon({ sortDirection }: { sortDirection: false | "asc" | "desc" }) {
-  if (sortDirection === "desc") {
-    return <ArrowDown data-icon="inline-end" />;
+function SortIcon({ sortDirection }: { sortDirection: false | 'asc' | 'desc' }) {
+  if (sortDirection === 'desc') {
+    return <ArrowDown data-icon="inline-end" />
   }
 
-  if (sortDirection === "asc") {
-    return <ArrowUp data-icon="inline-end" />;
+  if (sortDirection === 'asc') {
+    return <ArrowUp data-icon="inline-end" />
   }
 
-  return <ArrowUpDown data-icon="inline-end" />;
+  return <ArrowUpDown data-icon="inline-end" />
 }
 
 function TitleColumnHeader({ column }: { column: Column<DataTableFeatures, Task, unknown> }) {
@@ -69,19 +69,19 @@ function TitleColumnHeader({ column }: { column: Column<DataTableFeatures, Task,
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  );
+  )
 }
 
 export const columns: ColumnDef<DataTableFeatures, Task>[] = [
   {
-    id: "select",
+    id: 'select',
     header: ({ table }) => (
       <Subscribe source={table.atoms.rowSelection}>
         {() => (
           <Checkbox
             checked={table.getIsAllPageRowsSelected()}
             indeterminate={!table.getIsAllPageRowsSelected() && table.getIsSomePageRowsSelected()}
-            onCheckedChange={(value) => table.toggleAllPageRowsSelected(value)}
+            onCheckedChange={value => table.toggleAllPageRowsSelected(value)}
             aria-label="Select all"
             className="translate-y-0.5"
           />
@@ -89,11 +89,11 @@ export const columns: ColumnDef<DataTableFeatures, Task>[] = [
       </Subscribe>
     ),
     cell: ({ row }) => (
-      <Subscribe source={row.table.atoms.rowSelection} selector={(selection) => Boolean(selection?.[row.id])}>
-        {(checked) => (
+      <Subscribe source={row.table.atoms.rowSelection} selector={selection => Boolean(selection?.[row.id])}>
+        {checked => (
           <Checkbox
             checked={checked}
-            onCheckedChange={(value) => row.toggleSelected(value)}
+            onCheckedChange={value => row.toggleSelected(value)}
             aria-label="Select row"
             className="translate-y-0.5"
           />
@@ -101,20 +101,20 @@ export const columns: ColumnDef<DataTableFeatures, Task>[] = [
       </Subscribe>
     ),
     enableSorting: false,
-    enableHiding: false,
+    enableHiding: false
   },
   {
-    accessorKey: "id",
-    header: "Task",
-    cell: ({ row }) => <div className="w-20 font-mono text-muted-foreground text-sm">{row.getValue("id")}</div>,
+    accessorKey: 'id',
+    header: 'Task',
+    cell: ({ row }) => <div className="w-20 font-mono text-sm text-muted-foreground">{row.getValue('id')}</div>,
     enableSorting: false,
-    enableHiding: false,
+    enableHiding: false
   },
   {
-    accessorKey: "title",
+    accessorKey: 'title',
     header: ({ column }) => <TitleColumnHeader column={column} />,
     cell: ({ row }) => {
-      const label = labels.find((label) => label.value === row.original.label);
+      const label = labels.find(label => label.value === row.original.label)
 
       return (
         <div className="flex min-w-0 items-center gap-2">
@@ -123,40 +123,40 @@ export const columns: ColumnDef<DataTableFeatures, Task>[] = [
               {label.label}
             </Badge>
           )}
-          <span className="max-w-lg truncate font-medium text-sm">{row.getValue("title")}</span>
+          <span className="max-w-lg truncate text-sm font-medium">{row.getValue('title')}</span>
         </div>
-      );
-    },
+      )
+    }
   },
   {
-    accessorKey: "status",
-    header: "Status",
+    accessorKey: 'status',
+    header: 'Status',
     cell: ({ row }) => {
-      const status = statuses.find((status) => status.value === row.getValue("status"));
+      const status = statuses.find(status => status.value === row.getValue('status'))
 
       if (!status) {
-        return null;
+        return null
       }
 
       return (
-        <Badge className={cn("gap-1.5 rounded-sm border font-medium", statusStyles[status.value])} variant="outline">
+        <Badge className={cn('gap-1.5 rounded-sm border font-medium', statusStyles[status.value])} variant="outline">
           {status.icon && <status.icon className="size-4" />}
           {status.label}
         </Badge>
-      );
+      )
     },
     filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id));
-    },
+      return value.includes(row.getValue(id))
+    }
   },
   {
-    accessorKey: "priority",
-    header: "Priority",
+    accessorKey: 'priority',
+    header: 'Priority',
     cell: ({ row }) => {
-      const priority = priorities.find((priority) => priority.value === row.getValue("priority"));
+      const priority = priorities.find(priority => priority.value === row.getValue('priority'))
 
       if (!priority) {
-        return null;
+        return null
       }
 
       return (
@@ -164,16 +164,16 @@ export const columns: ColumnDef<DataTableFeatures, Task>[] = [
           {priority.icon && <priority.icon className="size-4 text-muted-foreground" />}
           {priority.label}
         </div>
-      );
+      )
     },
     filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id));
-    },
+      return value.includes(row.getValue(id))
+    }
   },
   {
-    id: "actions",
+    id: 'actions',
     cell: ({ row }) => {
-      const task = row.original as Task;
+      const task = row.original as Task
 
       return (
         <div className="text-right">
@@ -195,7 +195,7 @@ export const columns: ColumnDef<DataTableFeatures, Task>[] = [
                 <DropdownMenuSubTrigger>Labels</DropdownMenuSubTrigger>
                 <DropdownMenuSubContent>
                   <DropdownMenuRadioGroup value={task.label}>
-                    {labels.map((label) => (
+                    {labels.map(label => (
                       <DropdownMenuRadioItem key={label.value} value={label.value}>
                         {label.label}
                       </DropdownMenuRadioItem>
@@ -211,7 +211,7 @@ export const columns: ColumnDef<DataTableFeatures, Task>[] = [
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-      );
-    },
-  },
-];
+      )
+    }
+  }
+]

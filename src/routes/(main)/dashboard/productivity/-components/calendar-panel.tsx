@@ -1,15 +1,15 @@
-import * as React from "react";
+import * as React from 'react'
 
-import { startOfMonth, startOfToday } from "date-fns";
-import { enGB } from "date-fns/locale";
+import { startOfMonth, startOfToday } from 'date-fns'
+import { enGB } from 'date-fns/locale'
 
-import { Calendar } from "@/components/ui/calendar";
-import { Card, CardContent } from "@/components/ui/card";
+import { Calendar } from '@/components/ui/calendar'
+import { Card, CardContent } from '@/components/ui/card'
 
 export function CalendarPanel() {
-  const today = startOfToday();
-  const [date, setDate] = React.useState<Date | undefined>(today);
-  const [currentMonth, setCurrentMonth] = React.useState<Date>(() => startOfMonth(today));
+  const today = startOfToday()
+  const [date, setDate] = React.useState<Date | undefined>(today)
+  const [currentMonth, setCurrentMonth] = React.useState<Date>(() => startOfMonth(today))
 
   return (
     <Card className="w-full" size="sm">
@@ -26,5 +26,5 @@ export function CalendarPanel() {
         />
       </CardContent>
     </Card>
-  );
+  )
 }

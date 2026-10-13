@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod'
 
 const proposalSectionsSchema = z.object({
   id: z.number(),
@@ -7,7 +7,7 @@ const proposalSectionsSchema = z.object({
   status: z.string(),
   target: z.string(),
   limit: z.string(),
-  reviewer: z.string(),
-});
+  reviewer: z.string()
+})
 
-export type ProposalSectionsRow = z.infer<typeof proposalSectionsSchema>;
+export type ProposalSectionsRow = z.infer<typeof proposalSectionsSchema>

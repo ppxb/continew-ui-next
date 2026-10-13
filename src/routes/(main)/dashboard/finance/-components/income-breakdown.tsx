@@ -1,5 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
 
 export function IncomeBreakdown() {
   return (
@@ -12,11 +12,11 @@ export function IncomeBreakdown() {
         <section className="isolate flex gap-[0.5px]">
           <Separator
             orientation="vertical"
-            className="mb-1 h-auto self-auto border-muted-foreground/50 border-l border-dashed bg-transparent"
+            className="mb-1 h-auto self-auto border-l border-dashed border-muted-foreground/50 bg-transparent"
           />
           <div className="flex min-h-24 flex-1 flex-col justify-between">
             <div className="flex min-w-0 flex-col gap-1 px-1">
-              <p className="wrap-break-word text-muted-foreground text-xs leading-none">Primary salary · 68%</p>
+              <p className="text-xs leading-none wrap-break-word text-muted-foreground">Primary salary · 68%</p>
               <div className="font-heading text-lg leading-none tracking-tight">$4,560.00</div>
             </div>
             <div className="-ml-0.5 h-5 rounded-sm bg-chart-3" />
@@ -26,11 +26,11 @@ export function IncomeBreakdown() {
         <section className="isolate flex gap-[0.5px]">
           <Separator
             orientation="vertical"
-            className="mb-1 h-auto self-auto border-muted-foreground/50 border-l border-dashed bg-transparent"
+            className="mb-1 h-auto self-auto border-l border-dashed border-muted-foreground/50 bg-transparent"
           />
           <div className="flex min-h-24 flex-1 flex-col justify-between">
             <div className="flex min-w-0 flex-col gap-1 px-1">
-              <p className="wrap-break-word text-muted-foreground text-xs leading-none">Freelance projects · 21%</p>
+              <p className="text-xs leading-none wrap-break-word text-muted-foreground">Freelance projects · 21%</p>
               <div className="font-heading text-lg leading-none tracking-tight">$1,412.00</div>
             </div>
             <div className="-ml-0.5 h-5 rounded-sm bg-chart-3/75" />
@@ -40,11 +40,11 @@ export function IncomeBreakdown() {
         <section className="isolate flex gap-[0.5px]">
           <Separator
             orientation="vertical"
-            className="mb-1 h-auto self-auto border-muted-foreground/50 border-l border-dashed bg-transparent"
+            className="mb-1 h-auto self-auto border-l border-dashed border-muted-foreground/50 bg-transparent"
           />
           <div className="flex min-h-24 flex-1 flex-col justify-between">
             <div className="flex min-w-0 flex-col gap-1 px-1">
-              <p className="wrap-break-word text-muted-foreground text-xs leading-none">Dividends and interest · 11%</p>
+              <p className="text-xs leading-none wrap-break-word text-muted-foreground">Dividends and interest · 11%</p>
               <div className="font-heading text-lg leading-none tracking-tight">$765.00</div>
             </div>
             <div className="-ml-0.5 h-5 rounded-sm bg-chart-3/50" />
@@ -52,5 +52,5 @@ export function IncomeBreakdown() {
         </section>
       </CardContent>
     </Card>
-  );
+  )
 }

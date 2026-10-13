@@ -1,28 +1,28 @@
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 export function DriversCoverageTriage() {
   const leverOptions = [
     {
-      key: "deal",
-      label: "+1 enterprise deal",
-      value: "+$72,133 weighted",
-      context: "32% of gap",
+      key: 'deal',
+      label: '+1 enterprise deal',
+      value: '+$72,133 weighted',
+      context: '32% of gap'
     },
     {
-      key: "conversion",
-      label: "+5pp conversion",
-      value: "+$49,182/month",
-      context: "22% of gap",
+      key: 'conversion',
+      label: '+5pp conversion',
+      value: '+$49,182/month',
+      context: '22% of gap'
     },
     {
-      key: "cycle",
-      label: "-4d cycle",
-      value: "+$90,167/day",
-      context: "40% of gap",
-    },
-  ] as const;
+      key: 'cycle',
+      label: '-4d cycle',
+      value: '+$90,167/day',
+      context: '40% of gap'
+    }
+  ] as const
 
   return (
     <Card className="shadow-xs">
@@ -46,16 +46,16 @@ export function DriversCoverageTriage() {
           </Badge>
         </div>
 
-        <p className="text-muted-foreground text-xs">
+        <p className="text-xs text-muted-foreground">
           Coverage below target. Prioritize qualified volume and shorter cycle time.
         </p>
 
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-          {leverOptions.map((lever) => (
+          {leverOptions.map(lever => (
             <div key={lever.key} className="space-y-1 rounded-md border bg-muted/20 px-2.5 py-2">
-              <p className="text-muted-foreground text-xs">{lever.label}</p>
-              <p className="font-semibold text-sm tabular-nums">{lever.value}</p>
-              <p className="text-muted-foreground text-xs">{lever.context}</p>
+              <p className="text-xs text-muted-foreground">{lever.label}</p>
+              <p className="text-sm font-semibold tabular-nums">{lever.value}</p>
+              <p className="text-xs text-muted-foreground">{lever.context}</p>
             </div>
           ))}
         </div>
@@ -78,14 +78,14 @@ export function DriversCoverageTriage() {
         </div>
 
         <div className="space-y-1 rounded-md border border-dashed bg-muted/10 px-3 py-2.5">
-          <p className="text-muted-foreground text-xs">
+          <p className="text-xs text-muted-foreground">
             Fastest path: <span className="font-medium text-foreground">-4d cycle</span> recovers 40% of gap.
           </p>
-          <p className="text-muted-foreground text-xs">
+          <p className="text-xs text-muted-foreground">
             Priority sequence: <span className="text-foreground">cycle time</span> before net-new volume.
           </p>
         </div>
       </CardContent>
     </Card>
-  );
+  )
 }

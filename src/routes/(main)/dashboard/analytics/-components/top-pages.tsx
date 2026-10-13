@@ -1,15 +1,15 @@
-import { Ellipsis } from "lucide-react";
+import { Ellipsis } from 'lucide-react'
 
-import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
 const pages = [
-  { bounce: "24%", path: "/dashboard", time: "3m 12s", views: "64.2k" },
-  { bounce: "31%", path: "/pricing", time: "2m 08s", views: "41.8k" },
-  { bounce: "18%", path: "/docs/getting-started", time: "4m 44s", views: "28.6k" },
-  { bounce: "22%", path: "/blog/analytics-guide", time: "5m 06s", views: "19.3k" },
-  { bounce: "42%", path: "/contact", time: "1m 18s", views: "8.9k" },
-];
+  { bounce: '24%', path: '/dashboard', time: '3m 12s', views: '64.2k' },
+  { bounce: '31%', path: '/pricing', time: '2m 08s', views: '41.8k' },
+  { bounce: '18%', path: '/docs/getting-started', time: '4m 44s', views: '28.6k' },
+  { bounce: '22%', path: '/blog/analytics-guide', time: '5m 06s', views: '19.3k' },
+  { bounce: '42%', path: '/contact', time: '1m 18s', views: '8.9k' }
+]
 
 export function TopPages() {
   return (
@@ -32,7 +32,7 @@ export function TopPages() {
             </TableRow>
           </TableHeader>
           <TableBody className="[&_tr]:border-border/50">
-            {pages.map((page) => (
+            {pages.map(page => (
               <TableRow className="hover:bg-transparent" key={page.path}>
                 <TableCell className="max-w-0 truncate py-4 font-medium">{page.path}</TableCell>
                 <TableCell className="text-right tabular-nums">{page.views}</TableCell>
@@ -44,5 +44,5 @@ export function TopPages() {
         </Table>
       </CardContent>
     </Card>
-  );
+  )
 }

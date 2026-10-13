@@ -1,7 +1,7 @@
-import { BellOff } from "lucide-react";
+import { BellOff } from 'lucide-react'
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export function FocusCard() {
   return (
@@ -16,12 +16,12 @@ export function FocusCard() {
             <Button className="min-w-24">Start</Button>
           </div>
 
-          <div className="flex items-center gap-2 text-muted-foreground text-xs">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <BellOff className="size-3" />
             <span>No notifications · Full focus</span>
           </div>
         </div>
       </CardContent>
     </Card>
-  );
+  )
 }

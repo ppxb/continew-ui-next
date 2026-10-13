@@ -1,29 +1,29 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from '@tanstack/react-router'
 
-import { LockKeyhole } from "lucide-react";
+import { LockKeyhole } from 'lucide-react'
 
 import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbList,
   BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+  BreadcrumbSeparator
+} from '@/components/ui/breadcrumb'
+import { Separator } from '@/components/ui/separator'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
-import { profile } from "./-components/profile-data";
-import { ProfileDocuments } from "./-components/profile-documents";
-import { EmploymentDetails } from "./-components/profile-employment-details";
-import { ProfileHeader } from "./-components/profile-header";
-import { ProfileOverview } from "./-components/profile-overview";
-import { PersonalDetails } from "./-components/profile-personal-details";
-import { ProfileStatusSidebar } from "./-components/profile-status-sidebar";
-import { TimeOffDetails } from "./-components/profile-time-off-details";
+import { profile } from './-components/profile-data'
+import { ProfileDocuments } from './-components/profile-documents'
+import { EmploymentDetails } from './-components/profile-employment-details'
+import { ProfileHeader } from './-components/profile-header'
+import { ProfileOverview } from './-components/profile-overview'
+import { PersonalDetails } from './-components/profile-personal-details'
+import { ProfileStatusSidebar } from './-components/profile-status-sidebar'
+import { TimeOffDetails } from './-components/profile-time-off-details'
 
-export const Route = createFileRoute("/(main)/dashboard/profile")({
-  component: Page,
-});
+export const Route = createFileRoute('/(main)/dashboard/profile')({
+  component: Page
+})
 
 function Page() {
   return (
@@ -54,7 +54,7 @@ function Page() {
       <ProfileHeader profile={profile} />
 
       <Tabs className="min-h-0 flex-1 gap-0" defaultValue="overview">
-        <div className="scrollbar-none touch-pan-x overflow-x-auto overscroll-x-contain border-y">
+        <div className="touch-pan-x scrollbar-none overflow-x-auto overscroll-x-contain border-y">
           <TabsList
             className="w-max min-w-full justify-start gap-4 px-4 *:data-[slot=tabs-trigger]:flex-none"
             variant="line"
@@ -93,8 +93,8 @@ function Page() {
             <div className="flex items-start gap-3">
               <LockKeyhole aria-hidden="true" className="size-4 text-muted-foreground" />
               <div>
-                <p className="font-medium text-sm">Restricted information</p>
-                <p className="mt-0.5 text-muted-foreground text-sm">
+                <p className="text-sm font-medium">Restricted information</p>
+                <p className="mt-0.5 text-sm text-muted-foreground">
                   Visible to people administrators and authorized finance roles.
                 </p>
               </div>
@@ -111,5 +111,5 @@ function Page() {
         </div>
       </Tabs>
     </div>
-  );
+  )
 }

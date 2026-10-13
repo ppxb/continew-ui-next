@@ -1,10 +1,10 @@
-import * as React from "react";
+import * as React from 'react'
 
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate } from '@tanstack/react-router'
 
-import { Search } from "lucide-react";
+import { Search } from 'lucide-react'
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button'
 import {
   Command,
   CommandDialog,
@@ -13,105 +13,105 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-  CommandSeparator,
-} from "@/components/ui/command";
-import type { AppPath, NavMainItem } from "@/navigation/sidebar/sidebar-items";
-import { sidebarItems } from "@/navigation/sidebar/sidebar-items";
+  CommandSeparator
+} from '@/components/ui/command'
+import type { AppPath, NavMainItem } from '@/navigation/sidebar/sidebar-items'
+import { sidebarItems } from '@/navigation/sidebar/sidebar-items'
 
 type SearchItem = {
-  id: string;
-  group: string;
-  label: string;
-  url: AppPath;
-  icon?: NavMainItem["icon"];
-  disabled?: boolean;
-  newTab?: boolean;
-};
-
-const sidebarGroupLabels = new Set(sidebarItems.flatMap((group) => (group.label ? [group.label] : [])));
-
-function getSubItemGroup(groupLabel: string | undefined, itemTitle: string) {
-  return sidebarGroupLabels.has(itemTitle) ? (groupLabel ?? "Other") : itemTitle;
+  id: string
+  group: string
+  label: string
+  url: AppPath
+  icon?: NavMainItem['icon']
+  disabled?: boolean
+  newTab?: boolean
 }
 
-const searchItems: SearchItem[] = sidebarItems.flatMap((group) =>
-  group.items.flatMap((item) => {
+const sidebarGroupLabels = new Set(sidebarItems.flatMap(group => (group.label ? [group.label] : [])))
+
+function getSubItemGroup(groupLabel: string | undefined, itemTitle: string) {
+  return sidebarGroupLabels.has(itemTitle) ? (groupLabel ?? 'Other') : itemTitle
+}
+
+const searchItems: SearchItem[] = sidebarItems.flatMap(group =>
+  group.items.flatMap(item => {
     if (item.subItems) {
-      return item.subItems.map((sub) => ({
+      return item.subItems.map(sub => ({
         id: sub.id,
         group: getSubItemGroup(group.label, item.title),
         label: sub.title,
         url: sub.url,
         icon: item.icon,
         disabled: sub.disabled,
-        newTab: sub.newTab,
-      }));
+        newTab: sub.newTab
+      }))
     }
     return [
       {
         id: item.id,
-        group: group.label ?? "Other",
+        group: group.label ?? 'Other',
         label: item.title,
         url: item.url,
         icon: item.icon,
         disabled: item.disabled,
-        newTab: item.newTab,
-      },
-    ];
-  }),
-);
+        newTab: item.newTab
+      }
+    ]
+  })
+)
 
 function getAvailableItems(items: SearchItem[]) {
-  return items.filter((item) => !item.disabled && !item.url.includes("coming-soon"));
+  return items.filter(item => !item.disabled && !item.url.includes('coming-soon'))
 }
 
-const recommendations = getAvailableItems(searchItems);
+const recommendations = getAvailableItems(searchItems)
 
 function groupBy(items: SearchItem[]) {
-  const groups = [...new Set(items.map((item) => item.group))];
-  return groups.map((group) => ({
+  const groups = [...new Set(items.map(item => item.group))]
+  return groups.map(group => ({
     group,
-    items: items.filter((item) => item.group === group),
-  }));
+    items: items.filter(item => item.group === group)
+  }))
 }
 
 export function SearchDialog() {
-  const [open, setOpen] = React.useState(false);
-  const [query, setQuery] = React.useState("");
-  const navigate = useNavigate();
+  const [open, setOpen] = React.useState(false)
+  const [query, setQuery] = React.useState('')
+  const navigate = useNavigate()
 
   React.useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      if (e.key === "j" && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        setOpen((prev) => !prev);
+      if (e.key === 'j' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault()
+        setOpen(prev => !prev)
       }
-    };
-    document.addEventListener("keydown", down);
-    return () => document.removeEventListener("keydown", down);
-  }, []);
+    }
+    document.addEventListener('keydown', down)
+    return () => document.removeEventListener('keydown', down)
+  }, [])
 
   const handleOpenChange = (value: boolean) => {
-    setOpen(value);
-    if (!value) setQuery("");
-  };
+    setOpen(value)
+    if (!value) setQuery('')
+  }
 
   const handleSelect = (item: SearchItem) => {
-    if (item.disabled) return;
-    handleOpenChange(false);
+    if (item.disabled) return
+    handleOpenChange(false)
     if (item.newTab) {
-      window.open(item.url, "_blank", "noopener,noreferrer");
+      window.open(item.url, '_blank', 'noopener,noreferrer')
     } else {
-      void navigate({ to: item.url });
+      void navigate({ to: item.url })
     }
-  };
+  }
 
   const renderGroups = (items: SearchItem[]) =>
     groupBy(items).map(({ group, items: groupItems }, index) => (
       <React.Fragment key={group}>
         {index > 0 && <CommandSeparator />}
         <CommandGroup heading={group}>
-          {groupItems.map((item) => (
+          {groupItems.map(item => (
             <CommandItem
               disabled={item.disabled}
               key={`${group}-${item.id}`}
@@ -126,7 +126,7 @@ export function SearchDialog() {
           ))}
         </CommandGroup>
       </React.Fragment>
-    ));
+    ))
 
   return (
     <>
@@ -137,7 +137,7 @@ export function SearchDialog() {
       >
         <Search data-icon="inline-start" />
         Search
-        <kbd className="inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-medium text-[10px]">
+        <kbd className="inline-flex h-5 items-center gap-1 rounded border bg-muted px-1.5 text-[10px] font-medium select-none">
           <span className="text-xs">⌘</span>J
         </kbd>
       </Button>
@@ -151,5 +151,5 @@ export function SearchDialog() {
         </Command>
       </CommandDialog>
     </>
-  );
+  )
 }

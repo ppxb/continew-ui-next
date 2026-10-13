@@ -1,12 +1,10 @@
 {
   "name": "continew-ui-next",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
   "imports": {
     "#/*": "./src/*"
-  },
-  "engines": {
-    "node": "^20.19.0 || >=22.18.0"
   },
   "scripts": {
     "dev": "vite",
@@ -77,9 +75,12 @@
     "vite": "^8.3.4"
   },
   "lint-staged": {
-    "*.{js,ts,jsx,tsx}": [
-      "oxlint --fix",
+    "!(routeTree.gen).{js,ts,jsx,tsx}": [
+      "oxlint --fix --no-error-on-unmatched-pattern",
       "oxfmt"
     ]
+  },
+  "engines": {
+    "node": "^20.19.0 || >=22.18.0"
   }
 }

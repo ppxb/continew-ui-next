@@ -1,41 +1,41 @@
-import { ArrowDownLeft, ArrowUpRight } from "lucide-react";
-import { Bar, BarChart, CartesianGrid, ReferenceLine, XAxis, YAxis } from "recharts";
+import { ArrowDownLeft, ArrowUpRight } from 'lucide-react'
+import { Bar, BarChart, CartesianGrid, ReferenceLine, XAxis, YAxis } from 'recharts'
 
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import { formatCurrency } from "@/lib/utils";
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
+import { formatCurrency } from '@/lib/utils'
 
 const chartData = [
-  { month: "Jan", income: 5900, expenses: -4200 },
-  { month: "Feb", income: 3800, expenses: -6100 },
-  { month: "Mar", income: 5200, expenses: -5600 },
-  { month: "Apr", income: 7100, expenses: -3200 },
-  { month: "May", income: 4500, expenses: -4400 },
-  { month: "Jun", income: 6100, expenses: -3600 },
-  { month: "Jul", income: 3300, expenses: -5200 },
-  { month: "Aug", income: 4300, expenses: -4000 },
-  { month: "Sep", income: 7200, expenses: -5800 },
-  { month: "Oct", income: 5600, expenses: -4600 },
-  { month: "Nov", income: 3600, expenses: -6400 },
-  { month: "Dec", income: 4700, expenses: -3400 },
-];
+  { month: 'Jan', income: 5900, expenses: -4200 },
+  { month: 'Feb', income: 3800, expenses: -6100 },
+  { month: 'Mar', income: 5200, expenses: -5600 },
+  { month: 'Apr', income: 7100, expenses: -3200 },
+  { month: 'May', income: 4500, expenses: -4400 },
+  { month: 'Jun', income: 6100, expenses: -3600 },
+  { month: 'Jul', income: 3300, expenses: -5200 },
+  { month: 'Aug', income: 4300, expenses: -4000 },
+  { month: 'Sep', income: 7200, expenses: -5800 },
+  { month: 'Oct', income: 5600, expenses: -4600 },
+  { month: 'Nov', income: 3600, expenses: -6400 },
+  { month: 'Dec', income: 4700, expenses: -3400 }
+]
 
 const chartConfig = {
   income: {
-    label: "Income",
-    color: "var(--chart-1)",
+    label: 'Income',
+    color: 'var(--chart-1)'
   },
   expenses: {
-    label: "Expenses",
-    color: "var(--chart-2)",
-  },
-} as ChartConfig;
+    label: 'Expenses',
+    color: 'var(--chart-2)'
+  }
+} as ChartConfig
 
 export function CashFlowOverview() {
-  const totalIncome = chartData.reduce((acc, item) => acc + item.income, 0);
-  const totalExpenses = chartData.reduce((acc, item) => acc + Math.abs(item.expenses), 0);
+  const totalIncome = chartData.reduce((acc, item) => acc + item.income, 0)
+  const totalExpenses = chartData.reduce((acc, item) => acc + Math.abs(item.expenses), 0)
   return (
     <Card>
       <CardHeader>
@@ -65,7 +65,7 @@ export function CashFlowOverview() {
               <ArrowDownLeft className="size-6 stroke-background" />
             </div>
             <div>
-              <p className="text-muted-foreground text-xs uppercase">Income</p>
+              <p className="text-xs text-muted-foreground uppercase">Income</p>
               <p className="font-medium tabular-nums">{formatCurrency(totalIncome, { noDecimals: true })}</p>
             </div>
           </div>
@@ -75,7 +75,7 @@ export function CashFlowOverview() {
               <ArrowUpRight className="size-6 stroke-background" />
             </div>
             <div>
-              <p className="text-muted-foreground text-xs uppercase">Expenses</p>
+              <p className="text-xs text-muted-foreground uppercase">Expenses</p>
               <p className="font-medium tabular-nums">{formatCurrency(totalExpenses, { noDecimals: true })}</p>
             </div>
           </div>
@@ -94,10 +94,10 @@ export function CashFlowOverview() {
               axisLine={false}
               tickLine={false}
               tickMargin={8}
-              tickFormatter={(value) => {
-                const abs = Math.abs(value);
-                const formatted = abs >= 1000 ? `${abs / 1000}k` : `${abs}`;
-                return value < 0 ? `-${formatted}` : formatted;
+              tickFormatter={value => {
+                const abs = Math.abs(value)
+                const formatted = abs >= 1000 ? `${abs / 1000}k` : `${abs}`
+                return value < 0 ? `-${formatted}` : formatted
               }}
               ticks={[-8000, -4000, 0, 4000, 8000]}
             />
@@ -109,5 +109,5 @@ export function CashFlowOverview() {
         </ChartContainer>
       </CardContent>
     </Card>
-  );
+  )
 }

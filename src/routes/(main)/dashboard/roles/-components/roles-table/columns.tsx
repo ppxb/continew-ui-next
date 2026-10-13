@@ -1,68 +1,68 @@
-import type { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from '@tanstack/react-table'
 
-import { MoreVertical } from "lucide-react";
+import { MoreVertical } from 'lucide-react'
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import type { DataTableFeatures } from "@/lib/data-table-features";
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
+import type { DataTableFeatures } from '@/lib/data-table-features'
 
-import type { Role } from "./data";
+import type { Role } from './data'
 
 export const rolesColumns: ColumnDef<DataTableFeatures, Role>[] = [
   {
-    id: "group",
-    accessorKey: "group",
-    filterFn: "equalsString",
-    enableHiding: true,
+    id: 'group',
+    accessorKey: 'group',
+    filterFn: 'equalsString',
+    enableHiding: true
   },
   {
-    id: "search",
-    accessorFn: (row) => [row.role, row.owner, ...row.permissionSets].join(" "),
-    filterFn: "includesString",
-    enableHiding: true,
+    id: 'search',
+    accessorFn: row => [row.role, row.owner, ...row.permissionSets].join(' '),
+    filterFn: 'includesString',
+    enableHiding: true
   },
   {
-    id: "role",
-    accessorKey: "role",
-    header: "Role",
+    id: 'role',
+    accessorKey: 'role',
+    header: 'Role',
     size: 180,
     minSize: 180,
-    cell: ({ row }) => <span className="font-medium text-sm">{row.original.role}</span>,
+    cell: ({ row }) => <span className="text-sm font-medium">{row.original.role}</span>
   },
   {
-    id: "accessLevel",
-    accessorKey: "accessLevel",
-    header: "Access level",
+    id: 'accessLevel',
+    accessorKey: 'accessLevel',
+    header: 'Access level',
     size: 120,
     cell: ({ row }) => (
       <Badge className="rounded-sm" variant="outline">
         {row.original.accessLevel}
       </Badge>
-    ),
+    )
   },
   {
-    id: "users",
-    accessorKey: "users",
-    header: "Users",
+    id: 'users',
+    accessorKey: 'users',
+    header: 'Users',
     size: 70,
-    cell: ({ row }) => <span className="text-sm">{row.original.users}</span>,
+    cell: ({ row }) => <span className="text-sm">{row.original.users}</span>
   },
   {
-    id: "permissionSets",
-    accessorFn: (row) => row.permissionSets.join(" "),
-    header: "Permission sets",
+    id: 'permissionSets',
+    accessorFn: row => row.permissionSets.join(' '),
+    header: 'Permission sets',
     size: 310,
     cell: ({ row }) => (
       <div className="flex flex-wrap items-center justify-start gap-2">
-        {row.original.permissionSets.slice(0, 3).map((set) => (
+        {row.original.permissionSets.slice(0, 3).map(set => (
           <Badge className="rounded-sm" variant="outline" key={set}>
             {set}
           </Badge>
@@ -71,42 +71,42 @@ export const rolesColumns: ColumnDef<DataTableFeatures, Role>[] = [
           <span className="text-sm tabular-nums">+{row.original.permissionSets.length - 3}</span>
         ) : null}
       </div>
-    ),
+    )
   },
   {
-    id: "lastReview",
-    accessorKey: "lastReview",
-    header: "Last review",
+    id: 'lastReview',
+    accessorKey: 'lastReview',
+    header: 'Last review',
     size: 120,
-    cell: ({ row }) => <span className="text-sm">{row.original.lastReview}</span>,
+    cell: ({ row }) => <span className="text-sm">{row.original.lastReview}</span>
   },
   {
-    id: "owner",
-    accessorKey: "owner",
-    header: "Owner",
+    id: 'owner',
+    accessorKey: 'owner',
+    header: 'Owner',
     size: 110,
-    filterFn: "equalsString",
-    cell: ({ row }) => <span className="text-sm">{row.original.owner}</span>,
+    filterFn: 'equalsString',
+    cell: ({ row }) => <span className="text-sm">{row.original.owner}</span>
   },
   {
-    id: "status",
-    accessorKey: "status",
-    header: "Status",
+    id: 'status',
+    accessorKey: 'status',
+    header: 'Status',
     size: 130,
-    filterFn: "equalsString",
+    filterFn: 'equalsString',
     cell: ({ row }) => (
       <Badge className="rounded-sm" variant="outline">
         {row.original.status}
       </Badge>
-    ),
+    )
   },
   {
-    id: "actions",
-    header: "",
+    id: 'actions',
+    header: '',
     size: 70,
     cell: ({ row }) => {
-      const isSystemRole = row.original.group === "System roles";
-      const needsReview = row.original.status === "Needs review";
+      const isSystemRole = row.original.group === 'System roles'
+      const needsReview = row.original.status === 'Needs review'
 
       return (
         <DropdownMenu>
@@ -133,8 +133,8 @@ export const rolesColumns: ColumnDef<DataTableFeatures, Role>[] = [
             </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
-      );
+      )
     },
-    enableColumnFilter: false,
-  },
-];
+    enableColumnFilter: false
+  }
+]

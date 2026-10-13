@@ -1,13 +1,13 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from '@tanstack/react-router'
 
-import { KpiCards } from "./-components/kpi-cards";
-import { OpportunitiesSection } from "./-components/opportunities-section";
-import { PipelineActivity } from "./-components/pipeline-activity";
-import { TaskReminders } from "./-components/task-reminders";
+import { KpiCards } from './-components/kpi-cards'
+import { OpportunitiesSection } from './-components/opportunities-section'
+import { PipelineActivity } from './-components/pipeline-activity'
+import { TaskReminders } from './-components/task-reminders'
 
-export const Route = createFileRoute("/(main)/dashboard/crm")({
-  component: Page,
-});
+export const Route = createFileRoute('/(main)/dashboard/crm')({
+  component: Page
+})
 
 function Page() {
   return (
@@ -17,5 +17,5 @@ function Page() {
       <TaskReminders />
       <OpportunitiesSection />
     </div>
-  );
+  )
 }

@@ -1,9 +1,9 @@
-import type { ReactTable, RowData } from "@tanstack/react-table";
+import type { ReactTable, RowData } from '@tanstack/react-table'
 
-import { cn } from "cn";
-import { ListFilter, X } from "lucide-react";
+import { cn } from 'cn'
+import { ListFilter, X } from 'lucide-react'
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -11,41 +11,41 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import type { DataTableFeatures } from "@/lib/data-table-features";
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
+import type { DataTableFeatures } from '@/lib/data-table-features'
 
-import { priorities } from "./data";
+import { priorities } from './data'
 
 interface TaskPriorityFilterProps<TData extends RowData> {
-  table: ReactTable<DataTableFeatures, TData>;
+  table: ReactTable<DataTableFeatures, TData>
 }
 
 export function TaskPriorityFilter<TData extends RowData>({ table }: TaskPriorityFilterProps<TData>) {
-  const column = table.getColumn("priority");
+  const column = table.getColumn('priority')
 
   if (!column) {
-    return null;
+    return null
   }
 
-  const priorityColumn = column;
-  const selectedValues = new Set(priorityColumn.getFilterValue() as string[]);
+  const priorityColumn = column
+  const selectedValues = new Set(priorityColumn.getFilterValue() as string[])
 
   function updateFilter(value: string) {
     if (selectedValues.has(value)) {
-      selectedValues.delete(value);
+      selectedValues.delete(value)
     } else {
-      selectedValues.add(value);
+      selectedValues.add(value)
     }
 
-    const filterValues = Array.from(selectedValues);
-    priorityColumn.setFilterValue(filterValues.length ? filterValues : undefined);
-    table.setPageIndex(0);
+    const filterValues = Array.from(selectedValues)
+    priorityColumn.setFilterValue(filterValues.length ? filterValues : undefined)
+    table.setPageIndex(0)
   }
 
   function clearFilter() {
-    priorityColumn.setFilterValue(undefined);
-    table.setPageIndex(0);
+    priorityColumn.setFilterValue(undefined)
+    table.setPageIndex(0)
   }
 
   return (
@@ -54,7 +54,7 @@ export function TaskPriorityFilter<TData extends RowData>({ table }: TaskPriorit
         render={
           <Button
             variant="outline"
-            className={cn("border-dashed", selectedValues.size > 0 && "border-solid bg-muted text-foreground")}
+            className={cn('border-dashed', selectedValues.size > 0 && 'border-solid bg-muted text-foreground')}
           />
         }
       >
@@ -63,20 +63,20 @@ export function TaskPriorityFilter<TData extends RowData>({ table }: TaskPriorit
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-50">
         <DropdownMenuGroup>
-          {priorities.map((priority) => {
-            const isSelected = selectedValues.has(priority.value);
+          {priorities.map(priority => {
+            const isSelected = selectedValues.has(priority.value)
 
             return (
               <DropdownMenuCheckboxItem
                 key={priority.value}
                 checked={isSelected}
                 onCheckedChange={() => updateFilter(priority.value)}
-                onSelect={(event) => event.preventDefault()}
+                onSelect={event => event.preventDefault()}
               >
                 <priority.icon className="text-muted-foreground" />
                 {priority.label}
               </DropdownMenuCheckboxItem>
-            );
+            )
           })}
         </DropdownMenuGroup>
         {selectedValues.size > 0 && (
@@ -92,5 +92,5 @@ export function TaskPriorityFilter<TData extends RowData>({ table }: TaskPriorit
         )}
       </DropdownMenuContent>
     </DropdownMenu>
-  );
+  )
 }

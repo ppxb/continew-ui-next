@@ -1,4 +1,4 @@
-import { Quote } from "lucide-react";
+import { Quote } from 'lucide-react'
 
 export function QuoteCard() {
   return (
@@ -13,5 +13,5 @@ export function QuoteCard() {
         </div>
       </div>
     </section>
-  );
+  )
 }

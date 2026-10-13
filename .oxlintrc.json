@@ -4,6 +4,11 @@
   "categories": {
     "correctness": "error"
   },
+  "rules": {
+    "react/purity": "off",
+    "react/refs": "off",
+    "react/set-state-in-effect": "off"
+  },
   "env": {
     "builtin": true
   },

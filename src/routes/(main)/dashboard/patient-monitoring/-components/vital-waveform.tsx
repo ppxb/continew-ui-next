@@ -1,46 +1,46 @@
-import { cn } from "cn";
-import { CartesianGrid, Line, LineChart, YAxis } from "recharts";
+import { cn } from 'cn'
+import { CartesianGrid, Line, LineChart, YAxis } from 'recharts'
 
-import { type ChartConfig, ChartContainer } from "@/components/ui/chart";
+import { type ChartConfig, ChartContainer } from '@/components/ui/chart'
 
-import { getVerticalGridCoordinates } from "./chart-grid";
+import { getVerticalGridCoordinates } from './chart-grid'
 
-export type WaveformKind = "arterial" | "ecg" | "pleth" | "respiration";
+export type WaveformKind = 'arterial' | 'ecg' | 'pleth' | 'respiration'
 
 export interface SignalPoint {
-  value: number;
+  value: number
 }
 
 interface VitalWaveformProps {
-  ariaLabel: string;
-  compact?: boolean;
-  data: SignalPoint[];
-  domain: [number, number];
-  kind: WaveformKind;
-  showGrid: boolean;
+  ariaLabel: string
+  compact?: boolean
+  data: SignalPoint[]
+  domain: [number, number]
+  kind: WaveformKind
+  showGrid: boolean
 }
 
 const waveformChartConfig = {
   signal: {
-    label: "Signal",
-    color: "currentColor",
-  },
-} satisfies ChartConfig;
+    label: 'Signal',
+    color: 'currentColor'
+  }
+} satisfies ChartConfig
 
 const waveformClasses: Record<WaveformKind, string> = {
-  arterial: "text-red-500 dark:text-red-400",
-  ecg: "text-lime-500 dark:text-lime-400",
-  pleth: "text-cyan-500 dark:text-cyan-400",
-  respiration: "text-amber-500 dark:text-amber-400",
-};
+  arterial: 'text-red-500 dark:text-red-400',
+  ecg: 'text-lime-500 dark:text-lime-400',
+  pleth: 'text-cyan-500 dark:text-cyan-400',
+  respiration: 'text-amber-500 dark:text-amber-400'
+}
 
 export function VitalWaveform({ ariaLabel, compact = false, data, domain, kind, showGrid }: VitalWaveformProps) {
-  const horizontalCenter = (domain[0] + domain[1]) / 2;
+  const horizontalCenter = (domain[0] + domain[1]) / 2
 
   return (
     <ChartContainer
       aria-label={ariaLabel}
-      className={cn("aspect-auto w-full", compact ? "h-9" : "h-full min-h-16", waveformClasses[kind])}
+      className={cn('aspect-auto w-full', compact ? 'h-9' : 'h-full min-h-16', waveformClasses[kind])}
       config={waveformChartConfig}
       initialDimension={compact ? { width: 280, height: 36 } : { width: 800, height: 64 }}
       role="img"
@@ -64,9 +64,9 @@ export function VitalWaveform({ ariaLabel, compact = false, data, domain, kind, 
           isAnimationActive={false}
           stroke="var(--color-signal)"
           strokeWidth={compact ? 1.25 : 1.5}
-          type={kind === "ecg" ? "linear" : "monotoneX"}
+          type={kind === 'ecg' ? 'linear' : 'monotoneX'}
         />
       </LineChart>
     </ChartContainer>
-  );
+  )
 }

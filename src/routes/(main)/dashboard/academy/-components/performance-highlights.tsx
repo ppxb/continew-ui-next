@@ -1,91 +1,91 @@
-import { ArrowRight } from "lucide-react";
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import { ArrowRight } from 'lucide-react'
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { type ChartConfig, ChartContainer } from "@/components/ui/chart";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { type ChartConfig, ChartContainer } from '@/components/ui/chart'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
 const performanceHighlights = [
   {
-    className: "G11A",
+    className: 'G11A',
     start: 1.25,
     duration: 1.45,
-    subject: "Pure Math",
+    subject: 'Pure Math',
     score: 84,
     students: [
-      { initials: "OD", name: "Olivia Davis", achievement: "Top Performer", score: 96 },
-      { initials: "EM", name: "Ethan Miller", achievement: "Problem-Solving Excellence", score: 91 },
-      { initials: "SW", name: "Sophia Wilson", achievement: "Most Improved", score: 88 },
-    ],
+      { initials: 'OD', name: 'Olivia Davis', achievement: 'Top Performer', score: 96 },
+      { initials: 'EM', name: 'Ethan Miller', achievement: 'Problem-Solving Excellence', score: 91 },
+      { initials: 'SW', name: 'Sophia Wilson', achievement: 'Most Improved', score: 88 }
+    ]
   },
   {
-    className: "G11B",
+    className: 'G11B',
     start: 0.72,
     duration: 1.75,
-    subject: "Literature",
+    subject: 'Literature',
     score: 78,
-    students: [{ initials: "IA", name: "Isabella Anderson", achievement: "Critical Analysis Award", score: 93 }],
+    students: [{ initials: 'IA', name: 'Isabella Anderson', achievement: 'Critical Analysis Award', score: 93 }]
   },
   {
-    className: "G11C",
+    className: 'G11C',
     start: 1.35,
     duration: 1.9,
-    subject: "Physics",
+    subject: 'Physics',
     score: 80,
     students: [
-      { initials: "AB", name: "Alexander Brown", achievement: "Top Performer", score: 95 },
-      { initials: "MG", name: "Mia Garcia", achievement: "Laboratory Excellence", score: 92 },
-      { initials: "NM", name: "Noah Martinez", achievement: "Most Improved", score: 87 },
-    ],
+      { initials: 'AB', name: 'Alexander Brown', achievement: 'Top Performer', score: 95 },
+      { initials: 'MG', name: 'Mia Garcia', achievement: 'Laboratory Excellence', score: 92 },
+      { initials: 'NM', name: 'Noah Martinez', achievement: 'Most Improved', score: 87 }
+    ]
   },
   {
-    className: "G11D",
+    className: 'G11D',
     start: 2.22,
     duration: 1.66,
-    subject: "History",
+    subject: 'History',
     score: 73,
     students: [
-      { initials: "ET", name: "Emma Taylor", achievement: "Research Excellence", score: 90 },
-      { initials: "WJ", name: "William Johnson", achievement: "Consistent Performer", score: 86 },
-    ],
-  },
-];
+      { initials: 'ET', name: 'Emma Taylor', achievement: 'Research Excellence', score: 90 },
+      { initials: 'WJ', name: 'William Johnson', achievement: 'Consistent Performer', score: 86 }
+    ]
+  }
+]
 
 const chartConfig = {
   duration: {
-    label: "Score",
-    color: "var(--chart-3)",
-  },
-} satisfies ChartConfig;
+    label: 'Score',
+    color: 'var(--chart-3)'
+  }
+} satisfies ChartConfig
 
-type PerformanceHighlight = (typeof performanceHighlights)[number];
+type PerformanceHighlight = (typeof performanceHighlights)[number]
 
 function PerformanceHighlightBar({
   height = 0,
   payload,
   width = 0,
   x = 0,
-  y = 0,
+  y = 0
 }: {
-  height?: number;
-  payload?: PerformanceHighlight;
-  width?: number;
-  x?: number;
-  y?: number;
+  height?: number
+  payload?: PerformanceHighlight
+  width?: number
+  x?: number
+  y?: number
 }) {
   if (!payload) {
-    return null;
+    return null
   }
 
-  const barHeight = Math.min(32, height);
-  const barY = y + (height - barHeight) / 2;
-  const radius = barHeight / 2;
-  const fillWidth = Math.max(width * (payload.score / 100), 86);
-  const avatarSize = 22;
-  const avatarStart = x + 8;
-  const avatarY = barY + (barHeight - avatarSize) / 2 - 1.5;
-  const labelX = avatarStart + payload.students.length * 14 + 14;
+  const barHeight = Math.min(32, height)
+  const barY = y + (height - barHeight) / 2
+  const radius = barHeight / 2
+  const fillWidth = Math.max(width * (payload.score / 100), 86)
+  const avatarSize = 22
+  const avatarStart = x + 8
+  const avatarY = barY + (barHeight - avatarSize) / 2 - 1.5
+  const labelX = avatarStart + payload.students.length * 14 + 14
 
   return (
     <g>
@@ -100,7 +100,7 @@ function PerformanceHighlightBar({
       <rect fill="var(--color-duration)" height={barHeight} rx={radius} width={fillWidth} x={x} y={barY} />
 
       {payload.students.map((student, index) => {
-        const avatarX = avatarStart + index * 14;
+        const avatarX = avatarStart + index * 14
 
         return (
           <foreignObject
@@ -134,14 +134,14 @@ function PerformanceHighlightBar({
               </TooltipContent>
             </Tooltip>
           </foreignObject>
-        );
+        )
       })}
 
       <text
         dominantBaseline="middle"
         x={labelX}
         y={barY + barHeight / 2 + 0.5}
-        className="fill-primary-foreground font-medium text-xs"
+        className="fill-primary-foreground text-xs font-medium"
       >
         {payload.subject}
       </text>
@@ -158,7 +158,7 @@ function PerformanceHighlightBar({
         {payload.score}%
       </text>
     </g>
-  );
+  )
 }
 
 export function PerformanceHighlights() {
@@ -166,7 +166,7 @@ export function PerformanceHighlights() {
     <Card className="h-full">
       <CardHeader>
         <CardTitle className="text-sm">Performance Highlights</CardTitle>
-        <CardAction className="flex items-center gap-1 text-muted-foreground text-xs">
+        <CardAction className="flex items-center gap-1 text-xs text-muted-foreground">
           View Insights <ArrowRight className="size-4" />
         </CardAction>
       </CardHeader>
@@ -182,7 +182,7 @@ export function PerformanceHighlights() {
             <XAxis
               axisLine={false}
               domain={[0, 4]}
-              tickFormatter={(value) => ["Mon", "Tue", "Wed", "Thu", "Fri"][Number(value)] ?? ""}
+              tickFormatter={value => ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'][Number(value)] ?? ''}
               tickLine={false}
               tickMargin={10}
               ticks={[0, 1, 2, 3, 4]}
@@ -195,5 +195,5 @@ export function PerformanceHighlights() {
         </ChartContainer>
       </CardContent>
     </Card>
-  );
+  )
 }

@@ -1,6 +1,6 @@
-import { Ellipsis, FileDown, FileUp, RefreshCw, Share2 } from "lucide-react";
+import { Ellipsis, FileDown, FileUp, RefreshCw, Share2 } from 'lucide-react'
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,16 +8,16 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const analyticsRangeItems = [
-  { value: "last-7-days", label: "Last 7 days" },
-  { value: "last-4-weeks", label: "Last 4 weeks" },
-  { value: "last-3-months", label: "Last 3 months" },
-  { value: "year-to-date", label: "Year to date" },
-] as const;
+  { value: 'last-7-days', label: 'Last 7 days' },
+  { value: 'last-4-weeks', label: 'Last 4 weeks' },
+  { value: 'last-3-months', label: 'Last 3 months' },
+  { value: 'year-to-date', label: 'Year to date' }
+] as const
 
 export function AnalyticsToolbar() {
   return (
@@ -28,7 +28,7 @@ export function AnalyticsToolbar() {
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
-            {analyticsRangeItems.map((item) => (
+            {analyticsRangeItems.map(item => (
               <SelectItem key={item.value} value={item.value}>
                 {item.label}
               </SelectItem>
@@ -67,5 +67,5 @@ export function AnalyticsToolbar() {
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
-  );
+  )
 }

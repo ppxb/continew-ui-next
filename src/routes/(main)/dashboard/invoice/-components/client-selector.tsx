@@ -1,16 +1,16 @@
-import { Plus } from "lucide-react";
-import { Controller, useFormContext } from "react-hook-form";
+import { Plus } from 'lucide-react'
+import { Controller, useFormContext } from 'react-hook-form'
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Field, FieldLabel } from "@/components/ui/field";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { getInitials } from "@/lib/utils";
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
+import { Field, FieldLabel } from '@/components/ui/field'
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { getInitials } from '@/lib/utils'
 
-import { type InvoiceFormValues, invoiceClients } from "./data";
+import { type InvoiceFormValues, invoiceClients } from './data'
 
 export function ClientSelector() {
-  const { control } = useFormContext<InvoiceFormValues>();
+  const { control } = useFormContext<InvoiceFormValues>()
 
   return (
     <section className="flex flex-col gap-4">
@@ -26,18 +26,18 @@ export function ClientSelector() {
         control={control}
         name="to"
         render={({ field }) => {
-          const selectedClient = field.value;
+          const selectedClient = field.value
 
           return (
             <Field className="gap-1">
               <FieldLabel className="text-xs">Client</FieldLabel>
               <Select
                 value={selectedClient.id}
-                onValueChange={(clientId) => {
-                  const nextClient = invoiceClients.find((item) => item.id === clientId);
+                onValueChange={clientId => {
+                  const nextClient = invoiceClients.find(item => item.id === clientId)
 
                   if (nextClient) {
-                    field.onChange(nextClient);
+                    field.onChange(nextClient)
                   }
                 }}
               >
@@ -59,7 +59,7 @@ export function ClientSelector() {
                 </SelectTrigger>
                 <SelectContent align="start" alignItemWithTrigger={false}>
                   <SelectGroup>
-                    {invoiceClients.map((clientOption) => (
+                    {invoiceClients.map(clientOption => (
                       <SelectItem key={clientOption.id} value={clientOption.id}>
                         {clientOption.name}
                       </SelectItem>
@@ -68,9 +68,9 @@ export function ClientSelector() {
                 </SelectContent>
               </Select>
             </Field>
-          );
+          )
         }}
       />
     </section>
-  );
+  )
 }

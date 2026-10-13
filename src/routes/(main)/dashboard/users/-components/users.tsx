@@ -1,46 +1,46 @@
-import * as React from "react";
+import * as React from 'react'
 
 import {
   type ColumnFiltersState,
   type ColumnVisibilityState,
   type PaginationState,
   type SortingState,
-  useTable,
-} from "@tanstack/react-table";
+  useTable
+} from '@tanstack/react-table'
 
-import { Cog, Download, Grid, Plus, Rows3, Search, SlidersHorizontal } from "lucide-react";
+import { Cog, Download, Grid, Plus, Rows3, Search, SlidersHorizontal } from 'lucide-react'
 
-import { Button } from "@/components/ui/button";
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
-import { Kbd } from "@/components/ui/kbd";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { dataTableFeatures } from "@/lib/data-table-features";
+import { Button } from '@/components/ui/button'
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
+import { Kbd } from '@/components/ui/kbd'
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { dataTableFeatures } from '@/lib/data-table-features'
 
-import { filters, type UserRow } from "./data";
-import { usersColumns } from "./users-columns";
-import { UsersTable } from "./users-table";
+import { filters, type UserRow } from './data'
+import { usersColumns } from './users-columns'
+import { UsersTable } from './users-table'
 
 const userFilterItems = {
-  role: filters.role.map((option) => ({ value: option, label: option })),
-  team: filters.team.map((option) => ({ value: option, label: option })),
-  status: filters.status.map((option) => ({ value: option, label: option })),
-  workspace: filters.workspace.map((option) => ({ value: option, label: option })),
-};
+  role: filters.role.map(option => ({ value: option, label: option })),
+  team: filters.team.map(option => ({ value: option, label: option })),
+  status: filters.status.map(option => ({ value: option, label: option })),
+  workspace: filters.workspace.map(option => ({ value: option, label: option }))
+}
 
 export function Users({ users }: { users: UserRow[] }) {
-  const [rowSelection, setRowSelection] = React.useState({});
-  const [sorting, setSorting] = React.useState<SortingState>([{ id: "joinedDate", desc: true }]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [rowSelection, setRowSelection] = React.useState({})
+  const [sorting, setSorting] = React.useState<SortingState>([{ id: 'joinedDate', desc: true }])
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>({
     search: false,
-    team: false,
-  });
+    team: false
+  })
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
-    pageSize: 10,
-  });
+    pageSize: 10
+  })
 
   const table = useTable({
     features: dataTableFeatures,
@@ -51,29 +51,28 @@ export function Users({ users }: { users: UserRow[] }) {
       sorting,
       columnFilters,
       columnVisibility,
-      pagination,
+      pagination
     },
-    getRowId: (row) => row.email,
+    getRowId: row => row.email,
     autoResetPageIndex: false,
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
-    onPaginationChange: setPagination,
-  });
+    onPaginationChange: setPagination
+  })
 
-  const searchQuery = (table.getColumn("search")?.getFilterValue() as string | undefined) ?? "";
-  const roleFilter = (table.getColumn("role")?.getFilterValue() as string | undefined) ?? filters.role[0];
-  const teamFilter = (table.getColumn("team")?.getFilterValue() as string | undefined) ?? filters.team[0];
-  const statusFilter = (table.getColumn("status")?.getFilterValue() as string | undefined) ?? filters.status[0];
-  const workspaceFilter =
-    (table.getColumn("workspace")?.getFilterValue() as string | undefined) ?? filters.workspace[0];
-  const selectedCount = table.getFilteredSelectedRowModel().rows.length;
+  const searchQuery = (table.getColumn('search')?.getFilterValue() as string | undefined) ?? ''
+  const roleFilter = (table.getColumn('role')?.getFilterValue() as string | undefined) ?? filters.role[0]
+  const teamFilter = (table.getColumn('team')?.getFilterValue() as string | undefined) ?? filters.team[0]
+  const statusFilter = (table.getColumn('status')?.getFilterValue() as string | undefined) ?? filters.status[0]
+  const workspaceFilter = (table.getColumn('workspace')?.getFilterValue() as string | undefined) ?? filters.workspace[0]
+  const selectedCount = table.getFilteredSelectedRowModel().rows.length
 
   function setColumnSelectFilter(columnId: string, value: string | null) {
-    table.getColumn(columnId)?.setFilterValue(!value || value === "All" ? undefined : value);
-    table.setPageIndex(0);
+    table.getColumn(columnId)?.setFilterValue(!value || value === 'All' ? undefined : value)
+    table.setPageIndex(0)
   }
 
   return (
@@ -92,9 +91,9 @@ export function Users({ users }: { users: UserRow[] }) {
               className="h-7"
               placeholder="Search users..."
               value={searchQuery}
-              onChange={(event) => {
-                table.getColumn("search")?.setFilterValue(event.target.value || undefined);
-                table.setPageIndex(0);
+              onChange={event => {
+                table.getColumn('search')?.setFilterValue(event.target.value || undefined)
+                table.setPageIndex(0)
               }}
             />
             <InputGroupAddon align="inline-end">
@@ -121,7 +120,7 @@ export function Users({ users }: { users: UserRow[] }) {
             <Select
               items={userFilterItems.role}
               value={roleFilter}
-              onValueChange={(value) => setColumnSelectFilter("role", value)}
+              onValueChange={value => setColumnSelectFilter('role', value)}
             >
               <SelectTrigger size="sm">
                 <span className="text-muted-foreground">Role:</span>
@@ -129,7 +128,7 @@ export function Users({ users }: { users: UserRow[] }) {
               </SelectTrigger>
               <SelectContent align="start" alignItemWithTrigger={false}>
                 <SelectGroup>
-                  {filters.role.map((option) => (
+                  {filters.role.map(option => (
                     <SelectItem key={option} value={option}>
                       {option}
                     </SelectItem>
@@ -141,7 +140,7 @@ export function Users({ users }: { users: UserRow[] }) {
             <Select
               items={userFilterItems.team}
               value={teamFilter}
-              onValueChange={(value) => setColumnSelectFilter("team", value)}
+              onValueChange={value => setColumnSelectFilter('team', value)}
             >
               <SelectTrigger size="sm">
                 <span className="text-muted-foreground">Team:</span>
@@ -149,7 +148,7 @@ export function Users({ users }: { users: UserRow[] }) {
               </SelectTrigger>
               <SelectContent align="start" alignItemWithTrigger={false}>
                 <SelectGroup>
-                  {filters.team.map((option) => (
+                  {filters.team.map(option => (
                     <SelectItem key={option} value={option}>
                       {option}
                     </SelectItem>
@@ -161,7 +160,7 @@ export function Users({ users }: { users: UserRow[] }) {
             <Select
               items={userFilterItems.status}
               value={statusFilter}
-              onValueChange={(value) => setColumnSelectFilter("status", value)}
+              onValueChange={value => setColumnSelectFilter('status', value)}
             >
               <SelectTrigger size="sm">
                 <span className="text-muted-foreground">Status:</span>
@@ -169,7 +168,7 @@ export function Users({ users }: { users: UserRow[] }) {
               </SelectTrigger>
               <SelectContent align="start" alignItemWithTrigger={false}>
                 <SelectGroup>
-                  {filters.status.map((option) => (
+                  {filters.status.map(option => (
                     <SelectItem key={option} value={option}>
                       {option}
                     </SelectItem>
@@ -182,7 +181,7 @@ export function Users({ users }: { users: UserRow[] }) {
           <Select
             items={userFilterItems.workspace}
             value={workspaceFilter}
-            onValueChange={(value) => setColumnSelectFilter("workspace", value)}
+            onValueChange={value => setColumnSelectFilter('workspace', value)}
           >
             <SelectTrigger size="sm">
               <span className="text-muted-foreground">Workspace:</span>
@@ -190,7 +189,7 @@ export function Users({ users }: { users: UserRow[] }) {
             </SelectTrigger>
             <SelectContent align="end" alignItemWithTrigger={false}>
               <SelectGroup>
-                {filters.workspace.map((option) => (
+                {filters.workspace.map(option => (
                   <SelectItem key={option} value={option}>
                     {option}
                   </SelectItem>
@@ -201,7 +200,7 @@ export function Users({ users }: { users: UserRow[] }) {
         </div>
 
         <div className="flex items-center justify-between gap-3 px-4">
-          <div className="text-muted-foreground text-sm tabular-nums">{selectedCount} selected</div>
+          <div className="text-sm text-muted-foreground tabular-nums">{selectedCount} selected</div>
 
           <Tabs defaultValue="list">
             <TabsList>
@@ -218,5 +217,5 @@ export function Users({ users }: { users: UserRow[] }) {
         <UsersTable table={table} />
       </CardContent>
     </Card>
-  );
+  )
 }

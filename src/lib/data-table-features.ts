@@ -18,8 +18,8 @@ import {
   sortFn_alphanumeric,
   sortFn_datetime,
   sortFn_text,
-  tableFeatures,
-} from "@tanstack/react-table";
+  tableFeatures
+} from '@tanstack/react-table'
 
 /**
  * Central TanStack Table v9 feature registry for every dashboard data table.
@@ -44,13 +44,13 @@ export const dataTableFeatures = tableFeatures({
   filterFns: {
     arrIncludes: filterFn_arrIncludes,
     equalsString: filterFn_equalsString,
-    includesString: filterFn_includesString,
+    includesString: filterFn_includesString
   },
   sortFns: {
     alphanumeric: sortFn_alphanumeric,
     datetime: sortFn_datetime,
-    text: sortFn_text,
-  },
-});
+    text: sortFn_text
+  }
+})
 
-export type DataTableFeatures = typeof dataTableFeatures;
+export type DataTableFeatures = typeof dataTableFeatures

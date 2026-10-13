@@ -1,14 +1,14 @@
-import { ArrowUpRight, TrendingDown, TrendingUp } from "lucide-react";
+import { ArrowUpRight, TrendingDown, TrendingUp } from 'lucide-react'
 
-import { Badge } from "@/components/ui/badge";
-import { Card, CardAction, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
+import { Badge } from '@/components/ui/badge'
+import { Card, CardAction, CardContent, CardDescription, CardHeader } from '@/components/ui/card'
 
 export function KpiCards() {
   return (
     <section className="space-y-5">
       <div className="space-y-1">
         <h2 className="text-3xl tracking-tight">Pipeline Overview</h2>
-        <p className="text-muted-foreground text-sm">
+        <p className="text-sm text-muted-foreground">
           Keep tabs on lead quality, open opportunities, and conversion rates across the current sales cycle.
         </p>
       </div>
@@ -34,7 +34,7 @@ export function KpiCards() {
               </Badge>
             </div>
             <p className="text-sm">
-              <span className="font-medium text-foreground">$254,200</span>{" "}
+              <span className="font-medium text-foreground">$254,200</span>{' '}
               <span className="text-muted-foreground">last month</span>
             </p>
           </CardContent>
@@ -57,7 +57,7 @@ export function KpiCards() {
               </Badge>
             </div>
             <p className="text-sm">
-              <span className="font-medium text-foreground">30.9%</span>{" "}
+              <span className="font-medium text-foreground">30.9%</span>{' '}
               <span className="text-muted-foreground">last month</span>
             </p>
           </CardContent>
@@ -83,7 +83,7 @@ export function KpiCards() {
               </Badge>
             </div>
             <p className="text-sm">
-              <span className="font-medium text-foreground">35</span>{" "}
+              <span className="font-medium text-foreground">35</span>{' '}
               <span className="text-muted-foreground">last month</span>
             </p>
           </CardContent>
@@ -109,12 +109,12 @@ export function KpiCards() {
               </Badge>
             </div>
             <p className="text-sm">
-              <span className="font-medium text-foreground">16.5%</span>{" "}
+              <span className="font-medium text-foreground">16.5%</span>{' '}
               <span className="text-muted-foreground">last month</span>
             </p>
           </CardContent>
         </Card>
       </div>
     </section>
-  );
+  )
 }

@@ -1,43 +1,43 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Controller, useForm } from "react-hook-form";
-import { z } from "zod";
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Controller, useForm } from 'react-hook-form'
+import { z } from 'zod'
 
-import { Button } from "@/components/ui/button";
-import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import { toast } from "@/components/ui/toast";
+import { Button } from '@/components/ui/button'
+import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
+import { toast } from '@/components/ui/toast'
 
 const formSchema = z
   .object({
-    email: z.email({ message: "Please enter a valid email address." }),
-    password: z.string().min(6, { message: "Password must be at least 6 characters." }),
-    confirmPassword: z.string().min(6, { message: "Confirm Password must be at least 6 characters." }),
+    email: z.email({ message: 'Please enter a valid email address.' }),
+    password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
+    confirmPassword: z.string().min(6, { message: 'Confirm Password must be at least 6 characters.' })
   })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match.",
-    path: ["confirmPassword"],
-  });
+  .refine(data => data.password === data.confirmPassword, {
+    message: 'Passwords do not match.',
+    path: ['confirmPassword']
+  })
 
 const onSubmit = (data: z.infer<typeof formSchema>) => {
   toast.add({
-    title: "You submitted the following values",
+    title: 'You submitted the following values',
     description: (
       <pre className="mt-2 w-[320px] rounded-md bg-neutral-950 p-4">
         <code className="text-white">{JSON.stringify(data, null, 2)}</code>
       </pre>
-    ),
-  });
-};
+    )
+  })
+}
 
 export function RegisterForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: "",
-      password: "",
-      confirmPassword: "",
-    },
-  });
+      email: '',
+      password: '',
+      confirmPassword: ''
+    }
+  })
 
   return (
     <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
@@ -101,5 +101,5 @@ export function RegisterForm() {
         Register
       </Button>
     </form>
-  );
+  )
 }

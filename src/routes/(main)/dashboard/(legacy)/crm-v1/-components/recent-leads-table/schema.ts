@@ -1,4 +1,4 @@
-import z from "zod";
+import z from 'zod'
 
 const recentLeadsSchema = z.object({
   id: z.string(),
@@ -6,7 +6,7 @@ const recentLeadsSchema = z.object({
   company: z.string(),
   status: z.string(),
   source: z.string(),
-  lastActivity: z.string(),
-});
+  lastActivity: z.string()
+})
 
-export type RecentLeadRow = z.infer<typeof recentLeadsSchema>;
+export type RecentLeadRow = z.infer<typeof recentLeadsSchema>

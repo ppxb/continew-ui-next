@@ -1,6 +1,6 @@
-import { ArrowUpDown, Search, SlidersHorizontal } from "lucide-react";
+import { ArrowUpDown, Search, SlidersHorizontal } from 'lucide-react'
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,9 +12,9 @@ import {
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 
 export function FileManagerToolbar() {
   return (
@@ -80,5 +80,5 @@ export function FileManagerToolbar() {
         </DropdownMenu>
       </div>
     </div>
-  );
+  )
 }

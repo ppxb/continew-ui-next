@@ -1,115 +1,115 @@
-import * as React from "react";
+import * as React from 'react'
 
-import { Label, Pie, PieChart } from "recharts";
+import { Label, Pie, PieChart } from 'recharts'
 
-import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { formatCurrency } from "@/lib/utils";
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { formatCurrency } from '@/lib/utils'
 
-type BalanceKey = "investment" | "main" | "reserve" | "savings";
+type BalanceKey = 'investment' | 'main' | 'reserve' | 'savings'
 
 const balanceData: {
-  account: string;
-  amount: number;
-  key: BalanceKey;
-  percentage: number;
+  account: string
+  amount: number
+  key: BalanceKey
+  percentage: number
 }[] = [
   {
-    account: "Main Wallet",
+    account: 'Main Wallet',
     amount: 122_540,
-    key: "main",
-    percentage: 52.2,
+    key: 'main',
+    percentage: 52.2
   },
   {
-    account: "Savings Account",
+    account: 'Savings Account',
     amount: 48_320,
-    key: "savings",
-    percentage: 20.6,
+    key: 'savings',
+    percentage: 20.6
   },
   {
-    account: "Investment Account",
+    account: 'Investment Account',
     amount: 36_780,
-    key: "investment",
-    percentage: 15.7,
+    key: 'investment',
+    percentage: 15.7
   },
   {
-    account: "Reserve Account",
+    account: 'Reserve Account',
     amount: 27_256,
-    key: "reserve",
-    percentage: 11.5,
-  },
-];
+    key: 'reserve',
+    percentage: 11.5
+  }
+]
 
 const chartConfig = {
   amount: {
-    label: "Balance",
+    label: 'Balance'
   },
   investment: {
-    color: "var(--chart-1)",
-    label: "Investment Account",
+    color: 'var(--chart-1)',
+    label: 'Investment Account'
   },
   main: {
-    color: "var(--chart-2)",
-    label: "Main Wallet",
+    color: 'var(--chart-2)',
+    label: 'Main Wallet'
   },
   reserve: {
-    color: "var(--chart-3)",
-    label: "Reserve Account",
+    color: 'var(--chart-3)',
+    label: 'Reserve Account'
   },
   savings: {
-    color: "var(--chart-4)",
-    label: "Savings Account",
-  },
-} satisfies ChartConfig;
+    color: 'var(--chart-4)',
+    label: 'Savings Account'
+  }
+} satisfies ChartConfig
 
 const currencies = {
   EUR: {
-    label: "Euro Balance",
+    label: 'Euro Balance'
   },
   GBP: {
-    label: "GBP Balance",
+    label: 'GBP Balance'
   },
   USD: {
-    label: "USD Balance",
-  },
-} as const;
+    label: 'USD Balance'
+  }
+} as const
 
-type Currency = keyof typeof currencies;
+type Currency = keyof typeof currencies
 
 const currencyItems = Object.entries(currencies).map(([value, item]) => ({
   value,
-  label: item.label,
-}));
+  label: item.label
+}))
 
 const getAccountColor = (key: BalanceKey) => {
-  const config = chartConfig[key];
+  const config = chartConfig[key]
 
-  return "color" in config ? config.color : undefined;
-};
+  return 'color' in config ? config.color : undefined
+}
 
-const chartData = balanceData.map((item) => ({
+const chartData = balanceData.map(item => ({
   ...item,
-  fill: getAccountColor(item.key),
-}));
+  fill: getAccountColor(item.key)
+}))
 
-const totalBalance = balanceData.reduce((total, item) => total + item.amount, 0);
+const totalBalance = balanceData.reduce((total, item) => total + item.amount, 0)
 
 export function BalanceDistributionCard() {
-  const [currency, setCurrency] = React.useState<Currency>("USD");
+  const [currency, setCurrency] = React.useState<Currency>('USD')
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="font-normal">Account Allocation</CardTitle>
         <CardAction>
-          <Select items={currencyItems} onValueChange={(value) => setCurrency(value as Currency)} value={currency}>
+          <Select items={currencyItems} onValueChange={value => setCurrency(value as Currency)} value={currency}>
             <SelectTrigger className="w-36" size="sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                {currencyItems.map((item) => (
+                {currencyItems.map(item => (
                   <SelectItem key={item.value} value={item.value}>
                     {item.label}
                   </SelectItem>
@@ -139,8 +139,8 @@ export function BalanceDistributionCard() {
             >
               <Label
                 content={({ viewBox }) => {
-                  if (!(viewBox && "cx" in viewBox && "cy" in viewBox)) {
-                    return null;
+                  if (!(viewBox && 'cx' in viewBox && 'cy' in viewBox)) {
+                    return null
                   }
 
                   return (
@@ -149,14 +149,14 @@ export function BalanceDistributionCard() {
                         Total
                       </tspan>
                       <tspan
-                        className="fill-foreground font-heading font-medium text-lg tabular-nums"
+                        className="fill-foreground font-heading text-lg font-medium tabular-nums"
                         x={viewBox.cx}
                         y={(viewBox.cy ?? 0) + 14}
                       >
                         {formatCurrency(totalBalance, { currency, noDecimals: true })}
                       </tspan>
                     </text>
-                  );
+                  )
                 }}
               />
             </Pie>
@@ -164,12 +164,12 @@ export function BalanceDistributionCard() {
         </ChartContainer>
 
         <div className="flex min-w-0 flex-col gap-3">
-          {chartData.map((item) => (
+          {chartData.map(item => (
             <div className="grid grid-cols-[1fr_auto] items-end gap-3" key={item.key}>
               <div className="min-w-0">
                 <div className="flex min-w-0 items-center gap-1">
                   <span aria-hidden="true" className="h-2 w-1 rounded-full" style={{ backgroundColor: item.fill }} />
-                  <p className="truncate text-muted-foreground text-xs">{item.account}</p>
+                  <p className="truncate text-xs text-muted-foreground">{item.account}</p>
                 </div>
                 <p className="font-medium tabular-nums">
                   {formatCurrency(item.amount, { currency, noDecimals: true })}
@@ -181,5 +181,5 @@ export function BalanceDistributionCard() {
         </div>
       </CardContent>
     </Card>
-  );
+  )
 }

@@ -1,19 +1,19 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from '@tanstack/react-router'
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
-import { CardOverview } from "./-components/card-overview";
-import { CashFlowOverview } from "./-components/cash-flow-overview";
-import { IncomeReliability } from "./-components/income-reliability";
-import { MonthlyCashFlow } from "./-components/kpis/monthly-cash-flow";
-import { NetWorth } from "./-components/kpis/net-worth";
-import { PrimaryAccount } from "./-components/kpis/primary-account";
-import { SavingsRate } from "./-components/kpis/savings-rate";
-import { SpendingBreakdown } from "./-components/spending-breakdown";
+import { CardOverview } from './-components/card-overview'
+import { CashFlowOverview } from './-components/cash-flow-overview'
+import { IncomeReliability } from './-components/income-reliability'
+import { MonthlyCashFlow } from './-components/kpis/monthly-cash-flow'
+import { NetWorth } from './-components/kpis/net-worth'
+import { PrimaryAccount } from './-components/kpis/primary-account'
+import { SavingsRate } from './-components/kpis/savings-rate'
+import { SpendingBreakdown } from './-components/spending-breakdown'
 
-export const Route = createFileRoute("/(main)/dashboard/(legacy)/finance-v1")({
-  component: Page,
-});
+export const Route = createFileRoute('/(main)/dashboard/(legacy)/finance-v1')({
+  component: Page
+})
 
 function Page() {
   return (
@@ -57,5 +57,5 @@ function Page() {
         </TabsContent>
       </Tabs>
     </div>
-  );
+  )
 }

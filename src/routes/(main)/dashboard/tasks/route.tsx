@@ -1,11 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from '@tanstack/react-router'
 
-import { tasks } from "./-components/data";
-import { Tasks } from "./-components/tasks";
+import { tasks } from './-components/data'
+import { Tasks } from './-components/tasks'
 
-export const Route = createFileRoute("/(main)/dashboard/tasks")({
-  component: Page,
-});
+export const Route = createFileRoute('/(main)/dashboard/tasks')({
+  component: Page
+})
 
 function Page() {
   return (
@@ -16,5 +16,5 @@ function Page() {
       </div>
       <Tasks data={tasks} />
     </div>
-  );
+  )
 }

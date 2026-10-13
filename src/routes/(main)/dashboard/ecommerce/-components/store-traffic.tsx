@@ -1,20 +1,20 @@
-import { useState } from "react";
+import { useState } from 'react'
 
-import { format, subMinutes } from "date-fns";
-import { ArrowUpRight } from "lucide-react";
-import { Area, AreaChart, CartesianGrid, Line, XAxis, YAxis } from "recharts";
+import { format, subMinutes } from 'date-fns'
+import { ArrowUpRight } from 'lucide-react'
+import { Area, AreaChart, CartesianGrid, Line, XAxis, YAxis } from 'recharts'
 
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   type ChartConfig,
   ChartContainer,
   ChartLegend,
   ChartLegendContent,
   ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
+  ChartTooltipContent
+} from '@/components/ui/chart'
 
-const trafficIntervalMinutes = 15;
+const trafficIntervalMinutes = 15
 
 const trafficPoints = [
   { visitors: 280, anomalies: 8 },
@@ -112,51 +112,51 @@ const trafficPoints = [
   { visitors: 260, anomalies: 1 },
   { visitors: 20, anomalies: 4 },
   { visitors: 120, anomalies: 3 },
-  { visitors: 5, anomalies: 2 },
-] as const;
+  { visitors: 5, anomalies: 2 }
+] as const
 
 function getTrafficData() {
-  const now = new Date();
+  const now = new Date()
 
   return trafficPoints.map((point, index) => ({
     ...point,
-    timestamp: subMinutes(now, (trafficPoints.length - 1 - index) * trafficIntervalMinutes).toISOString(),
-  }));
+    timestamp: subMinutes(now, (trafficPoints.length - 1 - index) * trafficIntervalMinutes).toISOString()
+  }))
 }
 
 const trafficConfig = {
   visitors: {
-    label: "Visitors",
-    color: "var(--chart-3)",
+    label: 'Visitors',
+    color: 'var(--chart-3)'
   },
   anomalies: {
-    label: "Anomalies",
-    color: "var(--destructive)",
-  },
-} satisfies ChartConfig;
+    label: 'Anomalies',
+    color: 'var(--destructive)'
+  }
+} satisfies ChartConfig
 
 function formatTrafficTooltipLabel(value: string) {
-  return format(new Date(value), "h:mm a, do MMMM yyyy");
+  return format(new Date(value), 'h:mm a, do MMMM yyyy')
 }
 
 export function StoreTraffic() {
-  const [trafficData] = useState(() => getTrafficData());
-  const firstTrafficTimestamp = trafficData[0].timestamp;
-  const lastTrafficTimestamp = trafficData.at(-1)?.timestamp ?? "";
+  const [trafficData] = useState(() => getTrafficData())
+  const firstTrafficTimestamp = trafficData[0].timestamp
+  const lastTrafficTimestamp = trafficData.at(-1)?.timestamp ?? ''
 
   function formatTrafficTick(value: string) {
     if (value === firstTrafficTimestamp) {
-      return "24h ago";
+      return '24h ago'
     }
 
-    return value === lastTrafficTimestamp ? "now" : "";
+    return value === lastTrafficTimestamp ? 'now' : ''
   }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-normal text-muted-foreground text-sm">Store Traffic</CardTitle>
-        <CardDescription className="text-foreground text-xl tabular-nums leading-none tracking-tight">
+        <CardTitle className="text-sm font-normal text-muted-foreground">Store Traffic</CardTitle>
+        <CardDescription className="text-xl leading-none tracking-tight text-foreground tabular-nums">
           12.9K visits
         </CardDescription>
         <CardAction>
@@ -181,14 +181,14 @@ export function StoreTraffic() {
               tickFormatter={formatTrafficTick}
               tickLine={false}
               tickMargin={10}
-              ticks={[trafficData[0].timestamp, trafficData.at(-1)?.timestamp ?? ""]}
+              ticks={[trafficData[0].timestamp, trafficData.at(-1)?.timestamp ?? '']}
             />
             <YAxis axisLine={false} domain={[0, 650]} tickLine={false} tickMargin={6} width={36} yAxisId="traffic" />
             <ChartTooltip
-              content={<ChartTooltipContent labelFormatter={(value) => formatTrafficTooltipLabel(String(value))} />}
-              cursor={{ stroke: "var(--border)", strokeDasharray: "4 4" }}
+              content={<ChartTooltipContent labelFormatter={value => formatTrafficTooltipLabel(String(value))} />}
+              cursor={{ stroke: 'var(--border)', strokeDasharray: '4 4' }}
             />
-            <ChartLegend align="right" verticalAlign="top" className="justify-end" content={<ChartLegendContent />} />
+            <ChartLegend align="right" verticalAlign="top" content={<ChartLegendContent className="justify-end" />} />
             <Area
               dataKey="visitors"
               dot={false}
@@ -211,5 +211,5 @@ export function StoreTraffic() {
         </ChartContainer>
       </CardContent>
     </Card>
-  );
+  )
 }

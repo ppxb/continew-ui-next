@@ -1,17 +1,17 @@
-import { createContext, useContext } from "react";
+import { createContext, useContext } from 'react'
 
-import type { ColumnDef, Row } from "@tanstack/react-table";
-import { FlexRender, Subscribe } from "@tanstack/react-table";
+import type { ColumnDef, Row } from '@tanstack/react-table'
+import { FlexRender, Subscribe } from '@tanstack/react-table'
 
-import { RestrictToVerticalAxis } from "@dnd-kit/abstract/modifiers";
-import { useSortable } from "@dnd-kit/react/sortable";
-import { CircleCheckIcon, EllipsisVerticalIcon, GripVerticalIcon, LoaderIcon, TrendingUpIcon } from "lucide-react";
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
+import { RestrictToVerticalAxis } from '@dnd-kit/abstract/modifiers'
+import { useSortable } from '@dnd-kit/react/sortable'
+import { CircleCheckIcon, EllipsisVerticalIcon, GripVerticalIcon, LoaderIcon, TrendingUpIcon } from 'lucide-react'
+import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts'
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Drawer,
   DrawerClose,
@@ -20,97 +20,97 @@ import {
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer";
+  DrawerTrigger
+} from '@/components/ui/drawer'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import { TableCell, TableRow } from "@/components/ui/table";
-import { toast } from "@/components/ui/toast";
-import { useIsMobile } from "@/hooks/use-mobile";
-import type { DataTableFeatures } from "@/lib/data-table-features";
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
+import { TableCell, TableRow } from '@/components/ui/table'
+import { toast } from '@/components/ui/toast'
+import { useIsMobile } from '@/hooks/use-mobile'
+import type { DataTableFeatures } from '@/lib/data-table-features'
 
-import type { ProposalSectionsRow } from "./schema";
+import type { ProposalSectionsRow } from './schema'
 
 const chartData = [
-  { month: "January", desktop: 186, mobile: 80 },
-  { month: "February", desktop: 305, mobile: 200 },
-  { month: "March", desktop: 237, mobile: 120 },
-  { month: "April", desktop: 73, mobile: 190 },
-  { month: "May", desktop: 209, mobile: 130 },
-  { month: "June", desktop: 214, mobile: 140 },
-];
+  { month: 'January', desktop: 186, mobile: 80 },
+  { month: 'February', desktop: 305, mobile: 200 },
+  { month: 'March', desktop: 237, mobile: 120 },
+  { month: 'April', desktop: 73, mobile: 190 },
+  { month: 'May', desktop: 209, mobile: 130 },
+  { month: 'June', desktop: 214, mobile: 140 }
+]
 
 const chartConfig = {
   desktop: {
-    label: "Desktop",
-    color: "var(--primary)",
+    label: 'Desktop',
+    color: 'var(--primary)'
   },
   mobile: {
-    label: "Mobile",
-    color: "var(--primary)",
-  },
-} satisfies ChartConfig;
+    label: 'Mobile',
+    color: 'var(--primary)'
+  }
+} satisfies ChartConfig
 
 const sectionTypeItems = [
-  { value: "Table of Contents", label: "Table of Contents" },
-  { value: "Executive Summary", label: "Executive Summary" },
-  { value: "Technical Approach", label: "Technical Approach" },
-  { value: "Design", label: "Design" },
-  { value: "Capabilities", label: "Capabilities" },
-  { value: "Focus Documents", label: "Focus Documents" },
-  { value: "Narrative", label: "Narrative" },
-  { value: "Cover Page", label: "Cover Page" },
-] as const;
+  { value: 'Table of Contents', label: 'Table of Contents' },
+  { value: 'Executive Summary', label: 'Executive Summary' },
+  { value: 'Technical Approach', label: 'Technical Approach' },
+  { value: 'Design', label: 'Design' },
+  { value: 'Capabilities', label: 'Capabilities' },
+  { value: 'Focus Documents', label: 'Focus Documents' },
+  { value: 'Narrative', label: 'Narrative' },
+  { value: 'Cover Page', label: 'Cover Page' }
+] as const
 
 const sectionStatusItems = [
-  { value: "Done", label: "Done" },
-  { value: "In Progress", label: "In Progress" },
-  { value: "Not Started", label: "Not Started" },
-] as const;
+  { value: 'Done', label: 'Done' },
+  { value: 'In Progress', label: 'In Progress' },
+  { value: 'Not Started', label: 'Not Started' }
+] as const
 
 const reviewerItems = [
-  { value: "Eddie Lake", label: "Eddie Lake" },
-  { value: "Jamik Tashpulatov", label: "Jamik Tashpulatov" },
-  { value: "Emily Whalen", label: "Emily Whalen" },
-] as const;
+  { value: 'Eddie Lake', label: 'Eddie Lake' },
+  { value: 'Jamik Tashpulatov', label: 'Jamik Tashpulatov' },
+  { value: 'Emily Whalen', label: 'Emily Whalen' }
+] as const
 
-const assignReviewerItems = reviewerItems.slice(0, 2);
+const assignReviewerItems = reviewerItems.slice(0, 2)
 
-type SortableRowContextValue = Pick<ReturnType<typeof useSortable>, "handleRef">;
+type SortableRowContextValue = Pick<ReturnType<typeof useSortable>, 'handleRef'>
 
-const SortableRowContext = createContext<SortableRowContextValue | null>(null);
+const SortableRowContext = createContext<SortableRowContextValue | null>(null)
 
 function DragHandle() {
-  const sortableRow = useContext(SortableRowContext);
+  const sortableRow = useContext(SortableRowContext)
 
   if (!sortableRow) {
-    return null;
+    return null
   }
 
-  const { handleRef } = sortableRow;
+  const { handleRef } = sortableRow
 
   return (
     <Button ref={handleRef} variant="ghost" size="icon" className="size-7 text-muted-foreground hover:bg-transparent">
       <GripVerticalIcon />
       <span className="sr-only">Drag to reorder</span>
     </Button>
-  );
+  )
 }
 
 function ProposalSectionDetailViewer({ item }: { item: ProposalSectionsRow }) {
-  const isMobile = useIsMobile();
+  const isMobile = useIsMobile()
 
   return (
-    <Drawer swipeDirection={isMobile ? "down" : "right"}>
+    <Drawer swipeDirection={isMobile ? 'down' : 'right'}>
       <DrawerTrigger render={<Button variant="link" className="w-fit px-0 text-left text-foreground" />}>
         {item.header}
       </DrawerTrigger>
@@ -128,7 +128,7 @@ function ProposalSectionDetailViewer({ item }: { item: ProposalSectionsRow }) {
                   data={chartData}
                   margin={{
                     left: 0,
-                    right: 10,
+                    right: 10
                   }}
                 >
                   <CartesianGrid vertical={false} />
@@ -137,7 +137,7 @@ function ProposalSectionDetailViewer({ item }: { item: ProposalSectionsRow }) {
                     tickLine={false}
                     axisLine={false}
                     tickMargin={8}
-                    tickFormatter={(value) => value.slice(0, 3)}
+                    tickFormatter={value => value.slice(0, 3)}
                     hide
                   />
                   <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" />} />
@@ -161,7 +161,7 @@ function ProposalSectionDetailViewer({ item }: { item: ProposalSectionsRow }) {
               </ChartContainer>
               <Separator />
               <div className="grid gap-2">
-                <div className="flex gap-2 font-medium leading-none">
+                <div className="flex gap-2 leading-none font-medium">
                   Trending up by 5.2% this month <TrendingUpIcon />
                 </div>
                 <div className="text-muted-foreground">
@@ -186,7 +186,7 @@ function ProposalSectionDetailViewer({ item }: { item: ProposalSectionsRow }) {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      {sectionTypeItems.map((type) => (
+                      {sectionTypeItems.map(type => (
                         <SelectItem key={type.value} value={type.value}>
                           {type.label}
                         </SelectItem>
@@ -203,7 +203,7 @@ function ProposalSectionDetailViewer({ item }: { item: ProposalSectionsRow }) {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      {sectionStatusItems.map((status) => (
+                      {sectionStatusItems.map(status => (
                         <SelectItem key={status.value} value={status.value}>
                           {status.label}
                         </SelectItem>
@@ -231,7 +231,7 @@ function ProposalSectionDetailViewer({ item }: { item: ProposalSectionsRow }) {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    {reviewerItems.map((reviewer) => (
+                    {reviewerItems.map(reviewer => (
                       <SelectItem key={reviewer.value} value={reviewer.value}>
                         {reviewer.label}
                       </SelectItem>
@@ -248,30 +248,30 @@ function ProposalSectionDetailViewer({ item }: { item: ProposalSectionsRow }) {
         </DrawerFooter>
       </DrawerContent>
     </Drawer>
-  );
+  )
 }
 
 function createInlineSaveHandler(header: string) {
   return (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    void toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
+    event.preventDefault()
+    void toast.promise(new Promise(resolve => setTimeout(resolve, 1000)), {
       loading: `Saving ${header}`,
-      success: "Done",
-      error: "Error",
-    });
-  };
+      success: 'Done',
+      error: 'Error'
+    })
+  }
 }
 
 export const proposalSectionsColumns: ColumnDef<DataTableFeatures, ProposalSectionsRow>[] = [
   {
-    id: "drag",
+    id: 'drag',
     header: () => null,
     cell: () => <DragHandle />,
     enableSorting: false,
-    enableHiding: false,
+    enableHiding: false
   },
   {
-    id: "select",
+    id: 'select',
     header: ({ table }) => (
       <div className="flex items-center justify-center">
         <Subscribe source={table.atoms.rowSelection}>
@@ -279,7 +279,7 @@ export const proposalSectionsColumns: ColumnDef<DataTableFeatures, ProposalSecti
             <Checkbox
               checked={table.getIsAllPageRowsSelected()}
               indeterminate={!table.getIsAllPageRowsSelected() && table.getIsSomePageRowsSelected()}
-              onCheckedChange={(value) => table.toggleAllPageRowsSelected(value)}
+              onCheckedChange={value => table.toggleAllPageRowsSelected(value)}
               aria-label="Select all"
             />
           )}
@@ -288,53 +288,49 @@ export const proposalSectionsColumns: ColumnDef<DataTableFeatures, ProposalSecti
     ),
     cell: ({ row }) => (
       <div className="flex items-center justify-center">
-        <Subscribe source={row.table.atoms.rowSelection} selector={(selection) => Boolean(selection?.[row.id])}>
-          {(checked) => (
-            <Checkbox
-              checked={checked}
-              onCheckedChange={(value) => row.toggleSelected(value)}
-              aria-label="Select row"
-            />
+        <Subscribe source={row.table.atoms.rowSelection} selector={selection => Boolean(selection?.[row.id])}>
+          {checked => (
+            <Checkbox checked={checked} onCheckedChange={value => row.toggleSelected(value)} aria-label="Select row" />
           )}
         </Subscribe>
       </div>
     ),
     enableSorting: false,
-    enableHiding: false,
+    enableHiding: false
   },
   {
-    accessorKey: "header",
-    header: "Header",
+    accessorKey: 'header',
+    header: 'Header',
     cell: ({ row }) => <ProposalSectionDetailViewer item={row.original} />,
-    enableHiding: false,
+    enableHiding: false
   },
   {
-    accessorKey: "type",
-    header: "Section Type",
+    accessorKey: 'type',
+    header: 'Section Type',
     cell: ({ row }) => (
       <div className="w-32">
         <Badge variant="outline" className="px-1.5 text-muted-foreground">
           {row.original.type}
         </Badge>
       </div>
-    ),
+    )
   },
   {
-    accessorKey: "status",
-    header: "Status",
+    accessorKey: 'status',
+    header: 'Status',
     cell: ({ row }) => (
       <Badge variant="outline" className="px-1.5 text-muted-foreground">
-        {row.original.status === "Done" ? (
+        {row.original.status === 'Done' ? (
           <CircleCheckIcon className="fill-green-500 stroke-primary-foreground dark:fill-green-600" />
         ) : (
           <LoaderIcon />
         )}
         {row.original.status}
       </Badge>
-    ),
+    )
   },
   {
-    accessorKey: "target",
+    accessorKey: 'target',
     header: () => <div className="w-full text-right">Target</div>,
     cell: ({ row }) => (
       <form onSubmit={createInlineSaveHandler(row.original.header)}>
@@ -344,13 +340,13 @@ export const proposalSectionsColumns: ColumnDef<DataTableFeatures, ProposalSecti
         <Input
           id={`${row.original.id}-target`}
           defaultValue={row.original.target}
-          className="h-8 w-16 border-transparent bg-transparent text-right shadow-none hover:bg-input/30 focus-visible:border focus-visible:bg-background dark:bg-transparent dark:focus-visible:bg-input/30 dark:hover:bg-input/30"
+          className="h-8 w-16 border-transparent bg-transparent text-right shadow-none hover:bg-input/30 focus-visible:border focus-visible:bg-background dark:bg-transparent dark:hover:bg-input/30 dark:focus-visible:bg-input/30"
         />
       </form>
-    ),
+    )
   },
   {
-    accessorKey: "limit",
+    accessorKey: 'limit',
     header: () => <div className="w-full text-right">Limit</div>,
     cell: ({ row }) => (
       <form onSubmit={createInlineSaveHandler(row.original.header)}>
@@ -360,19 +356,19 @@ export const proposalSectionsColumns: ColumnDef<DataTableFeatures, ProposalSecti
         <Input
           id={`${row.original.id}-limit`}
           defaultValue={row.original.limit}
-          className="h-8 w-16 border-transparent bg-transparent text-right shadow-none hover:bg-input/30 focus-visible:border focus-visible:bg-background dark:bg-transparent dark:focus-visible:bg-input/30 dark:hover:bg-input/30"
+          className="h-8 w-16 border-transparent bg-transparent text-right shadow-none hover:bg-input/30 focus-visible:border focus-visible:bg-background dark:bg-transparent dark:hover:bg-input/30 dark:focus-visible:bg-input/30"
         />
       </form>
-    ),
+    )
   },
   {
-    accessorKey: "reviewer",
-    header: "Reviewer",
+    accessorKey: 'reviewer',
+    header: 'Reviewer',
     cell: ({ row }) => {
-      const isAssigned = row.original.reviewer !== "Assign reviewer";
+      const isAssigned = row.original.reviewer !== 'Assign reviewer'
 
       if (isAssigned) {
-        return row.original.reviewer;
+        return row.original.reviewer
       }
 
       return (
@@ -390,7 +386,7 @@ export const proposalSectionsColumns: ColumnDef<DataTableFeatures, ProposalSecti
             </SelectTrigger>
             <SelectContent align="end">
               <SelectGroup>
-                {assignReviewerItems.map((reviewer) => (
+                {assignReviewerItems.map(reviewer => (
                   <SelectItem key={reviewer.value} value={reviewer.value}>
                     {reviewer.label}
                   </SelectItem>
@@ -399,11 +395,11 @@ export const proposalSectionsColumns: ColumnDef<DataTableFeatures, ProposalSecti
             </SelectContent>
           </Select>
         </>
-      );
-    },
+      )
+    }
   },
   {
-    id: "actions",
+    id: 'actions',
     cell: () => (
       <DropdownMenu>
         <DropdownMenuTrigger
@@ -427,42 +423,42 @@ export const proposalSectionsColumns: ColumnDef<DataTableFeatures, ProposalSecti
         </DropdownMenuContent>
       </DropdownMenu>
     ),
-    enableSorting: false,
-  },
-];
+    enableSorting: false
+  }
+]
 
 export function DraggableProposalSectionsRow({
   row,
   index,
-  isSelected,
+  isSelected
 }: {
-  row: Row<DataTableFeatures, ProposalSectionsRow>;
-  index: number;
-  isSelected: boolean;
+  row: Row<DataTableFeatures, ProposalSectionsRow>
+  index: number
+  isSelected: boolean
 }) {
   const { handleRef, isDragging, ref } = useSortable({
     id: row.original.id,
     index,
-    type: "proposal-section",
-    accept: "proposal-section",
-    group: "proposal-sections",
-    modifiers: [RestrictToVerticalAxis],
-  });
+    type: 'proposal-section',
+    accept: 'proposal-section',
+    group: 'proposal-sections',
+    modifiers: [RestrictToVerticalAxis]
+  })
 
   return (
     <SortableRowContext.Provider value={{ handleRef }}>
       <TableRow
         ref={ref}
-        data-state={isSelected && "selected"}
+        data-state={isSelected && 'selected'}
         data-dragging={isDragging}
         className="relative z-0 data-[dragging=true]:z-10 data-[dragging=true]:opacity-80"
       >
-        {row.getVisibleCells().map((cell) => (
+        {row.getVisibleCells().map(cell => (
           <TableCell key={cell.id}>
             <FlexRender cell={cell} />
           </TableCell>
         ))}
       </TableRow>
     </SortableRowContext.Provider>
-  );
+  )
 }

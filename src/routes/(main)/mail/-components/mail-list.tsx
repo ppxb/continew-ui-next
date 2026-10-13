@@ -1,56 +1,56 @@
-import { cn } from "cn";
-import { differenceInDays } from "date-fns/differenceInDays";
-import { format } from "date-fns/format";
-import { formatDistanceToNow } from "date-fns/formatDistanceToNow";
+import { cn } from 'cn'
+import { differenceInDays } from 'date-fns/differenceInDays'
+import { format } from 'date-fns/format'
+import { formatDistanceToNow } from 'date-fns/formatDistanceToNow'
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { ScrollArea } from '@/components/ui/scroll-area'
 
-import type { Mail } from "./data";
-import { useMail } from "./use-mail";
+import type { Mail } from './data'
+import { useMail } from './use-mail'
 
 type MailGroup = {
-  id: string;
-  title: string;
-  items: Mail[];
-};
+  id: string
+  title: string
+  items: Mail[]
+}
 
 interface MailListProps {
-  groups: MailGroup[];
-  onSelectMail?: (mail: Mail) => void;
+  groups: MailGroup[]
+  onSelectMail?: (mail: Mail) => void
 }
 
 export function MailList({ groups, onSelectMail }: MailListProps) {
-  const [mail, setMail] = useMail();
+  const [mail, setMail] = useMail()
 
   return (
-    <ScrollArea className="**:data-[slot=scroll-area-viewport]:scroll-fade min-h-0 flex-1">
+    <ScrollArea className="min-h-0 flex-1 **:data-[slot=scroll-area-viewport]:scroll-fade">
       <div className="flex flex-col gap-1.5 pt-0">
-        {groups.map((group) => (
+        {groups.map(group => (
           <section key={group.id} className="flex flex-col gap-1.5">
-            <div className="mx-3 text-muted-foreground text-xs">
+            <div className="mx-3 text-xs text-muted-foreground">
               {group.title} ({group.items.length})
             </div>
 
             <div className="flex flex-col">
-              {group.items.map((item) => (
+              {group.items.map(item => (
                 <button
                   type="button"
                   key={item.id}
                   className={cn(
-                    "group relative w-full border-transparent border-y p-3 text-left transition-colors",
-                    "hover:bg-muted/60",
+                    'group relative w-full border-y border-transparent p-3 text-left transition-colors',
+                    'hover:bg-muted/60',
                     mail.selected === item.id &&
-                      "border-border bg-muted/70 before:absolute before:-inset-y-px before:left-0 before:w-0.5 before:bg-primary",
+                      'border-border bg-muted/70 before:absolute before:-inset-y-px before:left-0 before:w-0.5 before:bg-primary'
                   )}
-                  onClick={(event) => {
-                    event.currentTarget.blur();
+                  onClick={event => {
+                    event.currentTarget.blur()
 
                     setMail({
                       ...mail,
-                      selected: item.id,
-                    });
-                    onSelectMail?.(item);
+                      selected: item.id
+                    })
+                    onSelectMail?.(item)
                   }}
                 >
                   <div className="flex items-start gap-3">
@@ -63,16 +63,16 @@ export function MailList({ groups, onSelectMail }: MailListProps) {
                         <div>
                           <div
                             className={cn(
-                              "flex items-center gap-2 truncate font-normal text-sm",
-                              !item.isRead && "font-medium",
+                              'flex items-center gap-2 truncate text-sm font-normal',
+                              !item.isRead && 'font-medium'
                             )}
                           >
                             {item.from.name} {!item.isRead && <span className="size-2 rounded-full bg-blue-600" />}
                           </div>
                           <div
                             className={cn(
-                              "truncate font-medium text-foreground text-xs",
-                              item.isRead && "font-normal text-muted-foreground",
+                              'truncate text-xs font-medium text-foreground',
+                              item.isRead && 'font-normal text-muted-foreground'
                             )}
                           >
                             {item.subject}
@@ -81,15 +81,15 @@ export function MailList({ groups, onSelectMail }: MailListProps) {
 
                         <div
                           className={cn(
-                            "shrink-0 text-muted-foreground text-xs",
-                            mail.selected === item.id && "text-foreground",
+                            'shrink-0 text-xs text-muted-foreground',
+                            mail.selected === item.id && 'text-foreground'
                           )}
                         >
                           {formatMailDate(item.receivedAt)}
                         </div>
                       </div>
 
-                      <p className="mt-2 line-clamp-2 text-muted-foreground text-xs leading-5">{item.body}</p>
+                      <p className="mt-2 line-clamp-2 text-xs leading-5 text-muted-foreground">{item.body}</p>
                     </div>
                   </div>
                 </button>
@@ -99,15 +99,15 @@ export function MailList({ groups, onSelectMail }: MailListProps) {
         ))}
       </div>
     </ScrollArea>
-  );
+  )
 }
 
 function formatMailDate(date: string) {
-  const mailDate = new Date(date);
+  const mailDate = new Date(date)
 
   if (differenceInDays(new Date(), mailDate) <= 3) {
-    return formatDistanceToNow(mailDate, { addSuffix: true });
+    return formatDistanceToNow(mailDate, { addSuffix: true })
   }
 
-  return format(mailDate, "d MMM yyyy");
+  return format(mailDate, 'd MMM yyyy')
 }

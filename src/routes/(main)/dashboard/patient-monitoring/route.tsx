@@ -1,22 +1,22 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute } from '@tanstack/react-router'
 
-import { format } from "date-fns";
-import { Network, Printer, Volume2 } from "lucide-react";
+import { format } from 'date-fns'
+import { Network, Printer, Volume2 } from 'lucide-react'
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
-import { patients } from "./-components/data";
-import { PatientMonitoring } from "./-components/patient-monitoring";
+import { patients } from './-components/data'
+import { PatientMonitoring } from './-components/patient-monitoring'
 
-export const Route = createFileRoute("/(main)/dashboard/patient-monitoring")({
-  component: Page,
-});
+export const Route = createFileRoute('/(main)/dashboard/patient-monitoring')({
+  component: Page
+})
 
 function Page() {
-  const now = new Date();
+  const now = new Date()
 
   return (
     <div
@@ -28,7 +28,7 @@ function Page() {
         <div className="whitespace-nowrap">{patients.length} Patients</div>
         <div className="col-span-2 flex items-center justify-between gap-5 text-muted-foreground lg:col-span-1 lg:justify-end">
           <span className="whitespace-nowrap tabular-nums">
-            {format(now, "dd MMM yyyy")}&nbsp;&nbsp;{format(now, "HH:mm:ss")}
+            {format(now, 'dd MMM yyyy')}&nbsp;&nbsp;{format(now, 'HH:mm:ss')}
           </span>
           <Tooltip>
             <TooltipTrigger aria-label="Alarm audio enabled" className="inline-flex" type="button">
@@ -73,5 +73,5 @@ function Page() {
         </Badge>
       </footer>
     </div>
-  );
+  )
 }

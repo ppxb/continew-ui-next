@@ -1,4 +1,4 @@
-import { cn } from "cn";
+import { cn } from 'cn'
 import {
   ArrowUpDown,
   Bell,
@@ -13,24 +13,24 @@ import {
   RefreshCw,
   Settings,
   SquareTerminal,
-  Terminal,
-} from "lucide-react";
+  Terminal
+} from 'lucide-react'
 
-import { SimpleIcon } from "@/components/simple-icon";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { SimpleIcon } from '@/components/simple-icon'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
-import type { InfrastructureEnvironment, InfrastructureGroup } from "./infrastructure-data";
+import type { InfrastructureEnvironment, InfrastructureGroup } from './infrastructure-data'
 
 export function ProjectEnvironments({ group }: { group: InfrastructureGroup }) {
   return (
@@ -49,8 +49,8 @@ export function ProjectEnvironments({ group }: { group: InfrastructureGroup }) {
         >
           <ChevronDown className="group-data-panel-open:rotate-180" />
           <div className="flex min-w-0 items-baseline gap-1.5 text-left">
-            <span className="shrink-0 font-medium leading-none">{group.organization}</span>
-            <span className="min-w-0 truncate text-muted-foreground text-sm">({group.name})</span>
+            <span className="shrink-0 leading-none font-medium">{group.organization}</span>
+            <span className="min-w-0 truncate text-sm text-muted-foreground">({group.name})</span>
           </div>
         </CollapsibleTrigger>
         <div className="flex w-full items-center justify-between gap-2 sm:ml-auto sm:w-auto sm:justify-end">
@@ -103,12 +103,12 @@ export function ProjectEnvironments({ group }: { group: InfrastructureGroup }) {
         {group.rows.length > 0 ? <EnvironmentTable rows={group.rows} /> : <EmptyProjectState />}
       </CollapsibleContent>
     </Collapsible>
-  );
+  )
 }
 
 function EnvironmentTable({ rows }: { rows: InfrastructureEnvironment[] }) {
   return (
-    <div className="scrollbar-thin overflow-x-auto [scrollbar-color:var(--border)_transparent] **:data-[slot=table-container]:overflow-visible [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:h-1">
+    <div className="scrollbar-thin [scrollbar-color:var(--border)_transparent] overflow-x-auto **:data-[slot=table-container]:overflow-visible [&::-webkit-scrollbar]:h-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent">
       <Table className="min-w-[1700px] table-fixed **:data-[slot='table-cell']:px-5 **:data-[slot='table-head']:px-5">
         <colgroup>
           <col className="w-90" />
@@ -139,7 +139,7 @@ function EnvironmentTable({ rows }: { rows: InfrastructureEnvironment[] }) {
           </TableRow>
         </TableHeader>
         <TableBody className="**:data-[slot='table-row']:hover:bg-transparent">
-          {rows.map((row) => (
+          {rows.map(row => (
             <TableRow key={row.domain}>
               <TableCell>
                 <span className="block truncate font-medium" title={row.domain}>
@@ -154,11 +154,11 @@ function EnvironmentTable({ rows }: { rows: InfrastructureEnvironment[] }) {
               </TableCell>
               <TableCell>
                 <Badge
-                  variant={row.environment === "Expired" ? "destructive" : "secondary"}
+                  variant={row.environment === 'Expired' ? 'destructive' : 'secondary'}
                   className={cn(
-                    "rounded-sm px-1.5 py-0.5",
-                    row.environment === "Production" && "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-                    row.environment === "Staging" && "bg-sky-500/10 text-sky-600 dark:text-sky-400",
+                    'rounded-sm px-1.5 py-0.5',
+                    row.environment === 'Production' && 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+                    row.environment === 'Staging' && 'bg-sky-500/10 text-sky-600 dark:text-sky-400'
                   )}
                 >
                   {row.environment}
@@ -166,16 +166,16 @@ function EnvironmentTable({ rows }: { rows: InfrastructureEnvironment[] }) {
               </TableCell>
               <TableCell>
                 <Badge
-                  variant={row.status === "Online" ? "secondary" : "destructive"}
+                  variant={row.status === 'Online' ? 'secondary' : 'destructive'}
                   className={cn(
-                    "rounded-sm px-1.5 py-0.5",
-                    row.status === "Online" && "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+                    'rounded-sm px-1.5 py-0.5',
+                    row.status === 'Online' && 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
                   )}
                 >
                   <span
                     className={cn(
-                      "size-1.5 rounded-full",
-                      row.status === "Online" ? "bg-emerald-500" : "bg-destructive",
+                      'size-1.5 rounded-full',
+                      row.status === 'Online' ? 'bg-emerald-500' : 'bg-destructive'
                     )}
                   />
                   {row.status}
@@ -203,10 +203,10 @@ function EnvironmentTable({ rows }: { rows: InfrastructureEnvironment[] }) {
               <TableCell>
                 <span className="flex flex-col font-medium">
                   {row.server}
-                  <span className="flex items-center gap-1.5 text-muted-foreground text-xs">
+                  <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <span
                       aria-hidden="true"
-                      className={cn("shrink-0 rounded-xs text-sm ring-1 ring-foreground/10", `flag:${row.countryCode}`)}
+                      className={cn('shrink-0 rounded-xs text-sm ring-1 ring-foreground/10', `flag:${row.countryCode}`)}
                     />
                     {row.countryCode} · {row.plan}
                   </span>
@@ -247,12 +247,12 @@ function EnvironmentTable({ rows }: { rows: InfrastructureEnvironment[] }) {
         </TableBody>
       </Table>
     </div>
-  );
+  )
 }
 
 function ResourceMeter({ label, value }: { label: string; value: number }) {
-  const isCritical = value >= 70;
-  const isWarning = value >= 55;
+  const isCritical = value >= 70
+  const isWarning = value >= 55
 
   return (
     <span className="min-w-0 space-y-1">
@@ -260,9 +260,9 @@ function ResourceMeter({ label, value }: { label: string; value: number }) {
         <span className="font-medium text-muted-foreground">{label}</span>
         <span
           className={cn(
-            "font-medium text-emerald-600 tabular-nums dark:text-emerald-400",
-            isWarning && "text-amber-600 dark:text-amber-400",
-            isCritical && "text-destructive",
+            'font-medium text-emerald-600 tabular-nums dark:text-emerald-400',
+            isWarning && 'text-amber-600 dark:text-amber-400',
+            isCritical && 'text-destructive'
           )}
         >
           {value}%
@@ -271,15 +271,15 @@ function ResourceMeter({ label, value }: { label: string; value: number }) {
       <span className="block h-1.5 overflow-hidden rounded-full bg-muted-foreground/20">
         <span
           className={cn(
-            "block h-full rounded-full bg-emerald-500",
-            isWarning && "bg-amber-500",
-            isCritical && "bg-destructive",
+            'block h-full rounded-full bg-emerald-500',
+            isWarning && 'bg-amber-500',
+            isCritical && 'bg-destructive'
           )}
           style={{ width: `${value}%` }}
         />
       </span>
     </span>
-  );
+  )
 }
 
 function EmptyProjectState() {
@@ -287,8 +287,8 @@ function EmptyProjectState() {
     <div className="flex min-h-24 items-center justify-center border-t bg-muted/50 p-4">
       <div className="flex items-center gap-2">
         <CircleDashed className="size-4" />
-        <p className="font-medium text-sm">No environments in this project</p>
+        <p className="text-sm font-medium">No environments in this project</p>
       </div>
     </div>
-  );
+  )
 }

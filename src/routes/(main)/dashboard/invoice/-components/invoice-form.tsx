@@ -1,10 +1,10 @@
-import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from '@/components/ui/separator'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
-import { ClientSelector } from "./client-selector";
-import { InvoiceAdjustments } from "./invoice-adjustments";
-import { InvoiceDetails } from "./invoice-details";
-import { InvoiceItems } from "./invoice-items";
+import { ClientSelector } from './client-selector'
+import { InvoiceAdjustments } from './invoice-adjustments'
+import { InvoiceDetails } from './invoice-details'
+import { InvoiceItems } from './invoice-items'
 
 export function InvoiceForm() {
   return (
@@ -31,5 +31,5 @@ export function InvoiceForm() {
 
       <InvoiceAdjustments />
     </div>
-  );
+  )
 }

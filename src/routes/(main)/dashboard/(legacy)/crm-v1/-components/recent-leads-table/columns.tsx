@@ -1,26 +1,26 @@
-import type { ColumnDef } from "@tanstack/react-table";
-import { Subscribe } from "@tanstack/react-table";
+import type { ColumnDef } from '@tanstack/react-table'
+import { Subscribe } from '@tanstack/react-table'
 
-import { EllipsisVertical } from "lucide-react";
+import { EllipsisVertical } from 'lucide-react'
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import type { DataTableFeatures } from "@/lib/data-table-features";
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
+import type { DataTableFeatures } from '@/lib/data-table-features'
 
-import type { RecentLeadRow } from "./schema";
+import type { RecentLeadRow } from './schema'
 
 export const recentLeadsColumns: ColumnDef<DataTableFeatures, RecentLeadRow>[] = [
   {
-    id: "select",
+    id: 'select',
     header: ({ table }) => (
       <div className="flex items-center justify-center">
         <Subscribe source={table.atoms.rowSelection}>
@@ -28,7 +28,7 @@ export const recentLeadsColumns: ColumnDef<DataTableFeatures, RecentLeadRow>[] =
             <Checkbox
               checked={table.getIsAllPageRowsSelected()}
               indeterminate={!table.getIsAllPageRowsSelected() && table.getIsSomePageRowsSelected()}
-              onCheckedChange={(value) => table.toggleAllPageRowsSelected(value)}
+              onCheckedChange={value => table.toggleAllPageRowsSelected(value)}
               aria-label="Select all"
             />
           )}
@@ -37,53 +37,49 @@ export const recentLeadsColumns: ColumnDef<DataTableFeatures, RecentLeadRow>[] =
     ),
     cell: ({ row }) => (
       <div className="flex items-center justify-center">
-        <Subscribe source={row.table.atoms.rowSelection} selector={(selection) => Boolean(selection?.[row.id])}>
-          {(checked) => (
-            <Checkbox
-              checked={checked}
-              onCheckedChange={(value) => row.toggleSelected(value)}
-              aria-label="Select row"
-            />
+        <Subscribe source={row.table.atoms.rowSelection} selector={selection => Boolean(selection?.[row.id])}>
+          {checked => (
+            <Checkbox checked={checked} onCheckedChange={value => row.toggleSelected(value)} aria-label="Select row" />
           )}
         </Subscribe>
       </div>
     ),
-    enableHiding: false,
+    enableHiding: false
   },
   {
-    accessorKey: "id",
-    header: "Ref",
+    accessorKey: 'id',
+    header: 'Ref',
     cell: ({ row }) => <span className="tabular-nums">{row.original.id}</span>,
-    enableHiding: false,
+    enableHiding: false
   },
   {
-    accessorKey: "name",
-    header: "Name",
+    accessorKey: 'name',
+    header: 'Name',
     cell: ({ row }) => row.original.name,
-    enableHiding: false,
+    enableHiding: false
   },
   {
-    accessorKey: "company",
-    header: "Company",
-    cell: ({ row }) => row.original.company,
+    accessorKey: 'company',
+    header: 'Company',
+    cell: ({ row }) => row.original.company
   },
   {
-    accessorKey: "status",
-    header: "Status",
-    cell: ({ row }) => <Badge variant="secondary">{row.original.status}</Badge>,
+    accessorKey: 'status',
+    header: 'Status',
+    cell: ({ row }) => <Badge variant="secondary">{row.original.status}</Badge>
   },
   {
-    accessorKey: "source",
-    header: "Source",
-    cell: ({ row }) => <Badge variant="outline">{row.original.source}</Badge>,
+    accessorKey: 'source',
+    header: 'Source',
+    cell: ({ row }) => <Badge variant="outline">{row.original.source}</Badge>
   },
   {
-    accessorKey: "lastActivity",
-    header: "Last Activity",
-    cell: ({ row }) => <span className="text-muted-foreground tabular-nums">{row.original.lastActivity}</span>,
+    accessorKey: 'lastActivity',
+    header: 'Last Activity',
+    cell: ({ row }) => <span className="text-muted-foreground tabular-nums">{row.original.lastActivity}</span>
   },
   {
-    id: "actions",
+    id: 'actions',
     cell: () => (
       <DropdownMenu>
         <DropdownMenuTrigger
@@ -105,6 +101,6 @@ export const recentLeadsColumns: ColumnDef<DataTableFeatures, RecentLeadRow>[] =
         </DropdownMenuContent>
       </DropdownMenu>
     ),
-    enableHiding: false,
-  },
-];
+    enableHiding: false
+  }
+]

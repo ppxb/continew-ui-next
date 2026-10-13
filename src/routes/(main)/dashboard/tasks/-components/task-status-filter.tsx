@@ -1,9 +1,9 @@
-import type { ReactTable, RowData } from "@tanstack/react-table";
+import type { ReactTable, RowData } from '@tanstack/react-table'
 
-import { cn } from "cn";
-import { ListFilter, X } from "lucide-react";
+import { cn } from 'cn'
+import { ListFilter, X } from 'lucide-react'
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -11,41 +11,41 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import type { DataTableFeatures } from "@/lib/data-table-features";
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
+import type { DataTableFeatures } from '@/lib/data-table-features'
 
-import { statuses } from "./data";
+import { statuses } from './data'
 
 interface TaskStatusFilterProps<TData extends RowData> {
-  table: ReactTable<DataTableFeatures, TData>;
+  table: ReactTable<DataTableFeatures, TData>
 }
 
 export function TaskStatusFilter<TData extends RowData>({ table }: TaskStatusFilterProps<TData>) {
-  const column = table.getColumn("status");
+  const column = table.getColumn('status')
 
   if (!column) {
-    return null;
+    return null
   }
 
-  const statusColumn = column;
-  const selectedValues = new Set(statusColumn.getFilterValue() as string[]);
+  const statusColumn = column
+  const selectedValues = new Set(statusColumn.getFilterValue() as string[])
 
   function updateFilter(value: string) {
     if (selectedValues.has(value)) {
-      selectedValues.delete(value);
+      selectedValues.delete(value)
     } else {
-      selectedValues.add(value);
+      selectedValues.add(value)
     }
 
-    const filterValues = Array.from(selectedValues);
-    statusColumn.setFilterValue(filterValues.length ? filterValues : undefined);
-    table.setPageIndex(0);
+    const filterValues = Array.from(selectedValues)
+    statusColumn.setFilterValue(filterValues.length ? filterValues : undefined)
+    table.setPageIndex(0)
   }
 
   function clearFilter() {
-    statusColumn.setFilterValue(undefined);
-    table.setPageIndex(0);
+    statusColumn.setFilterValue(undefined)
+    table.setPageIndex(0)
   }
 
   return (
@@ -54,7 +54,7 @@ export function TaskStatusFilter<TData extends RowData>({ table }: TaskStatusFil
         render={
           <Button
             variant="outline"
-            className={cn("border-dashed", selectedValues.size > 0 && "border-solid bg-muted text-foreground")}
+            className={cn('border-dashed', selectedValues.size > 0 && 'border-solid bg-muted text-foreground')}
           />
         }
       >
@@ -63,20 +63,20 @@ export function TaskStatusFilter<TData extends RowData>({ table }: TaskStatusFil
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-50">
         <DropdownMenuGroup>
-          {statuses.map((status) => {
-            const isSelected = selectedValues.has(status.value);
+          {statuses.map(status => {
+            const isSelected = selectedValues.has(status.value)
 
             return (
               <DropdownMenuCheckboxItem
                 key={status.value}
                 checked={isSelected}
                 onCheckedChange={() => updateFilter(status.value)}
-                onSelect={(event) => event.preventDefault()}
+                onSelect={event => event.preventDefault()}
               >
                 <status.icon className="text-muted-foreground" />
                 {status.label}
               </DropdownMenuCheckboxItem>
-            );
+            )
           })}
         </DropdownMenuGroup>
         {selectedValues.size > 0 && (
@@ -92,5 +92,5 @@ export function TaskStatusFilter<TData extends RowData>({ table }: TaskStatusFil
         )}
       </DropdownMenuContent>
     </DropdownMenu>
-  );
+  )
 }

@@ -1,14 +1,14 @@
-import * as React from "react";
+import * as React from 'react'
 
-import { move } from "@dnd-kit/helpers";
+import { move } from '@dnd-kit/helpers'
 import {
   DragDropProvider,
   type DragEndEvent,
   type DragOverEvent,
   DragOverlay,
-  type DragStartEvent,
-} from "@dnd-kit/react";
-import { isSortable } from "@dnd-kit/react/sortable";
+  type DragStartEvent
+} from '@dnd-kit/react'
+import { isSortable } from '@dnd-kit/react/sortable'
 import {
   ArrowUpDown,
   Bot,
@@ -20,87 +20,82 @@ import {
   Search,
   SlidersHorizontal,
   Table2,
-  Upload,
-} from "lucide-react";
+  Upload
+} from 'lucide-react'
 
-import { Button } from "@/components/ui/button";
-import { ButtonGroup, ButtonGroupSeparator } from "@/components/ui/button-group";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from '@/components/ui/button'
+import { ButtonGroup, ButtonGroupSeparator } from '@/components/ui/button-group'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
-import { columnIds, columns } from "./data";
-import { KanbanColumn } from "./kanban-column";
-import { TaskCard } from "./task-card";
-import type { BoardState, ColumnId, Task } from "./types";
+import { columnIds, columns } from './data'
+import { KanbanColumn } from './kanban-column'
+import { TaskCard } from './task-card'
+import type { BoardState, ColumnId, Task } from './types'
 
 interface KanbanProps {
-  initialBoard: BoardState;
+  initialBoard: BoardState
 }
 
 type TaskDragData = {
-  type: "task";
-  task: Task;
-  columnId: ColumnId;
-};
+  type: 'task'
+  task: Task
+  columnId: ColumnId
+}
 
 function isColumnId(value: unknown): value is ColumnId {
-  return typeof value === "string" && columnIds.includes(value as ColumnId);
+  return typeof value === 'string' && columnIds.includes(value as ColumnId)
 }
 
 function isTaskDragData(value: unknown): value is TaskDragData {
   return (
-    typeof value === "object" &&
+    typeof value === 'object' &&
     value !== null &&
-    "type" in value &&
-    value.type === "task" &&
-    "task" in value &&
-    typeof value.task === "object" &&
+    'type' in value &&
+    value.type === 'task' &&
+    'task' in value &&
+    typeof value.task === 'object' &&
     value.task !== null &&
-    "columnId" in value &&
+    'columnId' in value &&
     isColumnId(value.columnId)
-  );
+  )
 }
 
 export function Kanban({ initialBoard }: KanbanProps) {
-  const [board, setBoard] = React.useState<BoardState>(initialBoard);
-  const [columnOrder, setColumnOrder] = React.useState<ColumnId[]>(columnIds);
-  const boardBeforeDrag = React.useRef<BoardState>(initialBoard);
-  const orderedColumns = columnOrder.flatMap((columnId) => columns.find((column) => column.id === columnId) ?? []);
+  const [board, setBoard] = React.useState<BoardState>(initialBoard)
+  const [columnOrder, setColumnOrder] = React.useState<ColumnId[]>(columnIds)
+  const boardBeforeDrag = React.useRef<BoardState>(initialBoard)
+  const orderedColumns = columnOrder.flatMap(columnId => columns.find(column => column.id === columnId) ?? [])
 
   function handleDragStart(event: DragStartEvent) {
-    const { source } = event.operation;
-    if (source?.type === "task") {
-      boardBeforeDrag.current = board;
+    const { source } = event.operation
+    if (source?.type === 'task') {
+      boardBeforeDrag.current = board
     }
   }
 
   function handleDragOver(event: DragOverEvent) {
-    if (event.operation.source?.type === "task") {
-      setBoard((currentBoard) => move(currentBoard, event));
+    if (event.operation.source?.type === 'task') {
+      setBoard(currentBoard => move(currentBoard, event))
     }
   }
 
   function handleDragEnd(event: DragEndEvent) {
-    const { source } = event.operation;
+    const { source } = event.operation
     if (!source) {
-      return;
+      return
     }
 
     if (event.canceled) {
-      if (source.type === "task") {
-        setBoard(boardBeforeDrag.current);
+      if (source.type === 'task') {
+        setBoard(boardBeforeDrag.current)
       }
-      return;
+      return
     }
 
-    if (source.type === "column") {
-      setColumnOrder((currentOrder) => move(currentOrder, event));
+    if (source.type === 'column') {
+      setColumnOrder(currentOrder => move(currentOrder, event))
     }
   }
 
@@ -169,7 +164,7 @@ export function Kanban({ initialBoard }: KanbanProps) {
       </div>
 
       <DragDropProvider onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
-        <div className="scrollbar-thin min-h-0 min-w-0 flex-1 overflow-x-auto overflow-y-hidden bg-muted/25 px-4 pt-4 pb-0 [scrollbar-color:var(--border)_transparent] lg:px-5 lg:pt-5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:h-1">
+        <div className="min-h-0 min-w-0 flex-1 scrollbar-thin [scrollbar-color:var(--border)_transparent] overflow-x-auto overflow-y-hidden bg-muted/25 px-4 pt-4 pb-0 lg:px-5 lg:pt-5 [&::-webkit-scrollbar]:h-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent">
           <div className="inline-grid h-full min-w-full grid-cols-[repeat(5,minmax(20rem,1fr))] gap-4">
             {orderedColumns.map((column, index) => (
               <KanbanColumn key={column.id} column={column} index={index} tasks={board[column.id]} />
@@ -177,17 +172,17 @@ export function Kanban({ initialBoard }: KanbanProps) {
           </div>
         </div>
         <DragOverlay dropAnimation={null}>
-          {(source) => {
-            if (source.type !== "task" || !isTaskDragData(source.data)) {
-              return null;
+          {source => {
+            if (source.type !== 'task' || !isTaskDragData(source.data)) {
+              return null
             }
 
-            const columnId = isSortable(source) && isColumnId(source.group) ? source.group : source.data.columnId;
+            const columnId = isSortable(source) && isColumnId(source.group) ? source.group : source.data.columnId
 
-            return <TaskCard task={source.data.task} columnId={columnId} isOverlay />;
+            return <TaskCard task={source.data.task} columnId={columnId} isOverlay />
           }}
         </DragOverlay>
       </DragDropProvider>
     </div>
-  );
+  )
 }

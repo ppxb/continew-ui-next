@@ -1,16 +1,18 @@
-import { type ErrorComponentProps, Link } from "@tanstack/react-router";
+import { type ErrorComponentProps, Link } from '@tanstack/react-router'
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button'
 
 export function RootError({ error, reset }: ErrorComponentProps) {
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center gap-4 px-4 text-center">
       <div className="flex max-w-md flex-col gap-2">
-        <h1 className="font-semibold text-2xl">Something went wrong.</h1>
+        <h1 className="text-2xl font-semibold">Something went wrong.</h1>
         <p className="text-muted-foreground">
           An unexpected error occurred while loading this page. Try again or return to the dashboard.
         </p>
-        {import.meta.env.DEV ? <p className="text-destructive text-sm">{error.message}</p> : null}
+        {import.meta.env.DEV ? (
+          <p className="text-sm text-destructive">{error instanceof Error ? error.message : String(error)}</p>
+        ) : null}
       </div>
       <div className="flex flex-wrap justify-center gap-2">
         <Button onClick={reset}>Try again</Button>
@@ -19,5 +21,5 @@ export function RootError({ error, reset }: ErrorComponentProps) {
         </Button>
       </div>
     </main>
-  );
+  )
 }

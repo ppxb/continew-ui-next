@@ -1,69 +1,69 @@
-import { TanStackDevtools } from "@tanstack/react-devtools";
-import { createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
-import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
+import { TanStackDevtools } from '@tanstack/react-devtools'
+import { createRootRoute, HeadContent, Scripts } from '@tanstack/react-router'
+import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 
-import { Toaster } from "@/components/ui/toast";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { APP_CONFIG } from "@/config/app-config";
-import { fontRegistry } from "@/lib/fonts/registry";
-import { PREFERENCE_DEFAULTS } from "@/lib/preferences/preferences-config";
-import { ThemeBootScript } from "@/scripts/theme-boot";
-import { PreferencesStoreProvider } from "@/stores/preferences/preferences-provider";
+import { Toaster } from '@/components/ui/toast'
+import { TooltipProvider } from '@/components/ui/tooltip'
+import { APP_CONFIG } from '@/config/app-config'
+import { fontRegistry } from '@/lib/fonts/registry'
+import { PREFERENCE_DEFAULTS } from '@/lib/preferences/preferences-config'
+import { ThemeBootScript } from '@/scripts/theme-boot'
+import { PreferencesStoreProvider } from '@/stores/preferences/preferences-provider'
 
-import appCss from "../styles/globals.css?url";
-import { NotFound } from "./-components/not-found";
-import { RootError } from "./-components/root-error";
+import appCss from '../styles/globals.css?url'
+import { NotFound } from './-components/not-found'
+import { RootError } from './-components/root-error'
 
 export const Route = createRootRoute({
   head: () => ({
     meta: [
       {
-        charSet: "utf-8",
+        charSet: 'utf-8'
       },
       {
-        name: "viewport",
-        content: "width=device-width, initial-scale=1",
+        name: 'viewport',
+        content: 'width=device-width, initial-scale=1'
       },
       {
-        title: APP_CONFIG.meta.title,
+        title: APP_CONFIG.meta.title
       },
       {
-        name: "description",
-        content: APP_CONFIG.meta.description,
-      },
+        name: 'description',
+        content: APP_CONFIG.meta.description
+      }
     ],
     links: [
       {
-        rel: "preconnect",
-        href: "https://fonts.googleapis.com",
+        rel: 'preconnect',
+        href: 'https://fonts.googleapis.com'
       },
       {
-        rel: "preconnect",
-        href: "https://fonts.gstatic.com",
-        crossOrigin: "anonymous",
+        rel: 'preconnect',
+        href: 'https://fonts.gstatic.com',
+        crossOrigin: 'anonymous'
       },
       {
-        rel: "stylesheet",
-        href: appCss,
+        rel: 'stylesheet',
+        href: appCss
       },
       {
-        rel: "stylesheet",
-        href: fontRegistry[PREFERENCE_DEFAULTS.font].stylesheet,
+        rel: 'stylesheet',
+        href: fontRegistry[PREFERENCE_DEFAULTS.font].stylesheet
       },
       {
-        rel: "manifest",
-        href: "/manifest.json",
-      },
-    ],
+        rel: 'manifest',
+        href: '/manifest.json'
+      }
+    ]
   }),
   errorComponent: RootError,
   notFoundComponent: NotFound,
-  shellComponent: RootDocument,
-});
+  shellComponent: RootDocument
+})
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   const { theme_mode, theme_preset, content_layout, navbar_style, sidebar_variant, sidebar_collapsible, font } =
-    PREFERENCE_DEFAULTS;
+    PREFERENCE_DEFAULTS
 
   return (
     <html
@@ -91,17 +91,17 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         </TooltipProvider>
         <TanStackDevtools
           config={{
-            position: "bottom-right",
+            position: 'bottom-right'
           }}
           plugins={[
             {
-              name: "Tanstack Router",
-              render: <TanStackRouterDevtoolsPanel />,
-            },
+              name: 'Tanstack Router',
+              render: <TanStackRouterDevtoolsPanel />
+            }
           ]}
         />
         <Scripts />
       </body>
     </html>
-  );
+  )
 }

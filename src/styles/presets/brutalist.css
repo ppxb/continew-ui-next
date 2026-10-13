@@ -3,7 +3,7 @@ label: Brutalist
 value: brutalist 
 */
 
-:root[data-theme-preset="brutalist"] {
+:root[data-theme-preset='brutalist'] {
   --radius: 0px;
   --card: oklch(1 0 0);
   --card-foreground: oklch(0 0 0);
@@ -46,7 +46,7 @@ value: brutalist
   --shadow-2xl: 4px 4px 0px 0px hsl(0 0% 0% / 2.5);
 }
 
-.dark:root[data-theme-preset="brutalist"] {
+.dark:root[data-theme-preset='brutalist'] {
   --background: oklch(0 0 0);
   --foreground: oklch(1 0 0);
   --card: oklch(0.3211 0 0);

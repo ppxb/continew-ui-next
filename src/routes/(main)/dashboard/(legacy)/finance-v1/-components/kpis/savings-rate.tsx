@@ -1,7 +1,7 @@
-import { HandCoins } from "lucide-react";
+import { HandCoins } from 'lucide-react'
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
 
 export function SavingsRate() {
   return (
@@ -19,16 +19,16 @@ export function SavingsRate() {
       <CardContent className="space-y-4">
         <div className="space-y-0.5">
           <div className="flex items-center justify-between">
-            <p className="font-medium text-xl tabular-nums">32%</p>
+            <p className="text-xl font-medium tabular-nums">32%</p>
             <span className="text-xs">+3.5% MoM</span>
           </div>
-          <p className="text-muted-foreground text-xs">This month · After expenses</p>
+          <p className="text-xs text-muted-foreground">This month · After expenses</p>
         </div>
 
         <Separator />
 
-        <p className="text-muted-foreground text-xs">Above your average</p>
+        <p className="text-xs text-muted-foreground">Above your average</p>
       </CardContent>
     </Card>
-  );
+  )
 }

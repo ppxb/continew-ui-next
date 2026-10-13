@@ -1,8 +1,8 @@
-import { Calendar, TrendingUp } from "lucide-react";
+import { Calendar, TrendingUp } from 'lucide-react'
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { formatCurrency } from "@/lib/utils";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
+import { formatCurrency } from '@/lib/utils'
 
 export function MonthlyCashFlow() {
   return (
@@ -19,16 +19,16 @@ export function MonthlyCashFlow() {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-0.5">
-          <p className="font-medium text-xl tabular-nums">+{formatCurrency(2780, { noDecimals: true })}</p>
-          <p className="text-muted-foreground text-xs">This month · Net</p>
+          <p className="text-xl font-medium tabular-nums">+{formatCurrency(2780, { noDecimals: true })}</p>
+          <p className="text-xs text-muted-foreground">This month · Net</p>
         </div>
 
         <Separator />
-        <p className="flex items-center text-muted-foreground text-xs">
+        <p className="flex items-center text-xs text-muted-foreground">
           <TrendingUp className="size-4" />
           &nbsp;4.1% MoM
         </p>
       </CardContent>
     </Card>
-  );
+  )
 }

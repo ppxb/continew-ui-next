@@ -1,20 +1,20 @@
-import { useState } from "react";
+import { useState } from 'react'
 
-import { cn } from "cn";
-import { Star } from "lucide-react";
+import { cn } from 'cn'
+import { Star } from 'lucide-react'
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
-import { type FileManagerFile, fileIcons } from "./data";
-import { FileActions } from "./file-actions";
+import { type FileManagerFile, fileIcons } from './data'
+import { FileActions } from './file-actions'
 
 export function FileListView({ files }: { files: FileManagerFile[] }) {
-  const [listFiles, setListFiles] = useState(files);
+  const [listFiles, setListFiles] = useState(files)
   const toggleStar = (fileId: string) =>
-    setListFiles((current) => current.map((file) => (file.id === fileId ? { ...file, starred: !file.starred } : file)));
+    setListFiles(current => current.map(file => (file.id === fileId ? { ...file, starred: !file.starred } : file)))
 
   return (
     <Table>
@@ -30,8 +30,8 @@ export function FileListView({ files }: { files: FileManagerFile[] }) {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {listFiles.map((file) => {
-          const FileIcon = fileIcons[file.kind];
+        {listFiles.map(file => {
+          const FileIcon = fileIcons[file.kind]
           return (
             <TableRow key={file.id}>
               <TableCell className="pl-0">
@@ -65,15 +65,15 @@ export function FileListView({ files }: { files: FileManagerFile[] }) {
                     aria-label={file.starred ? `Unstar ${file.name}` : `Star ${file.name}`}
                     onClick={() => toggleStar(file.id)}
                   >
-                    <Star className={cn(file.starred && "fill-current")} />
+                    <Star className={cn(file.starred && 'fill-current')} />
                   </Button>
                   <FileActions file={file} onToggleStar={() => toggleStar(file.id)} />
                 </div>
               </TableCell>
             </TableRow>
-          );
+          )
         })}
       </TableBody>
     </Table>
-  );
+  )
 }

@@ -1,15 +1,10 @@
-import * as React from "react";
+import * as React from 'react'
 
-import {
-  type ColumnFiltersState,
-  type ColumnVisibilityState,
-  type SortingState,
-  useTable,
-} from "@tanstack/react-table";
+import { type ColumnFiltersState, type ColumnVisibilityState, type SortingState, useTable } from '@tanstack/react-table'
 
-import { arrayMove } from "@dnd-kit/helpers";
-import { DragDropProvider, type DragEndEvent } from "@dnd-kit/react";
-import { isSortable } from "@dnd-kit/react/sortable";
+import { arrayMove } from '@dnd-kit/helpers'
+import { DragDropProvider, type DragEndEvent } from '@dnd-kit/react'
+import { isSortable } from '@dnd-kit/react/sortable'
 import {
   ChevronDownIcon,
   ChevronLeftIcon,
@@ -17,52 +12,52 @@ import {
   ChevronsLeftIcon,
   ChevronsRightIcon,
   PlusIcon,
-  Settings2,
-} from "lucide-react";
+  Settings2
+} from 'lucide-react'
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { dataTableFeatures } from "@/lib/data-table-features";
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
+import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { dataTableFeatures } from '@/lib/data-table-features'
 
-import { DraggableProposalSectionsRow, proposalSectionsColumns } from "./columns";
-import type { ProposalSectionsRow } from "./schema";
+import { DraggableProposalSectionsRow, proposalSectionsColumns } from './columns'
+import type { ProposalSectionsRow } from './schema'
 
 const VIEW_OPTIONS = [
-  { value: "outline", label: "Outline" },
-  { value: "past-performance", label: "Past Performance" },
-  { value: "key-personnel", label: "Key Personnel" },
-  { value: "focus-documents", label: "Focus Documents" },
-] as const;
+  { value: 'outline', label: 'Outline' },
+  { value: 'past-performance', label: 'Past Performance' },
+  { value: 'key-personnel', label: 'Key Personnel' },
+  { value: 'focus-documents', label: 'Focus Documents' }
+] as const
 
-const pageSizeItems = [10, 20, 30, 40, 50].map((pageSize) => ({
+const pageSizeItems = [10, 20, 30, 40, 50].map(pageSize => ({
   value: `${pageSize}`,
-  label: `${pageSize}`,
-}));
+  label: `${pageSize}`
+}))
 
-type ViewOption = (typeof VIEW_OPTIONS)[number]["value"];
+type ViewOption = (typeof VIEW_OPTIONS)[number]['value']
 export function ProposalSectionsTable({ data: initialData }: { data: ProposalSectionsRow[] }) {
-  const [data, setData] = React.useState(() => initialData);
-  const [activeView, setActiveView] = React.useState<ViewOption>("outline");
-  const [rowSelection, setRowSelection] = React.useState({});
-  const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>({});
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [data, setData] = React.useState(() => initialData)
+  const [activeView, setActiveView] = React.useState<ViewOption>('outline')
+  const [rowSelection, setRowSelection] = React.useState({})
+  const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>({})
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+  const [sorting, setSorting] = React.useState<SortingState>([])
   const [pagination, setPagination] = React.useState({
     pageIndex: 0,
-    pageSize: 10,
-  });
+    pageSize: 10
+  })
   const table = useTable({
     features: dataTableFeatures,
     data,
@@ -72,60 +67,60 @@ export function ProposalSectionsTable({ data: initialData }: { data: ProposalSec
       columnVisibility,
       rowSelection,
       columnFilters,
-      pagination,
+      pagination
     },
-    getRowId: (row) => row.id.toString(),
+    getRowId: row => row.id.toString(),
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
-    onPaginationChange: setPagination,
-  });
-  const sortableRowIds = table.getRowModel().rows.map((row) => row.original.id);
+    onPaginationChange: setPagination
+  })
+  const sortableRowIds = table.getRowModel().rows.map(row => row.original.id)
 
   function handleDragEnd(event: DragEndEvent) {
-    const { source } = event.operation;
+    const { source } = event.operation
 
     if (event.canceled || !isSortable(source) || source.initialIndex === source.index) {
-      return;
+      return
     }
 
-    const destinationId = sortableRowIds[source.index];
+    const destinationId = sortableRowIds[source.index]
 
     if (destinationId === undefined) {
-      return;
+      return
     }
 
-    setData((currentData) => {
-      const oldIndex = currentData.findIndex((row) => row.id === source.id);
-      const newIndex = currentData.findIndex((row) => row.id === destinationId);
+    setData(currentData => {
+      const oldIndex = currentData.findIndex(row => row.id === source.id)
+      const newIndex = currentData.findIndex(row => row.id === destinationId)
 
       if (oldIndex === -1 || newIndex === -1) {
-        return currentData;
+        return currentData
       }
 
-      return arrayMove(currentData, oldIndex, newIndex);
-    });
+      return arrayMove(currentData, oldIndex, newIndex)
+    })
   }
 
   return (
     <Tabs
       value={activeView}
-      onValueChange={(value) => setActiveView(value as ViewOption)}
+      onValueChange={value => setActiveView(value as ViewOption)}
       className="w-full flex-col justify-start gap-6"
     >
       <div className="flex items-center justify-between">
         <Label htmlFor="view-selector" className="sr-only">
           View
         </Label>
-        <Select value={activeView} onValueChange={(value) => setActiveView(value as ViewOption)} items={VIEW_OPTIONS}>
-          <SelectTrigger className="flex @4xl/main:hidden w-fit" size="sm" id="view-selector">
+        <Select value={activeView} onValueChange={value => setActiveView(value as ViewOption)} items={VIEW_OPTIONS}>
+          <SelectTrigger className="flex w-fit @4xl/main:hidden" size="sm" id="view-selector">
             <SelectValue placeholder="Select a view" />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              {VIEW_OPTIONS.map((option) => (
+              {VIEW_OPTIONS.map(option => (
                 <SelectItem key={option.value} value={option.value}>
                   {option.label}
                 </SelectItem>
@@ -133,7 +128,7 @@ export function ProposalSectionsTable({ data: initialData }: { data: ProposalSec
             </SelectGroup>
           </SelectContent>
         </Select>
-        <TabsList className="@4xl/main:flex hidden **:data-[slot=badge]:size-5 **:data-[slot=badge]:rounded-full **:data-[slot=badge]:bg-muted-foreground/30 **:data-[slot=badge]:px-1">
+        <TabsList className="hidden **:data-[slot=badge]:size-5 **:data-[slot=badge]:rounded-full **:data-[slot=badge]:bg-muted-foreground/30 **:data-[slot=badge]:px-1 @4xl/main:flex">
           <TabsTrigger value="outline">Outline</TabsTrigger>
           <TabsTrigger value="past-performance">
             Past Performance <Badge variant="secondary">3</Badge>
@@ -155,13 +150,13 @@ export function ProposalSectionsTable({ data: initialData }: { data: ProposalSec
                 <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
                 {table
                   .getAllColumns()
-                  .filter((column) => typeof column.accessorFn !== "undefined" && column.getCanHide())
-                  .map((column) => (
+                  .filter(column => typeof column.accessorFn !== 'undefined' && column.getCanHide())
+                  .map(column => (
                     <DropdownMenuCheckboxItem
                       key={column.id}
                       className="capitalize"
                       checked={column.getIsVisible()}
-                      onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                      onCheckedChange={value => column.toggleVisibility(!!value)}
                     >
                       {column.id}
                     </DropdownMenuCheckboxItem>
@@ -180,9 +175,9 @@ export function ProposalSectionsTable({ data: initialData }: { data: ProposalSec
           <DragDropProvider onDragEnd={handleDragEnd}>
             <Table>
               <TableHeader className="sticky top-0 z-10 bg-muted">
-                {table.getHeaderGroups().map((headerGroup) => (
+                {table.getHeaderGroups().map(headerGroup => (
                   <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => (
+                    {headerGroup.headers.map(header => (
                       <TableHead key={header.id} colSpan={header.colSpan}>
                         {header.isPlaceholder ? null : <table.FlexRender header={header} />}
                       </TableHead>
@@ -214,19 +209,19 @@ export function ProposalSectionsTable({ data: initialData }: { data: ProposalSec
           </DragDropProvider>
         </div>
         <div className="flex items-center justify-between px-4">
-          <div className="hidden flex-1 text-muted-foreground text-sm lg:flex">
+          <div className="hidden flex-1 text-sm text-muted-foreground lg:flex">
             {table.getFilteredSelectedRowModel().rows.length} of {table.getFilteredRowModel().rows.length} row(s)
             selected.
           </div>
           <div className="flex w-full items-center gap-8 lg:w-fit">
             <div className="hidden items-center gap-2 lg:flex">
-              <Label htmlFor="rows-per-page" className="font-medium text-sm">
+              <Label htmlFor="rows-per-page" className="text-sm font-medium">
                 Rows per page
               </Label>
               <Select
                 value={`${table.state.pagination.pageSize}`}
-                onValueChange={(value) => {
-                  table.setPageSize(Number(value));
+                onValueChange={value => {
+                  table.setPageSize(Number(value))
                 }}
                 items={pageSizeItems}
               >
@@ -235,7 +230,7 @@ export function ProposalSectionsTable({ data: initialData }: { data: ProposalSec
                 </SelectTrigger>
                 <SelectContent side="top">
                   <SelectGroup>
-                    {pageSizeItems.map((item) => (
+                    {pageSizeItems.map(item => (
                       <SelectItem key={item.value} value={item.value}>
                         {item.label}
                       </SelectItem>
@@ -244,7 +239,7 @@ export function ProposalSectionsTable({ data: initialData }: { data: ProposalSec
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex w-fit items-center justify-center font-medium text-sm">
+            <div className="flex w-fit items-center justify-center text-sm font-medium">
               Page {table.state.pagination.pageIndex + 1} of {table.getPageCount()}
             </div>
             <div className="ml-auto flex items-center gap-2 lg:ml-0">
@@ -301,5 +296,5 @@ export function ProposalSectionsTable({ data: initialData }: { data: ProposalSec
         <div className="aspect-video w-full flex-1 rounded-lg border border-dashed" />
       </TabsContent>
     </Tabs>
-  );
+  )
 }
