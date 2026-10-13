@@ -2,7 +2,6 @@
  * How each preference is saved.
  *
  * "client-cookie"  → written in the browser and read by the boot script before the first paint.
- * "server-cookie"  → legacy value from the SSR era, treated as a client cookie.
  * "localStorage"   → client only (non-layout stuff).
  * "none"           → no saving, resets on reload.
  */
@@ -15,7 +14,7 @@ import {
 } from './layout'
 import { THEME_MODE_VALUES, THEME_PRESET_VALUES } from './theme'
 
-export type PreferencePersistence = 'none' | 'client-cookie' | 'server-cookie' | 'localStorage'
+export type PreferencePersistence = 'none' | 'client-cookie' | 'localStorage'
 
 type LayoutPersistence = Exclude<PreferencePersistence, 'localStorage'>
 
@@ -38,7 +37,11 @@ function definePreference<
   return definition
 }
 
-function defineSSRPreference<
+/**
+ * Layout preferences are read by the inline boot script before the first paint, so they
+ * cannot be stored in localStorage.
+ */
+function defineBootPreference<
   const Values extends readonly string[],
   const Persistence extends LayoutPersistence,
   const Attribute extends `data-${string}`
@@ -75,14 +78,14 @@ export const PREFERENCE_REGISTRY = {
     attribute: 'data-navbar-style'
   }),
 
-  sidebar_variant: defineSSRPreference({
+  sidebar_variant: defineBootPreference({
     values: SIDEBAR_VARIANT_VALUES,
     defaultValue: 'sidebar',
     persistence: 'client-cookie',
     attribute: 'data-sidebar-variant'
   }),
 
-  sidebar_collapsible: defineSSRPreference({
+  sidebar_collapsible: defineBootPreference({
     values: SIDEBAR_COLLAPSIBLE_VALUES,
     defaultValue: 'icon',
     persistence: 'client-cookie',

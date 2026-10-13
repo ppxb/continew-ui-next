@@ -41,7 +41,7 @@ export function buildThemeBootScript(): string {
             value = readLocal(key);
           }
 
-          if (!value && (mode === "client-cookie" || mode === "server-cookie")) {
+          if (!value && mode === "client-cookie") {
             value = readCookie(key);
           }
 

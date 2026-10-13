@@ -1,7 +1,7 @@
 {
   "short_name": "Continew Admin",
-  "name": "Continew Admin - TanStack Start Dashboard",
-  "description": "A modern, customizable admin dashboard template built with TanStack Start and shadcn/ui.",
+  "name": "Continew Admin - TanStack Router Dashboard",
+  "description": "A modern, customizable admin dashboard template built with TanStack Router and shadcn/ui.",
   "icons": [
     {
       "src": "favicon.ico",

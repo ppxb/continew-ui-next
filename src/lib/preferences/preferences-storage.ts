@@ -13,8 +13,6 @@ async function persistByMode(mode: PreferencePersistence, key: string, value: st
       return
 
     case 'client-cookie':
-    case 'server-cookie':
-      // There is no server runtime, so every cookie preference is written in the browser.
       setClientCookie(key, value)
       return
 
