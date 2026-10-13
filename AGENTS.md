@@ -85,7 +85,7 @@ Keep a component inside its route until it is reused by another feature. Do not 
 
 1. Inspect the closest current screen before writing code. Finance, Infrastructure, CRM, and Analytics are useful references. Do not use routes under `(legacy)` as references for new screens unless maintaining a legacy route.
 2. When reproducing a UI from a screenshot or image, follow its visual direction closely, including layout, hierarchy, spacing, component structure, and important details. Implement it with the project's existing components and semantic theme tokens rather than copying raw color values. If the design needs a color that is not available through the existing theme tokens, or the user explicitly requests a non-theme color, use a named color from Tailwind's default palette. Do not use arbitrary hex, RGB, HSL, or OKLCH values.
-3. Reuse the existing dashboard shell, local components, layout controls, and theme tokens.
+3. Reuse the existing app shell, local components, layout controls, and theme tokens.
 4. Break each new page into focused components inside the route's `-components/` directory. Keep `route.tsx` small and focused on composing those pieces.
 5. Keep interactive or browser-dependent behavior in focused components; the app is client-only, so no SSR guard is needed.
 6. Put the screen where its backend menu entry points. The sidebar is built from `GET /auth/user/route`, and a menu entry without a page renders the "under construction" placeholder, so a screen only shows up once its menu entry exists.

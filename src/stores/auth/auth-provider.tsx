@@ -1,4 +1,4 @@
-import { createContext, use, useEffect, useState } from 'react'
+import { createContext, use, useEffect, useRef, useState } from 'react'
 
 import { useNavigate, useRouter } from '@tanstack/react-router'
 import { type StoreApi, useStore } from 'zustand'
@@ -15,12 +15,27 @@ export function AuthStoreProvider({ children }: { children: React.ReactNode }) {
   const [store] = useState(() => createAuthStore())
   const navigate = useNavigate()
   const router = useRouter()
+  const passwordExpiryNotified = useRef(false)
 
   useEffect(() => {
     if (getAccessToken()) {
       void store.getState().loadUser()
     }
   }, [store])
+
+  useEffect(() => {
+    // The backend rejects every request except a few while the password is expired, so
+    // the user is taken to the page where it can be changed.
+    return store.subscribe(state => {
+      if (!state.user?.pwdExpired || passwordExpiryNotified.current) {
+        return
+      }
+
+      passwordExpiryNotified.current = true
+      toast.add({ title: '密码已过期，请先修改密码。', type: 'warning' })
+      void navigate({ to: '/profile', replace: true })
+    })
+  }, [navigate, store])
 
   useEffect(() => {
     // The HTTP layer calls this when the refresh token is gone too, so the UI has

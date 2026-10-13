@@ -1,10 +1,10 @@
-import { createFileRoute, useRouterState } from '@tanstack/react-router'
+import { createFileRoute, Navigate, useRouterState } from '@tanstack/react-router'
 
 import { Construction } from 'lucide-react'
 
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useMenuRoutes } from '@/hooks/use-menu'
-import { findMenuByPath } from '@/navigation/sidebar/menu'
+import { findMenuByPath, toPathname } from '@/navigation/sidebar/menu'
 import { NotFound } from '@/routes/-components/not-found'
 
 /**
@@ -26,6 +26,16 @@ function PlaceholderPage() {
     return <NotFound />
   }
 
+  // Directories point at the entry screen of their section, for example /system -> /system/user.
+  if (entry.redirect && toPathname(entry.redirect) !== pathname) {
+    return <Navigate href={entry.redirect} replace />
+  }
+
+  // The menu's component value is where the page belongs, for example
+  // `system/user/index` -> src/routes/(main)/(app)/system/user/route.tsx.
+  const component = entry.component && entry.component !== 'Layout' ? entry.component : undefined
+  const pagePath = component ? `src/routes/(main)/(app)/${component.replace(/\/index$/, '')}/route.tsx` : undefined
+
   return (
     <div className="flex h-full items-center justify-center">
       <Card className="w-full max-w-md">
@@ -33,7 +43,8 @@ function PlaceholderPage() {
           <Construction className="size-8 text-muted-foreground" />
           <CardTitle>{entry.title}</CardTitle>
           <CardDescription>
-            Under construction. This menu entry has no page yet, and the route {pathname} is where it will live.
+            Under construction. This menu entry has no page yet.
+            {pagePath ? <> Add it at {pagePath}.</> : null}
           </CardDescription>
         </CardHeader>
       </Card>

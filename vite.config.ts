@@ -29,6 +29,11 @@ export default defineConfig(({ mode }) => {
       tsconfigPaths: true
     },
     server: {
+      // The backend validates the Origin of refresh-token requests against
+      // `continew-starter.refresh-token.cookie-allowed-origins`, which lists 5173 and
+      // 5777 in development. Keep this port whitelisted there, otherwise refreshing the
+      // session fails with 403 "请求来源不合法".
+      port: 5173,
       // Keeps the browser same-origin so the backend's HttpOnly refresh-token
       // cookie is first-party and no CORS is involved during development.
       proxy: {

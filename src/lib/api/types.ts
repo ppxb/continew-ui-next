@@ -44,7 +44,7 @@ export interface CaptchaResp {
 }
 
 export interface UserInfoResp {
-  id: string
+  id: number
   username: string
   nickname: string
   gender: number
@@ -52,13 +52,13 @@ export interface UserInfoResp {
   email: string
   /** Masked by the backend. */
   phone: string
-  avatar: string
+  avatar: string | null
   description: string
   pwdResetTime: string
   pwdExpired: boolean
   createTime: string
   registrationDate: string
-  deptId: string
+  deptId: number
   deptName: string
   permissions: string[]
   roles: string[]
@@ -67,10 +67,17 @@ export interface UserInfoResp {
 
 export type RouteType = 1 | 2 | 3
 
+/** Both password fields must be RSA encrypted before they are sent. */
+export interface UserPasswordUpdateReq {
+  /** Empty for third-party accounts that are setting an initial password. */
+  oldPassword?: string
+  newPassword: string
+}
+
 /** Menu tree node returned by `GET /auth/user/route`. */
 export interface RouteResp {
-  id: string
-  parentId: string
+  id: number
+  parentId: number
   title: string
   /** 1: directory, 2: menu, 3: button. */
   type: RouteType

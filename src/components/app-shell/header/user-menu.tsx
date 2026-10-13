@@ -52,7 +52,7 @@ export function UserMenu() {
         ) : null}
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem render={<Link to="/dashboard/profile" />}>
+          <DropdownMenuItem render={<Link to="/profile" />}>
             <BadgeCheck />
             Profile
           </DropdownMenuItem>

@@ -24,6 +24,8 @@ export type AuthState = {
   isLoadingUser: boolean
   login: (params: LoginParams) => Promise<void>
   logout: () => Promise<void>
+  /** Drops the local session without calling the backend. */
+  clearLocalSession: () => void
   loadUser: () => Promise<void>
 }
 
@@ -72,6 +74,11 @@ export const createAuthStore = () =>
       }
     },
 
+    clearLocalSession: () => {
+      clearSession()
+      set({ status: 'anonymous', user: null, permissions: [], roles: [] })
+    },
+
     logout: async () => {
       try {
         // Runs before the local session is cleared so the backend can find it.
@@ -80,7 +87,6 @@ export const createAuthStore = () =>
         // The local session is cleared either way.
       }
 
-      clearSession()
-      set({ status: 'anonymous', user: null, permissions: [], roles: [] })
+      get().clearLocalSession()
     }
   }))
