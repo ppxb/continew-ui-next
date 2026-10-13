@@ -105,7 +105,7 @@ export function NavMain({ items }: NavMainProps) {
             </SidebarGroupLabel>
           )}
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className="gap-1">
               {group.items.map(item => (
                 <NavItem
                   key={item.id}
