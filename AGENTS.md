@@ -2,7 +2,7 @@
 
 ## Project overview
 
-Studio Admin is a responsive admin dashboard built with Vite, React 19, TanStack Router, TypeScript, Tailwind CSS v4, and shadcn/ui. It is a client-only SPA: there is no server-side rendering and no server functions.
+Continew Admin is a responsive admin dashboard built with Vite, React 19, TanStack Router, TypeScript, Tailwind CSS v4, and shadcn/ui. It is a client-only SPA: there is no server-side rendering and no server functions.
 
 This repository uses the shadcn `base-nova` style. When the shadcn CLI reports `base: "base"`, it refers to Base UI. Always inspect the local components in `src/components/ui/` because individual wrappers may use different primitives.
 
