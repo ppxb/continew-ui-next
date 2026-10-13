@@ -26,6 +26,9 @@ importers:
       '@fontsource-variable/noto-sans-sc':
         specifier: ^5.3.0
         version: 5.3.1
+      '@formkit/auto-animate':
+        specifier: ^0.10.0
+        version: 0.10.0
       '@fullcalendar/react':
         specifier: ^7.1.1
         version: 7.1.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(temporal-polyfill@1.0.5)
@@ -363,6 +366,9 @@ packages:
 
   '@fontsource-variable/noto-sans-sc@5.3.1':
     resolution: {integrity: sha512-UB96JJ17HyD5ehEU7Em0hDdh7fvTMB4B4Hzmq5c4QaNwwSLqTrdM2S+coySeBqCkXwh0DxqXT0b0wMrmzorFpQ==}
+
+  '@formkit/auto-animate@0.10.0':
+    resolution: {integrity: sha512-KGomRttjUfORuPUaR/ZGQw+6xfMrTM+sxnILv7JAd9AmabU9rg9i6gF/iC0Ih+QpKCubJpCA/1DX9UHKE8cX+A==}
 
   '@full-ui/headless-calendar@7.1.1':
     resolution: {integrity: sha512-WaZw5t4K+JlLDw/1ucnjnOznXJJ/86bZWgeNIh8Xac62/+nn0VMO4HqCFKk9ylFnrng4zLy4iAjkFuH6jjS3Ow==}
@@ -3387,6 +3393,8 @@ snapshots:
   '@fontsource-variable/geist@5.3.0': {}
 
   '@fontsource-variable/noto-sans-sc@5.3.1': {}
+
+  '@formkit/auto-animate@0.10.0': {}
 
   '@full-ui/headless-calendar@7.1.1(temporal-polyfill@1.0.5)':
     dependencies:

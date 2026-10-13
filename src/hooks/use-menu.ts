@@ -4,17 +4,22 @@ import { queryOptions, useQuery } from '@tanstack/react-query'
 
 import { getUserRoutes } from '@/lib/api/auth'
 import { ApiError } from '@/lib/http'
+import { getCachedMenu, setCachedMenu } from '@/lib/menu-cache'
 import { queryClient } from '@/lib/query-client'
 import { STATIC_MENU_ITEMS, toMenuGroups } from '@/navigation/sidebar/menu'
 
 /** The menu only changes when the signed-in user or its roles change. */
 export const MENU_QUERY_KEY = ['auth', 'menu'] as const
 
-/** `'static'` marks the menu as never stale, which is what the loader relies on. */
 export const menuQueryOptions = queryOptions({
   queryKey: MENU_QUERY_KEY,
-  queryFn: getUserRoutes,
-  staleTime: 'static'
+  queryFn: async () => {
+    const routes = await getUserRoutes()
+    setCachedMenu(routes)
+    return routes
+  },
+  initialData: () => getCachedMenu() ?? undefined,
+  staleTime: 1000 * 60 * 5
 })
 
 export function useMenuRoutes() {
@@ -22,19 +27,29 @@ export function useMenuRoutes() {
 }
 
 /**
- * Waits for the menu before the shell renders, so the sidebar is never painted with
- * the static entries only.
+ * Ensures menu data is present before the shell renders.
  *
- * `queryClient.query` returns the cached menu when it is present and only fetches when it
- * is missing, which is why the options above carry `staleTime: 'static'`.
+ * If cached menu data already exists (from memory or localStorage), this resolves
+ * immediately (0ms) so the shell mounts without delay. In the background, it
+ * triggers a revalidation to keep data fresh without holding up the UI.
  *
- * A failed request is not fatal: `/dashboard` stays reachable and the sidebar falls back
- * to the static entries. Any other error is a bug, so it is rethrown rather than
- * swallowed — a silent failure here brings the sidebar flash straight back.
+ * Only when there is no cached data at all (first login/cold start) will it await
+ * the network request to prevent flashing empty static menus.
  */
 export async function ensureMenuLoaded() {
+  const cached = queryClient.getQueryData(MENU_QUERY_KEY) ?? getCachedMenu()
+  if (cached) {
+    if (!queryClient.getQueryData(MENU_QUERY_KEY)) {
+      queryClient.setQueryData(MENU_QUERY_KEY, cached)
+    }
+    // Replaces deprecated prefetchQuery with queryClient.query(...).catch(...)
+    void queryClient.query({ ...menuQueryOptions, staleTime: 0 })
+    return
+  }
+
+  // Replaces deprecated ensureQueryData with queryClient.query(..., staleTime: 'static')
   try {
-    await queryClient.query(menuQueryOptions)
+    await queryClient.query({ ...menuQueryOptions, staleTime: 'static' })
   } catch (error) {
     if (!(error instanceof ApiError)) {
       throw error

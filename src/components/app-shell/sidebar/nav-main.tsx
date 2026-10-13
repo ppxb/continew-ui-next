@@ -1,3 +1,4 @@
+import { useAutoAnimate } from '@formkit/auto-animate/react'
 import { Link, useRouterState, type RegisteredRouter } from '@tanstack/react-router'
 
 import { ChevronRight } from 'lucide-react'
@@ -108,28 +109,52 @@ export function NavMain({ items }: NavMainProps) {
   return (
     <>
       {items.map(group => (
-        <SidebarGroup key={group.id}>
-          {group.label && (
-            <SidebarGroupLabel className="group-data-[collapsible=icon]:pointer-events-none">
-              {group.label}
-            </SidebarGroupLabel>
-          )}
-          <SidebarGroupContent>
-            <SidebarMenu className="gap-1">
-              {group.items.map(item => (
-                <NavItem
-                  key={item.id}
-                  item={item}
-                  isItemActive={isItemActive}
-                  isSubItemActive={isSubItemActive}
-                  isSubmenuOpen={isSubmenuOpen}
-                />
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        <NavGroupSection
+          key={group.id}
+          group={group}
+          isItemActive={isItemActive}
+          isSubItemActive={isSubItemActive}
+          isSubmenuOpen={isSubmenuOpen}
+        />
       ))}
     </>
+  )
+}
+
+function NavGroupSection({
+  group,
+  isItemActive,
+  isSubItemActive,
+  isSubmenuOpen
+}: {
+  group: MenuGroup
+  isItemActive: (item: MenuItem) => boolean
+  isSubItemActive: (url: string) => boolean
+  isSubmenuOpen: (item: MenuItem) => boolean
+}) {
+  const [menuRef] = useAutoAnimate<HTMLUListElement>({ duration: 250, easing: 'ease-out' })
+
+  return (
+    <SidebarGroup>
+      {group.label && (
+        <SidebarGroupLabel className="group-data-[collapsible=icon]:pointer-events-none">
+          {group.label}
+        </SidebarGroupLabel>
+      )}
+      <SidebarGroupContent>
+        <SidebarMenu ref={menuRef} className="gap-1">
+          {group.items.map(item => (
+            <NavItem
+              key={item.id}
+              item={item}
+              isItemActive={isItemActive}
+              isSubItemActive={isSubItemActive}
+              isSubmenuOpen={isSubmenuOpen}
+            />
+          ))}
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
   )
 }
 
@@ -218,6 +243,7 @@ function NavDropdownItem({ item, isActive, isSubItemActive }: NavDropdownItemPro
 
 function NavCollapsibleItem({ item, isActive, defaultOpen, isSubItemActive }: NavCollapsibleItemProps) {
   const Icon = item.icon
+  const [subRef] = useAutoAnimate<HTMLUListElement>({ duration: 250, easing: 'ease-out' })
 
   return (
     <Collapsible
@@ -232,7 +258,7 @@ function NavCollapsibleItem({ item, isActive, defaultOpen, isSubItemActive }: Na
       </CollapsibleTrigger>
 
       <CollapsibleContent>
-        <SidebarMenuSub>
+        <SidebarMenuSub ref={subRef}>
           {item.subItems?.map(subItem => {
             const SubIcon = subItem.icon
 

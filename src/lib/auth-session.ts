@@ -9,6 +9,8 @@
  * The refresh token is never stored on the client: the backend keeps it in an
  * HttpOnly cookie, so only the access token is persisted here.
  */
+import { clearCachedMenu } from './menu-cache'
+
 const ACCESS_TOKEN_KEY = 'continew.access-token'
 const TENANT_ID_KEY = 'continew.tenant-id'
 
@@ -88,4 +90,5 @@ export function clearSession() {
   authGeneration += 1
   writeStored(ACCESS_TOKEN_KEY, null, true)
   writeStored(TENANT_ID_KEY, null, true)
+  clearCachedMenu()
 }
