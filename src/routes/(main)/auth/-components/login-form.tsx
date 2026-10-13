@@ -14,7 +14,7 @@ import { useAuthStore } from '@/stores/auth/auth-provider'
 import { CaptchaImage } from './captcha-image'
 
 /** Where the user lands when no redirect target was remembered. */
-const DEFAULT_REDIRECT = '/dashboard/default'
+const DEFAULT_REDIRECT = '/dashboard'
 
 const formSchema = z.object({
   username: z.string().min(1, { message: 'Please enter your username.' }),

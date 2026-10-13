@@ -44,7 +44,7 @@ function toSearchItems(groups: readonly MenuGroup[]): SearchItem[] {
       return [
         {
           id: item.id,
-          group: group.label ?? 'Other',
+          group: group.label ?? '其他',
           label: item.title,
           url: item.url,
           icon: item.icon,

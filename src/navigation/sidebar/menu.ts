@@ -57,15 +57,31 @@ function toMenuSubItems(nodes: readonly RouteResp[]): MenuItem[] {
 }
 
 /**
+ * Menu entries the app owns instead of the backend.
+ *
+ * `/dashboard` is a static route: it exists for every signed-in user, so it must not
+ * depend on a `sys_menu` record or on the current user's permissions.
+ */
+export const STATIC_MENU_ITEMS: readonly MenuItem[] = [
+  {
+    id: 'app-dashboard',
+    title: '仪表盘',
+    url: '/dashboard',
+    icon: resolveMenuIcon('dashboard')
+  }
+]
+
+/**
  * Converts the backend menu tree into sidebar groups.
  *
  * A top-level directory becomes a labelled group, a menu becomes a link item, and a
  * directory nested inside a group becomes a collapsible parent item. Menus that sit
- * at the top level are collected into an unlabelled group in front of the rest.
+ * at the top level are collected into an unlabelled group in front of the rest, and
+ * `staticItems` are merged into that same group so app-owned routes stay on top.
  */
-export function toMenuGroups(nodes: readonly RouteResp[]): MenuGroup[] {
+export function toMenuGroups(nodes: readonly RouteResp[], staticItems: readonly MenuItem[] = []): MenuGroup[] {
   const groups: MenuGroup[] = []
-  const looseItems: MenuItem[] = []
+  const looseItems: MenuItem[] = [...staticItems]
 
   for (const node of nodes.filter(isVisible)) {
     if (node.type === TYPE_MENU || !node.children?.length) {
