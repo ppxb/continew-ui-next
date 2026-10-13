@@ -1,9 +1,12 @@
 import type { CSSProperties, ReactNode } from 'react'
 
+import type { QueryClient } from '@tanstack/react-query'
 import { cn } from 'cn'
 
 import { Separator } from '@/components/ui/separator'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
+import { ensureMenuLoaded } from '@/hooks/use-menu'
+import { requireAuth } from '@/lib/auth-guard'
 import { getClientCookie } from '@/lib/cookie'
 import { parsePreference } from '@/lib/preferences/preferences-config'
 
@@ -26,6 +29,25 @@ export function readShellPreferences() {
 }
 
 export type ShellPreferences = ReturnType<typeof readShellPreferences>
+
+type ShellLoaderContext = {
+  context: { queryClient: QueryClient }
+  location: { href: string; pathname: string }
+}
+
+/**
+ * Route loader for the shell layouts.
+ *
+ * Waits for the menu so the sidebar's first paint already holds every entry. The auth
+ * guard runs before the request, so the session is re-checked afterwards: a session
+ * that expired while the menu was loading must not render the shell.
+ */
+export async function loadAppShell({ context, location }: ShellLoaderContext): Promise<ShellPreferences> {
+  await ensureMenuLoaded(context.queryClient)
+  requireAuth({ location })
+
+  return readShellPreferences()
+}
 
 /** Application shell shared by every authenticated section. */
 export function AppShell({ defaultOpen, variant, collapsible, children }: ShellPreferences & { children: ReactNode }) {
