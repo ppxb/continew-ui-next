@@ -1,4 +1,4 @@
-import { createFileRoute, Navigate, useRouterState } from '@tanstack/react-router'
+import { createFileRoute, Navigate, useRouterState, type RegisteredRouter } from '@tanstack/react-router'
 
 import { Construction } from 'lucide-react'
 
@@ -27,8 +27,10 @@ function PlaceholderPage() {
   }
 
   // Directories point at the entry screen of their section, for example /system -> /system/user.
+  // The type arguments are pinned for the same reason as in `nav-main.tsx`: a backend
+  // redirect is a raw path, so it travels as `href`.
   if (entry.redirect && toPathname(entry.redirect) !== pathname) {
-    return <Navigate href={entry.redirect} replace />
+    return <Navigate<RegisteredRouter, string, string> href={entry.redirect} replace />
   }
 
   // The menu's component value is where the page belongs, for example

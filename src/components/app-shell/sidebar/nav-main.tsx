@@ -1,4 +1,4 @@
-import { Link, useRouterState } from '@tanstack/react-router'
+import { Link, useRouterState, type RegisteredRouter } from '@tanstack/react-router'
 
 import { ChevronRight } from 'lucide-react'
 
@@ -68,14 +68,18 @@ function hasSubItems(item: MenuItem): item is MenuItem & { subItems: MenuItem[] 
 
 /**
  * Menu paths come from the backend, so links use the raw `href` instead of a typed
- * route path: a path without a page is served by the placeholder route.
+ * route path: a path without a page is served by the placeholder route, and `href` is
+ * what splits a query string off the path.
+ *
+ * `Link` only makes `to` optional once its `TTo` parameter is `string`, so the type
+ * arguments are pinned; without them every `href`-only link is a type error.
  */
 function renderItemLink(item: MenuItem) {
   if (item.external) {
     return <a href={item.url} target="_blank" rel="noreferrer" />
   }
 
-  return <Link href={item.url} />
+  return <Link<RegisteredRouter, string, string> href={item.url} />
 }
 
 export function NavMain({ items }: NavMainProps) {
@@ -190,7 +194,7 @@ function NavDropdownItem({ item, isActive, isSubItemActive }: NavDropdownItemPro
                 <DropdownMenuItem
                   key={subItem.id}
                   render={
-                    <Link
+                    <Link<RegisteredRouter, string, string>
                       href={subItem.url}
                       aria-current={isSubItemActive(subItem.url) ? 'page' : undefined}
                       className="flex items-center gap-2"
@@ -231,7 +235,10 @@ function NavCollapsibleItem({ item, isActive, defaultOpen, isSubItemActive }: Na
 
             return (
               <SidebarMenuSubItem key={subItem.id}>
-                <SidebarMenuSubButton render={<Link href={subItem.url} />} isActive={isSubItemActive(subItem.url)}>
+                <SidebarMenuSubButton
+                  render={<Link<RegisteredRouter, string, string> href={subItem.url} />}
+                  isActive={isSubItemActive(subItem.url)}
+                >
                   {SubIcon && <SubIcon />}
                   <span>{subItem.title}</span>
                 </SidebarMenuSubButton>
