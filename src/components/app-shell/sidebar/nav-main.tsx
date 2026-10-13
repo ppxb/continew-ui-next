@@ -66,20 +66,26 @@ function hasSubItems(item: MenuItem): item is MenuItem & { subItems: MenuItem[] 
   return Boolean(item.subItems?.length)
 }
 
+interface RenderItemLinkOptions {
+  className?: string
+  'aria-current'?: 'page' | undefined
+}
+
 /**
  * Menu paths come from the backend, so links use the raw `href` instead of a typed
  * route path: a path without a page is served by the placeholder route, and `href` is
  * what splits a query string off the path.
  *
+ * External links open in a new tab; internal links use `Link`.
  * `Link` only makes `to` optional once its `TTo` parameter is `string`, so the type
  * arguments are pinned; without them every `href`-only link is a type error.
  */
-function renderItemLink(item: MenuItem) {
+function renderItemLink(item: MenuItem, options?: RenderItemLinkOptions) {
   if (item.external) {
-    return <a href={item.url} target="_blank" rel="noreferrer" />
+    return <a href={item.url} target="_blank" rel="noreferrer" {...options} />
   }
 
-  return <Link<RegisteredRouter, string, string> href={item.url} />
+  return <Link<RegisteredRouter, string, string> href={item.url} {...options} />
 }
 
 export function NavMain({ items }: NavMainProps) {
@@ -193,13 +199,10 @@ function NavDropdownItem({ item, isActive, isSubItemActive }: NavDropdownItemPro
               return (
                 <DropdownMenuItem
                   key={subItem.id}
-                  render={
-                    <Link<RegisteredRouter, string, string>
-                      href={subItem.url}
-                      aria-current={isSubItemActive(subItem.url) ? 'page' : undefined}
-                      className="flex items-center gap-2"
-                    />
-                  }
+                  render={renderItemLink(subItem, {
+                    'aria-current': isSubItemActive(subItem.url) ? 'page' : undefined,
+                    className: 'flex items-center gap-2'
+                  })}
                 >
                   {SubIcon && <SubIcon />}
                   <span>{subItem.title}</span>
@@ -236,7 +239,7 @@ function NavCollapsibleItem({ item, isActive, defaultOpen, isSubItemActive }: Na
             return (
               <SidebarMenuSubItem key={subItem.id}>
                 <SidebarMenuSubButton
-                  render={<Link<RegisteredRouter, string, string> href={subItem.url} />}
+                  render={renderItemLink(subItem)}
                   isActive={isSubItemActive(subItem.url)}
                 >
                   {SubIcon && <SubIcon />}
