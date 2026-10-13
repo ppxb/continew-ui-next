@@ -1,34 +1,33 @@
-import { siX } from 'simple-icons'
+import { siGithub } from 'simple-icons'
 
 import { SimpleIcon } from '@/components/simple-icon'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+
+/** Where to send people for help with this project. */
+const DOCS_URL = 'https://continew.top/docs/admin'
+const REPOSITORY_URL = 'https://github.com/ppxb/continew-ui-next'
 
 export function SupportCard() {
   return (
     <Card size="sm" className="overflow-hidden shadow-none group-data-[collapsible=icon]:hidden">
       <CardHeader className="min-w-0 px-4">
-        <CardTitle className="truncate text-sm">Have something in mind?</CardTitle>
+        <CardTitle className="truncate text-sm">需要帮助？</CardTitle>
         <CardDescription className="line-clamp-3">
-          Suggest a feature or discuss custom work with me on&nbsp;
+          遇到问题或有建议，请查阅
+          <a href={DOCS_URL} target="_blank" rel="noreferrer" className="text-foreground hover:underline">
+            在线文档
+          </a>
+          ，或到
           <a
-            href="https://x.com/arhamkhnz"
+            href={`${REPOSITORY_URL}/issues`}
             target="_blank"
             rel="noreferrer"
-            aria-label="Reach out on X"
-            className="inline-flex items-center text-foreground"
+            className="mx-1 inline-flex items-center gap-1 text-foreground hover:underline"
           >
-            <SimpleIcon icon={siX} aria-hidden className="size-3 fill-foreground" />
+            <SimpleIcon icon={siGithub} aria-hidden className="size-3 fill-foreground" />
+            GitHub
           </a>
-          &nbsp;or by{' '}
-          <a
-            href="https://github.com/arhamkhnz#want-to-connect"
-            target="_blank"
-            rel="noreferrer"
-            className="text-foreground hover:underline"
-          >
-            email
-          </a>
-          .
+          提交。
         </CardDescription>
       </CardHeader>
     </Card>
