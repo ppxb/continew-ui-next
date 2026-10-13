@@ -5,7 +5,7 @@ import { type StoreApi, useStore } from 'zustand'
 
 import { toast } from '@/components/ui/toast'
 import { getAccessToken } from '@/lib/auth-session'
-import { setSessionExpiredHandler } from '@/lib/http'
+import { setForbiddenHandler, setSessionExpiredHandler } from '@/lib/http'
 
 import { createAuthStore, type AuthState } from './auth-store'
 
@@ -35,7 +35,18 @@ export function AuthStoreProvider({ children }: { children: React.ReactNode }) {
       })
     })
 
-    return () => setSessionExpiredHandler(null)
+    setForbiddenHandler(() => {
+      if (router.state.location.pathname === '/unauthorized') {
+        return
+      }
+
+      void navigate({ to: '/unauthorized', replace: true })
+    })
+
+    return () => {
+      setSessionExpiredHandler(null)
+      setForbiddenHandler(null)
+    }
   }, [navigate, router, store])
 
   return <AuthStoreContext.Provider value={store}>{children}</AuthStoreContext.Provider>

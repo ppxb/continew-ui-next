@@ -62,14 +62,21 @@ export interface RequestOptions extends Omit<RequestInit, 'body' | 'method'> {
 }
 
 type SessionExpiredHandler = (message: string) => void
+type ForbiddenHandler = () => void
 
 let sessionExpiredHandler: SessionExpiredHandler | null = null
+let forbiddenHandler: ForbiddenHandler | null = null
 let sessionExpiredNotified = false
 let refreshPromise: Promise<string> | null = null
 
 /** Registers the callback used once the session can no longer be recovered. */
 export function setSessionExpiredHandler(handler: SessionExpiredHandler | null) {
   sessionExpiredHandler = handler
+}
+
+/** Registers the callback used when the backend rejects a request with 403. */
+export function setForbiddenHandler(handler: ForbiddenHandler | null) {
+  forbiddenHandler = handler
 }
 
 function notifyError(message: string) {
@@ -219,6 +226,11 @@ async function send<T>(method: string, path: string, options: RequestOptions, is
     }
 
     return send<T>(method, path, options, true)
+  }
+
+  if (response.status === 403) {
+    // The backend rejected the permission; the toast below explains why.
+    forbiddenHandler?.()
   }
 
   const payload = await readPayload<T>(response)

@@ -6,16 +6,15 @@ import { cn } from 'cn'
 
 import { Separator } from '@/components/ui/separator'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
-import { users } from '@/data/users'
 import { requireAuth } from '@/lib/auth-guard'
 import { getClientCookie } from '@/lib/cookie'
 import { parsePreference } from '@/lib/preferences/preferences-config'
 
-import { AccountSwitcher } from './-components/header/account-switcher'
 import { GitHubRepositoriesMenu } from './-components/header/github-repositories-menu'
 import { LayoutControls } from './-components/header/layout-controls'
 import { SearchDialog } from './-components/header/search-dialog'
 import { ThemeSwitcher } from './-components/header/theme-switcher'
+import { UserMenu } from './-components/header/user-menu'
 import { AppSidebar } from './-components/sidebar/app-sidebar'
 
 export const Route = createFileRoute('/(main)/dashboard')({
@@ -71,7 +70,7 @@ function DashboardLayout() {
               <LayoutControls />
               <ThemeSwitcher />
               <GitHubRepositoriesMenu />
-              <AccountSwitcher users={users} />
+              <UserMenu />
             </div>
           </div>
         </header>
