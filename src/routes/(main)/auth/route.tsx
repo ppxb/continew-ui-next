@@ -17,20 +17,20 @@ function AuthLayout() {
           <div className="absolute top-10 space-y-1 px-10 text-primary-foreground">
             <Command className="size-10" />
             <h1 className="text-2xl font-medium">{APP_CONFIG.name}</h1>
-            <p className="text-sm">Design. Build. Launch. Repeat.</p>
+            <p className="text-sm">简单、高效、可扩展的中后台管理系统</p>
           </div>
 
           <div className="absolute bottom-10 flex w-full justify-between px-10">
             <div className="flex-1 space-y-1 text-primary-foreground">
-              <h2 className="font-medium">Ready to launch?</h2>
-              <p className="text-sm">Clone the repo, install dependencies, and your dashboard is live in minutes.</p>
+              <h2 className="font-medium">开箱即用</h2>
+              <p className="text-sm">
+                用户、角色、菜单、部门、字典、文件、公告等基础能力已内置，接上后端即可开始业务开发。
+              </p>
             </div>
             <Separator orientation="vertical" className="mx-3 h-auto!" />
             <div className="flex-1 space-y-1 text-primary-foreground">
-              <h2 className="font-medium">Need help?</h2>
-              <p className="text-sm">
-                Check out the docs or open an issue on GitHub, community support is just a click away.
-              </p>
+              <h2 className="font-medium">按需扩展</h2>
+              <p className="text-sm">多租户、能力开放、任务调度与代码生成以插件形式提供，随业务需要逐步启用。</p>
             </div>
           </div>
         </div>

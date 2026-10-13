@@ -11,13 +11,15 @@ import {
 } from '@/components/ui/breadcrumb'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useAuthStore } from '@/stores/auth/auth-provider'
 
-import { profile } from './-components/profile-data'
+import { PasswordForm } from './-components/password-form'
 import { ProfileDocuments } from './-components/profile-documents'
 import { EmploymentDetails } from './-components/profile-employment-details'
 import { ProfileHeader } from './-components/profile-header'
 import { ProfileOverview } from './-components/profile-overview'
 import { PersonalDetails } from './-components/profile-personal-details'
+import { toProfileRecord } from './-components/profile-record'
 import { ProfileStatusSidebar } from './-components/profile-status-sidebar'
 import { TimeOffDetails } from './-components/profile-time-off-details'
 
@@ -26,24 +28,15 @@ export const Route = createFileRoute('/(main)/dashboard/profile')({
 })
 
 function Page() {
+  const user = useAuthStore(state => state.user)
+  const profile = toProfileRecord(user)
+
   return (
     <div className="flex flex-col gap-4 py-4" data-content-padding="false">
       <Breadcrumb className="px-4">
         <BreadcrumbList>
           <BreadcrumbItem>
             <span>Dashboard</span>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <span>People</span>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <span>Employee directory</span>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <span>{profile.name}</span>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
@@ -65,6 +58,7 @@ function Page() {
             <TabsTrigger value="compensation">Compensation</TabsTrigger>
             <TabsTrigger value="time-off">Time off</TabsTrigger>
             <TabsTrigger value="documents">Documents</TabsTrigger>
+            <TabsTrigger value="security">Security</TabsTrigger>
           </TabsList>
         </div>
 
@@ -107,6 +101,17 @@ function Page() {
 
           <TabsContent className="py-4" value="documents">
             <ProfileDocuments documents={profile.documents} />
+          </TabsContent>
+
+          <TabsContent className="py-4" value="security">
+            <div className="max-w-md">
+              <h2 className="font-heading text-base font-medium">Change password</h2>
+              <p className="mt-1 mb-4 text-sm text-muted-foreground">
+                The current and the new password are encrypted before they are sent. Changing the password signs you out
+                of every device.
+              </p>
+              <PasswordForm />
+            </div>
           </TabsContent>
         </div>
       </Tabs>

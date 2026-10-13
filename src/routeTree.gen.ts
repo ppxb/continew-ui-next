@@ -17,7 +17,6 @@ import { Route as mainDashboardRouteRouteImport } from './routes/(main)/dashboar
 import { Route as mainMailRouteRouteImport } from './routes/(main)/mail/route'
 import { Route as mainUnauthorizedRouteImport } from './routes/(main)/unauthorized'
 import { Route as mainappSplatRouteImport } from './routes/(main)/(app)/$'
-import { Route as mainappProfileRouteRouteImport } from './routes/(main)/(app)/profile/route'
 import { Route as mainAuthLoginRouteRouteImport } from './routes/(main)/auth/login/route'
 import { Route as mainDashboardIndexRouteImport } from './routes/(main)/dashboard/index'
 import { Route as mainDashboardSplatRouteImport } from './routes/(main)/dashboard/$'
@@ -84,11 +83,6 @@ const mainUnauthorizedRoute = mainUnauthorizedRouteImport.update({
 const mainappSplatRoute = mainappSplatRouteImport.update({
   id: '/$',
   path: '/$',
-  getParentRoute: () => mainappRouteRoute,
-} as any)
-const mainappProfileRouteRoute = mainappProfileRouteRouteImport.update({
-  id: '/profile',
-  path: '/profile',
   getParentRoute: () => mainappRouteRoute,
 } as any)
 const mainAuthLoginRouteRoute = mainAuthLoginRouteRouteImport.update({
@@ -258,7 +252,6 @@ export interface FileRoutesByFullPath {
   '/mail': typeof mainMailRouteRoute
   '/unauthorized': typeof mainUnauthorizedRoute
   '/': typeof externalIndexRoute
-  '/profile': typeof mainappProfileRouteRoute
   '/auth/login': typeof mainAuthLoginRouteRoute
   '/dashboard/academy': typeof mainDashboardAcademyRouteRoute
   '/dashboard/analytics': typeof mainDashboardAnalyticsRouteRoute
@@ -295,7 +288,6 @@ export interface FileRoutesByTo {
   '/mail': typeof mainMailRouteRoute
   '/unauthorized': typeof mainUnauthorizedRoute
   '/': typeof externalIndexRoute
-  '/profile': typeof mainappProfileRouteRoute
   '/auth/login': typeof mainAuthLoginRouteRoute
   '/dashboard/academy': typeof mainDashboardAcademyRouteRoute
   '/dashboard/analytics': typeof mainDashboardAnalyticsRouteRoute
@@ -335,7 +327,6 @@ export interface FileRoutesById {
   '/(main)/mail': typeof mainMailRouteRoute
   '/(main)/unauthorized': typeof mainUnauthorizedRoute
   '/(external)/': typeof externalIndexRoute
-  '/(main)/(app)/profile': typeof mainappProfileRouteRoute
   '/(main)/auth/login': typeof mainAuthLoginRouteRoute
   '/(main)/dashboard/academy': typeof mainDashboardAcademyRouteRoute
   '/(main)/dashboard/analytics': typeof mainDashboardAnalyticsRouteRoute
@@ -375,7 +366,6 @@ export interface FileRouteTypes {
     | '/mail'
     | '/unauthorized'
     | '/'
-    | '/profile'
     | '/auth/login'
     | '/dashboard/academy'
     | '/dashboard/analytics'
@@ -412,7 +402,6 @@ export interface FileRouteTypes {
     | '/mail'
     | '/unauthorized'
     | '/'
-    | '/profile'
     | '/auth/login'
     | '/dashboard/academy'
     | '/dashboard/analytics'
@@ -451,7 +440,6 @@ export interface FileRouteTypes {
     | '/(main)/mail'
     | '/(main)/unauthorized'
     | '/(external)/'
-    | '/(main)/(app)/profile'
     | '/(main)/auth/login'
     | '/(main)/dashboard/academy'
     | '/(main)/dashboard/analytics'
@@ -549,13 +537,6 @@ declare module '@tanstack/react-router' {
       path: '/$'
       fullPath: '/$'
       preLoaderRoute: typeof mainappSplatRouteImport
-      parentRoute: typeof mainappRouteRoute
-    }
-    '/(main)/(app)/profile': {
-      id: '/(main)/(app)/profile'
-      path: '/profile'
-      fullPath: '/profile'
-      preLoaderRoute: typeof mainappProfileRouteRouteImport
       parentRoute: typeof mainappRouteRoute
     }
     '/(main)/auth/login': {
@@ -758,12 +739,10 @@ declare module '@tanstack/react-router' {
 }
 
 interface mainappRouteRouteChildren {
-  mainappProfileRouteRoute: typeof mainappProfileRouteRoute
   mainappSplatRoute: typeof mainappSplatRoute
 }
 
 const mainappRouteRouteChildren: mainappRouteRouteChildren = {
-  mainappProfileRouteRoute: mainappProfileRouteRoute,
   mainappSplatRoute: mainappSplatRoute,
 }
 
