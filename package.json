@@ -27,10 +27,8 @@
     "@fullcalendar/react": "^7.1.1",
     "@hookform/resolvers": "^5.9.1",
     "@shadcn/react": "^0.3.1",
-    "@tanstack/react-devtools": "^0.10.13",
     "@tanstack/react-query": "^5.104.2",
     "@tanstack/react-router": "latest",
-    "@tanstack/react-router-devtools": "^1.167.2",
     "@tanstack/react-table": "^9.3.0",
     "class-variance-authority": "^0.7.1",
     "cmdk": "^1.1.1",
@@ -54,7 +52,6 @@
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
-    "@tanstack/devtools-vite": "^0.8.5",
     "@tanstack/router-plugin": "^1.168.43",
     "@types/d3-geo": "^3.1.1",
     "@types/node": "^22.20.5",

@@ -103,6 +103,7 @@ Keep a component inside its route until it is reused by another feature. Do not 
 - Follow the oxlint configuration in `.oxlintrc.json`. Keep imports grouped and sorted by hand; `sortImports` stays disabled in oxfmt so that side-effect CSS import order is preserved.
 - `.oxlintrc.json` turns off three React Compiler rules: `react/purity`, `react/refs`, and `react/set-state-in-effect`. This project does not use React Compiler, and the flagged patterns come from libraries and files we keep intact (dnd-kit ref getters, the shadcn components under `src/components/ui/`).
 - Avoid unnecessary dependencies.
+- TanStack devtools are intentionally not installed. Add `@tanstack/react-devtools`, `@tanstack/react-router-devtools` and `@tanstack/devtools-vite` back only when they are actually needed; rendering them from `__root.tsx` would put them in the production bundle.
 - Keep changes focused and do not refactor unrelated files.
 - Preserve user changes in a dirty worktree and do not commit unless explicitly requested.
 

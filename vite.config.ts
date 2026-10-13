@@ -1,4 +1,3 @@
-import { devtools } from '@tanstack/devtools-vite'
 import { tanstackRouter } from '@tanstack/router-plugin/vite'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
@@ -24,18 +23,5 @@ export default defineConfig({
   resolve: {
     tsconfigPaths: true
   },
-  plugins: [
-    themeBootPlugin(),
-    devtools({
-      injectSource: {
-        enabled: true,
-        ignore: {
-          components: ['FullCalendar']
-        }
-      }
-    }),
-    tanstackRouter({ target: 'react', autoCodeSplitting: true }),
-    react(),
-    tailwindcss()
-  ]
+  plugins: [themeBootPlugin(), tanstackRouter({ target: 'react', autoCodeSplitting: true }), react(), tailwindcss()]
 })
