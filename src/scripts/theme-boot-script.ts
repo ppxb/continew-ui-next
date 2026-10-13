@@ -2,17 +2,18 @@
  * Boot script that reads user preference values from cookies or localStorage
  * based on the configured persistence mode.
  *
- * Runs early in <head> to apply the correct data attributes before hydration,
- * preventing layout or theme flicker and keeping the root document fully static.
+ * The script is inlined into index.html at build time so the data attributes are
+ * applied before the first paint, which keeps the theme, font and layout from
+ * flickering on reload.
  */
-import { fontBootRegistry } from '@/lib/fonts/registry'
-import { PREFERENCE_REGISTRY } from '@/lib/preferences/preferences-config'
+import { fontBootRegistry } from '../lib/fonts/registry'
+import { PREFERENCE_REGISTRY } from '../lib/preferences/preferences-config'
 
-export function ThemeBootScript() {
+export function buildThemeBootScript(): string {
   const registry = JSON.stringify(PREFERENCE_REGISTRY)
   const fonts = JSON.stringify(fontBootRegistry)
 
-  const code = `
+  return `
     (function () {
       try {
         var root = document.documentElement;
@@ -150,6 +151,4 @@ export function ThemeBootScript() {
       }
     })();
   `
-
-  return <script dangerouslySetInnerHTML={{ __html: code }} />
 }

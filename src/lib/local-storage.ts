@@ -1,6 +1,4 @@
-import { createClientOnlyFn } from '@tanstack/react-start'
-
-export const setLocalStorageValue = createClientOnlyFn((key: string, value: string) => {
+export function setLocalStorageValue(key: string, value: string) {
   try {
     window.localStorage.setItem(key, value)
   } catch (error) {
@@ -8,12 +6,12 @@ export const setLocalStorageValue = createClientOnlyFn((key: string, value: stri
       console.error('[localStorage] Failed to write value:', error)
     }
   }
-})
+}
 
-export const getLocalStorageValue = createClientOnlyFn((key: string): string | null => {
+export function getLocalStorageValue(key: string): string | null {
   try {
     return window.localStorage.getItem(key)
   } catch {
     return null
   }
-})
+}

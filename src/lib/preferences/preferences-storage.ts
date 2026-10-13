@@ -1,5 +1,3 @@
-import { setValueToCookie } from '@/server/server-actions'
-
 import { setClientCookie } from '../cookie'
 import { setLocalStorageValue } from '../local-storage'
 import {
@@ -15,11 +13,9 @@ async function persistByMode(mode: PreferencePersistence, key: string, value: st
       return
 
     case 'client-cookie':
-      setClientCookie(key, value)
-      return
-
     case 'server-cookie':
-      await setValueToCookie(key, value)
+      // There is no server runtime, so every cookie preference is written in the browser.
+      setClientCookie(key, value)
       return
 
     case 'localStorage':

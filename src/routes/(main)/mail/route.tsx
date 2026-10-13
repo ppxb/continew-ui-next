@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 
 import { SidebarProvider } from '@/components/ui/sidebar'
-import { getValueFromCookie } from '@/server/server-actions'
+import { getClientCookie } from '@/lib/cookie'
 
 import { mails } from './-components/data'
 import { MailComponent } from './-components/mail'
@@ -9,8 +9,8 @@ import { DEFAULT_MAIL_LAYOUT, MAIL_LAYOUT_COOKIE } from './-components/mail-layo
 import { MailSidebar } from './-components/mail-sidebar'
 
 export const Route = createFileRoute('/(main)/mail')({
-  loader: async () => {
-    const layoutCookie = await getValueFromCookie(MAIL_LAYOUT_COOKIE)
+  loader: () => {
+    const layoutCookie = getClientCookie(MAIL_LAYOUT_COOKIE)
 
     return {
       defaultLayout: layoutCookie ? JSON.parse(layoutCookie) : [...DEFAULT_MAIL_LAYOUT]

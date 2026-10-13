@@ -1,17 +1,13 @@
 /**
- * How each preference should be saved.
+ * How each preference is saved.
  *
- * "client-cookie"  → write cookie on the browser only.
- * "server-cookie"  → write cookie through a Server Function.
- * "localStorage"   → save only on the client (non-layout stuff).
+ * "client-cookie"  → written in the browser and read by the boot script before the first paint.
+ * "server-cookie"  → legacy value from the SSR era, treated as a client cookie.
+ * "localStorage"   → client only (non-layout stuff).
  * "none"           → no saving, resets on reload.
- *
- * Layout-critical prefs (sidebar_variant / sidebar_collapsible)
- * must stay consistent during SSR → so they can’t use localStorage.
- * Others are flexible and can use any persistence.
  */
 
-import { fontKeys } from '@/lib/fonts/registry'
+import { fontKeys } from '../fonts/registry'
 
 import {
   CONTENT_LAYOUT_VALUES,

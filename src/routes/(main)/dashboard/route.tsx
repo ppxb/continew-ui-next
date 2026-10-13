@@ -7,7 +7,8 @@ import { cn } from 'cn'
 import { Separator } from '@/components/ui/separator'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { users } from '@/data/users'
-import { getDashboardLayout } from '@/server/server-actions'
+import { getClientCookie } from '@/lib/cookie'
+import { parsePreference } from '@/lib/preferences/preferences-config'
 
 import { AccountSwitcher } from './-components/header/account-switcher'
 import { GitHubRepositoriesMenu } from './-components/header/github-repositories-menu'
@@ -17,7 +18,11 @@ import { ThemeSwitcher } from './-components/header/theme-switcher'
 import { AppSidebar } from './-components/sidebar/app-sidebar'
 
 export const Route = createFileRoute('/(main)/dashboard')({
-  loader: () => getDashboardLayout(),
+  loader: () => ({
+    defaultOpen: getClientCookie('sidebar_state') !== 'false',
+    variant: parsePreference('sidebar_variant', getClientCookie('sidebar_variant')),
+    collapsible: parsePreference('sidebar_collapsible', getClientCookie('sidebar_collapsible'))
+  }),
   component: DashboardLayout
 })
 
