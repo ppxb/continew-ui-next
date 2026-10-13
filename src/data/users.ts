@@ -16,5 +16,3 @@ export const users = [
     role: 'admin'
   }
 ]
-
-export const rootUser = users[0]

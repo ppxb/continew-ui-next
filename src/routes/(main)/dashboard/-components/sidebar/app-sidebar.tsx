@@ -13,8 +13,8 @@ import {
   SidebarMenuItem
 } from '@/components/ui/sidebar'
 import { APP_CONFIG } from '@/config/app-config'
-import { rootUser } from '@/data/users'
 import { sidebarItems } from '@/navigation/sidebar/sidebar-items'
+import { useAuthStore } from '@/stores/auth/auth-provider'
 import { usePreferencesStore } from '@/stores/preferences/preferences-provider'
 
 import { NavMain } from './nav-main'
@@ -29,6 +29,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       isSynced: s.isSynced
     }))
   )
+  const user = useAuthStore(s => s.user)
 
   const variant = isSynced ? sidebarVariant : props.variant
   const collapsible = isSynced ? sidebarCollapsible : props.collapsible
@@ -50,7 +51,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
       <SidebarFooter>
         <SupportCard />
-        <NavUser user={rootUser} />
+        <NavUser
+          user={{
+            name: user?.nickname || user?.username || '',
+            email: user?.email ?? '',
+            avatar: user?.avatar ?? ''
+          }}
+        />
       </SidebarFooter>
     </Sidebar>
   )

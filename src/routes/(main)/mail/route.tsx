@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 
 import { SidebarProvider } from '@/components/ui/sidebar'
+import { requireAuth } from '@/lib/auth-guard'
 import { getClientCookie } from '@/lib/cookie'
 
 import { mails } from './-components/data'
@@ -9,6 +10,7 @@ import { DEFAULT_MAIL_LAYOUT, MAIL_LAYOUT_COOKIE } from './-components/mail-layo
 import { MailSidebar } from './-components/mail-sidebar'
 
 export const Route = createFileRoute('/(main)/mail')({
+  beforeLoad: requireAuth,
   loader: () => {
     const layoutCookie = getClientCookie(MAIL_LAYOUT_COOKIE)
 

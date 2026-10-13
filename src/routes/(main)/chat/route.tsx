@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 
 import { SidebarProvider } from '@/components/ui/sidebar'
+import { requireAuth } from '@/lib/auth-guard'
 
 import { Chat } from './-components/chat'
 import { ChatHeader } from './-components/chat-header'
@@ -8,6 +9,7 @@ import { ChatSidebar } from './-components/chat-sidebar'
 import { conversations } from './-components/data'
 
 export const Route = createFileRoute('/(main)/chat')({
+  beforeLoad: requireAuth,
   component: Page
 })
 

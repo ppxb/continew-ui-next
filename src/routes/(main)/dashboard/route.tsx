@@ -7,6 +7,7 @@ import { cn } from 'cn'
 import { Separator } from '@/components/ui/separator'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { users } from '@/data/users'
+import { requireAuth } from '@/lib/auth-guard'
 import { getClientCookie } from '@/lib/cookie'
 import { parsePreference } from '@/lib/preferences/preferences-config'
 
@@ -18,6 +19,7 @@ import { ThemeSwitcher } from './-components/header/theme-switcher'
 import { AppSidebar } from './-components/sidebar/app-sidebar'
 
 export const Route = createFileRoute('/(main)/dashboard')({
+  beforeLoad: requireAuth,
   loader: () => ({
     defaultOpen: getClientCookie('sidebar_state') !== 'false',
     variant: parsePreference('sidebar_variant', getClientCookie('sidebar_variant')),

@@ -5,11 +5,11 @@ import { Command } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
 import { APP_CONFIG } from '@/config/app-config'
 
-export const Route = createFileRoute('/(main)/auth/v2')({
-  component: Layout
+export const Route = createFileRoute('/(main)/auth')({
+  component: AuthLayout
 })
 
-function Layout() {
+function AuthLayout() {
   return (
     <main>
       <div className="grid h-dvh justify-center p-2 lg:grid-cols-2">

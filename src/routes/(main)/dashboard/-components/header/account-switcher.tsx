@@ -12,6 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
+import { useLogout } from '@/hooks/use-logout'
 import { getInitials } from '@/lib/utils'
 
 export function AccountSwitcher({
@@ -26,6 +27,7 @@ export function AccountSwitcher({
   }>
 }) {
   const [activeUser, setActiveUser] = useState(users[0])
+  const logout = useLogout()
 
   if (!activeUser) {
     return null
@@ -81,7 +83,7 @@ export function AccountSwitcher({
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>
+        <DropdownMenuItem onClick={() => void logout()}>
           <LogOut />
           Log out
         </DropdownMenuItem>

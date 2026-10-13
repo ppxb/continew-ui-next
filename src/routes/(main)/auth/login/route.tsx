@@ -1,17 +1,22 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 
 import { Globe } from 'lucide-react'
 
 import { APP_CONFIG } from '@/config/app-config'
 
-import { LoginForm } from '../../-components/login-form'
-import { GoogleButton } from '../../-components/social-auth/google-button'
+import { LoginForm } from '../-components/login-form'
+import { GoogleButton } from '../-components/social-auth/google-button'
 
-export const Route = createFileRoute('/(main)/auth/v2/login')({
-  component: LoginV2
+export const Route = createFileRoute('/(main)/auth/login')({
+  validateSearch: (search: Record<string, unknown>): { redirect?: string } => ({
+    redirect: typeof search.redirect === 'string' ? search.redirect : undefined
+  }),
+  component: LoginPage
 })
 
-function LoginV2() {
+function LoginPage() {
+  const { redirect } = Route.useSearch()
+
   return (
     <>
       <div className="mx-auto flex w-full flex-col justify-center space-y-8 sm:w-[350px]">
@@ -24,16 +29,7 @@ function LoginV2() {
           <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
             <span className="relative z-10 bg-background px-2 text-muted-foreground">Or continue with</span>
           </div>
-          <LoginForm />
-        </div>
-      </div>
-
-      <div className="absolute top-5 flex w-full justify-end px-10">
-        <div className="text-sm text-muted-foreground">
-          Don&apos;t have an account?{' '}
-          <Link className="text-foreground" to="/auth/v2/register">
-            Register
-          </Link>
+          <LoginForm redirectTo={redirect} />
         </div>
       </div>
 
