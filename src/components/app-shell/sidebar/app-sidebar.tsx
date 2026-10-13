@@ -14,11 +14,9 @@ import {
 } from '@/components/ui/sidebar'
 import { APP_CONFIG } from '@/config/app-config'
 import { useMenuGroups } from '@/hooks/use-menu'
-import { useAuthStore } from '@/stores/auth/auth-provider'
 import { usePreferencesStore } from '@/stores/preferences/preferences-provider'
 
 import { NavMain } from './nav-main'
-import { NavUser } from './nav-user'
 import { SupportCard } from './support-card'
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -29,7 +27,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       isSynced: s.isSynced
     }))
   )
-  const user = useAuthStore(s => s.user)
   const { groups } = useMenuGroups()
 
   const variant = isSynced ? sidebarVariant : props.variant
@@ -52,13 +49,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
       <SidebarFooter>
         <SupportCard />
-        <NavUser
-          user={{
-            name: user?.nickname || user?.username || '',
-            email: user?.email ?? '',
-            avatar: user?.avatar ?? ''
-          }}
-        />
       </SidebarFooter>
     </Sidebar>
   )

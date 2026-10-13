@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router'
 
-import { BadgeCheck, LogOut } from 'lucide-react'
+import { CircleUser, LogOut } from 'lucide-react'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
@@ -53,8 +53,8 @@ export function UserMenu() {
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem render={<Link to="/dashboard/profile" />}>
-            <BadgeCheck />
-            Profile
+            <CircleUser />
+            Account
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
