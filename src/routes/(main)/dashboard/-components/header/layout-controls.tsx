@@ -6,7 +6,6 @@ import { Label } from '@/components/ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { type FontKey, fontOptions } from '@/lib/fonts/registry'
 import type { ContentLayout, NavbarStyle, SidebarCollapsible, SidebarVariant } from '@/lib/preferences/layout'
 import { THEME_PRESET_OPTIONS, type ThemeMode, type ThemePreset } from '@/lib/preferences/theme'
 import { usePreferencesStore } from '@/stores/preferences/preferences-provider'
@@ -27,8 +26,7 @@ export function LayoutControls() {
     content_layout: contentLayout,
     navbar_style: navbarStyle,
     sidebar_variant: variant,
-    sidebar_collapsible: collapsible,
-    font
+    sidebar_collapsible: collapsible
   } = values
 
   const themePresetItems = THEME_PRESET_OPTIONS.map(preset => ({
@@ -45,18 +43,8 @@ export function LayoutControls() {
       </span>
     )
   }))
-  const fontItems = fontOptions.map(option => ({
-    value: option.key,
-    label: option.label
-  }))
-
   const onThemePresetChange = (preset: ThemePreset) => {
     setPreference('theme_preset', preset)
-  }
-
-  const onFontChange = (value: FontKey | '') => {
-    if (!value) return
-    setPreference('font', value)
   }
 
   return (
@@ -97,31 +85,6 @@ export function LayoutControls() {
                           />
                           {preset.label}
                         </span>
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-1">
-              <Label className="text-xs font-medium">Fonts</Label>
-              <Select
-                items={fontItems}
-                value={font}
-                onValueChange={value => {
-                  if (!value) return
-                  void onFontChange(value as FontKey)
-                }}
-              >
-                <SelectTrigger size="sm" className="w-full text-xs">
-                  <SelectValue placeholder="Select font" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {fontOptions.map(font => (
-                      <SelectItem key={font.key} className="text-xs" value={font.key}>
-                        {font.label}
                       </SelectItem>
                     ))}
                   </SelectGroup>

@@ -7,8 +7,6 @@
  * "none"           → no saving, resets on reload.
  */
 
-import { fontKeys } from '../fonts/registry'
-
 import {
   CONTENT_LAYOUT_VALUES,
   NAVBAR_STYLE_VALUES,
@@ -61,13 +59,6 @@ export const PREFERENCE_REGISTRY = {
     defaultValue: 'default',
     persistence: 'client-cookie',
     attribute: 'data-theme-preset'
-  }),
-
-  font: definePreference({
-    values: fontKeys,
-    defaultValue: 'geist',
-    persistence: 'client-cookie',
-    attribute: 'data-font'
   }),
 
   content_layout: definePreference({

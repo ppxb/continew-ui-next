@@ -13,7 +13,6 @@
 
 :root {
   --app-font-sans: 'Geist Variable', 'Noto Sans SC Variable', ui-sans-serif, system-ui, sans-serif;
-  --app-font-variation-settings: normal;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -132,7 +131,6 @@
 
   body {
     @apply bg-background text-foreground;
-    font-variation-settings: var(--app-font-variation-settings);
   }
 
   html {
