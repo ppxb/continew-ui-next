@@ -33,7 +33,7 @@ export function AuthStoreProvider({ children }: { children: React.ReactNode }) {
 
       passwordExpiryNotified.current = true
       toast.add({ title: '密码已过期，请先修改密码。', type: 'warning' })
-      void navigate({ to: '/profile', replace: true })
+      void navigate({ to: '/dashboard/profile', replace: true })
     })
   }, [navigate, store])
 
