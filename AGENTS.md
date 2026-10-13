@@ -33,7 +33,7 @@ npx skills add shadcn/ui
 
 The skill contains the component, styling, composition, accessibility, and CLI rules. Do not duplicate those rules here. Always inspect the local component source before using it.
 
-Do not modify files inside `src/components/ui/` or `src/components/calendar/`. Keep these components intact and apply styling or customization where they are used. The shadcn CLI may re-add a `'use client'` directive to these files; delete it, because this project has no React Server Components. `SidebarContent` also carries `overscroll-contain`, like the other shadcn scroll containers, so reaching the sidebar's scroll edge does not scroll the page; keep it when updating `sidebar.tsx`.
+Do not modify files inside `src/components/ui/` or `src/components/calendar/`. Keep these components intact and apply styling or customization where they are used. The shadcn CLI may re-add a `'use client'` directive to these files; delete it, because this project has no React Server Components. `SidebarContent` also carries `overscroll-contain`, like the other shadcn scroll containers, so reaching the sidebar's scroll edge does not scroll the page; keep it when updating `sidebar.tsx`. Components the CLI writes arrive with the registry's own formatting (double quotes, semicolons), so run `pnpm fmt` after adding or updating one.
 
 ## Setup
 
@@ -65,10 +65,12 @@ There is currently no automated test command. Run build, lint, typecheck, or oth
 Keep feature code close to the route that owns it.
 
 - Root route and document shell: `src/routes/__root.tsx`
+- Application shell (sidebar, header, layout): `src/components/app-shell/`
 - Dashboard layout: `src/routes/(main)/dashboard/route.tsx`
 - Dashboard routes: `src/routes/(main)/dashboard/<screen>/route.tsx`
 - Screen-specific components and data: `src/routes/(main)/dashboard/<screen>/-components/`
-- Shared dashboard components: `src/routes/(main)/dashboard/-components/`
+- Backend-menu screens: `src/routes/(main)/(app)/<component>/route.tsx`, where `<component>` is the menu entry's `component` value without its `/index` suffix
+- Placeholder for menu entries that have no page yet: `src/routes/(main)/(app)/$.tsx`
 - Auth routes: `src/routes/(main)/auth/`
 - Standalone application routes: `src/routes/(main)/chat/` and `src/routes/(main)/mail/`
 - Shared application components: `src/components/`
@@ -86,7 +88,7 @@ Keep a component inside its route until it is reused by another feature. Do not 
 3. Reuse the existing dashboard shell, local components, layout controls, and theme tokens.
 4. Break each new page into focused components inside the route's `-components/` directory. Keep `route.tsx` small and focused on composing those pieces.
 5. Keep interactive or browser-dependent behavior in focused components; the app is client-only, so no SSR guard is needed.
-6. Add the screen to `src/navigation/sidebar/sidebar-items.ts` when it should appear in the dashboard navigation.
+6. Put the screen where its backend menu entry points. The sidebar is built from `GET /auth/user/route`, and a menu entry without a page renders the "under construction" placeholder, so a screen only shows up once its menu entry exists.
 7. Decide the information hierarchy before choosing widgets. Let the content determine the page structure.
 8. Keep the established visual rhythm where it fits: compact spacing, clear typography hierarchy, responsive action rows, and grids that collapse cleanly on smaller screens.
 9. Widget selection is not a fixed formula. Try different arrangements of cards, resource rows, meters, charts, tabs, empty states, and actions, then keep the version that communicates the content clearly and feels consistent with the project.

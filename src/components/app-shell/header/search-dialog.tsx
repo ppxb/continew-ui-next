@@ -15,57 +15,45 @@ import {
   CommandList,
   CommandSeparator
 } from '@/components/ui/command'
-import type { AppPath, NavMainItem } from '@/navigation/sidebar/sidebar-items'
-import { sidebarItems } from '@/navigation/sidebar/sidebar-items'
+import { useMenuGroups } from '@/hooks/use-menu'
+import type { MenuGroup, MenuItem } from '@/navigation/sidebar/menu'
 
-type SearchItem = {
+interface SearchItem {
   id: string
   group: string
   label: string
-  url: AppPath
-  icon?: NavMainItem['icon']
-  disabled?: boolean
-  newTab?: boolean
+  url: string
+  icon?: MenuItem['icon']
+  external?: boolean
 }
 
-const sidebarGroupLabels = new Set(sidebarItems.flatMap(group => (group.label ? [group.label] : [])))
-
-function getSubItemGroup(groupLabel: string | undefined, itemTitle: string) {
-  return sidebarGroupLabels.has(itemTitle) ? (groupLabel ?? 'Other') : itemTitle
-}
-
-const searchItems: SearchItem[] = sidebarItems.flatMap(group =>
-  group.items.flatMap(item => {
-    if (item.subItems) {
-      return item.subItems.map(sub => ({
-        id: sub.id,
-        group: getSubItemGroup(group.label, item.title),
-        label: sub.title,
-        url: sub.url,
-        icon: item.icon,
-        disabled: sub.disabled,
-        newTab: sub.newTab
-      }))
-    }
-    return [
-      {
-        id: item.id,
-        group: group.label ?? 'Other',
-        label: item.title,
-        url: item.url,
-        icon: item.icon,
-        disabled: item.disabled,
-        newTab: item.newTab
+function toSearchItems(groups: readonly MenuGroup[]): SearchItem[] {
+  return groups.flatMap(group =>
+    group.items.flatMap(item => {
+      if (item.subItems?.length) {
+        return item.subItems.map(subItem => ({
+          id: subItem.id,
+          group: item.title,
+          label: subItem.title,
+          url: subItem.url,
+          icon: subItem.icon ?? item.icon,
+          external: subItem.external
+        }))
       }
-    ]
-  })
-)
 
-function getAvailableItems(items: SearchItem[]) {
-  return items.filter(item => !item.disabled && !item.url.includes('coming-soon'))
+      return [
+        {
+          id: item.id,
+          group: group.label ?? 'Other',
+          label: item.title,
+          url: item.url,
+          icon: item.icon,
+          external: item.external
+        }
+      ]
+    })
+  )
 }
-
-const recommendations = getAvailableItems(searchItems)
 
 function groupBy(items: SearchItem[]) {
   const groups = [...new Set(items.map(item => item.group))]
@@ -79,6 +67,8 @@ export function SearchDialog() {
   const [open, setOpen] = React.useState(false)
   const [query, setQuery] = React.useState('')
   const navigate = useNavigate()
+  const { groups } = useMenuGroups()
+  const searchItems = React.useMemo(() => toSearchItems(groups), [groups])
 
   React.useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -97,13 +87,15 @@ export function SearchDialog() {
   }
 
   const handleSelect = (item: SearchItem) => {
-    if (item.disabled) return
     handleOpenChange(false)
-    if (item.newTab) {
+
+    if (item.external) {
       window.open(item.url, '_blank', 'noopener,noreferrer')
-    } else {
-      void navigate({ to: item.url })
+      return
     }
+
+    // `href` accepts the backend path verbatim, including any query string.
+    void navigate({ href: item.url })
   }
 
   const renderGroups = (items: SearchItem[]) =>
@@ -113,7 +105,6 @@ export function SearchDialog() {
         <CommandGroup heading={group}>
           {groupItems.map(item => (
             <CommandItem
-              disabled={item.disabled}
               key={`${group}-${item.id}`}
               value={`${item.group} ${item.label}`}
               onSelect={() => handleSelect(item)}
@@ -143,10 +134,10 @@ export function SearchDialog() {
       </Button>
       <CommandDialog open={open} onOpenChange={handleOpenChange}>
         <Command>
-          <CommandInput placeholder="Search dashboards, users, and more…" value={query} onValueChange={setQuery} />
+          <CommandInput placeholder="Search menus…" value={query} onValueChange={setQuery} />
           <CommandList>
             <CommandEmpty>No results found.</CommandEmpty>
-            {query ? renderGroups(searchItems) : renderGroups(recommendations)}
+            {renderGroups(searchItems)}
           </CommandList>
         </Command>
       </CommandDialog>

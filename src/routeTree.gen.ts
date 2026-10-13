@@ -10,11 +10,13 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as externalIndexRouteImport } from './routes/(external)/index'
+import { Route as mainappRouteRouteImport } from './routes/(main)/(app)/route'
 import { Route as mainAuthRouteRouteImport } from './routes/(main)/auth/route'
 import { Route as mainChatRouteRouteImport } from './routes/(main)/chat/route'
 import { Route as mainDashboardRouteRouteImport } from './routes/(main)/dashboard/route'
 import { Route as mainMailRouteRouteImport } from './routes/(main)/mail/route'
 import { Route as mainUnauthorizedRouteImport } from './routes/(main)/unauthorized'
+import { Route as mainappSplatRouteImport } from './routes/(main)/(app)/$'
 import { Route as mainAuthLoginRouteRouteImport } from './routes/(main)/auth/login/route'
 import { Route as mainDashboardIndexRouteImport } from './routes/(main)/dashboard/index'
 import { Route as mainDashboardSplatRouteImport } from './routes/(main)/dashboard/$'
@@ -49,6 +51,10 @@ const externalIndexRoute = externalIndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const mainappRouteRoute = mainappRouteRouteImport.update({
+  id: '/(main)/(app)',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const mainAuthRouteRoute = mainAuthRouteRouteImport.update({
   id: '/(main)/auth',
   path: '/auth',
@@ -73,6 +79,11 @@ const mainUnauthorizedRoute = mainUnauthorizedRouteImport.update({
   id: '/(main)/unauthorized',
   path: '/unauthorized',
   getParentRoute: () => rootRouteImport,
+} as any)
+const mainappSplatRoute = mainappSplatRouteImport.update({
+  id: '/$',
+  path: '/$',
+  getParentRoute: () => mainappRouteRoute,
 } as any)
 const mainAuthLoginRouteRoute = mainAuthLoginRouteRouteImport.update({
   id: '/login',
@@ -263,6 +274,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/roles': typeof mainDashboardRolesRouteRoute
   '/dashboard/tasks': typeof mainDashboardTasksRouteRoute
   '/dashboard/users': typeof mainDashboardUsersRouteRoute
+  '/$': typeof mainappSplatRoute
   '/dashboard/$': typeof mainDashboardSplatRoute
   '/dashboard/': typeof mainDashboardIndexRoute
   '/dashboard/analytics-v1': typeof mainDashboardlegacyAnalyticsV1RouteRoute
@@ -298,6 +310,7 @@ export interface FileRoutesByTo {
   '/dashboard/roles': typeof mainDashboardRolesRouteRoute
   '/dashboard/tasks': typeof mainDashboardTasksRouteRoute
   '/dashboard/users': typeof mainDashboardUsersRouteRoute
+  '/$': typeof mainappSplatRoute
   '/dashboard/$': typeof mainDashboardSplatRoute
   '/dashboard': typeof mainDashboardIndexRoute
   '/dashboard/analytics-v1': typeof mainDashboardlegacyAnalyticsV1RouteRoute
@@ -307,6 +320,7 @@ export interface FileRoutesByTo {
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/(main)/(app)': typeof mainappRouteRouteWithChildren
   '/(main)/auth': typeof mainAuthRouteRouteWithChildren
   '/(main)/chat': typeof mainChatRouteRoute
   '/(main)/dashboard': typeof mainDashboardRouteRouteWithChildren
@@ -335,6 +349,7 @@ export interface FileRoutesById {
   '/(main)/dashboard/roles': typeof mainDashboardRolesRouteRoute
   '/(main)/dashboard/tasks': typeof mainDashboardTasksRouteRoute
   '/(main)/dashboard/users': typeof mainDashboardUsersRouteRoute
+  '/(main)/(app)/$': typeof mainappSplatRoute
   '/(main)/dashboard/$': typeof mainDashboardSplatRoute
   '/(main)/dashboard/': typeof mainDashboardIndexRoute
   '/(main)/dashboard/(legacy)/analytics-v1': typeof mainDashboardlegacyAnalyticsV1RouteRoute
@@ -373,6 +388,7 @@ export interface FileRouteTypes {
     | '/dashboard/roles'
     | '/dashboard/tasks'
     | '/dashboard/users'
+    | '/$'
     | '/dashboard/$'
     | '/dashboard/'
     | '/dashboard/analytics-v1'
@@ -408,6 +424,7 @@ export interface FileRouteTypes {
     | '/dashboard/roles'
     | '/dashboard/tasks'
     | '/dashboard/users'
+    | '/$'
     | '/dashboard/$'
     | '/dashboard'
     | '/dashboard/analytics-v1'
@@ -416,6 +433,7 @@ export interface FileRouteTypes {
     | '/dashboard/finance-v1'
   id:
     | '__root__'
+    | '/(main)/(app)'
     | '/(main)/auth'
     | '/(main)/chat'
     | '/(main)/dashboard'
@@ -444,6 +462,7 @@ export interface FileRouteTypes {
     | '/(main)/dashboard/roles'
     | '/(main)/dashboard/tasks'
     | '/(main)/dashboard/users'
+    | '/(main)/(app)/$'
     | '/(main)/dashboard/$'
     | '/(main)/dashboard/'
     | '/(main)/dashboard/(legacy)/analytics-v1'
@@ -453,6 +472,7 @@ export interface FileRouteTypes {
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  mainappRouteRoute: typeof mainappRouteRouteWithChildren
   mainAuthRouteRoute: typeof mainAuthRouteRouteWithChildren
   mainChatRouteRoute: typeof mainChatRouteRoute
   mainDashboardRouteRoute: typeof mainDashboardRouteRouteWithChildren
@@ -468,6 +488,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof externalIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/(main)/(app)': {
+      id: '/(main)/(app)'
+      path: ''
+      fullPath: ''
+      preLoaderRoute: typeof mainappRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/(main)/auth': {
@@ -504,6 +531,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/unauthorized'
       preLoaderRoute: typeof mainUnauthorizedRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/(main)/(app)/$': {
+      id: '/(main)/(app)/$'
+      path: '/$'
+      fullPath: '/$'
+      preLoaderRoute: typeof mainappSplatRouteImport
+      parentRoute: typeof mainappRouteRoute
     }
     '/(main)/auth/login': {
       id: '/(main)/auth/login'
@@ -704,6 +738,18 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface mainappRouteRouteChildren {
+  mainappSplatRoute: typeof mainappSplatRoute
+}
+
+const mainappRouteRouteChildren: mainappRouteRouteChildren = {
+  mainappSplatRoute: mainappSplatRoute,
+}
+
+const mainappRouteRouteWithChildren = mainappRouteRoute._addFileChildren(
+  mainappRouteRouteChildren,
+)
+
 interface mainAuthRouteRouteChildren {
   mainAuthLoginRouteRoute: typeof mainAuthLoginRouteRoute
 }
@@ -784,6 +830,7 @@ const mainDashboardRouteRouteWithChildren =
   mainDashboardRouteRoute._addFileChildren(mainDashboardRouteRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
+  mainappRouteRoute: mainappRouteRouteWithChildren,
   mainAuthRouteRoute: mainAuthRouteRouteWithChildren,
   mainChatRouteRoute: mainChatRouteRoute,
   mainDashboardRouteRoute: mainDashboardRouteRouteWithChildren,
