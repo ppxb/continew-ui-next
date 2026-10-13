@@ -59,7 +59,7 @@ pnpm generate-routes
 pnpm generate:presets
 ```
 
-The pre-commit hook regenerates the theme presets, stages `src/lib/preferences/theme.ts`, and then runs lint-staged (`oxlint --fix` and `oxfmt`) on the staged files. `generate:presets` runs on Node's built-in TypeScript support, so Node `^20.19.0 || >=22.18.0` is required.
+There are no git hooks: formatting, linting and type checking only run when you invoke them, so run `pnpm fmt`, `pnpm lint` and `pnpm typecheck` yourself before pushing. After adding or editing a preset in `src/styles/presets/`, run `pnpm generate:presets` to refresh `src/lib/preferences/theme.ts`; `pnpm presets:check` fails when that generated file is stale. `generate:presets` runs on Node's built-in TypeScript support, so Node `^20.19.0 || >=22.18.0` is required.
 
 There is currently no automated test command. Run build, lint, typecheck, or other validation commands only when the user explicitly requests that validation.
 

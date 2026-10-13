@@ -11,12 +11,11 @@
     "generate-routes": "tsr generate",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "oxlint src",
-    "lint:fix": "oxlint src --fix",
-    "fmt": "oxfmt src",
-    "fmt:check": "oxfmt src --check",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check",
     "typecheck": "tsc --noEmit",
-    "prepare": "husky",
     "generate:presets": "node src/scripts/generate-theme-presets.ts"
   },
   "dependencies": {
@@ -65,20 +64,12 @@
     "@types/react-dom": "^19.3.0",
     "@types/topojson-client": "^3.1.5",
     "@vitejs/plugin-react": "^6.1.2",
-    "husky": "^9.1.7",
-    "lint-staged": "^17.6.0",
     "oxfmt": "^0.72.0",
     "oxlint": "^1.87.0",
     "shadcn": "^4.21.4",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
     "vite": "^8.3.4"
-  },
-  "lint-staged": {
-    "!(routeTree.gen).{js,ts,jsx,tsx}": [
-      "oxlint --fix --no-error-on-unmatched-pattern",
-      "oxfmt"
-    ]
   },
   "engines": {
     "node": "^20.19.0 || >=22.18.0"

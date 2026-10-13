@@ -11,7 +11,7 @@
  * - During local development, run manually after adding any new theme preset:
  *     pnpm generate:presets
  * - Ensure that each new CSS preset includes `label:` and `value:` comments.
- * - This generation step is automated using a Husky pre-commit hook.
+ * - Run it after adding or editing a preset; `pnpm presets:check` fails when the generated block is stale.
  * - The generated block is formatted with the repository's oxfmt configuration.
  * - You may optionally integrate it directly into a build step if preferred.
  */

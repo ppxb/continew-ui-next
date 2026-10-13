@@ -1,3 +1,0 @@
-pnpm generate:presets
-git add src/lib/preferences/theme.ts
-pnpm exec lint-staged --relative --max-arg-length 6000
