@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Field, FieldContent, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
 import { useCaptcha } from '@/hooks/use-captcha'
 import { useAuthStore } from '@/stores/auth/auth-provider'
@@ -158,7 +159,14 @@ export function LoginForm({ redirectTo }: { readonly redirectTo?: string }) {
         />
       </FieldGroup>
       <Button className="w-full" type="submit" disabled={form.formState.isSubmitting}>
-        {form.formState.isSubmitting ? 'Logging in…' : 'Login'}
+        {form.formState.isSubmitting ? (
+          <>
+            <Spinner />
+            Logging in
+          </>
+        ) : (
+          'Login'
+        )}
       </Button>
     </form>
   )
