@@ -9,6 +9,7 @@ import { requireAuth } from '@/lib/auth-guard'
 import { getClientCookie } from '@/lib/cookie'
 import { parsePreference } from '@/lib/preferences/preferences-config'
 
+import { FullscreenToggle } from './header/fullscreen-toggle'
 import { LayoutControls } from './header/layout-controls'
 import { SearchDialog } from './header/search-dialog'
 import { ThemeSwitcher } from './header/theme-switcher'
@@ -88,6 +89,7 @@ export function AppShell({ defaultOpen, variant, collapsible, children }: ShellP
             <div className="flex items-center gap-3">
               <LayoutControls />
               <ThemeSwitcher />
+              <FullscreenToggle />
               <UserMenu />
             </div>
           </div>
