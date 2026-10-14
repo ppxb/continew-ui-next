@@ -7,6 +7,8 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger
@@ -25,6 +27,7 @@ interface UserToolbarProps {
   readonly onExport: () => void
   readonly onRefresh: () => void
   readonly onToggleFullscreen: () => void
+  readonly onResetColumns: () => void
 }
 
 /** Actions on the left, table tools on the right. */
@@ -37,7 +40,8 @@ export function UserToolbar({
   onImport,
   onExport,
   onRefresh,
-  onToggleFullscreen
+  onToggleFullscreen,
+  onResetColumns
 }: UserToolbarProps) {
   const hideableColumns = table.getAllColumns().filter(column => column.getCanHide())
 
@@ -70,21 +74,25 @@ export function UserToolbar({
             隐藏列
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-44">
-            <DropdownMenuLabel>显示的列</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {hideableColumns.map(column => {
-              const label = typeof column.columnDef.header === 'string' ? column.columnDef.header : column.id
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>显示的列</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {hideableColumns.map(column => {
+                const label = typeof column.columnDef.header === 'string' ? column.columnDef.header : column.id
 
-              return (
-                <DropdownMenuCheckboxItem
-                  key={column.id}
-                  checked={column.getIsVisible()}
-                  onCheckedChange={value => column.toggleVisibility(value)}
-                >
-                  {label}
-                </DropdownMenuCheckboxItem>
-              )
-            })}
+                return (
+                  <DropdownMenuCheckboxItem
+                    key={column.id}
+                    checked={column.getIsVisible()}
+                    onCheckedChange={value => column.toggleVisibility(value)}
+                  >
+                    {label}
+                  </DropdownMenuCheckboxItem>
+                )
+              })}
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={onResetColumns}>重置</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
 

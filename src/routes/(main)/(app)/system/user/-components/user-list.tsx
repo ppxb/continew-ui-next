@@ -198,6 +198,7 @@ export function UserList() {
             onExport={() => void handleExport()}
             onRefresh={() => void query.refetch()}
             onToggleFullscreen={() => setIsFullscreen(current => !current)}
+            onResetColumns={() => setColumnVisibility(HIDDEN_BY_DEFAULT)}
           />
 
           <UserTable
