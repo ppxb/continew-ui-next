@@ -23,3 +23,5 @@ export interface RoleDictResp {
 export function listRoleDict() {
   return http.get<RoleDictResp[]>('/system/role/dict')
 }
+
+export { roleKeys } from '@/lib/query-keys'

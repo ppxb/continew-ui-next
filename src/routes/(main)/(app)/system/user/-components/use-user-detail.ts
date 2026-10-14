@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 
-import { getUser } from '@/lib/api/user'
+import { getUser, userKeys } from '@/lib/api/user'
 
 interface UserDetailOptions {
   /**
@@ -32,7 +32,7 @@ export function useUserDetail(
   { enabled = true, alwaysRefetch = false }: UserDetailOptions = {}
 ) {
   return useQuery({
-    queryKey: ['system', 'user', 'detail', userId],
+    queryKey: userKeys.detail(userId),
     queryFn: () => {
       if (userId === null) {
         throw new Error('A user detail was requested without an id')

@@ -158,3 +158,5 @@ export type UserRoleUpdateReq = {
 export function assignUserRoles(id: string | number, body: UserRoleUpdateReq) {
   return http.patch<void>(`/system/user/${id}/role`, body)
 }
+
+export { userKeys } from '@/lib/query-keys'

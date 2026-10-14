@@ -10,9 +10,9 @@ import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle }
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from '@/components/ui/toast'
-import { getDeptTree } from '@/lib/api/dept'
-import { listRoleDict } from '@/lib/api/role'
-import { exportUsers, listUsers, type UserResp, type UserStatus } from '@/lib/api/user'
+import { deptKeys, getDeptTree } from '@/lib/api/dept'
+import { listRoleDict, roleKeys } from '@/lib/api/role'
+import { exportUsers, listUsers, userKeys, type UserResp, type UserStatus } from '@/lib/api/user'
 import { dataTableFeatures } from '@/lib/data-table-features'
 
 import { useFullscreenTransition } from './use-fullscreen-transition'
@@ -80,7 +80,13 @@ export function UserList() {
   }, [searchInput])
 
   const query = useQuery({
-    queryKey: ['system', 'user', pagination.pageIndex, pagination.pageSize, status, keyword],
+    queryKey: userKeys.list({
+      page: pagination.pageIndex + 1,
+      size: pagination.pageSize,
+      status,
+      description: keyword || undefined,
+      sort: DEFAULT_SORT
+    }),
     queryFn: () =>
       listUsers({
         page: pagination.pageIndex + 1,
@@ -95,13 +101,13 @@ export function UserList() {
 
   // Warm the metadata lookups so drawers and pickers open instantly without popover spinners.
   useQuery({
-    queryKey: ['system', 'dept', 'tree'],
+    queryKey: deptKeys.trees(),
     queryFn: getDeptTree,
     staleTime: 5 * 60_000
   })
 
   useQuery({
-    queryKey: ['system', 'role', 'dict'],
+    queryKey: roleKeys.dicts(),
     queryFn: listRoleDict,
     staleTime: 5 * 60_000
   })

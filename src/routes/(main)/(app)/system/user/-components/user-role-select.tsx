@@ -6,7 +6,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Spinner } from '@/components/ui/spinner'
-import { listRoleDict } from '@/lib/api/role'
+import { listRoleDict, roleKeys } from '@/lib/api/role'
 
 /** Roles barely change, so reopening the picker should not refetch them. */
 const LOOKUP_STALE_MS = 5 * 60_000
@@ -31,7 +31,7 @@ export function UserRoleSelect({
   enabled = true
 }: UserRoleSelectProps) {
   const roles = useQuery({
-    queryKey: ['system', 'role', 'dict'],
+    queryKey: roleKeys.dicts(),
     queryFn: listRoleDict,
     staleTime: LOOKUP_STALE_MS,
     enabled

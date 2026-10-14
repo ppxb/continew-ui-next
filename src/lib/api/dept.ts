@@ -33,3 +33,5 @@ export function flattenDepts(nodes: DeptTreeNode[], depth = 0): DeptOption[] {
     ...flattenDepts(node.children ?? [], depth + 1)
   ])
 }
+
+export { deptKeys } from '@/lib/query-keys'

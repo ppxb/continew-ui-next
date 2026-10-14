@@ -18,7 +18,7 @@ import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/c
 import { PasswordInput } from '@/components/ui/password-input'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
-import { resetUserPassword, type UserResp } from '@/lib/api/user'
+import { resetUserPassword, userKeys, type UserResp } from '@/lib/api/user'
 import { encryptPassword } from '@/lib/crypto'
 
 import { userLabel } from './user-display'
@@ -90,7 +90,7 @@ export function UserResetPasswordDialog({ user, open, onClose }: UserResetPasswo
       onClose()
       // A reset moves `pwdResetTime`, which only the detail response carries, so that one
       // record is invalidated and the list is left alone.
-      void queryClient.invalidateQueries({ queryKey: ['system', 'user', 'detail', user.id] })
+      void queryClient.invalidateQueries({ queryKey: userKeys.detail(user.id) })
       toast.add({ title: `已重置「${userLabel(user)}」的密码`, type: 'success' })
     } catch {
       // The HTTP layer already reported the failure.

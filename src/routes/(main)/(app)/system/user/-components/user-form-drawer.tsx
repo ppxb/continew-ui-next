@@ -18,11 +18,12 @@ import { Spinner } from '@/components/ui/spinner'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/components/ui/toast'
-import { flattenDepts, getDeptTree } from '@/lib/api/dept'
-import { listRoleDict } from '@/lib/api/role'
+import { deptKeys, flattenDepts, getDeptTree } from '@/lib/api/dept'
+import { listRoleDict, roleKeys } from '@/lib/api/role'
 import {
   createUser,
   updateUser,
+  userKeys,
   type UserDetailResp,
   type UserGender,
   type UserReq,
@@ -204,14 +205,14 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
   const detail = useUserDetail(userId)
 
   const depts = useQuery({
-    queryKey: ['system', 'dept', 'tree'],
+    queryKey: deptKeys.trees(),
     queryFn: getDeptTree,
     staleTime: LOOKUP_STALE_MS,
     enabled: open
   })
 
   const roles = useQuery({
-    queryKey: ['system', 'role', 'dict'],
+    queryKey: roleKeys.dicts(),
     queryFn: listRoleDict,
     staleTime: LOOKUP_STALE_MS,
     enabled: open
@@ -283,7 +284,7 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
         await createUser({ ...toUserReq(values), password })
 
         onClose()
-        void queryClient.invalidateQueries({ queryKey: ['system', 'user'] })
+        void queryClient.invalidateQueries({ queryKey: userKeys.all })
         toast.add({ title: '新增成功', type: 'success' })
       } catch {
         // The HTTP layer already reported the failure.
@@ -297,7 +298,7 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
 
       onClose()
       // One prefix covers both the list and the cached detail.
-      void queryClient.invalidateQueries({ queryKey: ['system', 'user'] })
+      void queryClient.invalidateQueries({ queryKey: userKeys.all })
       toast.add({ title: '修改成功', type: 'success' })
     } catch {
       // The HTTP layer already reported the failure.

@@ -18,8 +18,8 @@ import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
-import { listRoleDict } from '@/lib/api/role'
-import { assignUserRoles, type UserResp } from '@/lib/api/user'
+import { listRoleDict, roleKeys } from '@/lib/api/role'
+import { assignUserRoles, userKeys, type UserResp } from '@/lib/api/user'
 
 import { useUserDetail } from './use-user-detail'
 import { userLabel } from './user-display'
@@ -66,7 +66,7 @@ function UserAssignRolesForm({ user, initialRoleIds, onClose }: UserAssignRolesF
   })
 
   const roles = useQuery({
-    queryKey: ['system', 'role', 'dict'],
+    queryKey: roleKeys.dicts(),
     queryFn: listRoleDict,
     staleTime: LOOKUP_STALE_MS
   })
@@ -84,7 +84,7 @@ function UserAssignRolesForm({ user, initialRoleIds, onClose }: UserAssignRolesF
       })
 
       onClose()
-      void queryClient.invalidateQueries({ queryKey: ['system', 'user'] })
+      void queryClient.invalidateQueries({ queryKey: userKeys.all })
       toast.add({ title: '分配角色成功', type: 'success' })
     } catch {
       // The HTTP layer already reported the failure.

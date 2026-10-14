@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
-import { deleteUser, type UserResp } from '@/lib/api/user'
+import { deleteUser, userKeys, type UserResp } from '@/lib/api/user'
 
 import { userLabel } from './user-display'
 
@@ -51,7 +51,7 @@ export function UserDeleteDialog({ user, open, onClose }: UserDeleteDialogProps)
 
       onClose()
       // One prefix covers both the list and the cached detail.
-      void queryClient.invalidateQueries({ queryKey: ['system', 'user'] })
+      void queryClient.invalidateQueries({ queryKey: userKeys.all })
       toast.add({ title: '删除成功', type: 'success' })
     } catch {
       // The HTTP layer already reported the failure.
