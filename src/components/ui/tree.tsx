@@ -83,7 +83,8 @@ function buildTreeIndex<T>(nodes: TreeNodeData<T>[]): TreeIndex<T> {
 /**
  * Highlights search matches within node labels.
  */
-function HighlightText({ text, keyword }: { text: string; keyword?: string }) {
+function HighlightText({ text, keyword }: { text?: string; keyword?: string }) {
+  if (!text) return null
   if (!keyword || !keyword.trim()) {
     return <span className="truncate">{text}</span>
   }
@@ -190,7 +191,7 @@ export function Tree<T = Record<string, unknown>>({
     const searchExpandedKeys = new Set<TreeKey>()
 
     for (const [id, node] of index.nodeMap.entries()) {
-      if (node.label.toLowerCase().includes(trimmedSearch)) {
+      if ((node.label ?? '').toLowerCase().includes(trimmedSearch)) {
         matchedNodeKeys.add(id)
         const ancestors = index.ancestorsMap.get(id) ?? []
         for (const ancestorId of ancestors) {
@@ -341,10 +342,12 @@ export function Tree<T = Record<string, unknown>>({
                 {renderIcon ? (
                   renderIcon(renderContext)
                 ) : node.icon ? (
-                  typeof node.icon === 'function' ? (
-                    <node.icon className="size-4" />
-                  ) : (
+                  React.isValidElement(node.icon) ? (
                     node.icon
+                  ) : (
+                    React.createElement(node.icon as React.ComponentType<{ className?: string }>, {
+                      className: 'size-4'
+                    })
                   )
                 ) : hasChildren ? (
                   isExpanded ? (

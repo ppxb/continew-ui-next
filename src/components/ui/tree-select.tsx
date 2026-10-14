@@ -4,7 +4,6 @@ import { ChevronsDownUp, ChevronsUpDown, ChevronDown, Search, X } from 'lucide-r
 
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tree, TreeSkeleton, type TreeKey, type TreeNodeData, type TreeProps } from '@/components/ui/tree'
 
 export interface TreeSelectProps<T = Record<string, unknown>> {
@@ -134,19 +133,15 @@ export function TreeSelect<T = Record<string, unknown>>({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
         render={
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size={size}
             disabled={disabled}
             aria-invalid={invalid}
-            aria-expanded={open}
-            data-size={size}
             className={cn(
-              'group/tree-trigger flex w-full items-center justify-between gap-2 rounded-lg border border-input bg-transparent px-2.5 text-left text-sm transition-colors outline-none select-none',
-              'focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50',
-              'disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50',
-              'aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20',
-              'dark:bg-input/30 dark:hover:bg-input/50 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40',
-              size === 'sm' ? 'h-7 rounded-[min(var(--radius-md),10px)] text-xs' : 'h-8',
+              'w-full justify-between px-2.5 text-left font-normal',
+              size === 'sm' ? 'h-7 text-xs' : 'h-8 text-sm',
               className
             )}
           />
@@ -167,6 +162,7 @@ export function TreeSelect<T = Record<string, unknown>>({
               aria-label="清空已选"
               className="flex size-4 items-center justify-center rounded-xs opacity-70 transition-opacity hover:opacity-100"
               onClick={handleClear}
+              onPointerDown={e => e.stopPropagation()}
             >
               <X className="size-3" />
             </span>
@@ -239,7 +235,7 @@ export function TreeSelect<T = Record<string, unknown>>({
         )}
 
         {/* Tree Content Body */}
-        <ScrollArea className="max-h-72 p-1">
+        <div className="max-h-72 overflow-y-auto overscroll-contain p-1">
           {loading ? (
             <TreeSkeleton rows={5} />
           ) : (
@@ -257,7 +253,7 @@ export function TreeSelect<T = Record<string, unknown>>({
               renderIcon={renderIcon}
             />
           )}
-        </ScrollArea>
+        </div>
       </PopoverContent>
     </Popover>
   )
