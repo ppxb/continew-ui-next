@@ -29,6 +29,7 @@ const LOGOUT_PATH = '/auth/logout'
 
 const STATUS_MESSAGE: Record<number, string> = {
   400: '请求错误（400）',
+  401: '登录状态已失效，请重新登录',
   403: '拒绝访问（403）',
   404: '请求出错（404）',
   408: '请求超时（408）',
@@ -253,6 +254,80 @@ async function send<T>(method: string, path: string, options: RequestOptions, is
 
 export function request<T>(method: string, path: string, options: RequestOptions = {}): Promise<T> {
   return send<T>(method, path, options, false)
+}
+
+/** Reads `filename*` first, then `filename`, from a `Content-Disposition` header. */
+function readDownloadFilename(header: string | null) {
+  if (!header) {
+    return null
+  }
+
+  const encoded = /filename\*=UTF-8''([^;]+)/i.exec(header)
+  if (encoded) {
+    try {
+      return decodeURIComponent(encoded[1])
+    } catch {
+      return encoded[1]
+    }
+  }
+
+  return /filename="?([^";]+)"?/i.exec(header)?.[1] ?? null
+}
+
+/** One authenticated request for a file endpoint. */
+async function fetchDownload(path: string, query?: RequestOptions['query']) {
+  try {
+    return await fetch(buildUrl(path, query), {
+      credentials: 'include',
+      headers: buildHeaders(path, false),
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS)
+    })
+  } catch {
+    throw fail('网络连接失败，请检查您的网络')
+  }
+}
+
+/**
+ * Downloads an endpoint's file response.
+ *
+ * File endpoints answer outside the JSON envelope, so this cannot go through `request()`;
+ * it only reuses the URL and header builders. The backend names the file in
+ * `Content-Disposition`.
+ */
+export async function downloadFile(path: string, query?: RequestOptions['query']) {
+  const generation = getAuthGeneration()
+  let response = await fetchDownload(path, query)
+
+  // File endpoints need the same expired-token recovery as JSON ones.
+  if (response.status === 401) {
+    try {
+      await refreshAccessToken()
+    } catch (error) {
+      const message = error instanceof ApiError ? error.message : '登录状态已失效，请重新登录'
+      await handleSessionExpired(generation, message)
+      throw error
+    }
+
+    response = await fetchDownload(path, query)
+  }
+
+  if (response.status === 403) {
+    forbiddenHandler?.()
+  }
+
+  if (!response.ok) {
+    throw fail(STATUS_MESSAGE[response.status] || `下载失败（${response.status}）`, { status: response.status })
+  }
+
+  const url = URL.createObjectURL(await response.blob())
+  const anchor = document.createElement('a')
+  anchor.href = url
+  anchor.download = readDownloadFilename(response.headers.get('Content-Disposition')) ?? 'download'
+  document.body.append(anchor)
+  anchor.click()
+  anchor.remove()
+  // Revoking in the same tick can cancel the download in some browsers.
+  setTimeout(() => URL.revokeObjectURL(url), 0)
 }
 
 export const http = {

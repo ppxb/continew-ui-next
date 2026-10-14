@@ -41,6 +41,7 @@ import { Route as mainDashboardProfileRouteRouteImport } from './routes/(main)/d
 import { Route as mainDashboardRolesRouteRouteImport } from './routes/(main)/dashboard/roles/route'
 import { Route as mainDashboardTasksRouteRouteImport } from './routes/(main)/dashboard/tasks/route'
 import { Route as mainDashboardUsersRouteRouteImport } from './routes/(main)/dashboard/users/route'
+import { Route as mainappSystemUserRouteRouteImport } from './routes/(main)/(app)/system/user/route'
 import { Route as mainDashboardlegacyAnalyticsV1RouteRouteImport } from './routes/(main)/dashboard/(legacy)/analytics-v1/route'
 import { Route as mainDashboardlegacyCrmV1RouteRouteImport } from './routes/(main)/dashboard/(legacy)/crm-v1/route'
 import { Route as mainDashboardlegacyDefaultV1RouteRouteImport } from './routes/(main)/dashboard/(legacy)/default-v1/route'
@@ -220,6 +221,11 @@ const mainDashboardUsersRouteRoute = mainDashboardUsersRouteRouteImport.update({
   path: '/users',
   getParentRoute: () => mainDashboardRouteRoute,
 } as any)
+const mainappSystemUserRouteRoute = mainappSystemUserRouteRouteImport.update({
+  id: '/system/user',
+  path: '/system/user',
+  getParentRoute: () => mainappRouteRoute,
+} as any)
 const mainDashboardlegacyAnalyticsV1RouteRoute =
   mainDashboardlegacyAnalyticsV1RouteRouteImport.update({
     id: '/(legacy)/analytics-v1',
@@ -277,6 +283,7 @@ export interface FileRoutesByFullPath {
   '/$': typeof mainappSplatRoute
   '/dashboard/$': typeof mainDashboardSplatRoute
   '/dashboard/': typeof mainDashboardIndexRoute
+  '/system/user': typeof mainappSystemUserRouteRoute
   '/dashboard/analytics-v1': typeof mainDashboardlegacyAnalyticsV1RouteRoute
   '/dashboard/crm-v1': typeof mainDashboardlegacyCrmV1RouteRoute
   '/dashboard/default-v1': typeof mainDashboardlegacyDefaultV1RouteRoute
@@ -313,6 +320,7 @@ export interface FileRoutesByTo {
   '/$': typeof mainappSplatRoute
   '/dashboard/$': typeof mainDashboardSplatRoute
   '/dashboard': typeof mainDashboardIndexRoute
+  '/system/user': typeof mainappSystemUserRouteRoute
   '/dashboard/analytics-v1': typeof mainDashboardlegacyAnalyticsV1RouteRoute
   '/dashboard/crm-v1': typeof mainDashboardlegacyCrmV1RouteRoute
   '/dashboard/default-v1': typeof mainDashboardlegacyDefaultV1RouteRoute
@@ -352,6 +360,7 @@ export interface FileRoutesById {
   '/(main)/(app)/$': typeof mainappSplatRoute
   '/(main)/dashboard/$': typeof mainDashboardSplatRoute
   '/(main)/dashboard/': typeof mainDashboardIndexRoute
+  '/(main)/(app)/system/user': typeof mainappSystemUserRouteRoute
   '/(main)/dashboard/(legacy)/analytics-v1': typeof mainDashboardlegacyAnalyticsV1RouteRoute
   '/(main)/dashboard/(legacy)/crm-v1': typeof mainDashboardlegacyCrmV1RouteRoute
   '/(main)/dashboard/(legacy)/default-v1': typeof mainDashboardlegacyDefaultV1RouteRoute
@@ -391,6 +400,7 @@ export interface FileRouteTypes {
     | '/$'
     | '/dashboard/$'
     | '/dashboard/'
+    | '/system/user'
     | '/dashboard/analytics-v1'
     | '/dashboard/crm-v1'
     | '/dashboard/default-v1'
@@ -427,6 +437,7 @@ export interface FileRouteTypes {
     | '/$'
     | '/dashboard/$'
     | '/dashboard'
+    | '/system/user'
     | '/dashboard/analytics-v1'
     | '/dashboard/crm-v1'
     | '/dashboard/default-v1'
@@ -465,6 +476,7 @@ export interface FileRouteTypes {
     | '/(main)/(app)/$'
     | '/(main)/dashboard/$'
     | '/(main)/dashboard/'
+    | '/(main)/(app)/system/user'
     | '/(main)/dashboard/(legacy)/analytics-v1'
     | '/(main)/dashboard/(legacy)/crm-v1'
     | '/(main)/dashboard/(legacy)/default-v1'
@@ -707,6 +719,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof mainDashboardUsersRouteRouteImport
       parentRoute: typeof mainDashboardRouteRoute
     }
+    '/(main)/(app)/system/user': {
+      id: '/(main)/(app)/system/user'
+      path: '/system/user'
+      fullPath: '/system/user'
+      preLoaderRoute: typeof mainappSystemUserRouteRouteImport
+      parentRoute: typeof mainappRouteRoute
+    }
     '/(main)/dashboard/(legacy)/analytics-v1': {
       id: '/(main)/dashboard/(legacy)/analytics-v1'
       path: '/analytics-v1'
@@ -740,10 +759,12 @@ declare module '@tanstack/react-router' {
 
 interface mainappRouteRouteChildren {
   mainappSplatRoute: typeof mainappSplatRoute
+  mainappSystemUserRouteRoute: typeof mainappSystemUserRouteRoute
 }
 
 const mainappRouteRouteChildren: mainappRouteRouteChildren = {
   mainappSplatRoute: mainappSplatRoute,
+  mainappSystemUserRouteRoute: mainappSystemUserRouteRoute,
 }
 
 const mainappRouteRouteWithChildren = mainappRouteRoute._addFileChildren(
