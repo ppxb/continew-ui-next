@@ -32,6 +32,7 @@ export interface TreeSelectProps<T = Record<string, unknown>> {
   triggerPrefix?: React.ReactNode
   showAllOption?: boolean
   allOptionLabel?: string
+  placeholderColor?: 'muted' | 'foreground'
 }
 
 /**
@@ -62,7 +63,8 @@ export function TreeSelect<T = Record<string, unknown>>({
   size = 'default',
   triggerPrefix,
   showAllOption = false,
-  allOptionLabel = '全部'
+  allOptionLabel = '全部',
+  placeholderColor = 'muted'
 }: TreeSelectProps<T>) {
   const [open, setOpen] = React.useState(false)
   const [searchKeyword, setSearchKeyword] = React.useState('')
@@ -158,7 +160,10 @@ export function TreeSelect<T = Record<string, unknown>>({
           {triggerPrefix && <span className="shrink-0 text-muted-foreground">{triggerPrefix}</span>}
           <span
             title={fullPath || undefined}
-            className={cn('truncate', !hasValue ? 'text-muted-foreground' : 'text-foreground')}
+            className={cn(
+              'truncate',
+              !hasValue && placeholderColor === 'muted' ? 'text-muted-foreground' : 'text-foreground'
+            )}
           >
             {loading ? '加载中…' : hasValue ? displayText : placeholder}
           </span>
@@ -177,7 +182,9 @@ export function TreeSelect<T = Record<string, unknown>>({
               <X className="size-3" />
             </span>
           )}
-          <ChevronDown className={cn('size-4 opacity-60 transition-transform duration-150', open && 'rotate-180')} />
+          <ChevronDown
+            className={cn('size-4 text-muted-foreground transition-transform duration-150', open && 'rotate-180')}
+          />
         </div>
       </PopoverTrigger>
 

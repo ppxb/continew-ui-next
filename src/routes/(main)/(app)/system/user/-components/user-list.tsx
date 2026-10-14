@@ -209,6 +209,7 @@ export function UserList() {
           size="sm"
           triggerPrefix="部门"
           placeholder="全部"
+          placeholderColor="foreground"
           showAllOption
           allOptionLabel="全部部门"
           value={deptId}

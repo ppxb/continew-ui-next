@@ -27,6 +27,7 @@ export interface DeptTreeSelectProps {
   readonly triggerPrefix?: React.ReactNode
   readonly showAllOption?: boolean
   readonly allOptionLabel?: string
+  readonly placeholderColor?: 'muted' | 'foreground'
 }
 
 /**
@@ -63,7 +64,8 @@ export function DeptTreeSelect({
   size = 'default',
   triggerPrefix,
   showAllOption = false,
-  allOptionLabel = '全部'
+  allOptionLabel = '全部',
+  placeholderColor = 'muted'
 }: DeptTreeSelectProps) {
   const shouldQuery = externalData === undefined
 
@@ -109,6 +111,7 @@ export function DeptTreeSelect({
       triggerPrefix={triggerPrefix}
       showAllOption={showAllOption}
       allOptionLabel={allOptionLabel}
+      placeholderColor={placeholderColor}
     />
   )
 }
