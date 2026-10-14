@@ -15,7 +15,7 @@ import {
   DialogTitle
 } from '@/components/ui/dialog'
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
+import { PasswordInput } from '@/components/ui/password-input'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
 import { resetUserPassword, type UserResp } from '@/lib/api/user'
@@ -125,10 +125,9 @@ export function UserResetPasswordDialog({ user, open, onClose }: UserResetPasswo
               render={({ field, fieldState }) => (
                 <Field className="gap-1.5" data-invalid={fieldState.invalid}>
                   <FieldLabel htmlFor="user-password-new">新密码</FieldLabel>
-                  <Input
+                  <PasswordInput
                     {...field}
                     id="user-password-new"
-                    type="password"
                     maxLength={32}
                     autoComplete="new-password"
                     placeholder="请输入新密码"
@@ -146,10 +145,9 @@ export function UserResetPasswordDialog({ user, open, onClose }: UserResetPasswo
               render={({ field, fieldState }) => (
                 <Field className="gap-1.5" data-invalid={fieldState.invalid}>
                   <FieldLabel htmlFor="user-password-confirm">确认密码</FieldLabel>
-                  <Input
+                  <PasswordInput
                     {...field}
                     id="user-password-confirm"
-                    type="password"
                     maxLength={32}
                     autoComplete="new-password"
                     placeholder="请再次输入新密码"

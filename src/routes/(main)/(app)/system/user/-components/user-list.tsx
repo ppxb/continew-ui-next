@@ -109,6 +109,14 @@ export function UserList() {
   const total = query.data?.total ?? 0
   const rowOffset = pagination.pageIndex * pagination.pageSize
 
+  // When records are deleted or filter results shrink, auto-fallback to the last valid page if out of bounds.
+  React.useEffect(() => {
+    if (total > 0 && pagination.pageIndex * pagination.pageSize >= total) {
+      const maxPageIndex = Math.max(0, Math.ceil(total / pagination.pageSize) - 1)
+      setPagination(current => ({ ...current, pageIndex: maxPageIndex }))
+    }
+  }, [total, pagination.pageIndex, pagination.pageSize])
+
   const reportPending = React.useCallback((label: string) => {
     toast.add({ title: `${label}功能开发中`, type: 'info' })
   }, [])
@@ -224,6 +232,7 @@ export function UserList() {
         isLoading={query.isPending}
         isError={query.isError}
         isStale={query.isPlaceholderData || query.isError}
+        onRetry={() => void query.refetch()}
       />
     </>
   )

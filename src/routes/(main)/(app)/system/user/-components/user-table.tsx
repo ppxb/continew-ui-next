@@ -13,9 +13,10 @@ import {
   PaginationNext,
   PaginationPrevious
 } from '@/components/ui/pagination'
+import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
-import { Spinner } from '@/components/ui/spinner'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import type { UserResp } from '@/lib/api/user'
 import type { DataTableFeatures } from '@/lib/data-table-features'
@@ -44,16 +45,48 @@ function getPageNumbers(currentPage: number, pageCount: number): PageItem[] {
   return [1, 'ellipsis-left', currentPage - 1, currentPage, currentPage + 1, 'ellipsis-right', pageCount]
 }
 
+function TableSkeletonRows({ columnCount }: { columnCount: number }) {
+  return (
+    <>
+      {Array.from({ length: 5 }).map((_, rowIndex) => (
+        <TableRow key={rowIndex} className="hover:bg-transparent">
+          {Array.from({ length: columnCount }).map((_, colIndex) => (
+            <TableCell key={colIndex} className="py-4 align-middle">
+              <Skeleton
+                className={cn(
+                  'h-4',
+                  colIndex === 0
+                    ? 'mx-auto w-6'
+                    : colIndex === 1
+                      ? 'w-24'
+                      : colIndex === 2
+                        ? 'w-20'
+                        : colIndex === 3
+                          ? 'mx-auto w-12 rounded-full'
+                          : colIndex === 4
+                            ? 'mx-auto w-8'
+                            : 'w-24'
+                )}
+              />
+            </TableCell>
+          ))}
+        </TableRow>
+      ))}
+    </>
+  )
+}
+
 interface UserTableProps {
   readonly table: ReactTable<DataTableFeatures, UserResp>
   readonly isLoading: boolean
   readonly isError: boolean
   /** The rows on screen come from the previous query, or a refetch failed. */
   readonly isStale: boolean
+  readonly onRetry?: () => void
 }
 
 /** The table itself plus the server-side pagination footer. */
-export function UserTable({ table, isLoading, isError, isStale }: UserTableProps) {
+export function UserTable({ table, isLoading, isError, isStale, onRetry }: UserTableProps) {
   const pageCount = Math.max(table.getPageCount(), 1)
   const currentPage = Math.min(table.state.pagination.pageIndex + 1, pageCount)
   const pageNumbers = getPageNumbers(currentPage, pageCount)
@@ -91,15 +124,22 @@ export function UserTable({ table, isLoading, isError, isStale }: UserTableProps
                 ))}
               </TableRow>
             ))
+          ) : isLoading ? (
+            <TableSkeletonRows columnCount={table.getVisibleLeafColumns().length} />
           ) : (
             <TableRow>
-              <TableCell colSpan={table.getVisibleLeafColumns().length} className="h-24 text-center">
-                {isLoading ? (
-                  <Spinner className="mx-auto" />
-                ) : isError ? (
-                  <span className="text-foreground">加载失败，请稍后重试</span>
+              <TableCell colSpan={table.getVisibleLeafColumns().length} className="h-32 text-center">
+                {isError ? (
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <span className="text-sm text-destructive">数据加载失败</span>
+                    {onRetry ? (
+                      <Button type="button" variant="outline" size="sm" onClick={onRetry}>
+                        重新加载
+                      </Button>
+                    ) : null}
+                  </div>
                 ) : (
-                  <span className="text-muted-foreground">暂无数据</span>
+                  <span className="text-sm text-muted-foreground">暂无数据</span>
                 )}
               </TableCell>
             </TableRow>

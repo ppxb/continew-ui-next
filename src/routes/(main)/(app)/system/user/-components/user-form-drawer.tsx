@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { PasswordInput } from '@/components/ui/password-input'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
@@ -365,10 +366,9 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
                     render={({ field, fieldState }) => (
                       <Field className="gap-1.5" data-invalid={fieldState.invalid}>
                         <FieldLabel htmlFor="user-create-password">密码</FieldLabel>
-                        <Input
+                        <PasswordInput
                           {...field}
                           id="user-create-password"
-                          type="password"
                           maxLength={32}
                           placeholder="请输入密码"
                           autoComplete="new-password"
