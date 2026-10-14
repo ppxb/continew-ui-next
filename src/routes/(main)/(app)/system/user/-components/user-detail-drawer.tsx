@@ -1,0 +1,152 @@
+import * as React from 'react'
+
+import { useQuery } from '@tanstack/react-query'
+
+import { cn } from 'cn'
+import { Check, Copy, X } from 'lucide-react'
+
+import { Button } from '@/components/ui/button'
+import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
+import { Spinner } from '@/components/ui/spinner'
+import { toast } from '@/components/ui/toast'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { getUser, type UserDetailResp } from '@/lib/api/user'
+
+import { EMPTY_PLACEHOLDER, genderLabel, RoleCell, StatusCell } from './user-display'
+
+const COPIED_FEEDBACK_MS = 1500
+
+function DetailField({ label, className, children }: { label: string; className?: string; children: React.ReactNode }) {
+  return (
+    <div className={cn('flex flex-col gap-1', className)}>
+      <dt className="text-xs text-muted-foreground">{label}</dt>
+      <dd className="text-sm break-words text-foreground">{children}</dd>
+    </div>
+  )
+}
+
+/** The ID is a snowflake number, so it is only useful next to a copy button. */
+function IdField({ id }: { id: UserDetailResp['id'] }) {
+  const [copied, setCopied] = React.useState(false)
+  const timer = React.useRef<ReturnType<typeof setTimeout>>(undefined)
+
+  React.useEffect(() => () => clearTimeout(timer.current), [])
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(String(id))
+      setCopied(true)
+      clearTimeout(timer.current)
+      timer.current = setTimeout(() => setCopied(false), COPIED_FEEDBACK_MS)
+    } catch {
+      // `navigator.clipboard` only exists in a secure context, so this can fail outright.
+      toast.add({ title: '复制失败，请手动选择 ID', type: 'error' })
+    }
+  }
+
+  return (
+    <div className="flex items-center gap-1">
+      <span className="text-xs break-all">{id}</span>
+      <Tooltip>
+        <TooltipTrigger render={<Button variant="ghost" size="icon-sm" onClick={() => void copy()} />}>
+          {copied ? <Check className="size-3.5 text-green-600" /> : <Copy className="size-3.5" />}
+        </TooltipTrigger>
+        <TooltipContent side="top" sideOffset={8}>
+          {copied ? '已复制' : '复制 ID'}
+        </TooltipContent>
+      </Tooltip>
+    </div>
+  )
+}
+
+interface UserDetailDrawerProps {
+  /** The user to show, or `null` before the first one is picked. */
+  readonly userId: string | number | null
+  readonly open: boolean
+  readonly onClose: () => void
+}
+
+/**
+ * Read-only detail panel for one user.
+ *
+ * It renders the same field set as the Vue client's `DetailDrawer.vue`, in the same order,
+ * with this project's components. `open` is separate from `userId` on purpose: clearing the
+ * id on close would drop the query back to `pending` and swap the panel's content for a
+ * spinner while it is still sliding out.
+ */
+export function UserDetailDrawer({ userId, open, onClose }: UserDetailDrawerProps) {
+  const query = useQuery({
+    queryKey: ['system', 'user', 'detail', userId],
+    queryFn: () => {
+      if (userId === null) {
+        throw new Error('UserDetailDrawer was opened without a user id')
+      }
+
+      return getUser(userId)
+    },
+    enabled: userId !== null
+  })
+
+  const detail = query.data
+
+  return (
+    <Drawer
+      open={open}
+      onOpenChange={nextOpen => {
+        if (!nextOpen) {
+          onClose()
+        }
+      }}
+      swipeDirection="right"
+    >
+      {/*
+        The built-in width lives on `data-[swipe-axis=x]:sm:`, so the override repeats that
+        variant chain; a bare `sm:` would lose to the attribute selector on specificity.
+      */}
+      <DrawerContent className="data-[swipe-axis=x]:sm:[--drawer-content-width:32rem]">
+        <DrawerHeader className="flex-row items-start justify-between gap-2 border-b p-4 md:gap-2">
+          <DrawerTitle>用户详情</DrawerTitle>
+          <DrawerClose render={<Button variant="ghost" size="icon-sm" />}>
+            <X className="size-4" />
+            <span className="sr-only">关闭</span>
+          </DrawerClose>
+        </DrawerHeader>
+
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
+          {query.isPending ? (
+            <div className="flex h-40 items-center justify-center">
+              <Spinner />
+            </div>
+          ) : query.isError || !detail ? (
+            <p className="text-sm text-destructive">加载失败，请稍后重试</p>
+          ) : (
+            <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+              <DetailField label="ID" className="sm:col-span-2">
+                <IdField id={detail.id} />
+              </DetailField>
+              <DetailField label="用户名">{detail.username}</DetailField>
+              <DetailField label="昵称">{detail.nickname}</DetailField>
+              <DetailField label="性别">{genderLabel(detail.gender)}</DetailField>
+              <DetailField label="状态">
+                <StatusCell status={detail.status} />
+              </DetailField>
+              <DetailField label="手机号">{detail.phone || EMPTY_PLACEHOLDER}</DetailField>
+              <DetailField label="邮箱">{detail.email || EMPTY_PLACEHOLDER}</DetailField>
+              <DetailField label="所属部门">{detail.deptName || EMPTY_PLACEHOLDER}</DetailField>
+              <DetailField label="角色">
+                <RoleCell roleNames={detail.roleNames ?? []} />
+              </DetailField>
+              <DetailField label="创建人">{detail.createUserString || EMPTY_PLACEHOLDER}</DetailField>
+              <DetailField label="创建时间">{detail.createTime || EMPTY_PLACEHOLDER}</DetailField>
+              <DetailField label="修改人">{detail.updateUserString || EMPTY_PLACEHOLDER}</DetailField>
+              <DetailField label="修改时间">{detail.updateTime || EMPTY_PLACEHOLDER}</DetailField>
+              <DetailField label="描述" className="sm:col-span-2">
+                {detail.description || EMPTY_PLACEHOLDER}
+              </DetailField>
+            </dl>
+          )}
+        </div>
+      </DrawerContent>
+    </Drawer>
+  )
+}

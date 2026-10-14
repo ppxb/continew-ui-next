@@ -13,7 +13,8 @@ import { toast } from '@/components/ui/toast'
 import { exportUsers, listUsers, type UserResp, type UserStatus } from '@/lib/api/user'
 import { dataTableFeatures } from '@/lib/data-table-features'
 
-import { createUserColumns } from './user-columns'
+import { createUserColumns, type UserAction } from './user-columns'
+import { UserDetailDrawer } from './user-detail-drawer'
 import { UserTable } from './user-table'
 import { UserToolbar } from './user-toolbar'
 
@@ -47,6 +48,14 @@ const STALE_TIME_MS = 30_000
 /** Stable empty array, so an empty page does not rebuild the table's row model. */
 const EMPTY_ROWS: UserResp[] = []
 
+/** Row actions that are still to be built, keyed by the action the table raises. */
+const PENDING_ACTION_LABELS: Record<Exclude<UserAction, 'detail'>, string> = {
+  edit: '修改',
+  resetPassword: '重置密码',
+  assignRoles: '分配角色',
+  delete: '删除'
+}
+
 const STATUS_OPTIONS = [
   { value: 'all', label: '全部' },
   { value: '1', label: '启用' },
@@ -60,6 +69,8 @@ export function UserList() {
   const [searchInput, setSearchInput] = React.useState('')
   const [keyword, setKeyword] = React.useState('')
   const [isExporting, setIsExporting] = React.useState(false)
+  const [detailUserId, setDetailUserId] = React.useState<string | number | null>(null)
+  const [isDetailOpen, setIsDetailOpen] = React.useState(false)
   const [fullscreen, setFullscreen] = React.useState<FullscreenState>('off')
   const [reservedHeight, setReservedHeight] = React.useState(0)
   const fullscreenRef = React.useRef<HTMLDivElement>(null)
@@ -137,7 +148,20 @@ export function UserList() {
     toast.add({ title: `${label}功能开发中`, type: 'info' })
   }, [])
 
-  const columns = React.useMemo(() => createUserColumns(reportPending, rowOffset), [reportPending, rowOffset])
+  const handleRowAction = React.useCallback(
+    (action: UserAction, user: UserResp) => {
+      if (action === 'detail') {
+        setDetailUserId(user.id)
+        setIsDetailOpen(true)
+        return
+      }
+
+      reportPending(PENDING_ACTION_LABELS[action])
+    },
+    [reportPending]
+  )
+
+  const columns = React.useMemo(() => createUserColumns(handleRowAction, rowOffset), [handleRowAction, rowOffset])
 
   const table = useTable({
     features: dataTableFeatures,
@@ -219,50 +243,54 @@ export function UserList() {
   )
 
   return (
-    <Card>
-      <CardHeader className="border-b has-data-[slot=card-action]:grid-cols-1 md:has-data-[slot=card-action]:grid-cols-[1fr_auto]">
-        <CardTitle className="text-xl leading-none">用户管理</CardTitle>
-        <CardDescription className="max-w-sm leading-snug">维护系统用户，查看所属部门与角色授权。</CardDescription>
-        <CardAction className="col-start-1 row-start-auto flex w-full flex-wrap justify-start gap-2 justify-self-stretch md:col-start-2 md:row-span-2 md:row-start-1 md:w-auto md:flex-nowrap md:justify-end md:justify-self-end">
-          <InputGroup className="h-7 w-full md:w-64">
-            <InputGroupAddon align="inline-start">
-              <Search className="size-3.5" />
-            </InputGroupAddon>
-            <InputGroupInput
-              className="h-7"
-              placeholder="搜索用户名 / 昵称 / 描述"
-              value={searchInput}
-              onChange={event => setSearchInput(event.target.value)}
-            />
-          </InputGroup>
-        </CardAction>
-      </CardHeader>
+    <>
+      <Card>
+        <CardHeader className="border-b has-data-[slot=card-action]:grid-cols-1 md:has-data-[slot=card-action]:grid-cols-[1fr_auto]">
+          <CardTitle className="text-xl leading-none">用户管理</CardTitle>
+          <CardDescription className="max-w-sm leading-snug">维护系统用户，查看所属部门与角色授权。</CardDescription>
+          <CardAction className="col-start-1 row-start-auto flex w-full flex-wrap justify-start gap-2 justify-self-stretch md:col-start-2 md:row-span-2 md:row-start-1 md:w-auto md:flex-nowrap md:justify-end md:justify-self-end">
+            <InputGroup className="h-7 w-full md:w-64">
+              <InputGroupAddon align="inline-start">
+                <Search className="size-3.5" />
+              </InputGroupAddon>
+              <InputGroupInput
+                className="h-7"
+                placeholder="搜索用户名 / 昵称 / 描述"
+                value={searchInput}
+                onChange={event => setSearchInput(event.target.value)}
+              />
+            </InputGroup>
+          </CardAction>
+        </CardHeader>
 
-      <CardContent className="flex flex-col gap-4 px-0">
-        {fullscreen === 'open' ? <div style={{ height: reservedHeight }} /> : null}
+        <CardContent className="flex flex-col gap-4 px-0">
+          {fullscreen === 'open' ? <div style={{ height: reservedHeight }} /> : null}
 
-        <div
-          ref={fullscreenRef}
-          className={cn(
-            'flex flex-col gap-4',
-            fullscreen === 'open' &&
-              'fixed inset-0 z-50 animate-in overflow-auto bg-background py-4 duration-200 zoom-in-95 fade-in'
-          )}
-        >
-          {tableSection}
-        </div>
+          <div
+            ref={fullscreenRef}
+            className={cn(
+              'flex flex-col gap-4',
+              fullscreen === 'open' &&
+                'fixed inset-0 z-50 animate-in overflow-auto bg-background py-4 duration-200 zoom-in-95 fade-in'
+            )}
+          >
+            {tableSection}
+          </div>
 
-        {/*
+          {/*
           The closing overlay is a second copy rather than the element above. Keeping the
           table in the card during the exit means the overlay fades away to reveal it,
           instead of fading to nothing and popping back into place on the next commit.
         */}
-        {fullscreen === 'closing' ? (
-          <div className="pointer-events-none fixed inset-0 z-50 animate-out overflow-auto bg-background py-4 duration-150 zoom-out-95 fade-out">
-            <div className="flex flex-col gap-4">{tableSection}</div>
-          </div>
-        ) : null}
-      </CardContent>
-    </Card>
+          {fullscreen === 'closing' ? (
+            <div className="pointer-events-none fixed inset-0 z-50 animate-out overflow-auto bg-background py-4 duration-150 zoom-out-95 fade-out">
+              <div className="flex flex-col gap-4">{tableSection}</div>
+            </div>
+          ) : null}
+        </CardContent>
+      </Card>
+
+      <UserDetailDrawer userId={detailUserId} open={isDetailOpen} onClose={() => setIsDetailOpen(false)} />
+    </>
   )
 }

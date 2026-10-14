@@ -62,3 +62,18 @@ export function listUsers(query: UserPageQuery) {
 export function exportUsers(query: Omit<UserPageQuery, 'page' | 'size'>) {
   return downloadFile('/system/user/export', query)
 }
+
+/**
+ * `GET /system/user/{id}`.
+ *
+ * The detail response extends the list response, so it only adds the fields the list omits.
+ */
+export interface UserDetailResp extends UserResp {
+  /** Last password change time. */
+  pwdResetTime: string | null
+}
+
+/** One user's full record. */
+export function getUser(id: string | number) {
+  return http.get<UserDetailResp>(`/system/user/${id}`)
+}

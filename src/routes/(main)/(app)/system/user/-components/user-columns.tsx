@@ -18,29 +18,13 @@ import type { UserResp } from '@/lib/api/user'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 import { getInitials } from '@/lib/utils'
 
-/** `GenderEnum` arrives as its numeric value. */
-const GENDER_LABELS: Record<number, string> = {
-  0: '未知',
-  1: '男',
-  2: '女'
-}
+import { EMPTY_PLACEHOLDER, genderLabel, RoleCell, StatusCell } from './user-display'
 
-/** A cell the backend masks before it leaves the server. */
-const EMPTY_PLACEHOLDER = '—'
+/** The row actions the table raises. */
+export type UserAction = 'detail' | 'edit' | 'resetPassword' | 'assignRoles' | 'delete'
 
 function TextCell({ value }: { value: string | null }) {
   return <span className="text-sm">{value || EMPTY_PLACEHOLDER}</span>
-}
-
-function StatusCell({ status }: { status: UserResp['status'] }) {
-  const isEnabled = status === 1
-
-  return (
-    <Badge variant="outline" className="gap-1.5 border px-2 py-1 font-medium">
-      <span className={isEnabled ? 'size-1.5 rounded-full bg-green-600' : 'size-1.5 rounded-full bg-destructive'} />
-      {isEnabled ? '启用' : '禁用'}
-    </Badge>
-  )
 }
 
 function NicknameCell({ user }: { user: UserResp }) {
@@ -57,23 +41,7 @@ function NicknameCell({ user }: { user: UserResp }) {
   )
 }
 
-function RoleCell({ roleNames }: { roleNames: string[] }) {
-  if (!roleNames.length) {
-    return <span className="text-sm text-muted-foreground">{EMPTY_PLACEHOLDER}</span>
-  }
-
-  return (
-    <div className="flex flex-wrap gap-1">
-      {roleNames.map(roleName => (
-        <Badge key={roleName} variant="secondary" className="font-normal">
-          {roleName}
-        </Badge>
-      ))}
-    </div>
-  )
-}
-
-function RowActions({ user, onAction }: { user: UserResp; onAction: (label: string, user: UserResp) => void }) {
+function RowActions({ user, onAction }: { user: UserResp; onAction: (action: UserAction, user: UserResp) => void }) {
   const isLocked = Boolean(user.disabled)
 
   return (
@@ -89,23 +57,23 @@ function RowActions({ user, onAction }: { user: UserResp; onAction: (label: stri
         </Tooltip>
         <DropdownMenuContent align="end">
           <DropdownMenuGroup>
-            <DropdownMenuItem onClick={() => onAction('详情', user)}>详情</DropdownMenuItem>
-            <DropdownMenuItem disabled={isLocked} onClick={() => onAction('修改', user)}>
+            <DropdownMenuItem onClick={() => onAction('detail', user)}>详情</DropdownMenuItem>
+            <DropdownMenuItem disabled={isLocked} onClick={() => onAction('edit', user)}>
               修改
             </DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
-            <DropdownMenuItem disabled={isLocked} onClick={() => onAction('重置密码', user)}>
+            <DropdownMenuItem disabled={isLocked} onClick={() => onAction('resetPassword', user)}>
               重置密码
             </DropdownMenuItem>
-            <DropdownMenuItem disabled={isLocked} onClick={() => onAction('分配角色', user)}>
+            <DropdownMenuItem disabled={isLocked} onClick={() => onAction('assignRoles', user)}>
               分配角色
             </DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
-            <DropdownMenuItem variant="destructive" disabled={isLocked} onClick={() => onAction('删除', user)}>
+            <DropdownMenuItem variant="destructive" disabled={isLocked} onClick={() => onAction('delete', user)}>
               删除
             </DropdownMenuItem>
           </DropdownMenuGroup>
@@ -119,10 +87,10 @@ function RowActions({ user, onAction }: { user: UserResp; onAction: (label: stri
  * Builds the column set of the user table.
  *
  * `rowOffset` is the index of the first row on the current page, so the serial number
- * column stays continuous across server-side pages. `onAction` receives the label of a
- * row action; those flows are not implemented yet, so the caller decides how to report it.
+ * column stays continuous across server-side pages. `onAction` receives the action the row
+ * raised; the flows that are not implemented yet are reported by the caller.
  */
-export function createUserColumns(onAction: (label: string, user: UserResp) => void, rowOffset: number) {
+export function createUserColumns(onAction: (action: UserAction, user: UserResp) => void, rowOffset: number) {
   const columns: ColumnDef<DataTableFeatures, UserResp>[] = [
     {
       id: 'index',
@@ -155,7 +123,7 @@ export function createUserColumns(onAction: (label: string, user: UserResp) => v
     {
       accessorKey: 'gender',
       header: '性别',
-      cell: ({ row }) => <div className="text-center text-sm">{GENDER_LABELS[row.original.gender] ?? '未知'}</div>
+      cell: ({ row }) => <div className="text-center text-sm">{genderLabel(row.original.gender)}</div>
     },
     {
       accessorKey: 'deptName',
