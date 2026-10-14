@@ -1,7 +1,5 @@
 import * as React from 'react'
 
-import { useQuery } from '@tanstack/react-query'
-
 import { cn } from 'cn'
 import { Check, Copy, X } from 'lucide-react'
 
@@ -10,9 +8,10 @@ import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle } from '@
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { getUser, type UserDetailResp } from '@/lib/api/user'
+import type { UserDetailResp } from '@/lib/api/user'
 
 import { EMPTY_PLACEHOLDER, genderLabel, RoleCell, StatusCell } from './user-display'
+import { useUserDetail } from './use-user-detail'
 
 const COPIED_FEEDBACK_MS = 1500
 
@@ -75,17 +74,7 @@ interface UserDetailDrawerProps {
  * spinner while it is still sliding out.
  */
 export function UserDetailDrawer({ userId, open, onClose }: UserDetailDrawerProps) {
-  const query = useQuery({
-    queryKey: ['system', 'user', 'detail', userId],
-    queryFn: () => {
-      if (userId === null) {
-        throw new Error('UserDetailDrawer was opened without a user id')
-      }
-
-      return getUser(userId)
-    },
-    enabled: userId !== null
-  })
+  const query = useUserDetail(userId)
 
   const detail = query.data
 

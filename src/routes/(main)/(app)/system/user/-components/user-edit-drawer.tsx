@@ -20,9 +20,10 @@ import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/components/ui/toast'
 import { flattenDepts, getDeptTree } from '@/lib/api/dept'
 import { listRoles } from '@/lib/api/role'
-import { getUser, updateUser, type UserDetailResp, type UserGender, type UserStatus } from '@/lib/api/user'
+import { updateUser, type UserDetailResp, type UserGender, type UserStatus } from '@/lib/api/user'
 
 import { genderLabel } from './user-display'
+import { useUserDetail } from './use-user-detail'
 
 /** Mirrors `RegexConstants.USERNAME`: 4-64 chars, letters, digits, underscore, letter first. */
 const USERNAME_PATTERN = /^[a-zA-Z][a-zA-Z0-9_]{3,64}$/
@@ -112,17 +113,7 @@ export function UserEditDrawer({ userId, open, onClose }: UserEditDrawerProps) {
   const queryClient = useQueryClient()
 
   // Shares its key with the detail drawer, so opening either one warms the other.
-  const detail = useQuery({
-    queryKey: ['system', 'user', 'detail', userId],
-    queryFn: () => {
-      if (userId === null) {
-        throw new Error('UserEditDrawer was opened without a user id')
-      }
-
-      return getUser(userId)
-    },
-    enabled: userId !== null
-  })
+  const detail = useUserDetail(userId)
 
   const depts = useQuery({
     queryKey: ['system', 'dept', 'tree'],
@@ -224,12 +215,7 @@ export function UserEditDrawer({ userId, open, onClose }: UserEditDrawerProps) {
                   render={({ field, fieldState }) => (
                     <Field className="gap-1.5" data-invalid={fieldState.invalid}>
                       <FieldLabel>昵称</FieldLabel>
-                      <Input
-                        {...field}
-                        maxLength={30}
-                        placeholder="请输入昵称"
-                        aria-invalid={fieldState.invalid}
-                      />
+                      <Input {...field} maxLength={30} placeholder="请输入昵称" aria-invalid={fieldState.invalid} />
                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>
                   )}
