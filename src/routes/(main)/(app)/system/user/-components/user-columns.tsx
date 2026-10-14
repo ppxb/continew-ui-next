@@ -133,7 +133,7 @@ export function createUserColumns(onAction: (action: UserAction, user: UserResp)
     {
       accessorKey: 'roleNames',
       header: '角色',
-      cell: ({ row }) => <RoleCell roleNames={row.original.roleNames ?? []} />
+      cell: ({ row }) => <RoleCell roleNames={row.original.roleNames ?? []} collapsed />
     },
     {
       accessorKey: 'phone',
