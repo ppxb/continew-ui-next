@@ -29,6 +29,9 @@ export interface TreeSelectProps<T = Record<string, unknown>> {
   renderLabel?: TreeProps<T>['renderLabel']
   renderIcon?: TreeProps<T>['renderIcon']
   size?: 'default' | 'sm'
+  triggerPrefix?: React.ReactNode
+  showAllOption?: boolean
+  allOptionLabel?: string
 }
 
 /**
@@ -56,7 +59,10 @@ export function TreeSelect<T = Record<string, unknown>>({
   emptyText = '暂无匹配节点',
   renderLabel,
   renderIcon,
-  size = 'default'
+  size = 'default',
+  triggerPrefix,
+  showAllOption = false,
+  allOptionLabel = '全部'
 }: TreeSelectProps<T>) {
   const [open, setOpen] = React.useState(false)
   const [searchKeyword, setSearchKeyword] = React.useState('')
@@ -141,19 +147,22 @@ export function TreeSelect<T = Record<string, unknown>>({
             disabled={disabled}
             aria-invalid={invalid}
             className={cn(
-              'w-full justify-between px-2.5 text-left font-normal',
-              size === 'sm' ? 'h-7 text-xs' : 'h-8 text-sm',
+              'w-full justify-between gap-1.5 px-2.5 text-left font-normal',
+              size === 'sm' ? 'h-7 rounded-md text-xs' : 'h-8 text-sm',
               className
             )}
           />
         }
       >
-        <span
-          title={fullPath || undefined}
-          className={cn('flex-1 truncate', !hasValue ? 'text-muted-foreground' : 'text-foreground')}
-        >
-          {loading ? '加载中…' : hasValue ? displayText : placeholder}
-        </span>
+        <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden">
+          {triggerPrefix && <span className="shrink-0 text-muted-foreground">{triggerPrefix}</span>}
+          <span
+            title={fullPath || undefined}
+            className={cn('truncate', !hasValue ? 'text-muted-foreground' : 'text-foreground')}
+          >
+            {loading ? '加载中…' : hasValue ? displayText : placeholder}
+          </span>
+        </div>
 
         <div className="flex shrink-0 items-center gap-1 text-muted-foreground">
           {clearable && hasValue && !disabled && (
@@ -168,7 +177,13 @@ export function TreeSelect<T = Record<string, unknown>>({
               <X className="size-3" />
             </span>
           )}
-          <ChevronDown className={cn('size-4 opacity-60 transition-transform duration-150', open && 'rotate-180')} />
+          <ChevronDown
+            className={cn(
+              'opacity-60 transition-transform duration-150',
+              size === 'sm' ? 'size-3.5' : 'size-4',
+              open && 'rotate-180'
+            )}
+          />
         </div>
       </PopoverTrigger>
 
@@ -250,6 +265,29 @@ export function TreeSelect<T = Record<string, unknown>>({
 
         {/* Tree Content Body */}
         <div className="max-h-72 overflow-y-auto overscroll-contain p-1">
+          {showAllOption && !searchKeyword && (
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => {
+                onChange?.(null, null)
+                setOpen(false)
+              }}
+              onKeyDown={e => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  onChange?.(null, null)
+                  setOpen(false)
+                }
+              }}
+              className={cn(
+                'mb-1 flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-xs transition-colors outline-none',
+                !hasValue ? 'bg-accent font-medium text-accent-foreground' : 'text-foreground hover:bg-muted/50'
+              )}
+            >
+              <span>{allOptionLabel}</span>
+            </div>
+          )}
           {loading ? (
             <TreeSkeleton rows={5} />
           ) : (

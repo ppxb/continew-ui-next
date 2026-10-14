@@ -23,6 +23,10 @@ export interface DeptTreeSelectProps {
   readonly data?: DeptTreeNode[]
   /** Optional loading state if data is fetched externally */
   readonly loading?: boolean
+  readonly size?: 'default' | 'sm'
+  readonly triggerPrefix?: React.ReactNode
+  readonly showAllOption?: boolean
+  readonly allOptionLabel?: string
 }
 
 /**
@@ -55,7 +59,11 @@ export function DeptTreeSelect({
   className,
   showPathInTrigger = false,
   data: externalData,
-  loading: externalLoading
+  loading: externalLoading,
+  size = 'default',
+  triggerPrefix,
+  showAllOption = false,
+  allOptionLabel = '全部'
 }: DeptTreeSelectProps) {
   const shouldQuery = externalData === undefined
 
@@ -97,6 +105,10 @@ export function DeptTreeSelect({
       showIcons
       showPathInTrigger={showPathInTrigger}
       className={className}
+      size={size}
+      triggerPrefix={triggerPrefix}
+      showAllOption={showAllOption}
+      allOptionLabel={allOptionLabel}
     />
   )
 }

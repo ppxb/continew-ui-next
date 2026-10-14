@@ -49,6 +49,8 @@ export type UserPageQuery = {
   /** Keyword matched against username, nickname and description. */
   description?: string
   status?: UserStatus
+  /** Filter by department ID. */
+  deptId?: string | number
   /** `<field>,<asc|desc>`; the user query sorts on its `t1` table alias. */
   sort?: string
 }

@@ -16,6 +16,7 @@ import { exportUsers, listUsers, userKeys, type UserResp, type UserStatus } from
 import { dataTableFeatures } from '@/lib/data-table-features'
 
 import { useFullscreenTransition } from './use-fullscreen-transition'
+import { DeptTreeSelect } from './dept-tree-select'
 import { UserAssignRolesDialog } from './user-assign-roles-dialog'
 import { createUserColumns, type UserAction } from './user-columns'
 import { UserDeleteDialog } from './user-delete-dialog'
@@ -50,6 +51,7 @@ const STATUS_OPTIONS = [
 export function UserList() {
   const [pagination, setPagination] = React.useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
   const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>(HIDDEN_BY_DEFAULT)
+  const [deptId, setDeptId] = React.useState<string | number | undefined>(undefined)
   const [status, setStatus] = React.useState<UserStatus | undefined>(undefined)
   const [searchInput, setSearchInput] = React.useState('')
   const [keyword, setKeyword] = React.useState('')
@@ -84,6 +86,7 @@ export function UserList() {
       page: pagination.pageIndex + 1,
       size: pagination.pageSize,
       status,
+      deptId,
       description: keyword || undefined,
       sort: DEFAULT_SORT
     }),
@@ -92,6 +95,7 @@ export function UserList() {
         page: pagination.pageIndex + 1,
         size: pagination.pageSize,
         status,
+        deptId,
         description: keyword || undefined,
         sort: DEFAULT_SORT
       }),
@@ -175,6 +179,11 @@ export function UserList() {
     getRowId: row => String(row.id)
   })
 
+  const handleDeptChange = (value: string) => {
+    setDeptId(value ? value : undefined)
+    setPagination(current => ({ ...current, pageIndex: 0 }))
+  }
+
   const handleStatusChange = (value: string | null) => {
     setStatus(!value || value === 'all' ? undefined : (Number(value) as UserStatus))
     setPagination(current => ({ ...current, pageIndex: 0 }))
@@ -184,7 +193,7 @@ export function UserList() {
     setIsExporting(true)
 
     try {
-      await exportUsers({ status, description: keyword || undefined, sort: DEFAULT_SORT })
+      await exportUsers({ status, deptId, description: keyword || undefined, sort: DEFAULT_SORT })
       toast.add({ title: '导出已开始，请留意浏览器下载', type: 'success' })
     } catch {
       // The HTTP layer already reported the failure.
@@ -196,6 +205,16 @@ export function UserList() {
   const tableSection = (
     <>
       <div className="flex flex-wrap items-center gap-3 px-4">
+        <DeptTreeSelect
+          size="sm"
+          triggerPrefix="部门"
+          placeholder="全部"
+          showAllOption
+          allOptionLabel="全部部门"
+          value={deptId}
+          onChange={handleDeptChange}
+          className="w-44"
+        />
         <Select
           items={STATUS_OPTIONS}
           value={status === undefined ? 'all' : String(status)}

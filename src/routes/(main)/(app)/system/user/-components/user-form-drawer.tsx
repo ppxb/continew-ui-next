@@ -247,18 +247,17 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
 
   /** The body both modes send; only a create adds a password to it. */
   const toUserReq = (values: FormValues): UserReq => ({
-    nickname: values.nickname,
-    username: values.username,
+    nickname: values.nickname.trim(),
+    username: values.username.trim(),
     gender: values.gender as UserGender,
     deptId: deptIdByValue.get(values.deptId) ?? values.deptId,
     roleIds: values.roleIds.map(value => roleIdByValue.get(value) ?? value),
     status: values.status as UserStatus,
-    // Empty strings, not `undefined`: MyBatis-Plus defaults to `updateStrategy = NOT_NULL`,
-    // so an omitted field never reaches the SET clause and clearing it would silently do
-    // nothing while the toast still claimed success. The backend accepts `''` for all three.
-    email: values.email,
-    phone: values.phone,
-    description: values.description
+    // Trim empty strings to undefined so they are omitted from JSON, preventing unique
+    // index constraint violations on MySQL (which allows multiple NULLs but only one '').
+    email: values.email?.trim() || undefined,
+    phone: values.phone?.trim() || undefined,
+    description: values.description?.trim() || undefined
   })
 
   const onSubmit = async (values: FormValues) => {

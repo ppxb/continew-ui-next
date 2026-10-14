@@ -151,7 +151,9 @@ async function performRefresh(): Promise<string> {
   const accessToken = payload?.data?.accessToken
 
   if (!response.ok || !payload?.success || !accessToken) {
-    throw new ApiError(payload?.msg || '登录状态已失效，请重新登录', { status: response.status })
+    throw new ApiError(payload?.msg || (payload as { message?: string })?.message || '登录状态已失效，请重新登录', {
+      status: response.status
+    })
   }
 
   setAccessToken(accessToken)
@@ -213,7 +215,7 @@ async function send<T>(method: string, path: string, options: RequestOptions, is
   if (response.status === 401) {
     if (skipAuthRefresh || path === REFRESH_PATH || isRetry) {
       const payload = await readPayload<T>(response)
-      const message = payload?.msg || '登录状态已失效，请重新登录'
+      const message = payload?.msg || (payload as { message?: string })?.message || '登录状态已失效，请重新登录'
       await handleSessionExpired(generation, message)
       throw fail(message, { status: 401 }, silent)
     }
@@ -235,7 +237,11 @@ async function send<T>(method: string, path: string, options: RequestOptions, is
   }
 
   const payload = await readPayload<T>(response)
-  const message = payload?.msg || STATUS_MESSAGE[response.status] || `请求失败（${response.status}）`
+  const message =
+    payload?.msg ||
+    (payload as { message?: string } | null)?.message ||
+    STATUS_MESSAGE[response.status] ||
+    `请求失败（${response.status}）`
 
   if (!payload) {
     throw fail(message, { status: response.status }, silent)
@@ -330,7 +336,10 @@ export async function downloadFile(path: string, query?: RequestOptions['query']
   // file, so a JSON content type means there is an error message to surface.
   if (response.headers.get('Content-Type')?.includes('application/json')) {
     const payload = await readPayload<unknown>(response)
-    throw fail(payload?.msg || '导出失败', { code: payload?.code, status: response.status })
+    throw fail(payload?.msg || (payload as { message?: string })?.message || '导出失败', {
+      code: payload?.code,
+      status: response.status
+    })
   }
 
   const url = URL.createObjectURL(await response.blob())
