@@ -120,6 +120,16 @@ export function createUser(body: UserCreateReq) {
 }
 
 /**
+ * Deletes one user.
+ *
+ * The backend only exposes the batch endpoint (`Api.BATCH_DELETE`), which takes `{ ids }`, so a
+ * single deletion sends a one-id list. This mirrors the Vue client's `deleteUser`.
+ */
+export function deleteUser(id: string | number) {
+  return http.del<void>('/system/user', { body: { ids: [id] } })
+}
+
+/**
  * The body of `PATCH /system/user/{id}/password`.
  *
  * `newPassword` must already be RSA encrypted (see `@/lib/crypto`); the backend decrypts it

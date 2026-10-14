@@ -15,6 +15,7 @@ import { dataTableFeatures } from '@/lib/data-table-features'
 
 import { UserAssignRolesDialog } from './user-assign-roles-dialog'
 import { createUserColumns, type UserAction } from './user-columns'
+import { UserDeleteDialog } from './user-delete-dialog'
 import { UserDetailDrawer } from './user-detail-drawer'
 import { UserFormDrawer } from './user-form-drawer'
 import { UserResetPasswordDialog } from './user-reset-password-dialog'
@@ -51,13 +52,6 @@ const STALE_TIME_MS = 30_000
 /** Stable empty array, so an empty page does not rebuild the table's row model. */
 const EMPTY_ROWS: UserResp[] = []
 
-/** Row actions that are still to be built, keyed by the action the table raises. */
-type PendingAction = Exclude<UserAction, 'detail' | 'edit' | 'resetPassword' | 'assignRoles'>
-
-const PENDING_ACTION_LABELS: Record<PendingAction, string> = {
-  delete: '删除'
-}
-
 const STATUS_OPTIONS = [
   { value: 'all', label: '全部' },
   { value: '1', label: '启用' },
@@ -82,6 +76,8 @@ export function UserList() {
   const [isResetOpen, setIsResetOpen] = React.useState(false)
   const [roleUser, setRoleUser] = React.useState<UserResp | null>(null)
   const [isRolesOpen, setIsRolesOpen] = React.useState(false)
+  const [deletingUser, setDeletingUser] = React.useState<UserResp | null>(null)
+  const [isDeleteOpen, setIsDeleteOpen] = React.useState(false)
   const [fullscreen, setFullscreen] = React.useState<FullscreenState>('off')
   const [reservedHeight, setReservedHeight] = React.useState(0)
   const fullscreenRef = React.useRef<HTMLDivElement>(null)
@@ -166,36 +162,36 @@ export function UserList() {
     toast.add({ title: `${label}功能开发中`, type: 'info' })
   }, [])
 
-  const handleRowAction = React.useCallback(
-    (action: UserAction, user: UserResp) => {
-      if (action === 'detail') {
-        setDetailUserId(user.id)
-        setIsDetailOpen(true)
-        return
-      }
+  const handleRowAction = React.useCallback((action: UserAction, user: UserResp) => {
+    if (action === 'detail') {
+      setDetailUserId(user.id)
+      setIsDetailOpen(true)
+      return
+    }
 
-      if (action === 'edit') {
-        setFormUserId(user.id)
-        setIsFormOpen(true)
-        return
-      }
+    if (action === 'edit') {
+      setFormUserId(user.id)
+      setIsFormOpen(true)
+      return
+    }
 
-      if (action === 'resetPassword') {
-        setResetUser(user)
-        setIsResetOpen(true)
-        return
-      }
+    if (action === 'resetPassword') {
+      setResetUser(user)
+      setIsResetOpen(true)
+      return
+    }
 
-      if (action === 'assignRoles') {
-        setRoleUser(user)
-        setIsRolesOpen(true)
-        return
-      }
+    if (action === 'assignRoles') {
+      setRoleUser(user)
+      setIsRolesOpen(true)
+      return
+    }
 
-      reportPending(PENDING_ACTION_LABELS[action])
-    },
-    [reportPending]
-  )
+    if (action === 'delete') {
+      setDeletingUser(user)
+      setIsDeleteOpen(true)
+    }
+  }, [])
 
   const columns = React.useMemo(() => createUserColumns(handleRowAction, rowOffset), [handleRowAction, rowOffset])
 
@@ -333,6 +329,7 @@ export function UserList() {
       <UserFormDrawer userId={formUserId} open={isFormOpen} onClose={() => setIsFormOpen(false)} />
       <UserResetPasswordDialog user={resetUser} open={isResetOpen} onClose={() => setIsResetOpen(false)} />
       <UserAssignRolesDialog user={roleUser} open={isRolesOpen} onClose={() => setIsRolesOpen(false)} />
+      <UserDeleteDialog user={deletingUser} open={isDeleteOpen} onClose={() => setIsDeleteOpen(false)} />
     </>
   )
 }
