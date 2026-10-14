@@ -147,8 +147,8 @@ export function TreeSelect<T = Record<string, unknown>>({
             disabled={disabled}
             aria-invalid={invalid}
             className={cn(
-              'w-full justify-between gap-1.5 px-2.5 text-left font-normal',
-              size === 'sm' ? 'h-7 rounded-md text-xs' : 'h-8 text-sm',
+              'w-full justify-between gap-1.5 pr-2 pl-2.5 text-left text-sm font-normal',
+              size === 'sm' ? 'h-7 rounded-[min(var(--radius-md),10px)]' : 'h-8 rounded-lg',
               className
             )}
           />
@@ -177,13 +177,7 @@ export function TreeSelect<T = Record<string, unknown>>({
               <X className="size-3" />
             </span>
           )}
-          <ChevronDown
-            className={cn(
-              'opacity-60 transition-transform duration-150',
-              size === 'sm' ? 'size-3.5' : 'size-4',
-              open && 'rotate-180'
-            )}
-          />
+          <ChevronDown className={cn('size-4 opacity-60 transition-transform duration-150', open && 'rotate-180')} />
         </div>
       </PopoverTrigger>
 
