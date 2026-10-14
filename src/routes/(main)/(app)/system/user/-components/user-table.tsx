@@ -26,15 +26,22 @@ function preventPaginationNavigation(event: MouseEvent<HTMLAnchorElement>) {
   event.preventDefault()
 }
 
-function getPageNumbers(currentPage: number, pageCount: number) {
-  if (pageCount <= 3) {
+type PageItem = number | 'ellipsis-left' | 'ellipsis-right'
+
+function getPageNumbers(currentPage: number, pageCount: number): PageItem[] {
+  if (pageCount <= 7) {
     return Array.from({ length: pageCount }, (_, index) => index + 1)
   }
 
-  if (currentPage <= 2) return [1, 2, 3]
-  if (currentPage >= pageCount - 1) return [pageCount - 2, pageCount - 1, pageCount]
+  if (currentPage <= 4) {
+    return [1, 2, 3, 4, 5, 'ellipsis-right', pageCount]
+  }
 
-  return [currentPage - 1, currentPage, currentPage + 1]
+  if (currentPage >= pageCount - 3) {
+    return [1, 'ellipsis-left', pageCount - 4, pageCount - 3, pageCount - 2, pageCount - 1, pageCount]
+  }
+
+  return [1, 'ellipsis-left', currentPage - 1, currentPage, currentPage + 1, 'ellipsis-right', pageCount]
 }
 
 interface UserTableProps {
@@ -144,30 +151,26 @@ export function UserTable({ table, isLoading, isError, isStale }: UserTableProps
                     }}
                   />
                 </PaginationItem>
-                {pageNumbers[0] > 1 ? (
-                  <PaginationItem>
-                    <PaginationEllipsis />
-                  </PaginationItem>
-                ) : null}
-                {pageNumbers.map(pageNumber => (
-                  <PaginationItem key={`page-${pageNumber}`}>
-                    <PaginationLink
-                      href="#"
-                      isActive={table.state.pagination.pageIndex === pageNumber - 1}
-                      onClick={event => {
-                        preventPaginationNavigation(event)
-                        table.setPageIndex(pageNumber - 1)
-                      }}
-                    >
-                      {pageNumber}
-                    </PaginationLink>
-                  </PaginationItem>
-                ))}
-                {pageNumbers[pageNumbers.length - 1] < pageCount ? (
-                  <PaginationItem>
-                    <PaginationEllipsis />
-                  </PaginationItem>
-                ) : null}
+                {pageNumbers.map(item =>
+                  typeof item === 'number' ? (
+                    <PaginationItem key={`page-${item}`}>
+                      <PaginationLink
+                        href="#"
+                        isActive={table.state.pagination.pageIndex === item - 1}
+                        onClick={event => {
+                          preventPaginationNavigation(event)
+                          table.setPageIndex(item - 1)
+                        }}
+                      >
+                        {item}
+                      </PaginationLink>
+                    </PaginationItem>
+                  ) : (
+                    <PaginationItem key={item}>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  )
+                )}
                 <PaginationItem>
                   <PaginationNext
                     href="#"
