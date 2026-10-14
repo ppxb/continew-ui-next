@@ -19,7 +19,7 @@ import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/components/ui/toast'
 import { flattenDepts, getDeptTree } from '@/lib/api/dept'
-import { listRoles } from '@/lib/api/role'
+import { listRoleDict } from '@/lib/api/role'
 import { updateUser, type UserDetailResp, type UserGender, type UserStatus } from '@/lib/api/user'
 
 import { genderLabel } from './user-display'
@@ -123,8 +123,8 @@ export function UserEditDrawer({ userId, open, onClose }: UserEditDrawerProps) {
   })
 
   const roles = useQuery({
-    queryKey: ['system', 'role', 'list'],
-    queryFn: listRoles,
+    queryKey: ['system', 'role', 'dict'],
+    queryFn: listRoleDict,
     staleTime: LOOKUP_STALE_MS,
     enabled: open
   })
@@ -145,7 +145,7 @@ export function UserEditDrawer({ userId, open, onClose }: UserEditDrawerProps) {
   // The pickers speak in strings; these maps give the original id back for the request body.
   const deptIdByValue = React.useMemo(() => new Map(deptOptions.map(dept => [String(dept.id), dept.id])), [deptOptions])
   const roleIdByValue = React.useMemo(
-    () => new Map((roles.data ?? []).map(role => [String(role.id), role.id])),
+    () => new Map((roles.data ?? []).map(role => [String(role.value), role.value])),
     [roles.data]
   )
 
@@ -352,8 +352,8 @@ export function UserEditDrawer({ userId, open, onClose }: UserEditDrawerProps) {
                     // Read from the field instead of `form.watch`, which the React Compiler
                     // lint rejects as an API that cannot be memoized safely.
                     const selectedRoleNames = (roles.data ?? [])
-                      .filter(role => field.value.includes(String(role.id)))
-                      .map(role => role.name)
+                      .filter(role => field.value.includes(String(role.value)))
+                      .map(role => role.label)
 
                     return (
                       <Field className="gap-1.5" data-invalid={fieldState.invalid}>
@@ -392,7 +392,7 @@ export function UserEditDrawer({ userId, open, onClose }: UserEditDrawerProps) {
                               <p className="px-2 py-1.5 text-sm text-muted-foreground">暂无可选角色</p>
                             ) : (
                               (roles.data ?? []).map(role => {
-                                const value = String(role.id)
+                                const value = String(role.value)
                                 const checked = field.value.includes(value)
 
                                 return (
@@ -408,7 +408,7 @@ export function UserEditDrawer({ userId, open, onClose }: UserEditDrawerProps) {
                                         )
                                       }
                                     />
-                                    <span className="flex-1 text-sm">{role.name}</span>
+                                    <span className="flex-1 text-sm">{role.label}</span>
                                   </div>
                                 )
                               })

@@ -23,8 +23,9 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
 import { listRoleDict } from '@/lib/api/role'
-import { assignUserRoles, getUser, type UserResp } from '@/lib/api/user'
+import { assignUserRoles, type UserResp } from '@/lib/api/user'
 
+import { useUserDetail } from './use-user-detail'
 import { userLabel } from './user-display'
 
 /** Roles barely change, so reopening the dialog should not refetch them. */
@@ -64,21 +65,9 @@ export function UserAssignRolesDialog({ user, open, onClose }: UserAssignRolesDi
     enabled: open
   })
 
-  const detail = useQuery({
-    queryKey: ['system', 'user', 'role-assignment', userId],
-    queryFn: () => {
-      if (userId === null) {
-        throw new Error('A user role assignment was requested without an id')
-      }
-
-      return getUser(userId)
-    },
-    enabled: open && userId !== null,
-    // Re-enabling this query fetches on every opening, even for the same user.
-    staleTime: 0,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false
-  })
+  // Shares its key with the detail and edit drawers, so all three read one cached record. The
+  // options make this one refetch every time the dialog opens rather than trust that cache.
+  const detail = useUserDetail(userId, { enabled: open, alwaysRefetch: true })
 
   // Saving without the list would post the seeded ids straight back and report success while
   // the user never saw a single role to tick.
