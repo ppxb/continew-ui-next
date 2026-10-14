@@ -5,11 +5,6 @@ import { defineConfig, loadEnv, type Plugin } from 'vite'
 
 import { buildThemeBootScript } from './src/scripts/theme-boot-script'
 
-/**
- * Inlines the preference boot script into index.html so theme, font and layout
- * attributes are applied before the first paint. The app is a client-only SPA,
- * so there is no server-rendered head to inject them into.
- */
 function themeBootPlugin(): Plugin {
   return {
     name: 'continew:theme-boot',
@@ -29,13 +24,7 @@ export default defineConfig(({ mode }) => {
       tsconfigPaths: true
     },
     server: {
-      // The backend validates the Origin of refresh-token requests against
-      // `continew-starter.refresh-token.cookie-allowed-origins`, which lists 5173 and
-      // 5777 in development. Keep this port whitelisted there, otherwise refreshing the
-      // session fails with 403 "请求来源不合法".
       port: 5173,
-      // Keeps the browser same-origin so the backend's HttpOnly refresh-token
-      // cookie is first-party and no CORS is involved during development.
       proxy: {
         [apiPrefix]: {
           target: apiTarget,
@@ -44,6 +33,9 @@ export default defineConfig(({ mode }) => {
         }
       }
     },
-    plugins: [themeBootPlugin(), tanstackRouter({ target: 'react', autoCodeSplitting: true }), react(), tailwindcss()]
+    plugins: [themeBootPlugin(), tanstackRouter({ target: 'react', autoCodeSplitting: true }), react(), tailwindcss()],
+    experimental: {
+      bundledDev: true
+    }
   }
 })

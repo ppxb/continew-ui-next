@@ -33,8 +33,8 @@ export function LoginForm({ redirectTo }: { readonly redirectTo?: string }) {
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      username: '',
-      password: '',
+      username: 'admin',
+      password: 'admin123',
       captcha: '',
       remember: true
     }

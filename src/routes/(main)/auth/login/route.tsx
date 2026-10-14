@@ -19,7 +19,7 @@ function LoginPage() {
 
   return (
     <>
-      <div className="mx-auto flex w-full flex-col justify-center space-y-8 sm:w-[350px]">
+      <div className="mx-auto flex w-full flex-col justify-center space-y-8 sm:w-87.5">
         <div className="space-y-2 text-center">
           <h1 className="text-3xl font-medium">Login to your account</h1>
           <p className="text-sm text-muted-foreground">Please enter your details to login.</p>
