@@ -33,9 +33,6 @@ export default defineConfig(({ mode }) => {
         }
       }
     },
-    plugins: [themeBootPlugin(), tanstackRouter({ target: 'react', autoCodeSplitting: true }), react(), tailwindcss()],
-    experimental: {
-      bundledDev: true
-    }
+    plugins: [themeBootPlugin(), tanstackRouter({ target: 'react', autoCodeSplitting: true }), react(), tailwindcss()]
   }
 })
