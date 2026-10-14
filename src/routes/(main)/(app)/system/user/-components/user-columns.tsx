@@ -96,7 +96,6 @@ export function createUserColumns(onAction: (action: UserAction, user: UserResp)
       id: 'index',
       header: '序号',
       enableHiding: false,
-      enableSorting: false,
       cell: ({ row }) => (
         <div className="text-center text-sm text-muted-foreground tabular-nums">{rowOffset + row.index + 1}</div>
       )
@@ -185,7 +184,6 @@ export function createUserColumns(onAction: (action: UserAction, user: UserResp)
       id: 'actions',
       header: () => <div className="text-center">操作</div>,
       enableHiding: false,
-      enableSorting: false,
       cell: ({ row }) => <RowActions user={row.original} onAction={onAction} />
     }
   ]

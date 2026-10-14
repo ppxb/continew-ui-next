@@ -5,14 +5,12 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
 
-import { ChevronDown, X } from 'lucide-react'
+import { X } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
 import { Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Spinner } from '@/components/ui/spinner'
 import { Switch } from '@/components/ui/switch'
@@ -32,6 +30,7 @@ import { encryptPassword } from '@/lib/crypto'
 
 import { genderLabel } from './user-display'
 import { useUserDetail } from './use-user-detail'
+import { UserRoleSelect } from './user-role-select'
 
 /** Mirrors `RegexConstants.USERNAME`: 4-64 chars, letters, digits, underscore, letter first. */
 const USERNAME_PATTERN = /^[a-zA-Z][a-zA-Z0-9_]{3,64}$/
@@ -438,77 +437,19 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
                 <Controller
                   control={form.control}
                   name="roleIds"
-                  render={({ field, fieldState }) => {
-                    // Read from the field instead of `form.watch`, which the React Compiler
-                    // lint rejects as an API that cannot be memoized safely.
-                    const selectedRoleNames = (roles.data ?? [])
-                      .filter(role => field.value.includes(String(role.value)))
-                      .map(role => role.label)
-
-                    return (
-                      <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-                        <FieldLabel>角色</FieldLabel>
-                        <Popover>
-                          <PopoverTrigger
-                            render={
-                              <Button
-                                type="button"
-                                variant="outline"
-                                className="w-full justify-between font-normal"
-                                aria-invalid={fieldState.invalid}
-                              />
-                            }
-                          >
-                            <span className={selectedRoleNames.length ? 'truncate' : 'truncate text-muted-foreground'}>
-                              {roles.isPending
-                                ? '加载中…'
-                                : roles.isError
-                                  ? '角色加载失败'
-                                  : selectedRoleNames.length
-                                    ? selectedRoleNames.join('、')
-                                    : '请选择角色'}
-                            </span>
-                            <ChevronDown className="size-4 opacity-60" />
-                          </PopoverTrigger>
-                          <PopoverContent align="start" className="w-64 gap-0 p-1">
-                            {roles.isError ? (
-                              <p className="px-2 py-1.5 text-sm text-destructive">
-                                角色加载失败，
-                                <button type="button" className="underline" onClick={() => void roles.refetch()}>
-                                  重试
-                                </button>
-                              </p>
-                            ) : (roles.data ?? []).length === 0 ? (
-                              <p className="px-2 py-1.5 text-sm text-muted-foreground">暂无可选角色</p>
-                            ) : (
-                              (roles.data ?? []).map(role => {
-                                const value = String(role.value)
-                                const checked = field.value.includes(value)
-
-                                return (
-                                  <div
-                                    key={value}
-                                    className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-accent"
-                                  >
-                                    <Checkbox
-                                      checked={checked}
-                                      onCheckedChange={next =>
-                                        field.onChange(
-                                          next ? [...field.value, value] : field.value.filter(item => item !== value)
-                                        )
-                                      }
-                                    />
-                                    <span className="flex-1 text-sm">{role.label}</span>
-                                  </div>
-                                )
-                              })
-                            )}
-                          </PopoverContent>
-                        </Popover>
-                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                      </Field>
-                    )
-                  }}
+                  render={({ field, fieldState }) => (
+                    <Field className="gap-1.5" data-invalid={fieldState.invalid}>
+                      <FieldLabel>角色</FieldLabel>
+                      <UserRoleSelect
+                        value={field.value}
+                        onChange={field.onChange}
+                        disabled={form.formState.isSubmitting}
+                        invalid={fieldState.invalid}
+                        enabled={open}
+                      />
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
+                  )}
                 />
 
                 <Controller
