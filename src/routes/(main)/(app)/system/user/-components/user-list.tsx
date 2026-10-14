@@ -30,6 +30,12 @@ const DEFAULT_SORT = 't1.id,desc'
 
 const SEARCH_DEBOUNCE_MS = 300
 
+/** `closing` keeps the fullscreen layout applied while `animate-out` plays. */
+type FullscreenState = 'off' | 'open' | 'closing'
+
+/** Must match the `animate-out` duration used by the fullscreen container. */
+const FULLSCREEN_EXIT_MS = 150
+
 /**
  * How long a fetched page counts as fresh.
  *
@@ -54,7 +60,11 @@ export function UserList() {
   const [searchInput, setSearchInput] = React.useState('')
   const [keyword, setKeyword] = React.useState('')
   const [isExporting, setIsExporting] = React.useState(false)
-  const [isFullscreen, setIsFullscreen] = React.useState(false)
+  const [fullscreen, setFullscreen] = React.useState<FullscreenState>('off')
+  const [reservedHeight, setReservedHeight] = React.useState(0)
+  const fullscreenRef = React.useRef<HTMLDivElement>(null)
+  const exitTimer = React.useRef<ReturnType<typeof setTimeout>>(undefined)
+  const isFullscreen = fullscreen !== 'off'
 
   // Debounced so typing in the search box does not fire a request per keystroke.
   React.useEffect(() => {
@@ -66,6 +76,26 @@ export function UserList() {
     return () => clearTimeout(timer)
   }, [searchInput])
 
+  const closeFullscreen = React.useCallback(() => {
+    clearTimeout(exitTimer.current)
+    setFullscreen('closing')
+    exitTimer.current = setTimeout(() => setFullscreen('off'), FULLSCREEN_EXIT_MS)
+  }, [])
+
+  React.useEffect(() => () => clearTimeout(exitTimer.current), [])
+
+  const toggleFullscreen = () => {
+    if (fullscreen !== 'off') {
+      closeFullscreen()
+      return
+    }
+
+    // Hold the table's height while it is out of flow, so the card does not collapse
+    // behind the overlay and the closing animation lands back in place.
+    setReservedHeight(fullscreenRef.current?.offsetHeight ?? 0)
+    setFullscreen('open')
+  }
+
   // Esc restores the table. This maximizes with CSS instead of the Fullscreen API,
   // because the API promotes the container into the top layer and every portal-based
   // overlay (dropdowns, selects, toasts) would then be painted underneath it.
@@ -76,14 +106,14 @@ export function UserList() {
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        setIsFullscreen(false)
+        closeFullscreen()
       }
     }
 
     document.addEventListener('keydown', onKeyDown)
 
     return () => document.removeEventListener('keydown', onKeyDown)
-  }, [isFullscreen])
+  }, [isFullscreen, closeFullscreen])
 
   const query = useQuery({
     queryKey: ['system', 'user', pagination.pageIndex, pagination.pageSize, status, keyword],
@@ -142,6 +172,52 @@ export function UserList() {
     }
   }
 
+  const tableSection = (
+    <>
+      <div className="flex flex-wrap items-center gap-3 px-4">
+        <Select
+          items={STATUS_OPTIONS}
+          value={status === undefined ? 'all' : String(status)}
+          onValueChange={handleStatusChange}
+        >
+          <SelectTrigger size="sm">
+            <span className="text-muted-foreground">状态:</span>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent align="start" alignItemWithTrigger={false}>
+            <SelectGroup>
+              {STATUS_OPTIONS.map(option => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <UserToolbar
+        table={table}
+        isRefreshing={query.isFetching && !query.isPending}
+        isExporting={isExporting}
+        isFullscreen={isFullscreen}
+        onCreate={() => reportPending('新增用户')}
+        onImport={() => reportPending('导入数据')}
+        onExport={() => void handleExport()}
+        onRefresh={() => void query.refetch()}
+        onToggleFullscreen={toggleFullscreen}
+        onResetColumns={() => setColumnVisibility(HIDDEN_BY_DEFAULT)}
+      />
+
+      <UserTable
+        table={table}
+        isLoading={query.isPending}
+        isError={query.isError}
+        isStale={query.isPlaceholderData || query.isError}
+      />
+    </>
+  )
+
   return (
     <Card>
       <CardHeader className="border-b has-data-[slot=card-action]:grid-cols-1 md:has-data-[slot=card-action]:grid-cols-[1fr_auto]">
@@ -163,51 +239,29 @@ export function UserList() {
       </CardHeader>
 
       <CardContent className="flex flex-col gap-4 px-0">
+        {fullscreen === 'open' ? <div style={{ height: reservedHeight }} /> : null}
+
         <div
-          className={cn('flex flex-col gap-4', isFullscreen && 'fixed inset-0 z-50 overflow-auto bg-background py-4')}
+          ref={fullscreenRef}
+          className={cn(
+            'flex flex-col gap-4',
+            fullscreen === 'open' &&
+              'fixed inset-0 z-50 animate-in overflow-auto bg-background py-4 duration-200 zoom-in-95 fade-in'
+          )}
         >
-          <div className="flex flex-wrap items-center gap-3 px-4">
-            <Select
-              items={STATUS_OPTIONS}
-              value={status === undefined ? 'all' : String(status)}
-              onValueChange={handleStatusChange}
-            >
-              <SelectTrigger size="sm">
-                <span className="text-muted-foreground">状态:</span>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent align="start" alignItemWithTrigger={false}>
-                <SelectGroup>
-                  {STATUS_OPTIONS.map(option => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <UserToolbar
-            table={table}
-            isRefreshing={query.isFetching && !query.isPending}
-            isExporting={isExporting}
-            isFullscreen={isFullscreen}
-            onCreate={() => reportPending('新增用户')}
-            onImport={() => reportPending('导入数据')}
-            onExport={() => void handleExport()}
-            onRefresh={() => void query.refetch()}
-            onToggleFullscreen={() => setIsFullscreen(current => !current)}
-            onResetColumns={() => setColumnVisibility(HIDDEN_BY_DEFAULT)}
-          />
-
-          <UserTable
-            table={table}
-            isLoading={query.isPending}
-            isError={query.isError}
-            isStale={query.isPlaceholderData || query.isError}
-          />
+          {tableSection}
         </div>
+
+        {/*
+          The closing overlay is a second copy rather than the element above. Keeping the
+          table in the card during the exit means the overlay fades away to reveal it,
+          instead of fading to nothing and popping back into place on the next commit.
+        */}
+        {fullscreen === 'closing' ? (
+          <div className="pointer-events-none fixed inset-0 z-50 animate-out overflow-auto bg-background py-4 duration-150 zoom-out-95 fade-out">
+            <div className="flex flex-col gap-4">{tableSection}</div>
+          </div>
+        ) : null}
       </CardContent>
     </Card>
   )
