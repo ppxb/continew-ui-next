@@ -102,3 +102,33 @@ export type UserReq = {
 export function updateUser(id: string | number, body: UserReq) {
   return http.put<void>(`/system/user/${id}`, body)
 }
+
+/**
+ * The body of `PATCH /system/user/{id}/password`.
+ *
+ * `newPassword` must already be RSA encrypted (see `@/lib/crypto`); the backend decrypts it
+ * with its private key and stores the result.
+ */
+export type UserPasswordResetReq = {
+  newPassword: string
+}
+
+/**
+ * Resets one user's password.
+ *
+ * The backend also invalidates that account's long-lived credentials, so every device it is
+ * signed in on has to sign in again.
+ */
+export function resetUserPassword(id: string | number, body: UserPasswordResetReq) {
+  return http.patch<void>(`/system/user/${id}/password`, body)
+}
+
+/** The body of `PATCH /system/user/{id}/role`; the backend requires at least one role. */
+export type UserRoleUpdateReq = {
+  roleIds: (string | number)[]
+}
+
+/** Replaces one user's role set. */
+export function assignUserRoles(id: string | number, body: UserRoleUpdateReq) {
+  return http.patch<void>(`/system/user/${id}/role`, body)
+}

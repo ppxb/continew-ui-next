@@ -204,7 +204,7 @@ export function UserEditDrawer({ userId, open, onClose }: UserEditDrawerProps) {
             <Spinner />
           </div>
         ) : detail.isError || !detail.data ? (
-          <p className="p-4 text-sm text-destructive">加载失败，请稍后重试</p>
+          <p className="p-4 text-sm text-foreground">加载失败，请稍后重试</p>
         ) : (
           <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="flex min-h-0 flex-1 flex-col">
             <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">

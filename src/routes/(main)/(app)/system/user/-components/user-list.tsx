@@ -13,9 +13,11 @@ import { toast } from '@/components/ui/toast'
 import { exportUsers, listUsers, type UserResp, type UserStatus } from '@/lib/api/user'
 import { dataTableFeatures } from '@/lib/data-table-features'
 
+import { UserAssignRolesDialog } from './user-assign-roles-dialog'
 import { createUserColumns, type UserAction } from './user-columns'
 import { UserDetailDrawer } from './user-detail-drawer'
 import { UserEditDrawer } from './user-edit-drawer'
+import { UserResetPasswordDialog } from './user-reset-password-dialog'
 import { UserTable } from './user-table'
 import { UserToolbar } from './user-toolbar'
 
@@ -50,9 +52,9 @@ const STALE_TIME_MS = 30_000
 const EMPTY_ROWS: UserResp[] = []
 
 /** Row actions that are still to be built, keyed by the action the table raises. */
-const PENDING_ACTION_LABELS: Record<Exclude<UserAction, 'detail' | 'edit'>, string> = {
-  resetPassword: '重置密码',
-  assignRoles: '分配角色',
+type PendingAction = Exclude<UserAction, 'detail' | 'edit' | 'resetPassword' | 'assignRoles'>
+
+const PENDING_ACTION_LABELS: Record<PendingAction, string> = {
   delete: '删除'
 }
 
@@ -73,6 +75,12 @@ export function UserList() {
   const [isDetailOpen, setIsDetailOpen] = React.useState(false)
   const [editUserId, setEditUserId] = React.useState<string | number | null>(null)
   const [isEditOpen, setIsEditOpen] = React.useState(false)
+  // The two dialogs act on a whole row, so they keep the row itself: the password reset only
+  // needs its name, and the role picker seeds its selection from the row's `roleIds`.
+  const [resetUser, setResetUser] = React.useState<UserResp | null>(null)
+  const [isResetOpen, setIsResetOpen] = React.useState(false)
+  const [roleUser, setRoleUser] = React.useState<UserResp | null>(null)
+  const [isRolesOpen, setIsRolesOpen] = React.useState(false)
   const [fullscreen, setFullscreen] = React.useState<FullscreenState>('off')
   const [reservedHeight, setReservedHeight] = React.useState(0)
   const fullscreenRef = React.useRef<HTMLDivElement>(null)
@@ -168,6 +176,18 @@ export function UserList() {
       if (action === 'edit') {
         setEditUserId(user.id)
         setIsEditOpen(true)
+        return
+      }
+
+      if (action === 'resetPassword') {
+        setResetUser(user)
+        setIsResetOpen(true)
+        return
+      }
+
+      if (action === 'assignRoles') {
+        setRoleUser(user)
+        setIsRolesOpen(true)
         return
       }
 
@@ -307,6 +327,8 @@ export function UserList() {
 
       <UserDetailDrawer userId={detailUserId} open={isDetailOpen} onClose={() => setIsDetailOpen(false)} />
       <UserEditDrawer userId={editUserId} open={isEditOpen} onClose={() => setIsEditOpen(false)} />
+      <UserResetPasswordDialog user={resetUser} open={isResetOpen} onClose={() => setIsResetOpen(false)} />
+      <UserAssignRolesDialog user={roleUser} open={isRolesOpen} onClose={() => setIsRolesOpen(false)} />
     </>
   )
 }

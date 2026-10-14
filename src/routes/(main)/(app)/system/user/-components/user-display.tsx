@@ -15,6 +15,11 @@ export function genderLabel(gender: UserResp['gender']) {
   return GENDER_LABELS[gender] ?? '未知'
 }
 
+/** The name to show for a user: the nickname when it is set, the username otherwise. */
+export function userLabel(user: Pick<UserResp, 'nickname' | 'username'>) {
+  return user.nickname || user.username
+}
+
 export function StatusCell({ status }: { status: UserResp['status'] }) {
   const isEnabled = status === 1
 

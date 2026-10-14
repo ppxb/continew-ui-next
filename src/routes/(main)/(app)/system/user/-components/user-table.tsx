@@ -90,7 +90,7 @@ export function UserTable({ table, isLoading, isError, isStale }: UserTableProps
                 {isLoading ? (
                   <Spinner className="mx-auto" />
                 ) : isError ? (
-                  <span className="text-destructive">加载失败，请稍后重试</span>
+                  <span className="text-foreground">加载失败，请稍后重试</span>
                 ) : (
                   <span className="text-muted-foreground">暂无数据</span>
                 )}

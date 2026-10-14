@@ -54,7 +54,9 @@ export function LayoutControls() {
         <TooltipTrigger render={<PopoverTrigger render={<Button size="icon-sm" variant="outline" />} />}>
           <Settings />
         </TooltipTrigger>
-        <TooltipContent side="bottom" sideOffset={8}>偏好设置</TooltipContent>
+        <TooltipContent side="bottom" sideOffset={8}>
+          偏好设置
+        </TooltipContent>
       </Tooltip>
       <PopoverContent align="end">
         <div className="flex flex-col gap-5">

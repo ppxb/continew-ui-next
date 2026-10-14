@@ -107,7 +107,7 @@ export function UserDetailDrawer({ userId, open, onClose }: UserDetailDrawerProp
               <Spinner />
             </div>
           ) : query.isError || !detail ? (
-            <p className="text-sm text-destructive">加载失败，请稍后重试</p>
+            <p className="text-sm text-foreground">加载失败，请稍后重试</p>
           ) : (
             <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
               <DetailField label="ID" className="sm:col-span-2">

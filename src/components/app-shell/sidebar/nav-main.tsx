@@ -264,10 +264,7 @@ function NavCollapsibleItem({ item, isActive, defaultOpen, isSubItemActive }: Na
 
             return (
               <SidebarMenuSubItem key={subItem.id}>
-                <SidebarMenuSubButton
-                  render={renderItemLink(subItem)}
-                  isActive={isSubItemActive(subItem.url)}
-                >
+                <SidebarMenuSubButton render={renderItemLink(subItem)} isActive={isSubItemActive(subItem.url)}>
                   {SubIcon && <SubIcon />}
                   <span>{subItem.title}</span>
                 </SidebarMenuSubButton>
