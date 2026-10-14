@@ -256,22 +256,29 @@ export function request<T>(method: string, path: string, options: RequestOptions
   return send<T>(method, path, options, false)
 }
 
-/** Reads `filename*` first, then `filename`, from a `Content-Disposition` header. */
+/**
+ * Reads the filename from a `Content-Disposition` header.
+ *
+ * The backend percent-encodes the name into the plain, unquoted `filename` parameter and
+ * never sends `filename*`, so the value has to be decoded before it can be used.
+ */
 function readDownloadFilename(header: string | null) {
   if (!header) {
     return null
   }
 
-  const encoded = /filename\*=UTF-8''([^;]+)/i.exec(header)
-  if (encoded) {
-    try {
-      return decodeURIComponent(encoded[1])
-    } catch {
-      return encoded[1]
-    }
+  const raw = /filename\*=UTF-8''([^;]+)/i.exec(header)?.[1] ?? /filename="?([^";]+)"?/i.exec(header)?.[1]
+
+  if (!raw) {
+    return null
   }
 
-  return /filename="?([^";]+)"?/i.exec(header)?.[1] ?? null
+  try {
+    return decodeURIComponent(raw)
+  } catch {
+    // A name that is not percent-encoded, or is malformed, is used as-is.
+    return raw
+  }
 }
 
 /** One authenticated request for a file endpoint. */
@@ -317,6 +324,13 @@ export async function downloadFile(path: string, query?: RequestOptions['query']
 
   if (!response.ok) {
     throw fail(STATUS_MESSAGE[response.status] || `下载失败（${response.status}）`, { status: response.status })
+  }
+
+  // A failed export resets the response and answers with the JSON envelope instead of a
+  // file, so a JSON content type means there is an error message to surface.
+  if (response.headers.get('Content-Type')?.includes('application/json')) {
+    const payload = await readPayload<unknown>(response)
+    throw fail(payload?.msg || '导出失败', { code: payload?.code, status: response.status })
   }
 
   const url = URL.createObjectURL(await response.blob())
