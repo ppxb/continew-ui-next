@@ -95,7 +95,7 @@ Keep a component inside its route until it is reused by another feature. Do not 
 10. Match nearby screens in card density, borders, radius, spacing, content width, and responsive behavior.
 11. Use semantic theme tokens so new screens work with light mode, dark mode, and the existing theme presets.
 12. Handle relevant loading, empty, error, disabled, and overflow states.
-13. Keep screens accessible with semantic HTML, keyboard support, visible focus states, labels, and appropriate ARIA attributes.
+13. Keep screens accessible with semantic HTML, keyboard support, visible focus states, and visible labels rather than hand-added ARIA attributes; see the `aria-label` rule under Code conventions.
 
 ## Code conventions
 
@@ -104,6 +104,7 @@ Keep a component inside its route until it is reused by another feature. Do not 
 - Follow the oxfmt configuration in `.oxfmtrc.json`: single quotes, no semicolons, two-space indentation, no trailing commas, and a 120-character line width.
 - Follow the oxlint configuration in `.oxlintrc.json`. Keep imports grouped and sorted by hand; `sortImports` stays disabled in oxfmt so that side-effect CSS import order is preserved.
 - `.oxlintrc.json` turns off three React Compiler rules: `react/purity`, `react/refs`, and `react/set-state-in-effect`. This project does not use React Compiler, and the flagged patterns come from libraries and files we keep intact (dnd-kit ref getters, the shadcn components under `src/components/ui/`).
+- Do not add `aria-label` outside the shadcn components in `src/components/ui/`. Those components already carry the accessibility attributes they need, so application code passes none of its own; reach for visible text, a `Tooltip`, or a wrapper that already has a label instead.
 - Avoid unnecessary dependencies.
 - TanStack devtools are intentionally not installed. Add `@tanstack/react-devtools`, `@tanstack/react-router-devtools` and `@tanstack/devtools-vite` back only when they are actually needed; rendering them from `__root.tsx` would put them in the production bundle.
 - Keep changes focused and do not refactor unrelated files.
