@@ -22,8 +22,8 @@ import { Label } from '@/components/ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
-import { listRoles } from '@/lib/api/role'
-import { assignUserRoles, type UserResp } from '@/lib/api/user'
+import { listRoleDict } from '@/lib/api/role'
+import { assignUserRoles, getUser, type UserResp } from '@/lib/api/user'
 
 import { userLabel } from './user-display'
 
@@ -48,42 +48,60 @@ interface UserAssignRolesDialogProps {
 /**
  * Replaces one user's role set.
  *
- * The list row already carries `roleIds`, so the selection is seeded from the row that raised
- * the action instead of fetching the user again. Saving sends the whole set, because the
- * backend's `UserRoleUpdateReq` assigns exactly the ids it is given.
+ * Fetches the user's current roles whenever the dialog opens. Saving replaces the whole set,
+ * so the selection must not come from a potentially stale list row.
  */
 export function UserAssignRolesDialog({ user, open, onClose }: UserAssignRolesDialogProps) {
   const queryClient = useQueryClient()
+  const userId = user?.id ?? null
 
   const form = useForm<FormValues>({ resolver: zodResolver(formSchema), defaultValues: EMPTY_FORM })
 
   const roles = useQuery({
-    queryKey: ['system', 'role', 'list'],
-    queryFn: listRoles,
+    queryKey: ['system', 'role', 'dict'],
+    queryFn: listRoleDict,
     staleTime: LOOKUP_STALE_MS,
     enabled: open
+  })
+
+  const detail = useQuery({
+    queryKey: ['system', 'user', 'role-assignment', userId],
+    queryFn: () => {
+      if (userId === null) {
+        throw new Error('A user role assignment was requested without an id')
+      }
+
+      return getUser(userId)
+    },
+    enabled: open && userId !== null,
+    // Re-enabling this query fetches on every opening, even for the same user.
+    staleTime: 0,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false
   })
 
   // Saving without the list would post the seeded ids straight back and report success while
   // the user never saw a single role to tick.
   const isRoleListUnavailable = roles.isPending || roles.isError
+  const isDetailLoading = detail.isPending || detail.fetchStatus !== 'idle'
+  const isDetailUnavailable = isDetailLoading || detail.isError || !detail.data
+  const isFormUnavailable = isRoleListUnavailable || isDetailUnavailable
 
-  // Seed from the row's current roles every time the dialog opens, so a cancelled edit is not
-  // carried over into the next user.
+  // Wait for the opening's request, including when an older response is already cached.
   React.useEffect(() => {
-    if (open) {
-      form.reset({ roleIds: (user?.roleIds ?? []).map(String) })
+    if (open && !isDetailUnavailable && detail.data) {
+      form.reset({ roleIds: (detail.data.roleIds ?? []).map(String) })
     }
-  }, [open, user, form])
+  }, [open, isDetailUnavailable, detail.data, form])
 
   // The picker speaks in strings; this map gives the original id back for the request body.
   const roleIdByValue = React.useMemo(
-    () => new Map((roles.data ?? []).map(role => [String(role.id), role.id])),
+    () => new Map((roles.data ?? []).map(role => [String(role.value), role.value])),
     [roles.data]
   )
 
   const onSubmit = async (values: FormValues) => {
-    if (user === null) {
+    if (user === null || isFormUnavailable) {
       return
     }
 
@@ -120,6 +138,14 @@ export function UserAssignRolesDialog({ user, open, onClose }: UserAssignRolesDi
         </DialogHeader>
 
         <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
+          {detail.isError && (
+            <p className="text-sm text-destructive">
+              用户角色加载失败，
+              <button type="button" className="underline" onClick={() => void detail.refetch()}>
+                重试
+              </button>
+            </p>
+          )}
           <Controller
             control={form.control}
             name="roleIds"
@@ -127,8 +153,8 @@ export function UserAssignRolesDialog({ user, open, onClose }: UserAssignRolesDi
               // Read from the field instead of `form.watch`, which the React Compiler lint
               // rejects as an API that cannot be memoized safely.
               const selectedRoleNames = (roles.data ?? [])
-                .filter(role => field.value.includes(String(role.id)))
-                .map(role => role.name)
+                .filter(role => field.value.includes(String(role.value)))
+                .map(role => role.label)
 
               return (
                 <Field className="gap-1.5" data-invalid={fieldState.invalid}>
@@ -141,13 +167,14 @@ export function UserAssignRolesDialog({ user, open, onClose }: UserAssignRolesDi
                           variant="outline"
                           className="w-full justify-between font-normal"
                           aria-invalid={fieldState.invalid}
+                          disabled={isDetailUnavailable || form.formState.isSubmitting}
                         />
                       }
                     >
                       <span className={selectedRoleNames.length ? 'truncate' : 'truncate text-muted-foreground'}>
-                        {roles.isPending
+                        {isDetailLoading || roles.isPending
                           ? '加载中…'
-                          : roles.isError
+                          : detail.isError || roles.isError
                             ? '角色加载失败'
                             : selectedRoleNames.length
                               ? selectedRoleNames.join('、')
@@ -174,7 +201,7 @@ export function UserAssignRolesDialog({ user, open, onClose }: UserAssignRolesDi
                         <p className="px-2 py-1.5 text-sm text-muted-foreground">暂无可选角色</p>
                       ) : (
                         (roles.data ?? []).map(role => {
-                          const value = String(role.id)
+                          const value = String(role.value)
                           const checked = field.value.includes(value)
 
                           return (
@@ -182,6 +209,7 @@ export function UserAssignRolesDialog({ user, open, onClose }: UserAssignRolesDi
                               <Checkbox
                                 id={`user-role-${value}`}
                                 checked={checked}
+                                disabled={isDetailUnavailable || form.formState.isSubmitting}
                                 onCheckedChange={next =>
                                   field.onChange(
                                     next ? [...field.value, value] : field.value.filter(item => item !== value)
@@ -192,7 +220,7 @@ export function UserAssignRolesDialog({ user, open, onClose }: UserAssignRolesDi
                                 htmlFor={`user-role-${value}`}
                                 className="flex-1 cursor-pointer text-sm font-normal"
                               >
-                                {role.name}
+                                {role.label}
                               </Label>
                             </div>
                           )
@@ -210,7 +238,7 @@ export function UserAssignRolesDialog({ user, open, onClose }: UserAssignRolesDi
             <Button type="button" variant="outline" disabled={form.formState.isSubmitting} onClick={onClose}>
               取消
             </Button>
-            <Button type="submit" disabled={form.formState.isSubmitting || isRoleListUnavailable}>
+            <Button type="submit" disabled={form.formState.isSubmitting || isFormUnavailable}>
               {form.formState.isSubmitting ? (
                 <>
                   <Spinner />

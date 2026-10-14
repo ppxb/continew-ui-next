@@ -24,7 +24,7 @@ export function StatusCell({ status }: { status: UserResp['status'] }) {
   const isEnabled = status === 1
 
   return (
-    <Badge variant="outline" className="gap-1.5 border px-2 py-1 font-medium">
+    <Badge variant="secondary">
       <span className={isEnabled ? 'size-1.5 rounded-full bg-green-600' : 'size-1.5 rounded-full bg-destructive'} />
       {isEnabled ? '启用' : '禁用'}
     </Badge>
@@ -39,7 +39,7 @@ export function RoleCell({ roleNames }: { roleNames: string[] }) {
   return (
     <div className="flex flex-wrap gap-1">
       {roleNames.map(roleName => (
-        <Badge key={roleName} variant="secondary" className="font-normal">
+        <Badge key={roleName} variant="secondary">
           {roleName}
         </Badge>
       ))}

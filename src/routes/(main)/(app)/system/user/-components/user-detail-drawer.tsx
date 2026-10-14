@@ -19,7 +19,7 @@ function DetailField({ label, className, children }: { label: string; className?
   return (
     <div className={cn('flex flex-col gap-1', className)}>
       <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="text-sm break-words text-foreground">{children}</dd>
+      <dd className="text-sm wrap-break-word text-foreground">{children}</dd>
     </div>
   )
 }
@@ -45,7 +45,7 @@ function IdField({ id }: { id: UserDetailResp['id'] }) {
 
   return (
     <div className="flex items-center gap-1">
-      <span className="text-xs break-all">{id}</span>
+      <span className="break-all">{id}</span>
       <Tooltip>
         <TooltipTrigger render={<Button variant="ghost" size="icon-sm" onClick={() => void copy()} />}>
           {copied ? <Check className="size-3.5 text-green-600" /> : <Copy className="size-3.5" />}

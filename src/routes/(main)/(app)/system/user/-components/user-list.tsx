@@ -75,8 +75,7 @@ export function UserList() {
   const [isDetailOpen, setIsDetailOpen] = React.useState(false)
   const [editUserId, setEditUserId] = React.useState<string | number | null>(null)
   const [isEditOpen, setIsEditOpen] = React.useState(false)
-  // The two dialogs act on a whole row, so they keep the row itself: the password reset only
-  // needs its name, and the role picker seeds its selection from the row's `roleIds`.
+  // Both dialogs use the row's id and display name; role assignment fetches the current roles on open.
   const [resetUser, setResetUser] = React.useState<UserResp | null>(null)
   const [isResetOpen, setIsResetOpen] = React.useState(false)
   const [roleUser, setRoleUser] = React.useState<UserResp | null>(null)

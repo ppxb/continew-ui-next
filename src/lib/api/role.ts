@@ -12,3 +12,14 @@ export interface RoleResp {
 export function listRoles() {
   return http.get<RoleResp[]>('/system/role/list')
 }
+
+/** A role option from `GET /system/role/dict`, filtered by the backend for assignment. */
+export interface RoleDictResp {
+  label: string
+  value: string | number
+}
+
+/** Role picker options without requiring the role management list permission. */
+export function listRoleDict() {
+  return http.get<RoleDictResp[]>('/system/role/dict')
+}
