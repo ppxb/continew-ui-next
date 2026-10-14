@@ -99,12 +99,7 @@ function UserAssignRolesForm({ user, initialRoleIds, onClose }: UserAssignRolesF
         render={({ field, fieldState }) => (
           <Field className="gap-1.5" data-invalid={fieldState.invalid}>
             <FieldLabel>角色</FieldLabel>
-            <UserRoleSelect
-              value={field.value}
-              onChange={field.onChange}
-              disabled={form.formState.isSubmitting}
-              invalid={fieldState.invalid}
-            />
+            <UserRoleSelect value={field.value} onChange={field.onChange} invalid={fieldState.invalid} />
             {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
           </Field>
         )}

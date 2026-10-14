@@ -220,11 +220,6 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
   })
 
   const form = useForm<FormValues>({ resolver: zodResolver(formSchema), defaultValues: EMPTY_FORM })
-  const isSubmitting = form.formState.isSubmitting
-  const isSystemUser = !isCreate && Boolean(detail.data?.isSystem)
-  const isSelfUser = !isCreate && Boolean(detail.data?.disabled && !detail.data?.isSystem)
-  const isRoleDisabled = isSubmitting || isSystemUser || isSelfUser
-  const isStatusDisabled = isSubmitting || isSystemUser || isSelfUser
 
   React.useEffect(() => {
     if (!open) {
@@ -321,7 +316,7 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
       <DrawerContent className="data-[swipe-axis=x]:sm:[--drawer-content-width:32rem]">
         <DrawerHeader className="flex-row items-start justify-between gap-2 border-b p-4 md:gap-2">
           <DrawerTitle>{isCreate ? '新增用户' : '修改用户'}</DrawerTitle>
-          <DrawerClose render={<Button variant="ghost" size="icon-sm" disabled={isSubmitting} />}>
+          <DrawerClose render={<Button variant="ghost" size="icon-sm" />}>
             <X className="size-4" />
             <span className="sr-only">关闭</span>
           </DrawerClose>
@@ -338,13 +333,7 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
                   render={({ field, fieldState }) => (
                     <Field className="gap-1.5" data-invalid={fieldState.invalid}>
                       <FieldLabel>昵称</FieldLabel>
-                      <Input
-                        {...field}
-                        maxLength={30}
-                        placeholder="请输入昵称"
-                        disabled={isSubmitting}
-                        aria-invalid={fieldState.invalid}
-                      />
+                      <Input {...field} maxLength={30} placeholder="请输入昵称" aria-invalid={fieldState.invalid} />
                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>
                   )}
@@ -360,7 +349,6 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
                         {...field}
                         maxLength={64}
                         placeholder="请输入用户名"
-                        disabled={isSubmitting}
                         autoComplete="off"
                         aria-invalid={fieldState.invalid}
                       />
@@ -381,7 +369,6 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
                           id="user-create-password"
                           maxLength={32}
                           placeholder="请输入密码"
-                          disabled={isSubmitting}
                           autoComplete="new-password"
                           aria-invalid={fieldState.invalid}
                         />
@@ -405,7 +392,6 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
                         {...field}
                         maxLength={14}
                         placeholder="选填"
-                        disabled={isSubmitting}
                         autoComplete="off"
                         aria-invalid={fieldState.invalid}
                       />
@@ -424,7 +410,6 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
                         {...field}
                         maxLength={255}
                         placeholder="选填"
-                        disabled={isSubmitting}
                         autoComplete="off"
                         aria-invalid={fieldState.invalid}
                       />
@@ -442,10 +427,9 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
                       <Select
                         items={GENDER_ITEMS}
                         value={String(field.value)}
-                        disabled={isSubmitting}
                         onValueChange={value => field.onChange(value ? Number(value) : field.value)}
                       >
-                        <SelectTrigger className="w-full" disabled={isSubmitting} aria-invalid={fieldState.invalid}>
+                        <SelectTrigger className="w-full" aria-invalid={fieldState.invalid}>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent align="start" alignItemWithTrigger={false}>
@@ -472,7 +456,7 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
                       <DeptTreeSelect
                         data={depts.data}
                         loading={depts.isPending}
-                        disabled={isSubmitting || depts.isPending || depts.isError}
+                        disabled={depts.isPending || depts.isError}
                         value={field.value}
                         onChange={field.onChange}
                         invalid={fieldState.invalid}
@@ -500,15 +484,9 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
                       <UserRoleSelect
                         value={field.value}
                         onChange={field.onChange}
-                        disabled={isRoleDisabled}
                         invalid={fieldState.invalid}
                         enabled={open}
                       />
-                      {(isSystemUser || isSelfUser) && (
-                        <FieldDescription>
-                          {isSystemUser ? '系统内置用户不允许修改角色' : '当前登录用户不允许修改自身角色'}
-                        </FieldDescription>
-                      )}
                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>
                   )}
@@ -525,7 +503,6 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
                         rows={3}
                         maxLength={200}
                         placeholder="选填"
-                        disabled={isSubmitting}
                         aria-invalid={fieldState.invalid}
                       />
                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
@@ -541,19 +518,12 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
                       <FieldContent>
                         <FieldLabel>状态</FieldLabel>
                         <FieldDescription>
-                          {isSystemUser
-                            ? '系统内置用户不允许修改状态'
-                            : isSelfUser
-                              ? '当前登录用户不允许禁用自身账号'
-                              : field.value === 1
-                                ? '启用后该用户可以登录'
-                                : '禁用后该用户无法登录'}
+                          {field.value === 1 ? '启用后该用户可以登录' : '禁用后该用户无法登录'}
                         </FieldDescription>
                       </FieldContent>
                       <Switch
                         checked={field.value === 1}
                         onCheckedChange={checked => field.onChange(checked ? 1 : 2)}
-                        disabled={isStatusDisabled}
                         aria-invalid={fieldState.invalid}
                       />
                     </Field>
@@ -563,11 +533,11 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
             </div>
 
             <DrawerFooter className="flex-row justify-end gap-2 border-t p-4">
-              <Button type="button" variant="outline" disabled={isSubmitting} onClick={onClose}>
+              <Button type="button" variant="outline" disabled={form.formState.isSubmitting} onClick={onClose}>
                 取消
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? (
+              <Button type="submit" disabled={form.formState.isSubmitting}>
+                {form.formState.isSubmitting ? (
                   <>
                     <Spinner />
                     保存中
