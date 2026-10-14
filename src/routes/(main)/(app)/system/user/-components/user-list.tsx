@@ -40,8 +40,8 @@ const FULLSCREEN_EXIT_MS = 150
 /**
  * How long a fetched page counts as fresh.
  *
- * React Query's default `staleTime` is 0, so every remount refetched in the background and
- * the refresh button spun whenever the page was reopened. The button still forces a fetch.
+ * With the automatic triggers below turned off, nothing refetches on its own; this only
+ * keeps the query's staleness honest for any future consumer.
  */
 const STALE_TIME_MS = 30_000
 
@@ -137,6 +137,13 @@ export function UserList() {
         sort: DEFAULT_SORT
       }),
     staleTime: STALE_TIME_MS,
+    // The toolbar owns refreshing. Left at their defaults these three refetch whenever the
+    // data has aged past `staleTime`, so switching tabs or reopening the page fired a request
+    // and spun the refresh button. A failed first load still retries, because a query with no
+    // data loads on mount regardless of `refetchOnMount`.
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
     // Keep the current page on screen while the next one loads; the table dims it.
     placeholderData: previous => previous
   })
@@ -205,7 +212,7 @@ export function UserList() {
           onValueChange={handleStatusChange}
         >
           <SelectTrigger size="sm">
-            <span className="text-muted-foreground">状态:</span>
+            <span className="text-muted-foreground">状态</span>
             <SelectValue />
           </SelectTrigger>
           <SelectContent align="start" alignItemWithTrigger={false}>
