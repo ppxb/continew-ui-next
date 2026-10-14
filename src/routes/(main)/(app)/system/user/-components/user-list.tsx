@@ -38,14 +38,6 @@ const DEFAULT_SORT = 't1.id,desc'
 
 const SEARCH_DEBOUNCE_MS = 300
 
-/**
- * How long a fetched page counts as fresh.
- *
- * With the automatic triggers below turned off, nothing refetches on its own; this only
- * keeps the query's staleness honest for any future consumer.
- */
-const STALE_TIME_MS = 30_000
-
 /** Stable empty array, so an empty page does not rebuild the table's row model. */
 const EMPTY_ROWS: UserResp[] = []
 
@@ -97,14 +89,6 @@ export function UserList() {
         description: keyword || undefined,
         sort: DEFAULT_SORT
       }),
-    staleTime: STALE_TIME_MS,
-    // The toolbar owns refreshing. Left at their defaults these three refetch whenever the
-    // data has aged past `staleTime`, so switching tabs or reopening the page fired a request
-    // and spun the refresh button. A failed first load still retries, because a query with no
-    // data loads on mount regardless of `refetchOnMount`.
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
     // Keep the current page on screen while the next one loads; the table dims it.
     placeholderData: previous => previous
   })
@@ -113,17 +97,13 @@ export function UserList() {
   useQuery({
     queryKey: ['system', 'dept', 'tree'],
     queryFn: getDeptTree,
-    staleTime: 5 * 60_000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false
+    staleTime: 5 * 60_000
   })
 
   useQuery({
     queryKey: ['system', 'role', 'dict'],
     queryFn: listRoleDict,
-    staleTime: 5 * 60_000,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false
+    staleTime: 5 * 60_000
   })
 
   const total = query.data?.total ?? 0

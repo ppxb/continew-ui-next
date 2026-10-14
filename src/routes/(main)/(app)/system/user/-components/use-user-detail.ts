@@ -2,14 +2,6 @@ import { useQuery } from '@tanstack/react-query'
 
 import { getUser } from '@/lib/api/user'
 
-/**
- * How long a fetched record stays fresh.
- *
- * This window is what makes reopening the same user reuse the cache instead of going back to
- * the API, so it is the one knob that decides how often the drawer actually fetches.
- */
-const DETAIL_STALE_TIME_MS = 60_000
-
 interface UserDetailOptions {
   /**
    * Keep the query inactive until the caller needs the record, instead of as soon as it has an id.
@@ -49,8 +41,6 @@ export function useUserDetail(
       return getUser(userId)
     },
     enabled: enabled && userId !== null,
-    staleTime: alwaysRefetch ? 0 : DETAIL_STALE_TIME_MS,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false
+    staleTime: alwaysRefetch ? 0 : undefined
   })
 }
