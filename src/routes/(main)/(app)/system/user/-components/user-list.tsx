@@ -16,7 +16,7 @@ import { dataTableFeatures } from '@/lib/data-table-features'
 import { UserAssignRolesDialog } from './user-assign-roles-dialog'
 import { createUserColumns, type UserAction } from './user-columns'
 import { UserDetailDrawer } from './user-detail-drawer'
-import { UserEditDrawer } from './user-edit-drawer'
+import { UserFormDrawer } from './user-form-drawer'
 import { UserResetPasswordDialog } from './user-reset-password-dialog'
 import { UserTable } from './user-table'
 import { UserToolbar } from './user-toolbar'
@@ -73,8 +73,10 @@ export function UserList() {
   const [isExporting, setIsExporting] = React.useState(false)
   const [detailUserId, setDetailUserId] = React.useState<string | number | null>(null)
   const [isDetailOpen, setIsDetailOpen] = React.useState(false)
-  const [editUserId, setEditUserId] = React.useState<string | number | null>(null)
-  const [isEditOpen, setIsEditOpen] = React.useState(false)
+  // The form drawer covers both 新增 and 修改, so a null id means "create" rather than "nothing
+  // picked yet"; the open flag is what says whether the drawer is showing at all.
+  const [formUserId, setFormUserId] = React.useState<string | number | null>(null)
+  const [isFormOpen, setIsFormOpen] = React.useState(false)
   // Both dialogs use the row's id and display name; role assignment fetches the current roles on open.
   const [resetUser, setResetUser] = React.useState<UserResp | null>(null)
   const [isResetOpen, setIsResetOpen] = React.useState(false)
@@ -173,8 +175,8 @@ export function UserList() {
       }
 
       if (action === 'edit') {
-        setEditUserId(user.id)
-        setIsEditOpen(true)
+        setFormUserId(user.id)
+        setIsFormOpen(true)
         return
       }
 
@@ -259,7 +261,10 @@ export function UserList() {
         isRefreshing={query.isFetching && !query.isPending}
         isExporting={isExporting}
         isFullscreen={isFullscreen}
-        onCreate={() => reportPending('新增用户')}
+        onCreate={() => {
+          setFormUserId(null)
+          setIsFormOpen(true)
+        }}
         onImport={() => reportPending('导入数据')}
         onExport={() => void handleExport()}
         onRefresh={() => void query.refetch()}
@@ -325,7 +330,7 @@ export function UserList() {
       </Card>
 
       <UserDetailDrawer userId={detailUserId} open={isDetailOpen} onClose={() => setIsDetailOpen(false)} />
-      <UserEditDrawer userId={editUserId} open={isEditOpen} onClose={() => setIsEditOpen(false)} />
+      <UserFormDrawer userId={formUserId} open={isFormOpen} onClose={() => setIsFormOpen(false)} />
       <UserResetPasswordDialog user={resetUser} open={isResetOpen} onClose={() => setIsResetOpen(false)} />
       <UserAssignRolesDialog user={roleUser} open={isRolesOpen} onClose={() => setIsRolesOpen(false)} />
     </>

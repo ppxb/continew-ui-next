@@ -104,6 +104,22 @@ export function updateUser(id: string | number, body: UserReq) {
 }
 
 /**
+ * The body of `POST /system/user`.
+ *
+ * Extends the update body with `password`, which the backend only requires in its create
+ * validation group (`CrudValidationGroup.Create`). It must already be RSA encrypted (see
+ * `@/lib/crypto`); `UserServiceImpl.beforeCreate` decrypts it with the private key.
+ */
+export type UserCreateReq = UserReq & {
+  password: string
+}
+
+/** Creates a user, answering with its new id. */
+export function createUser(body: UserCreateReq) {
+  return http.post<{ id: string | number }>('/system/user', body)
+}
+
+/**
  * The body of `PATCH /system/user/{id}/password`.
  *
  * `newPassword` must already be RSA encrypted (see `@/lib/crypto`); the backend decrypts it

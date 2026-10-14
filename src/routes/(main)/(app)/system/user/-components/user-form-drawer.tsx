@@ -20,7 +20,15 @@ import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/components/ui/toast'
 import { flattenDepts, getDeptTree } from '@/lib/api/dept'
 import { listRoleDict } from '@/lib/api/role'
-import { updateUser, type UserDetailResp, type UserGender, type UserStatus } from '@/lib/api/user'
+import {
+  createUser,
+  updateUser,
+  type UserDetailResp,
+  type UserGender,
+  type UserReq,
+  type UserStatus
+} from '@/lib/api/user'
+import { encryptPassword } from '@/lib/crypto'
 
 import { genderLabel } from './user-display'
 import { useUserDetail } from './use-user-detail'
@@ -47,6 +55,17 @@ const PHONE_PATTERN = /^(?:0|86|\+86)?1[3-9]\d{9}$/
  */
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+$/
 
+/**
+ * Mirrors `RegexConstants.PASSWORD`: 8 to 32 characters with at least one digit and one
+ * lowercase letter. The profile and password-reset forms enforce the same rule. The backend does
+ * not check it when an administrator creates an account, so this is the only thing keeping a new
+ * account from being born weaker than one its owner could set for themselves.
+ */
+const PASSWORD_PATTERN = /^(?=.*\d)(?=.*[a-z]).{8,32}$/
+
+/** Shown under the password field until the value breaks the rule. */
+const PASSWORD_HINT = '密码长度为 8-32 个字符，且至少包含一个小写字母和一个数字'
+
 /** Departments and roles barely change, so reopening the form should not refetch them. */
 const LOOKUP_STALE_MS = 5 * 60_000
 
@@ -55,6 +74,9 @@ const GENDER_ITEMS = ([0, 1, 2] as const).map(value => ({ value: String(value), 
 const formSchema = z.object({
   nickname: z.string().regex(NAME_PATTERN, '昵称长度为 2-30 个字符，支持中文、字母、数字、下划线、短横线'),
   username: z.string().regex(USERNAME_PATTERN, '用户名长度为 4-64 个字符，支持大小写字母、数字、下划线，且以字母开头'),
+  // A create requires it and an edit never renders the field, so the rule only has to tolerate the
+  // empty value an edit carries. `onSubmit` rejects an empty one when creating.
+  password: z.string().refine(value => value === '' || PASSWORD_PATTERN.test(value), PASSWORD_HINT),
   phone: z.string().refine(value => value === '' || PHONE_PATTERN.test(value), '手机号格式不正确'),
   email: z
     .string()
@@ -72,6 +94,7 @@ type FormValues = z.infer<typeof formSchema>
 const EMPTY_FORM: FormValues = {
   nickname: '',
   username: '',
+  password: '',
   phone: '',
   email: '',
   gender: 1,
@@ -86,6 +109,8 @@ function toFormValues(user: UserDetailResp): FormValues {
   return {
     nickname: user.nickname ?? '',
     username: user.username ?? '',
+    // The backend never returns a stored password, so it stays empty and never reaches the body.
+    password: '',
     phone: user.phone ?? '',
     email: user.email ?? '',
     gender: user.gender ?? 1,
@@ -96,23 +121,31 @@ function toFormValues(user: UserDetailResp): FormValues {
   }
 }
 
-interface UserEditDrawerProps {
-  /** The user being edited, or `null` before the first one is picked. */
+interface UserFormDrawerProps {
+  /**
+   * The user being edited, or `null` to create one.
+   *
+   * Unlike the detail drawer, `null` cannot mean "nothing picked yet": a create has to be able to
+   * open the drawer, so `open` carries that state instead.
+   */
   readonly userId: string | number | null
   readonly open: boolean
   readonly onClose: () => void
 }
 
 /**
- * Edit form for one user, built like the detail drawer so both open the same way.
+ * Create and edit form for one user, built like the detail drawer so they open the same way.
  *
- * The field set and its order follow the Vue client's `AddDrawer.vue`; its create-only
- * fields are left out because the backend only requires a password when creating.
+ * One drawer covers both modes, the way the Vue client's `AddDrawer.vue` does. The field set and
+ * its order follow that component; `password` is the one field it adds for a create, because the
+ * backend only requires it in its create validation group.
  */
-export function UserEditDrawer({ userId, open, onClose }: UserEditDrawerProps) {
+export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
   const queryClient = useQueryClient()
+  const isCreate = userId === null
 
-  // Shares its key with the detail drawer, so opening either one warms the other.
+  // Shares its key with the detail drawer, so opening either one warms the other. A create has no
+  // id, which leaves this query disabled.
   const detail = useUserDetail(userId)
 
   const depts = useQuery({
@@ -132,10 +165,19 @@ export function UserEditDrawer({ userId, open, onClose }: UserEditDrawerProps) {
   const form = useForm<FormValues>({ resolver: zodResolver(formSchema), defaultValues: EMPTY_FORM })
 
   React.useEffect(() => {
-    if (open && detail.data) {
+    if (!open) {
+      return
+    }
+
+    if (isCreate) {
+      form.reset({ ...EMPTY_FORM })
+      return
+    }
+
+    if (detail.data) {
       form.reset(toFormValues(detail.data))
     }
-  }, [open, detail.data, form])
+  }, [open, isCreate, detail.data, form])
 
   const deptOptions = React.useMemo(() => flattenDepts(depts.data ?? []), [depts.data])
   const deptItems = React.useMemo(
@@ -149,26 +191,53 @@ export function UserEditDrawer({ userId, open, onClose }: UserEditDrawerProps) {
     [roles.data]
   )
 
+  /** The body both modes send; only a create adds a password to it. */
+  const toUserReq = (values: FormValues): UserReq => ({
+    nickname: values.nickname,
+    username: values.username,
+    gender: values.gender as UserGender,
+    deptId: deptIdByValue.get(values.deptId) ?? values.deptId,
+    roleIds: values.roleIds.map(value => roleIdByValue.get(value) ?? value),
+    status: values.status as UserStatus,
+    // Empty strings, not `undefined`: MyBatis-Plus defaults to `updateStrategy = NOT_NULL`,
+    // so an omitted field never reaches the SET clause and clearing it would silently do
+    // nothing while the toast still claimed success. The backend accepts `''` for all three.
+    email: values.email,
+    phone: values.phone,
+    description: values.description
+  })
+
   const onSubmit = async (values: FormValues) => {
     if (userId === null) {
+      if (!values.password) {
+        form.setError('password', { message: '密码不能为空' })
+        return
+      }
+
+      let password: string
+      try {
+        password = encryptPassword(values.password)
+      } catch {
+        // Encryption happens locally, so the HTTP layer is not there to report it.
+        toast.add({ title: '密码加密失败，请刷新页面后重试', type: 'error' })
+        return
+      }
+
+      try {
+        await createUser({ ...toUserReq(values), password })
+
+        onClose()
+        void queryClient.invalidateQueries({ queryKey: ['system', 'user'] })
+        toast.add({ title: '新增成功', type: 'success' })
+      } catch {
+        // The HTTP layer already reported the failure.
+      }
+
       return
     }
 
     try {
-      await updateUser(userId, {
-        nickname: values.nickname,
-        username: values.username,
-        gender: values.gender as UserGender,
-        deptId: deptIdByValue.get(values.deptId) ?? values.deptId,
-        roleIds: values.roleIds.map(value => roleIdByValue.get(value) ?? value),
-        status: values.status as UserStatus,
-        // Empty strings, not `undefined`: MyBatis-Plus defaults to `updateStrategy = NOT_NULL`,
-        // so an omitted field never reaches the SET clause and clearing it would silently do
-        // nothing while the toast still claimed success. The backend accepts `''` for all three.
-        email: values.email,
-        phone: values.phone,
-        description: values.description
-      })
+      await updateUser(userId, toUserReq(values))
 
       onClose()
       // One prefix covers both the list and the cached detail.
@@ -192,20 +261,15 @@ export function UserEditDrawer({ userId, open, onClose }: UserEditDrawerProps) {
     >
       <DrawerContent className="data-[swipe-axis=x]:sm:[--drawer-content-width:32rem]">
         <DrawerHeader className="flex-row items-start justify-between gap-2 border-b p-4 md:gap-2">
-          <DrawerTitle>修改用户</DrawerTitle>
+          <DrawerTitle>{isCreate ? '新增用户' : '修改用户'}</DrawerTitle>
           <DrawerClose render={<Button variant="ghost" size="icon-sm" />}>
             <X className="size-4" />
             <span className="sr-only">关闭</span>
           </DrawerClose>
         </DrawerHeader>
 
-        {detail.isPending ? (
-          <div className="flex flex-1 items-center justify-center">
-            <Spinner />
-          </div>
-        ) : detail.isError || !detail.data ? (
-          <p className="p-4 text-sm text-foreground">加载失败，请稍后重试</p>
-        ) : (
+        {/* A create has nothing to load, so its form is ready the moment the drawer opens. */}
+        {isCreate || detail.data ? (
           <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="flex min-h-0 flex-1 flex-col">
             <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
               <FieldGroup className="gap-4">
@@ -238,6 +302,32 @@ export function UserEditDrawer({ userId, open, onClose }: UserEditDrawerProps) {
                     </Field>
                   )}
                 />
+
+                {isCreate ? (
+                  <Controller
+                    control={form.control}
+                    name="password"
+                    render={({ field, fieldState }) => (
+                      <Field className="gap-1.5" data-invalid={fieldState.invalid}>
+                        <FieldLabel htmlFor="user-create-password">密码</FieldLabel>
+                        <Input
+                          {...field}
+                          id="user-create-password"
+                          type="password"
+                          maxLength={32}
+                          placeholder="请输入密码"
+                          autoComplete="new-password"
+                          aria-invalid={fieldState.invalid}
+                        />
+                        {fieldState.invalid ? (
+                          <FieldError errors={[fieldState.error]} />
+                        ) : (
+                          <FieldDescription>{PASSWORD_HINT}</FieldDescription>
+                        )}
+                      </Field>
+                    )}
+                  />
+                ) : null}
 
                 <Controller
                   control={form.control}
@@ -477,6 +567,12 @@ export function UserEditDrawer({ userId, open, onClose }: UserEditDrawerProps) {
               </Button>
             </DrawerFooter>
           </form>
+        ) : detail.isError ? (
+          <p className="p-4 text-sm text-foreground">加载失败，请稍后重试</p>
+        ) : (
+          <div className="flex flex-1 items-center justify-center">
+            <Spinner />
+          </div>
         )}
       </DrawerContent>
     </Drawer>
