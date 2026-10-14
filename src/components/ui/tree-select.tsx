@@ -4,6 +4,7 @@ import { ChevronsDownUp, ChevronsUpDown, ChevronDown, Search, X } from 'lucide-r
 
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { Tree, TreeSkeleton, type TreeKey, type TreeNodeData, type TreeProps } from '@/components/ui/tree'
 
 export interface TreeSelectProps<T = Record<string, unknown>> {
@@ -176,7 +177,7 @@ export function TreeSelect<T = Record<string, unknown>>({
         sideOffset={4}
         className={cn(
           'isolate z-50 flex flex-col gap-0 overflow-hidden p-0',
-          'w-(--anchor-width) max-w-[28rem] min-w-64 rounded-lg shadow-md ring-1 ring-foreground/10',
+          'w-(--anchor-width) max-w-md min-w-64 rounded-lg shadow-md ring-1 ring-foreground/10',
           popupClassName
         )}
       >
@@ -209,26 +210,39 @@ export function TreeSelect<T = Record<string, unknown>>({
 
             {showExpandActions && !searchKeyword && (
               <div className="flex shrink-0 items-center gap-0.5">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-xs"
-                  title="全部展开"
-                  aria-label="全部展开"
-                  onClick={handleExpandAll}
-                >
-                  <ChevronsUpDown className="size-3" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-xs"
-                  title="全部收起"
-                  aria-label="全部收起"
-                  onClick={handleCollapseAll}
-                >
-                  <ChevronsDownUp className="size-3" />
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger
+                    render={
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-xs"
+                        aria-label="全部展开"
+                        onClick={handleExpandAll}
+                      />
+                    }
+                  >
+                    <ChevronsUpDown className="size-3" />
+                  </TooltipTrigger>
+                  <TooltipContent side="top">全部展开</TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger
+                    render={
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-xs"
+                        aria-label="全部收起"
+                        onClick={handleCollapseAll}
+                      />
+                    }
+                  >
+                    <ChevronsDownUp className="size-3" />
+                  </TooltipTrigger>
+                  <TooltipContent side="top">全部收起</TooltipContent>
+                </Tooltip>
               </div>
             )}
           </div>

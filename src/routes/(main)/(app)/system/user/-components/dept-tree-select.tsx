@@ -88,8 +88,8 @@ export function DeptTreeSelect({
       loading={isLoading}
       disabled={disabled || isError}
       invalid={invalid}
-      placeholder={isLoading ? '部门加载中…' : isError ? '部门加载失败' : placeholder}
-      searchPlaceholder="搜索部门…"
+      placeholder={isLoading ? '部门加载中' : isError ? '部门加载失败' : placeholder}
+      searchPlaceholder="搜索部门"
       emptyText="未找到相关部门"
       clearable
       searchable
