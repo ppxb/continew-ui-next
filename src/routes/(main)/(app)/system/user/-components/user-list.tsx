@@ -13,6 +13,7 @@ import { toast } from '@/components/ui/toast'
 import { exportUsers, listUsers, type UserResp, type UserStatus } from '@/lib/api/user'
 import { dataTableFeatures } from '@/lib/data-table-features'
 
+import { useFullscreenTransition } from './use-fullscreen-transition'
 import { UserAssignRolesDialog } from './user-assign-roles-dialog'
 import { createUserColumns, type UserAction } from './user-columns'
 import { UserDeleteDialog } from './user-delete-dialog'
@@ -34,12 +35,6 @@ const HIDDEN_BY_DEFAULT: ColumnVisibilityState = {
 const DEFAULT_SORT = 't1.id,desc'
 
 const SEARCH_DEBOUNCE_MS = 300
-
-/** `closing` keeps the fullscreen layout applied while `animate-out` plays. */
-type FullscreenState = 'off' | 'open' | 'closing'
-
-/** Must match the `animate-out` duration used by the fullscreen container. */
-const FULLSCREEN_EXIT_MS = 150
 
 /**
  * How long a fetched page counts as fresh.
@@ -78,11 +73,7 @@ export function UserList() {
   const [isRolesOpen, setIsRolesOpen] = React.useState(false)
   const [deletingUser, setDeletingUser] = React.useState<UserResp | null>(null)
   const [isDeleteOpen, setIsDeleteOpen] = React.useState(false)
-  const [fullscreen, setFullscreen] = React.useState<FullscreenState>('off')
-  const [reservedHeight, setReservedHeight] = React.useState(0)
-  const fullscreenRef = React.useRef<HTMLDivElement>(null)
-  const exitTimer = React.useRef<ReturnType<typeof setTimeout>>(undefined)
-  const isFullscreen = fullscreen !== 'off'
+  const { isFullscreen, reservedHeight, fullscreenRef, spacerRef, toggleFullscreen } = useFullscreenTransition()
 
   // Debounced so typing in the search box does not fire a request per keystroke.
   React.useEffect(() => {
@@ -93,45 +84,6 @@ export function UserList() {
 
     return () => clearTimeout(timer)
   }, [searchInput])
-
-  const closeFullscreen = React.useCallback(() => {
-    clearTimeout(exitTimer.current)
-    setFullscreen('closing')
-    exitTimer.current = setTimeout(() => setFullscreen('off'), FULLSCREEN_EXIT_MS)
-  }, [])
-
-  React.useEffect(() => () => clearTimeout(exitTimer.current), [])
-
-  const toggleFullscreen = () => {
-    if (fullscreen !== 'off') {
-      closeFullscreen()
-      return
-    }
-
-    // Hold the table's height while it is out of flow, so the card does not collapse
-    // behind the overlay and the closing animation lands back in place.
-    setReservedHeight(fullscreenRef.current?.offsetHeight ?? 0)
-    setFullscreen('open')
-  }
-
-  // Esc restores the table. This maximizes with CSS instead of the Fullscreen API,
-  // because the API promotes the container into the top layer and every portal-based
-  // overlay (dropdowns, selects, toasts) would then be painted underneath it.
-  React.useEffect(() => {
-    if (!isFullscreen) {
-      return
-    }
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        closeFullscreen()
-      }
-    }
-
-    document.addEventListener('keydown', onKeyDown)
-
-    return () => document.removeEventListener('keydown', onKeyDown)
-  }, [isFullscreen, closeFullscreen])
 
   const query = useQuery({
     queryKey: ['system', 'user', pagination.pageIndex, pagination.pageSize, status, keyword],
@@ -299,29 +251,11 @@ export function UserList() {
         </CardHeader>
 
         <CardContent className="flex flex-col gap-4 px-0">
-          {fullscreen === 'open' ? <div style={{ height: reservedHeight }} /> : null}
+          {isFullscreen ? <div ref={spacerRef} style={{ height: reservedHeight }} /> : null}
 
-          <div
-            ref={fullscreenRef}
-            className={cn(
-              'flex flex-col gap-4',
-              fullscreen === 'open' &&
-                'fixed inset-0 z-50 animate-in overflow-auto bg-background py-4 duration-200 zoom-in-95 fade-in'
-            )}
-          >
+          <div ref={fullscreenRef} className={cn('flex flex-col gap-4', isFullscreen && 'bg-background')}>
             {tableSection}
           </div>
-
-          {/*
-          The closing overlay is a second copy rather than the element above. Keeping the
-          table in the card during the exit means the overlay fades away to reveal it,
-          instead of fading to nothing and popping back into place on the next commit.
-        */}
-          {fullscreen === 'closing' ? (
-            <div className="pointer-events-none fixed inset-0 z-50 animate-out overflow-auto bg-background py-4 duration-150 zoom-out-95 fade-out">
-              <div className="flex flex-col gap-4">{tableSection}</div>
-            </div>
-          ) : null}
         </CardContent>
       </Card>
 
