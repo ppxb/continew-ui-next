@@ -77,3 +77,28 @@ export interface UserDetailResp extends UserResp {
 export function getUser(id: string | number) {
   return http.get<UserDetailResp>(`/system/user/${id}`)
 }
+
+/**
+ * The body of `PUT /system/user/{id}`.
+ *
+ * `password` is deliberately absent: the backend only requires it in its create validation
+ * group, and an existing password is changed through `PATCH /system/user/{id}/password`.
+ * Ids stay in whatever form the API handed out, so a snowflake id is never narrowed into a
+ * `number` and silently loses precision.
+ */
+export type UserReq = {
+  username: string
+  nickname: string
+  gender: UserGender
+  deptId: string | number
+  roleIds: (string | number)[]
+  status: UserStatus
+  email?: string
+  phone?: string
+  description?: string
+}
+
+/** Saves an edited user. */
+export function updateUser(id: string | number, body: UserReq) {
+  return http.put<void>(`/system/user/${id}`, body)
+}

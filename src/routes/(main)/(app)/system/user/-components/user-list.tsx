@@ -15,6 +15,7 @@ import { dataTableFeatures } from '@/lib/data-table-features'
 
 import { createUserColumns, type UserAction } from './user-columns'
 import { UserDetailDrawer } from './user-detail-drawer'
+import { UserEditDrawer } from './user-edit-drawer'
 import { UserTable } from './user-table'
 import { UserToolbar } from './user-toolbar'
 
@@ -49,8 +50,7 @@ const STALE_TIME_MS = 30_000
 const EMPTY_ROWS: UserResp[] = []
 
 /** Row actions that are still to be built, keyed by the action the table raises. */
-const PENDING_ACTION_LABELS: Record<Exclude<UserAction, 'detail'>, string> = {
-  edit: '修改',
+const PENDING_ACTION_LABELS: Record<Exclude<UserAction, 'detail' | 'edit'>, string> = {
   resetPassword: '重置密码',
   assignRoles: '分配角色',
   delete: '删除'
@@ -71,6 +71,8 @@ export function UserList() {
   const [isExporting, setIsExporting] = React.useState(false)
   const [detailUserId, setDetailUserId] = React.useState<string | number | null>(null)
   const [isDetailOpen, setIsDetailOpen] = React.useState(false)
+  const [editUserId, setEditUserId] = React.useState<string | number | null>(null)
+  const [isEditOpen, setIsEditOpen] = React.useState(false)
   const [fullscreen, setFullscreen] = React.useState<FullscreenState>('off')
   const [reservedHeight, setReservedHeight] = React.useState(0)
   const fullscreenRef = React.useRef<HTMLDivElement>(null)
@@ -160,6 +162,12 @@ export function UserList() {
       if (action === 'detail') {
         setDetailUserId(user.id)
         setIsDetailOpen(true)
+        return
+      }
+
+      if (action === 'edit') {
+        setEditUserId(user.id)
+        setIsEditOpen(true)
         return
       }
 
@@ -298,6 +306,7 @@ export function UserList() {
       </Card>
 
       <UserDetailDrawer userId={detailUserId} open={isDetailOpen} onClose={() => setIsDetailOpen(false)} />
+      <UserEditDrawer userId={editUserId} open={isEditOpen} onClose={() => setIsEditOpen(false)} />
     </>
   )
 }
