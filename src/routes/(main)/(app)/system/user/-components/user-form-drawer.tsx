@@ -31,6 +31,7 @@ import {
 } from '@/lib/api/user'
 import { encryptPassword } from '@/lib/crypto'
 
+import { DeptTreeSelect } from './dept-tree-select'
 import { genderLabel } from './user-display'
 import { useUserDetail } from './use-user-detail'
 import { UserRoleSelect } from './user-role-select'
@@ -237,10 +238,6 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
   }, [open, isCreate, detail.data, form])
 
   const deptOptions = React.useMemo(() => flattenDepts(depts.data ?? []), [depts.data])
-  const deptItems = React.useMemo(
-    () => deptOptions.map(dept => ({ value: String(dept.id), label: dept.name })),
-    [deptOptions]
-  )
   // The pickers speak in strings; these maps give the original id back for the request body.
   const deptIdByValue = React.useMemo(() => new Map(deptOptions.map(dept => [String(dept.id), dept.id])), [deptOptions])
   const roleIdByValue = React.useMemo(
@@ -456,28 +453,15 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
                   render={({ field, fieldState }) => (
                     <Field className="gap-1.5" data-invalid={fieldState.invalid}>
                       <FieldLabel>所属部门</FieldLabel>
-                      <Select
-                        items={deptItems}
-                        value={field.value}
-                        onValueChange={value => field.onChange(value ?? '')}
+                      <DeptTreeSelect
+                        data={depts.data}
+                        loading={depts.isPending}
                         disabled={depts.isPending || depts.isError}
-                      >
-                        <SelectTrigger className="w-full" aria-invalid={fieldState.invalid}>
-                          <SelectValue placeholder={depts.isPending ? '加载中…' : '请选择所属部门'} />
-                        </SelectTrigger>
-                        <SelectContent align="start" alignItemWithTrigger={false}>
-                          <SelectGroup>
-                            {deptOptions.map(dept => (
-                              // `label` only feeds keyboard type-ahead, so the indentation below
-                              // does not break matching the way the rendered text would.
-                              <SelectItem key={String(dept.id)} value={String(dept.id)} label={dept.name}>
-                                {/* Indentation stands in for the tree the project has no component for. */}
-                                {`${'\u00a0\u00a0'.repeat(dept.depth)}${dept.name}`}
-                              </SelectItem>
-                            ))}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
+                        value={field.value}
+                        onChange={field.onChange}
+                        invalid={fieldState.invalid}
+                        enabled={open}
+                      />
                       {depts.isError && (
                         <p className="text-xs text-destructive">
                           部门加载失败，
