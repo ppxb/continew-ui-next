@@ -12,6 +12,7 @@ import { Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerT
 import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
@@ -120,6 +121,60 @@ function toFormValues(user: UserDetailResp): FormValues {
   }
 }
 
+function UserFormSkeleton({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1.5">
+            <Skeleton className="h-4 w-10" />
+            <Skeleton className="h-9 w-full" />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Skeleton className="h-4 w-12" />
+            <Skeleton className="h-9 w-full" />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Skeleton className="h-4 w-10" />
+            <Skeleton className="h-9 w-full" />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-9 w-full" />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Skeleton className="h-4 w-10" />
+            <Skeleton className="h-9 w-full" />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Skeleton className="h-4 w-12" />
+            <Skeleton className="h-9 w-full" />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Skeleton className="h-4 w-10" />
+            <Skeleton className="h-9 w-full" />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Skeleton className="h-4 w-10" />
+            <Skeleton className="h-5 w-10 rounded-full" />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Skeleton className="h-4 w-10" />
+            <Skeleton className="h-20 w-full" />
+          </div>
+        </div>
+      </div>
+
+      <DrawerFooter className="flex-row justify-end gap-2 border-t p-4">
+        <Button type="button" variant="outline" onClick={onClose}>
+          取消
+        </Button>
+        <Button disabled>保存</Button>
+      </DrawerFooter>
+    </div>
+  )
+}
+
 interface UserFormDrawerProps {
   /**
    * The user being edited, or `null` to create one.
@@ -165,6 +220,7 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
 
   React.useEffect(() => {
     if (!open) {
+      form.reset(EMPTY_FORM)
       return
     }
 
@@ -511,9 +567,7 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
         ) : detail.isError ? (
           <p className="p-4 text-sm text-foreground">加载失败，请稍后重试</p>
         ) : (
-          <div className="flex flex-1 items-center justify-center">
-            <Spinner />
-          </div>
+          <UserFormSkeleton onClose={onClose} />
         )}
       </DrawerContent>
     </Drawer>

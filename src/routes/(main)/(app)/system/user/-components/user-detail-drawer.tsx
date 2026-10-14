@@ -5,7 +5,7 @@ import { Check, Copy, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
-import { Spinner } from '@/components/ui/spinner'
+import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from '@/components/ui/toast'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import type { UserDetailResp } from '@/lib/api/user'
@@ -58,6 +58,69 @@ function IdField({ id }: { id: UserDetailResp['id'] }) {
   )
 }
 
+function UserDetailSkeleton() {
+  return (
+    <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+      <div className="flex flex-col gap-1 sm:col-span-2">
+        <Skeleton className="h-3.5 w-10" />
+        <Skeleton className="h-5 w-48" />
+      </div>
+      <div className="flex flex-col gap-1">
+        <Skeleton className="h-3.5 w-12" />
+        <Skeleton className="h-5 w-28" />
+      </div>
+      <div className="flex flex-col gap-1">
+        <Skeleton className="h-3.5 w-12" />
+        <Skeleton className="h-5 w-24" />
+      </div>
+      <div className="flex flex-col gap-1">
+        <Skeleton className="h-3.5 w-10" />
+        <Skeleton className="h-5 w-16" />
+      </div>
+      <div className="flex flex-col gap-1">
+        <Skeleton className="h-3.5 w-10" />
+        <Skeleton className="h-5 w-16 rounded-full" />
+      </div>
+      <div className="flex flex-col gap-1">
+        <Skeleton className="h-3.5 w-12" />
+        <Skeleton className="h-5 w-32" />
+      </div>
+      <div className="flex flex-col gap-1">
+        <Skeleton className="h-3.5 w-10" />
+        <Skeleton className="h-5 w-36" />
+      </div>
+      <div className="flex flex-col gap-1">
+        <Skeleton className="h-3.5 w-16" />
+        <Skeleton className="h-5 w-28" />
+      </div>
+      <div className="flex flex-col gap-1">
+        <Skeleton className="h-3.5 w-10" />
+        <Skeleton className="h-5 w-20 rounded-md" />
+      </div>
+      <div className="flex flex-col gap-1">
+        <Skeleton className="h-3.5 w-14" />
+        <Skeleton className="h-5 w-28" />
+      </div>
+      <div className="flex flex-col gap-1">
+        <Skeleton className="h-3.5 w-16" />
+        <Skeleton className="h-5 w-36" />
+      </div>
+      <div className="flex flex-col gap-1">
+        <Skeleton className="h-3.5 w-14" />
+        <Skeleton className="h-5 w-28" />
+      </div>
+      <div className="flex flex-col gap-1">
+        <Skeleton className="h-3.5 w-16" />
+        <Skeleton className="h-5 w-36" />
+      </div>
+      <div className="flex flex-col gap-1 sm:col-span-2">
+        <Skeleton className="h-3.5 w-10" />
+        <Skeleton className="h-8 w-full" />
+      </div>
+    </div>
+  )
+}
+
 interface UserDetailDrawerProps {
   /** The user to show, or `null` before the first one is picked. */
   readonly userId: string | number | null
@@ -103,9 +166,7 @@ export function UserDetailDrawer({ userId, open, onClose }: UserDetailDrawerProp
 
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
           {query.isPending ? (
-            <div className="flex h-40 items-center justify-center">
-              <Spinner />
-            </div>
+            <UserDetailSkeleton />
           ) : query.isError || !detail ? (
             <p className="text-sm text-foreground">加载失败，请稍后重试</p>
           ) : (

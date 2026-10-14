@@ -10,6 +10,8 @@ import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle }
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from '@/components/ui/toast'
+import { getDeptTree } from '@/lib/api/dept'
+import { listRoleDict } from '@/lib/api/role'
 import { exportUsers, listUsers, type UserResp, type UserStatus } from '@/lib/api/user'
 import { dataTableFeatures } from '@/lib/data-table-features'
 
@@ -105,6 +107,23 @@ export function UserList() {
     refetchOnReconnect: false,
     // Keep the current page on screen while the next one loads; the table dims it.
     placeholderData: previous => previous
+  })
+
+  // Warm the metadata lookups so drawers and pickers open instantly without popover spinners.
+  useQuery({
+    queryKey: ['system', 'dept', 'tree'],
+    queryFn: getDeptTree,
+    staleTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false
+  })
+
+  useQuery({
+    queryKey: ['system', 'role', 'dict'],
+    queryFn: listRoleDict,
+    staleTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false
   })
 
   const total = query.data?.total ?? 0
