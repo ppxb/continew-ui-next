@@ -26,6 +26,7 @@ import { dataTableFeatures, type DataTableFeatures } from '@/lib/data-table-feat
 import { getInitials } from '@/lib/utils'
 
 import { RoleUserAddDialog } from './role-user-add-dialog'
+import { StatusCell } from '../../user/-components/user-display'
 
 const EMPTY_MEMBERS: RoleUserResp[] = []
 
@@ -179,19 +180,7 @@ export function RoleUserDrawer({ role, open, onClose }: RoleUserDrawerProps) {
       {
         accessorKey: 'status',
         header: '状态',
-        cell: ({ row }) => {
-          const isActive = row.original.status === 1
-          return (
-            <Badge
-              variant={isActive ? 'outline' : 'secondary'}
-              className={`px-1.5 py-0 text-[10px] font-normal ${
-                isActive ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : ''
-              }`}
-            >
-              {isActive ? '启用' : '禁用'}
-            </Badge>
-          )
-        }
+        cell: ({ row }) => <StatusCell status={row.original.status} />
       },
       {
         id: 'actions',
@@ -199,14 +188,12 @@ export function RoleUserDrawer({ role, open, onClose }: RoleUserDrawerProps) {
         cell: ({ row }) => (
           <div className="flex items-center justify-center">
             <Button
-              type="button"
-              variant="ghost"
-              size="xs"
-              className="text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
+              variant="destructive"
+              size="sm"
               disabled={isUnassigning}
               onClick={() => handleUnassignSingle(row.original)}
             >
-              <UserX className="mr-1 size-3" />
+              <UserX />
               取消授权
             </Button>
           </div>
@@ -245,15 +232,11 @@ export function RoleUserDrawer({ role, open, onClose }: RoleUserDrawerProps) {
           <DrawerHeader className="flex-row items-start justify-between gap-2 border-b p-4 md:gap-2">
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2">
-                <Users className="size-4 text-primary" />
+                <Users className="size-4" />
                 <DrawerTitle>角色成员管理</DrawerTitle>
-                {role && (
-                  <Badge variant="outline" className="font-normal">
-                    {role.name}
-                  </Badge>
-                )}
+                {role && <Badge variant="secondary">{role.name}</Badge>}
               </div>
-              <p className="text-xs text-muted-foreground">查看、搜索属于该角色的用户成员，并支持批量添加或取消授权</p>
+              <p className="text-xs text-muted-foreground">维护属于该角色的用户成员</p>
             </div>
             <DrawerClose render={<Button variant="ghost" size="icon-sm" />}>
               <X className="size-4" />
@@ -270,7 +253,7 @@ export function RoleUserDrawer({ role, open, onClose }: RoleUserDrawerProps) {
                     <Search className="size-3.5 text-muted-foreground" />
                   </InputGroupAddon>
                   <InputGroupInput
-                    placeholder="搜索成员姓名或用户名..."
+                    placeholder="搜索用户名"
                     value={searchInput}
                     onChange={e => setSearchInput(e.target.value)}
                   />
@@ -279,7 +262,7 @@ export function RoleUserDrawer({ role, open, onClose }: RoleUserDrawerProps) {
 
               <div className="flex items-center gap-2">
                 <Button size="sm" onClick={() => setIsAddOpen(true)}>
-                  <Plus className="size-3.5" />
+                  <Plus />
                   添加成员
                 </Button>
                 <Button
@@ -288,7 +271,7 @@ export function RoleUserDrawer({ role, open, onClose }: RoleUserDrawerProps) {
                   disabled={selectedCount === 0 || isUnassigning}
                   onClick={handleUnassignBatch}
                 >
-                  <Trash2 className="size-3.5" />
+                  <Trash2 />
                   批量取消授权
                   {selectedCount > 0 && <span className="ml-1 text-xs">({selectedCount})</span>}
                 </Button>

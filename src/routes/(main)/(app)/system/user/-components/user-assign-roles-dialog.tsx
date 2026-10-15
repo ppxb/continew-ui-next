@@ -5,6 +5,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
 
+import { ShieldCheck } from 'lucide-react'
+
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -157,7 +159,10 @@ export function UserAssignRolesDialog({ user, open, onClose }: UserAssignRolesDi
     >
       <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>分配角色</DialogTitle>
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="size-4" />
+            <DialogTitle>分配角色</DialogTitle>
+          </div>
           <DialogDescription>
             {user === null ? '为该用户分配角色。' : `为「${userLabel(user)}」分配角色，保存后以当前勾选结果为准。`}
           </DialogDescription>

@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 import { cn } from 'cn'
-import { Check, Copy, X } from 'lucide-react'
+import { Check, Copy, User, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
@@ -156,8 +156,11 @@ export function UserDetailDrawer({ userId, open, onClose }: UserDetailDrawerProp
         variant chain; a bare `sm:` would lose to the attribute selector on specificity.
       */}
       <DrawerContent className="data-[swipe-axis=x]:sm:[--drawer-content-width:32rem]">
-        <DrawerHeader className="flex-row items-start justify-between gap-2 border-b p-4 md:gap-2">
-          <DrawerTitle>用户详情</DrawerTitle>
+        <DrawerHeader className="flex-row items-center justify-between gap-2 border-b p-4 md:gap-2">
+          <div className="flex items-center gap-2">
+            <User className="size-4" />
+            <DrawerTitle>用户详情</DrawerTitle>
+          </div>
           <DrawerClose render={<Button variant="ghost" size="icon-sm" />}>
             <X className="size-4" />
             <span className="sr-only">关闭</span>

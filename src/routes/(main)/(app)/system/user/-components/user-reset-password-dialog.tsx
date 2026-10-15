@@ -5,6 +5,8 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
 
+import { KeyRound } from 'lucide-react'
+
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -109,7 +111,10 @@ export function UserResetPasswordDialog({ user, open, onClose }: UserResetPasswo
     >
       <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>重置密码</DialogTitle>
+          <div className="flex items-center gap-2">
+            <KeyRound className="size-4" />
+            <DialogTitle>重置密码</DialogTitle>
+          </div>
           <DialogDescription>
             {user === null
               ? '为该用户设置新的登录密码。'

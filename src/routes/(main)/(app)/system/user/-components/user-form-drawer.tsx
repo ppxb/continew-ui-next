@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
 
-import { X } from 'lucide-react'
+import { User, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
@@ -313,8 +313,11 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
       swipeDirection="right"
     >
       <DrawerContent className="data-[swipe-axis=x]:sm:[--drawer-content-width:32rem]">
-        <DrawerHeader className="flex-row items-start justify-between gap-2 border-b p-4 md:gap-2">
-          <DrawerTitle>{isCreate ? '新增用户' : '修改用户'}</DrawerTitle>
+        <DrawerHeader className="flex-row items-center justify-between gap-2 border-b p-4 md:gap-2">
+          <div className="flex items-center gap-2">
+            <User className="size-4" />
+            <DrawerTitle>{isCreate ? '新增用户' : '修改用户'}</DrawerTitle>
+          </div>
           <DrawerClose render={<Button variant="ghost" size="icon-sm" />}>
             <X className="size-4" />
             <span className="sr-only">关闭</span>

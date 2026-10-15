@@ -20,7 +20,7 @@ export function userLabel(user: Pick<UserResp, 'nickname' | 'username'>) {
   return user.nickname || user.username
 }
 
-export function StatusCell({ status }: { status: UserResp['status'] }) {
+export function StatusCell({ status }: { status?: UserResp['status'] | number | null }) {
   const isEnabled = status === 1
 
   return (

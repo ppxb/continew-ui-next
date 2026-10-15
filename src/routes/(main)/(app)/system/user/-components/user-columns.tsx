@@ -1,6 +1,6 @@
 import type { ColumnDef } from '@tanstack/react-table'
 
-import { MoreHorizontal } from 'lucide-react'
+import { Eye, KeyRound, MoreHorizontal, PenLine, ShieldCheck, Trash2 } from 'lucide-react'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -57,23 +57,30 @@ function RowActions({ user, onAction }: { user: UserResp; onAction: (action: Use
         </Tooltip>
         <DropdownMenuContent align="end">
           <DropdownMenuGroup>
-            <DropdownMenuItem onClick={() => onAction('detail', user)}>详情</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onAction('detail', user)}>
+              <Eye />
+              用户详情
+            </DropdownMenuItem>
             <DropdownMenuItem disabled={isLocked} onClick={() => onAction('edit', user)}>
-              修改
+              <PenLine />
+              修改用户
             </DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
             <DropdownMenuItem disabled={isLocked} onClick={() => onAction('resetPassword', user)}>
+              <KeyRound />
               重置密码
             </DropdownMenuItem>
             <DropdownMenuItem disabled={isLocked} onClick={() => onAction('assignRoles', user)}>
+              <ShieldCheck />
               分配角色
             </DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
             <DropdownMenuItem variant="destructive" disabled={isLocked} onClick={() => onAction('delete', user)}>
+              <Trash2 />
               删除
             </DropdownMenuItem>
           </DropdownMenuGroup>

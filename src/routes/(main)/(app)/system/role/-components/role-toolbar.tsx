@@ -1,6 +1,6 @@
 import type { ReactTable } from '@tanstack/react-table'
 
-import { Maximize, Minimize, Plus, RefreshCw, SlidersHorizontal } from 'lucide-react'
+import { Maximize, Minimize, Plus, RefreshCw, RotateCcw, SlidersHorizontal } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -77,7 +77,10 @@ export function RoleToolbar({
               })}
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={onResetColumns}>重置</DropdownMenuItem>
+            <DropdownMenuItem onClick={onResetColumns}>
+              <RotateCcw />
+              重置
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
 

@@ -100,7 +100,7 @@ export function RoleUserAddDialog({ role, open, onClose, onSuccess }: RoleUserAd
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <div className="flex items-center gap-2">
-            <UserPlus className="size-4 text-primary" />
+            <UserPlus className="size-4" />
             <DialogTitle>添加角色成员</DialogTitle>
             {role && <Badge variant="secondary">{role.name}</Badge>}
           </div>

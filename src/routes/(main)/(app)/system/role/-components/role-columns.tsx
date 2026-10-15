@@ -1,6 +1,6 @@
 import type { ColumnDef } from '@tanstack/react-table'
 
-import { MoreHorizontal, ShieldCheck, Users, KeyRound, Edit, Trash2 } from 'lucide-react'
+import { KeyRound, MoreHorizontal, PenLine, ShieldCheck, Trash2, Users } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -64,22 +64,22 @@ function RowActions({ role, onAction }: { role: RoleResp; onAction: (action: Rol
         <DropdownMenuContent align="end" className="w-36">
           <DropdownMenuGroup>
             <DropdownMenuItem disabled={isSystem} onClick={() => onAction('edit', role)}>
-              <Edit className="mr-1 size-4 text-muted-foreground" />
-              修改
+              <PenLine />
+              修改角色
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onAction('permission', role)}>
-              <KeyRound className="mr-1 size-4 text-muted-foreground" />
+              <KeyRound />
               功能权限
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onAction('members', role)}>
-              <Users className="mr-1 size-4 text-muted-foreground" />
+              <Users />
               关联用户
             </DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
             <DropdownMenuItem variant="destructive" disabled={isSystem} onClick={() => onAction('delete', role)}>
-              <Trash2 className="mr-1 size-4" />
+              <Trash2 />
               删除
             </DropdownMenuItem>
           </DropdownMenuGroup>

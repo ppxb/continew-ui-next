@@ -41,20 +41,20 @@ function toCheckablePermissionNodes(nodes: RolePermissionResp[]): CheckableTreeN
       label: node.title,
       searchTerms: node.permission ?? '',
       tag: isDir ? (
-        <Badge variant="secondary" className="h-4.5 px-1.5 py-0 text-[10px] font-normal shrink-0">
+        <Badge variant="secondary" className="h-4.5 shrink-0 px-1.5 py-0 text-[10px] font-normal">
           目录
         </Badge>
       ) : isMenu ? (
         <Badge
           variant="outline"
-          className="h-4.5 border-emerald-500/30 bg-emerald-500/10 px-1.5 py-0 text-[10px] font-normal text-emerald-600 dark:text-emerald-400 shrink-0"
+          className="h-4.5 shrink-0 border-emerald-500/30 bg-emerald-500/10 px-1.5 py-0 text-[10px] font-normal text-emerald-600 dark:text-emerald-400"
         >
           菜单
         </Badge>
       ) : isBtn ? (
         <Badge
           variant="outline"
-          className="h-4.5 border-primary/30 bg-primary/10 px-1.5 py-0 text-[10px] font-normal text-primary shrink-0"
+          className="h-4.5 shrink-0 border-primary/30 bg-primary/10 px-1.5 py-0 text-[10px] font-normal text-primary"
         >
           按钮
         </Badge>
@@ -62,7 +62,7 @@ function toCheckablePermissionNodes(nodes: RolePermissionResp[]): CheckableTreeN
       subtitle: node.permission ? (
         <Badge
           variant="outline"
-          className="h-4.5 max-w-[130px] sm:max-w-none truncate border-border/60 bg-muted/40 px-1.5 py-0 font-mono text-[10px] font-normal text-muted-foreground shrink-0"
+          className="h-4.5 max-w-32.5 shrink-0 truncate border-border/60 bg-muted/40 px-1.5 py-0 font-mono text-[10px] font-normal text-muted-foreground sm:max-w-none"
         >
           {node.permission}
         </Badge>
@@ -135,17 +135,10 @@ export function RolePermissionDrawer({ role, open, onClose }: RolePermissionDraw
       swipeDirection="right"
     >
       <DrawerContent className="data-[swipe-axis=x]:sm:[--drawer-content-width:36rem]">
-        <DrawerHeader className="flex-row items-start justify-between gap-2 border-b p-4 md:gap-2">
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-2">
-              <KeyRound className="size-4 text-primary" />
-              <DrawerTitle>分配功能权限</DrawerTitle>
-              {role && (
-                <span className="font-mono text-xs text-muted-foreground">
-                  ({role.name} / {role.code})
-                </span>
-              )}
-            </div>
+        <DrawerHeader className="flex-row items-center justify-between gap-2 border-b p-4 md:gap-2">
+          <div className="flex items-center gap-2">
+            <KeyRound className="size-4" />
+            <DrawerTitle>分配功能权限</DrawerTitle>
           </div>
           <DrawerClose render={<Button variant="ghost" size="icon-sm" aria-label="关闭" />}>
             <X className="size-4" />
