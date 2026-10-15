@@ -2,6 +2,7 @@ import type { CSSProperties, ReactNode } from 'react'
 
 import { cn } from 'cn'
 
+import { Separator } from '@/components/ui/separator'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { ensureMenuLoaded } from '@/hooks/use-menu'
 import { requireAuth } from '@/lib/auth-guard'
@@ -82,20 +83,24 @@ export function AppShell({ defaultOpen, variant, collapsible, children }: ShellP
             '[html[data-navbar-style=sticky]_&]:sticky [html[data-navbar-style=sticky]_&]:top-0 [html[data-navbar-style=sticky]_&]:z-50 [html[data-navbar-style=sticky]_&]:overflow-hidden [html[data-navbar-style=sticky]_&]:rounded-t-[inherit] [html[data-navbar-style=sticky]_&]:bg-background/50 [html[data-navbar-style=sticky]_&]:backdrop-blur-md'
           )}
         >
-          <div className="relative flex w-full items-center justify-between gap-3 px-4 lg:px-6">
-            <div className="z-10 flex shrink-0 items-center gap-1.5">
+          <div className="flex w-full items-center justify-between gap-2 px-4 lg:px-6">
+            {/* Left: SidebarTrigger + Separator + SearchDialog */}
+            <div className="flex shrink-0 items-center gap-1 lg:gap-2">
               <SidebarTrigger className="-ml-1" />
-            </div>
-
-            {/* Truly Centered In-Header Tabs on Desktop */}
-            <div className="pointer-events-none absolute inset-x-0 mx-auto hidden w-fit max-w-[calc(100%-360px)] items-center justify-center md:flex">
-              <div className="pointer-events-auto">
-                <HeaderTabs />
-              </div>
-            </div>
-
-            <div className="z-10 flex shrink-0 items-center gap-3">
+              <Separator
+                orientation="vertical"
+                className="mx-1 data-[orientation=vertical]:h-4 data-[orientation=vertical]:self-center lg:mx-2"
+              />
               <SearchDialog />
+            </div>
+
+            {/* Center: In-Header Tabs (Flex layout, centered in remaining space) */}
+            <div className="hidden min-w-0 flex-1 items-center justify-center px-2 md:flex">
+              <HeaderTabs />
+            </div>
+
+            {/* Right: Controls */}
+            <div className="flex shrink-0 items-center gap-3">
               <LayoutControls />
               <ThemeSwitcher />
               <FullscreenToggle />

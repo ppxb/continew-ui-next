@@ -161,7 +161,7 @@ export function HeaderTabs() {
     <nav
       aria-label="快捷标签导航"
       data-slot="header-tabs"
-      className="inline-flex h-8 max-w-full items-center gap-1 rounded-lg border border-border/70 bg-muted/40 p-0.5 shadow-2xs backdrop-blur-xs select-none"
+      className="inline-flex h-8 max-w-full scrollbar-none items-center gap-1 overflow-x-auto rounded-lg border border-border/70 bg-muted/40 p-0.5 shadow-2xs backdrop-blur-xs select-none"
     >
       {tabs.map(tab => {
         const isActive = tab.path === pathname
@@ -170,11 +170,11 @@ export function HeaderTabs() {
 
         return (
           <ContextMenu key={tab.id}>
-            <ContextMenuTrigger render={<div className="shrink-0" />}>
+            <ContextMenuTrigger render={<div className="min-w-0 shrink" />}>
               <Link<RegisteredRouter, string, string>
                 href={tab.path}
                 className={cn(
-                  'group relative flex h-7 max-w-[136px] items-center gap-1.5 rounded-md px-2.5 text-xs transition-all duration-150',
+                  'group relative flex h-7 max-w-[130px] min-w-0 shrink items-center gap-1.5 rounded-md px-2.5 text-xs transition-all duration-150',
                   isActive
                     ? 'border border-border/80 bg-background font-medium text-foreground shadow-xs'
                     : 'border border-transparent text-muted-foreground hover:bg-background/60 hover:text-foreground'
