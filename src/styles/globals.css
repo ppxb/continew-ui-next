@@ -136,6 +136,35 @@
   html {
     @apply font-sans;
   }
+
+  /* Native scrollbars matched to the shadcn ScrollArea spec (src/components/ui/scroll-area.tsx):
+     10px gutter, 1px inset, 8px fully-rounded thumb in --border, transparent track. */
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  *::-webkit-scrollbar-track,
+  *::-webkit-scrollbar-corner {
+    background-color: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    border: 1px solid transparent;
+    border-radius: 9999px;
+    background-color: var(--border);
+    background-clip: content-box;
+  }
+
+  /* Firefox has no ::-webkit-scrollbar, so it falls back to the standard properties there.
+     This block must stay behind @supports: a non-auto scrollbar-color/scrollbar-width makes
+     Chromium ignore the ::-webkit-scrollbar rules above, and scrollbar-color is inherited. */
+  @supports not selector(::-webkit-scrollbar) {
+    html {
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+  }
 }
 
 @layer utilities {
