@@ -13,6 +13,11 @@ export interface ApiResponse<T> {
   data: T
 }
 
+export interface PageResp<T> {
+  list: T[]
+  total: number
+}
+
 export type AuthType = 'ACCOUNT' | 'PHONE' | 'EMAIL' | 'SOCIAL'
 
 /** Account login payload; `password` must be RSA encrypted. */

@@ -268,7 +268,7 @@ export function UserList() {
       <Card>
         <CardHeader className="border-b has-data-[slot=card-action]:grid-cols-1 md:has-data-[slot=card-action]:grid-cols-[1fr_auto]">
           <CardTitle className="text-xl leading-none">用户管理</CardTitle>
-          <CardDescription className="max-w-sm leading-snug">维护系统用户，查看所属部门与角色授权。</CardDescription>
+          <CardDescription className="max-w-sm leading-snug">维护系统用户，查看用户的基本信息</CardDescription>
           <CardAction className="col-start-1 row-start-auto flex w-full flex-wrap justify-start gap-2 justify-self-stretch md:col-start-2 md:row-span-2 md:row-start-1 md:w-auto md:flex-nowrap md:justify-end md:justify-self-end">
             <InputGroup className="h-7 w-full md:w-64">
               <InputGroupAddon align="inline-start">
@@ -276,7 +276,7 @@ export function UserList() {
               </InputGroupAddon>
               <InputGroupInput
                 className="h-7"
-                placeholder="搜索用户名 / 昵称 / 描述"
+                placeholder="搜索用户名、昵称、描述"
                 value={searchInput}
                 onChange={event => setSearchInput(event.target.value)}
               />

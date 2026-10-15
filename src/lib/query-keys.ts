@@ -1,3 +1,4 @@
+import type { RolePageQuery, RoleUserPageQuery } from '@/lib/api/role'
 import type { UserPageQuery } from '@/lib/api/user'
 
 /**
@@ -22,5 +23,11 @@ export const deptKeys = {
 export const roleKeys = {
   all: ['system', 'role'] as const,
   lists: () => [...roleKeys.all, 'list'] as const,
-  dicts: () => [...roleKeys.all, 'dict'] as const
+  list: (query?: RolePageQuery) => [...roleKeys.lists(), query] as const,
+  dicts: () => [...roleKeys.all, 'dict'] as const,
+  details: () => [...roleKeys.all, 'detail'] as const,
+  detail: (id: string | number | null) => [...roleKeys.details(), id] as const,
+  permissions: () => [...roleKeys.all, 'permission-tree'] as const,
+  users: (id: string | number | null, query?: RoleUserPageQuery) => [...roleKeys.all, 'users', id, query] as const,
+  userIds: (id: string | number | null) => [...roleKeys.all, 'user-ids', id] as const
 }
