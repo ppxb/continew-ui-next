@@ -34,36 +34,16 @@ function toCheckablePermissionNodes(nodes: RolePermissionResp[]): CheckableTreeN
     const isDir = Number(node.type) === 1
     const isMenu = Number(node.type) === 2
     const isBtn = Number(node.type) === 3
+    const typeLabel = isDir ? '目录' : isMenu ? '菜单' : isBtn ? '按钮' : null
 
     return {
       id: String(node.id),
       parentId: node.parentId ? String(node.parentId) : null,
       label: node.title,
       searchTerms: node.permission ?? '',
-      tag: isDir ? (
-        <Badge variant="secondary" className="h-4.5 shrink-0 px-1.5 py-0 text-[10px] font-normal">
-          目录
-        </Badge>
-      ) : isMenu ? (
-        <Badge
-          variant="outline"
-          className="h-4.5 shrink-0 border-emerald-500/30 bg-emerald-500/10 px-1.5 py-0 text-[10px] font-normal text-emerald-600 dark:text-emerald-400"
-        >
-          菜单
-        </Badge>
-      ) : isBtn ? (
-        <Badge
-          variant="outline"
-          className="h-4.5 shrink-0 border-primary/30 bg-primary/10 px-1.5 py-0 text-[10px] font-normal text-primary"
-        >
-          按钮
-        </Badge>
-      ) : null,
+      tag: typeLabel ? <Badge variant="secondary">{typeLabel}</Badge> : null,
       subtitle: node.permission ? (
-        <Badge
-          variant="outline"
-          className="h-4.5 max-w-32.5 shrink-0 truncate border-border/60 bg-muted/40 px-1.5 py-0 font-mono text-[10px] font-normal text-muted-foreground sm:max-w-none"
-        >
+        <Badge variant="secondary" className="font-mono">
           {node.permission}
         </Badge>
       ) : null,
@@ -151,10 +131,10 @@ export function RolePermissionDrawer({ role, open, onClose }: RolePermissionDraw
             <Skeleton className="h-64 w-full" />
           </div>
         ) : (
-          <div className="flex flex-1 flex-col overflow-hidden">
-            <div className="flex flex-1 flex-col gap-3 overflow-y-auto p-4">
+          <div className="flex min-h-0 flex-1 flex-col">
+            <div className="flex min-h-0 flex-1 flex-col gap-3 p-4">
               {/* Strictly check setting */}
-              <div className="rounded-md border bg-muted/30 p-3">
+              <div className="shrink-0 rounded-md border bg-muted/30 p-3">
                 <Field orientation="horizontal" className="items-center justify-between">
                   <FieldContent>
                     <FieldLabel className="text-xs">父子联动</FieldLabel>
@@ -173,11 +153,11 @@ export function RolePermissionDrawer({ role, open, onClose }: RolePermissionDraw
                 onCheckedChange={setSelectedMenuIds}
                 checkStrictly={menuCheckStrictly}
                 searchPlaceholder="搜索菜单标题或权限标识..."
-                className="flex-1"
+                className="min-h-0 flex-1"
               />
             </div>
 
-            <DrawerFooter className="flex-row justify-end gap-2 border-t p-4">
+            <DrawerFooter className="shrink-0 flex-row justify-end gap-2 border-t p-4">
               <Button type="button" variant="outline" disabled={isSubmitting} onClick={onClose}>
                 取消
               </Button>

@@ -1,9 +1,10 @@
 import * as React from 'react'
 
-import { CheckSquare, ChevronDown, ChevronUp, Search, Square, X } from 'lucide-react'
+import { ChevronsDownUp, ChevronsUpDown, Search, Square, SquareCheck, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import {
   buildTreeIndex,
   Tree,
@@ -25,7 +26,9 @@ export interface RoleCheckableTreeProps<T = Record<string, unknown>> {
   readonly searchPlaceholder?: string
   readonly showExpandActions?: boolean
   readonly showSelectActions?: boolean
+  readonly showIcons?: boolean
   readonly className?: string
+  readonly treeContainerClassName?: string
   readonly emptyText?: string
 }
 
@@ -39,7 +42,9 @@ export function RoleCheckableTree<T = Record<string, unknown>>({
   searchPlaceholder = '搜索节点',
   showExpandActions = true,
   showSelectActions = true,
+  showIcons = false,
   className,
+  treeContainerClassName,
   emptyText = '暂无匹配节点'
 }: RoleCheckableTreeProps<T>) {
   const [search, setSearch] = React.useState('')
@@ -74,12 +79,14 @@ export function RoleCheckableTree<T = Record<string, unknown>>({
     return <TreeSkeleton rows={7} className={className} />
   }
 
+  const isFlex1 = className?.includes('flex-1')
+
   return (
     <div className={cn('flex flex-col gap-2.5', className)}>
-      {/* Mobile-first Responsive Header action bar */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      {/* Header action bar with pure icon buttons matching Dept tree */}
+      <div className="flex shrink-0 items-center justify-between gap-2">
         {showSearch && (
-          <div className="w-full sm:min-w-44 sm:flex-1">
+          <div className="min-w-0 flex-1">
             <InputGroup className="h-8">
               <InputGroupAddon align="inline-start">
                 <Search className="size-3.5 text-muted-foreground" />
@@ -104,39 +111,95 @@ export function RoleCheckableTree<T = Record<string, unknown>>({
           </div>
         )}
 
-        <div className="flex flex-wrap items-center justify-between gap-1 sm:justify-end">
+        <div className="flex shrink-0 items-center gap-0.5">
           {showExpandActions && (
-            <div className="flex items-center gap-1">
-              <Button type="button" variant="outline" size="xs" onClick={handleExpandAll} className="h-7 text-xs">
-                <ChevronDown className="size-3" />
-                展开全部
-              </Button>
-              <Button type="button" variant="outline" size="xs" onClick={handleCollapseAll} className="h-7 text-xs">
-                <ChevronUp className="size-3" />
-                折叠全部
-              </Button>
-            </div>
+            <>
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-xs"
+                      aria-label="展开全部"
+                      onClick={handleExpandAll}
+                    />
+                  }
+                >
+                  <ChevronsUpDown className="size-3.5" />
+                </TooltipTrigger>
+                <TooltipContent side="top">展开全部</TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-xs"
+                      aria-label="折叠全部"
+                      onClick={handleCollapseAll}
+                    />
+                  }
+                >
+                  <ChevronsDownUp className="size-3.5" />
+                </TooltipTrigger>
+                <TooltipContent side="top">折叠全部</TooltipContent>
+              </Tooltip>
+            </>
           )}
 
           {showSelectActions && (
-            <div className="flex items-center gap-1">
-              <Button type="button" variant="ghost" size="xs" onClick={handleSelectAll} className="h-7 text-xs">
-                <CheckSquare className="size-3" />
-                全选
-              </Button>
-              <Button type="button" variant="ghost" size="xs" onClick={handleClearAll} className="h-7 text-xs">
-                <Square className="size-3" />
-                清空
-              </Button>
-            </div>
+            <>
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-xs"
+                      aria-label="全选"
+                      onClick={handleSelectAll}
+                    />
+                  }
+                >
+                  <SquareCheck className="size-3.5" />
+                </TooltipTrigger>
+                <TooltipContent side="top">全选</TooltipContent>
+              </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-xs"
+                      aria-label="清空"
+                      onClick={handleClearAll}
+                    />
+                  }
+                >
+                  <Square className="size-3.5" />
+                </TooltipTrigger>
+                <TooltipContent side="top">清空</TooltipContent>
+              </Tooltip>
+            </>
           )}
         </div>
       </div>
 
-      {/* Nodes list container with smooth touch scrolling and responsive indentation */}
-      <div className="max-h-[380px] min-h-36 overflow-y-auto overscroll-contain rounded-md border bg-background/50 p-1.5 select-none">
+      {/* Nodes list container with smooth native scrolling */}
+      <div
+        className={cn(
+          'overflow-auto overscroll-contain rounded-md border bg-background/50 p-1.5 select-none',
+          treeContainerClassName || (isFlex1 ? 'min-h-0 flex-1' : 'min-h-36 max-h-72')
+        )}
+      >
         <Tree
           data={data}
+          index={index}
           checkable
           checkedKeys={checkedKeys}
           onCheckedChange={onCheckedChange}
@@ -145,11 +208,12 @@ export function RoleCheckableTree<T = Record<string, unknown>>({
           onExpandedKeysChange={setExpandedKeys}
           searchKeyword={search}
           emptyText={emptyText}
+          showIcons={showIcons}
         />
       </div>
 
       {/* Selected summary */}
-      <div className="flex items-center justify-between px-1 text-[11px] text-muted-foreground">
+      <div className="flex shrink-0 items-center justify-between px-1 text-[11px] text-muted-foreground">
         <span>已勾选 {checkedKeys.length} 项</span>
         <span>共 {index.allKeys.length} 个节点</span>
       </div>

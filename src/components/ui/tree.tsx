@@ -36,6 +36,7 @@ export interface TreeRenderNodeProps<T = Record<string, unknown>> {
 
 export interface TreeProps<T = Record<string, unknown>> {
   data: TreeNodeData<T>[]
+  index?: TreeIndex<T>
   selectedKey?: TreeKey | null
   onSelect?: (key: TreeKey, node: TreeNodeData<T>) => void
   /** Enables multi-selection via checkboxes */
@@ -99,17 +100,20 @@ export function buildTreeIndex<T>(nodes: TreeNodeData<T>[]): TreeIndex<T> {
 
   traverse(nodes, [], null)
 
-  // Pre-calculate full descendants list per node
-  for (const key of allKeys) {
+  // Pre-calculate full descendants list per node in O(N) reverse post-order
+  for (let i = allKeys.length - 1; i >= 0; i--) {
+    const key = allKeys[i]
+    const children = directChildrenMap.get(key) ?? []
     const descendants: TreeKey[] = []
-    function collectDescendants(currentKey: TreeKey) {
-      const children = directChildrenMap.get(currentKey) ?? []
-      for (const childKey of children) {
-        descendants.push(childKey)
-        collectDescendants(childKey)
+    for (const childKey of children) {
+      descendants.push(childKey)
+      const childDescendants = descendantsMap.get(childKey)
+      if (childDescendants) {
+        for (let j = 0; j < childDescendants.length; j++) {
+          descendants.push(childDescendants[j])
+        }
       }
     }
-    collectDescendants(key)
     descendantsMap.set(key, descendants)
   }
 
@@ -154,6 +158,7 @@ export function HighlightText({ text, keyword }: { text?: string; keyword?: stri
  */
 export function Tree<T = Record<string, unknown>>({
   data,
+  index: externalIndex,
   selectedKey,
   onSelect,
   checkable = false,
@@ -174,7 +179,7 @@ export function Tree<T = Record<string, unknown>>({
   className,
   indentRem = 1.125
 }: TreeProps<T>) {
-  const index = React.useMemo(() => buildTreeIndex(data), [data])
+  const index = React.useMemo(() => externalIndex ?? buildTreeIndex(data), [externalIndex, data])
 
   const initialExpandedKeys = React.useMemo(() => {
     if (defaultExpandAll) {
@@ -212,6 +217,24 @@ export function Tree<T = Record<string, unknown>>({
   const checkedKeySet = React.useMemo(() => {
     return new Set((controlledCheckedKeys ?? []).map(String))
   }, [controlledCheckedKeys])
+
+  // Pre-calculate indeterminate keys in O(checkedKeys * depth)
+  const indeterminateKeySet = React.useMemo(() => {
+    if (!checkable || checkStrictly || checkedKeySet.size === 0) {
+      return new Set<string>()
+    }
+    const set = new Set<string>()
+    for (const keyStr of checkedKeySet) {
+      const ancestors = index.ancestorsMap.get(keyStr) ?? index.ancestorsMap.get(Number(keyStr)) ?? []
+      for (const a of ancestors) {
+        const aStr = String(a)
+        if (!checkedKeySet.has(aStr)) {
+          set.add(aStr)
+        }
+      }
+    }
+    return set
+  }, [checkable, checkStrictly, checkedKeySet, index])
 
   const handleToggleCheck = React.useCallback(
     (nodeId: TreeKey) => {
@@ -366,7 +389,7 @@ export function Tree<T = Record<string, unknown>>({
     <div
       role="tree"
       className={cn(
-        'flex flex-col gap-0.5 select-none overflow-x-auto overscroll-contain',
+        'flex flex-col gap-0.5 select-none min-w-full w-fit',
         '[--tree-indent:0.625rem] sm:[--tree-indent:1.125rem]',
         className
       )}
@@ -379,12 +402,9 @@ export function Tree<T = Record<string, unknown>>({
           ? searchMatchInfo.searchExpandedKeys.has(node.id)
           : expandedKeySet.has(node.id)
 
-        // Indeterminate check
-        let isIndeterminate = false
-        if (checkable && !checkStrictly && !isChecked && hasChildren) {
-          const descendants = index.descendantsMap.get(node.id) ?? []
-          isIndeterminate = descendants.some(d => checkedKeySet.has(String(d)))
-        }
+        // Indeterminate check in O(1)
+        const isIndeterminate =
+          checkable && !checkStrictly && !isChecked && hasChildren ? indeterminateKeySet.has(keyStr) : false
 
         const renderContext: TreeRenderNodeProps<T> = {
           node,
@@ -412,10 +432,9 @@ export function Tree<T = Record<string, unknown>>({
             className={cn(
               'group/tree-item relative flex min-h-8 sm:min-h-7.5 items-center gap-1.5 rounded-md px-1.5 py-1 text-sm transition-colors outline-none',
               isClickable ? 'cursor-pointer' : 'cursor-default',
-              isSelected
+              !checkable && isSelected
                 ? 'bg-accent font-medium text-accent-foreground'
                 : 'text-foreground hover:bg-accent/60 hover:text-accent-foreground',
-              isChecked && 'bg-primary/5 text-foreground font-medium',
               node.disabled && 'cursor-not-allowed opacity-50'
             )}
             style={{
@@ -468,7 +487,7 @@ export function Tree<T = Record<string, unknown>>({
             )}
 
             {/* Icon */}
-            {showIcons && (
+            {showIcons && (node.icon || renderIcon || hasChildren) && (
               <span className="flex size-4 shrink-0 items-center justify-center text-muted-foreground">
                 {renderIcon ? (
                   renderIcon(renderContext)
@@ -486,9 +505,7 @@ export function Tree<T = Record<string, unknown>>({
                   ) : (
                     <Folder className="size-4 text-primary/80" />
                   )
-                ) : (
-                  <span className="size-1.5 rounded-full bg-muted-foreground/50" />
-                )}
+                ) : null}
               </span>
             )}
 
