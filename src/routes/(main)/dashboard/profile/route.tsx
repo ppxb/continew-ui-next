@@ -2,13 +2,6 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { LockKeyhole } from 'lucide-react'
 
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator
-} from '@/components/ui/breadcrumb'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useAuthStore } from '@/stores/auth/auth-provider'
@@ -32,18 +25,7 @@ function Page() {
   const profile = toProfileRecord(user)
 
   return (
-    <div className="flex flex-col gap-4 py-4" data-content-padding="false">
-      <Breadcrumb className="px-4">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <span>Dashboard</span>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>Profile details</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+    <div className="flex flex-col gap-4 pb-4" data-content-padding="false">
       <ProfileHeader profile={profile} />
 
       <Tabs className="min-h-0 flex-1 gap-0" defaultValue="overview">

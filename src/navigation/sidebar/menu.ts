@@ -122,3 +122,21 @@ export function findMenuByPath(nodes: readonly RouteResp[], pathname: string): R
 
   return undefined
 }
+
+/** Finds the full trail of menu entries leading to a pathname, for breadcrumb navigation. */
+export function findMenuTrail(nodes: readonly RouteResp[], pathname: string): RouteResp[] {
+  for (const node of nodes) {
+    if (toPathname(node.path) === pathname) {
+      return [node]
+    }
+
+    if (node.children?.length) {
+      const match = findMenuTrail(node.children, pathname)
+      if (match.length > 0) {
+        return [node, ...match]
+      }
+    }
+  }
+
+  return []
+}

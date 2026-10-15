@@ -15,6 +15,9 @@ import { SearchDialog } from './header/search-dialog'
 import { ThemeSwitcher } from './header/theme-switcher'
 import { UserMenu } from './header/user-menu'
 import { AppSidebar } from './sidebar/app-sidebar'
+import { AppBreadcrumb, useBreadcrumbTrail } from './app-breadcrumb'
+
+export { AppBreadcrumb, useBreadcrumbTrail } from './app-breadcrumb'
 
 /**
  * Sidebar preferences are read from cookies so the shell renders correctly on the
@@ -50,6 +53,8 @@ export async function loadAppShell({ location }: ShellLoaderContext): Promise<Sh
 
 /** Application shell shared by every authenticated section. */
 export function AppShell({ defaultOpen, variant, collapsible, children }: ShellPreferences & { children: ReactNode }) {
+  const hasBreadcrumb = useBreadcrumbTrail().length > 0
+
   return (
     <SidebarProvider
       defaultOpen={defaultOpen}
@@ -95,8 +100,16 @@ export function AppShell({ defaultOpen, variant, collapsible, children }: ShellP
           </div>
         </header>
         {/* Pages can set data-content-padding="false" to render full-bleed app layouts. */}
-        <div className="min-h-0 min-w-0 flex-1 overflow-x-hidden p-4 has-data-[content-padding=false]:p-0 md:p-6 md:has-data-[content-padding=false]:p-0">
-          {children}
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden">
+          <AppBreadcrumb />
+          <div
+            className={cn(
+              'min-h-0 min-w-0 flex-1 p-4 has-data-[content-padding=false]:p-0 md:p-6 md:has-data-[content-padding=false]:p-0',
+              hasBreadcrumb ? 'pt-1.5 md:pt-2' : 'pt-4 md:pt-6'
+            )}
+          >
+            {children}
+          </div>
         </div>
       </SidebarInset>
     </SidebarProvider>
