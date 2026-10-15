@@ -43,7 +43,7 @@ function toCheckablePermissionNodes(nodes: RolePermissionResp[]): CheckableTreeN
       searchTerms: node.permission ?? '',
       tag: typeLabel ? <Badge variant="secondary">{typeLabel}</Badge> : null,
       subtitle: node.permission ? (
-        <Badge variant="secondary" className="font-mono">
+        <Badge variant="secondary" className="font-mono text-[11px]">
           {node.permission}
         </Badge>
       ) : null,
@@ -152,7 +152,7 @@ export function RolePermissionDrawer({ role, open, onClose }: RolePermissionDraw
                 checkedKeys={selectedMenuIds}
                 onCheckedChange={setSelectedMenuIds}
                 checkStrictly={menuCheckStrictly}
-                searchPlaceholder="搜索菜单标题或权限标识..."
+                searchPlaceholder="搜索菜单或权限名"
                 className="min-h-0 flex-1"
               />
             </div>

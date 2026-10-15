@@ -430,7 +430,7 @@ export function Tree<T = Record<string, unknown>>({
             aria-expanded={hasChildren ? isExpanded : undefined}
             tabIndex={node.disabled ? -1 : 0}
             className={cn(
-              'group/tree-item relative flex min-h-8 sm:min-h-7.5 items-center gap-1.5 rounded-md px-1.5 py-1 text-sm transition-colors outline-none',
+              'group/tree-item relative flex min-h-8 sm:min-h-7.5 items-center gap-1.5 rounded-md px-1.5 py-1 text-sm transition-colors outline-none min-w-full w-fit',
               isClickable ? 'cursor-pointer' : 'cursor-default',
               !checkable && isSelected
                 ? 'bg-accent font-medium text-accent-foreground'
@@ -510,10 +510,10 @@ export function Tree<T = Record<string, unknown>>({
             )}
 
             {/* Label and badges */}
-            <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden">
-              <div className="truncate">
+            <div className="flex items-center gap-1.5 whitespace-nowrap">
+              <span className="shrink-0 font-normal text-foreground">
                 {renderLabel ? renderLabel(renderContext) : <HighlightText text={node.label} keyword={trimmedSearch} />}
-              </div>
+              </span>
               {node.tag}
               {node.subtitle}
             </div>
