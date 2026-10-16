@@ -24,7 +24,7 @@ export type MenuAction = 'edit' | 'add-child' | 'delete'
 function MenuTypeBadge({ type }: { type: MenuType }) {
   if (type === 1) {
     return (
-      <Badge variant="outline" className="border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300">
+      <Badge variant="outline" className="border-sky-500/30 bg-sky-500/10 font-normal text-sky-700 dark:text-sky-300">
         目录
       </Badge>
     )
@@ -34,7 +34,7 @@ function MenuTypeBadge({ type }: { type: MenuType }) {
     return (
       <Badge
         variant="outline"
-        className="border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+        className="border-emerald-500/30 bg-emerald-500/10 font-normal text-emerald-700 dark:text-emerald-300"
       >
         菜单
       </Badge>
@@ -42,7 +42,10 @@ function MenuTypeBadge({ type }: { type: MenuType }) {
   }
 
   return (
-    <Badge variant="outline" className="border-purple-500/30 bg-purple-500/10 text-purple-700 dark:text-purple-300">
+    <Badge
+      variant="outline"
+      className="border-purple-500/30 bg-purple-500/10 font-normal text-purple-700 dark:text-purple-300"
+    >
       按钮
     </Badge>
   )
@@ -51,9 +54,23 @@ function MenuTypeBadge({ type }: { type: MenuType }) {
 function BooleanBadge({ value }: { value?: boolean }) {
   const isTrue = Boolean(value)
 
+  if (isTrue) {
+    return (
+      <Badge
+        variant="outline"
+        className="border-emerald-500/30 bg-emerald-500/10 font-normal text-emerald-600 dark:text-emerald-400"
+      >
+        是
+      </Badge>
+    )
+  }
+
   return (
-    <Badge variant={isTrue ? 'secondary' : 'outline'} className={cn('font-normal', !isTrue && 'text-muted-foreground')}>
-      {isTrue ? '是' : '否'}
+    <Badge
+      variant="outline"
+      className="border-destructive/30 bg-destructive/10 font-normal text-destructive dark:text-destructive"
+    >
+      否
     </Badge>
   )
 }
@@ -180,11 +197,7 @@ export function createMenuColumns({
     {
       accessorKey: 'type',
       header: '类型',
-      cell: ({ row }) => (
-        <div className="flex justify-center">
-          <MenuTypeBadge type={row.original.type} />
-        </div>
-      )
+      cell: ({ row }) => <MenuTypeBadge type={row.original.type} />
     },
     {
       accessorKey: 'path',
@@ -206,7 +219,9 @@ export function createMenuColumns({
       header: '权限标识',
       cell: ({ row }) =>
         row.original.permission ? (
-          <Badge variant="secondary">{row.original.permission}</Badge>
+          <Badge variant="secondary" className="font-normal">
+            {row.original.permission}
+          </Badge>
         ) : (
           <span className="text-sm text-muted-foreground">-</span>
         )
@@ -214,47 +229,27 @@ export function createMenuColumns({
     {
       accessorKey: 'sort',
       header: '排序',
-      cell: ({ row }) => (
-        <div className="text-center">
-          <span className="text-sm text-muted-foreground tabular-nums">{row.original.sort}</span>
-        </div>
-      )
+      cell: ({ row }) => <span className="text-sm text-muted-foreground tabular-nums">{row.original.sort}</span>
     },
     {
       accessorKey: 'status',
       header: '状态',
-      cell: ({ row }) => (
-        <div className="flex justify-center">
-          <StatusCell status={row.original.status} />
-        </div>
-      )
+      cell: ({ row }) => <StatusCell status={row.original.status} />
     },
     {
       accessorKey: 'isHidden',
       header: '隐藏',
-      cell: ({ row }) => (
-        <div className="flex justify-center">
-          <BooleanBadge value={row.original.isHidden} />
-        </div>
-      )
+      cell: ({ row }) => <BooleanBadge value={row.original.isHidden} />
     },
     {
       accessorKey: 'isExternal',
       header: '外链',
-      cell: ({ row }) => (
-        <div className="flex justify-center">
-          <BooleanBadge value={row.original.isExternal} />
-        </div>
-      )
+      cell: ({ row }) => <BooleanBadge value={row.original.isExternal} />
     },
     {
       accessorKey: 'isCache',
       header: '缓存',
-      cell: ({ row }) => (
-        <div className="flex justify-center">
-          <BooleanBadge value={row.original.isCache} />
-        </div>
-      )
+      cell: ({ row }) => <BooleanBadge value={row.original.isCache} />
     },
     {
       id: 'actions',
