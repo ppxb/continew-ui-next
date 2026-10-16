@@ -32,7 +32,6 @@ const SEARCH_DEBOUNCE_MS = 250
 const EMPTY_TREE: MenuResp[] = []
 
 /** Recursively filters tree nodes by title, path, or permission code, preserving parent paths. */
-/** Recursively filters tree nodes by title, path, or permission code, preserving parent paths. */
 function filterMenuTree(nodes: MenuResp[], keyword: string): MenuResp[] {
   const q = keyword.toLowerCase().trim()
   if (!q) return nodes
@@ -223,76 +222,79 @@ export function MenuList() {
 
   const isAllExpanded = expanded === true || (typeof expanded === 'object' && Object.keys(expanded).length > 0)
 
+  const tableSection = (
+    <>
+      <MenuToolbar
+        table={table}
+        isRefreshing={query.isFetching}
+        isFullscreen={isFullscreen}
+        isAllExpanded={isAllExpanded}
+        isClearingCache={clearCacheMutation.isPending}
+        hasCreatePermission={hasCreatePermission}
+        hasClearCachePermission={hasClearCachePermission}
+        onCreate={handleCreateNew}
+        onRefresh={() => void query.refetch()}
+        onToggleExpandAll={handleToggleExpandAll}
+        onClearCache={() => clearCacheMutation.mutate()}
+        onToggleFullscreen={toggleFullscreen}
+        onResetColumns={() => setColumnVisibility(HIDDEN_BY_DEFAULT)}
+      />
+
+      <MenuTable
+        table={table}
+        isLoading={query.isPending}
+        isError={query.isError}
+        isStale={query.isPlaceholderData}
+        total={totalNodes}
+        onRetry={() => void query.refetch()}
+      />
+    </>
+  )
+
   return (
     <>
-      <div
-        ref={fullscreenRef}
-        className={cn(
-          'flex flex-col gap-4',
-          isFullscreen && 'fixed inset-0 z-50 overflow-y-auto bg-background p-4 md:p-6'
-        )}
-      >
-        <Card className="flex flex-col gap-4">
-          <CardHeader className="flex flex-col gap-3 pb-0 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <CardTitle>菜单管理</CardTitle>
-              <CardDescription>配置系统目录、路由页面与按钮鉴权标识，层级管理导航树。</CardDescription>
-            </div>
-
-            <CardAction className="flex flex-wrap items-center gap-2">
-              {/* Search input */}
-              <InputGroup className="h-8 w-56 sm:w-64">
-                <InputGroupAddon>
-                  <Search className="size-3.5 text-muted-foreground" />
+      <Card>
+        <CardHeader className="border-b has-data-[slot=card-action]:grid-cols-1 md:has-data-[slot=card-action]:grid-cols-[1fr_auto]">
+          <CardTitle className="text-xl leading-none">菜单管理</CardTitle>
+          <CardDescription className="max-w-sm leading-snug">
+            配置系统目录、路由页面与按钮鉴权标识，层级管理导航树
+          </CardDescription>
+          <CardAction className="col-start-1 row-start-auto flex w-full flex-wrap justify-start gap-2 justify-self-stretch md:col-start-2 md:row-span-2 md:row-start-1 md:w-auto md:flex-nowrap md:justify-end md:justify-self-end">
+            <InputGroup className="h-7 w-full md:w-64">
+              <InputGroupAddon align="inline-start">
+                <Search className="size-3.5" />
+              </InputGroupAddon>
+              <InputGroupInput
+                className="h-7"
+                placeholder="搜索名称、路由、权限"
+                value={searchInput}
+                onChange={event => setSearchInput(event.target.value)}
+              />
+              {searchInput ? (
+                <InputGroupAddon align="inline-end">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-xs"
+                    aria-label="清空搜索"
+                    onClick={() => setSearchInput('')}
+                  >
+                    <X className="size-3" />
+                  </Button>
                 </InputGroupAddon>
-                <InputGroupInput
-                  placeholder="搜索名称、路由、权限"
-                  value={searchInput}
-                  onChange={e => setSearchInput(e.target.value)}
-                  className="text-xs"
-                />
-                {searchInput && (
-                  <InputGroupAddon align="inline-end">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-xs"
-                      aria-label="清空搜索"
-                      onClick={() => setSearchInput('')}
-                    >
-                      <X className="size-3" />
-                    </Button>
-                  </InputGroupAddon>
-                )}
-              </InputGroup>
-            </CardAction>
-          </CardHeader>
+              ) : null}
+            </InputGroup>
+          </CardAction>
+        </CardHeader>
 
-          {/* Action Toolbar */}
-          <MenuToolbar
-            table={table}
-            isRefreshing={query.isFetching}
-            isFullscreen={isFullscreen}
-            isAllExpanded={isAllExpanded}
-            isClearingCache={clearCacheMutation.isPending}
-            hasCreatePermission={hasCreatePermission}
-            hasClearCachePermission={hasClearCachePermission}
-            onCreate={handleCreateNew}
-            onRefresh={() => void query.refetch()}
-            onToggleExpandAll={handleToggleExpandAll}
-            onClearCache={() => clearCacheMutation.mutate()}
-            onToggleFullscreen={toggleFullscreen}
-            onResetColumns={() => setColumnVisibility(HIDDEN_BY_DEFAULT)}
-          />
+        <CardContent className="flex flex-col gap-4 px-0">
+          {isFullscreen ? <div ref={spacerRef} style={{ height: reservedHeight }} /> : null}
 
-          {/* Table */}
-          <CardContent className="pt-0">
-            <MenuTable table={table} isLoading={query.isLoading} total={totalNodes} />
-          </CardContent>
-        </Card>
-      </div>
-
-      <div ref={spacerRef} style={{ height: reservedHeight }} />
+          <div ref={fullscreenRef} className={cn('flex flex-col gap-4', isFullscreen && 'bg-background')}>
+            {tableSection}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Form Drawer */}
       <MenuFormDrawer

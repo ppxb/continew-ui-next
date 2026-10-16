@@ -23,7 +23,7 @@ export type MenuAction = 'edit' | 'add-child' | 'delete'
 function MenuTypeBadge({ type }: { type: MenuType }) {
   if (type === 1) {
     return (
-      <Badge variant="outline" className="border-sky-500/30 bg-sky-500/10 text-[11px] text-sky-700 dark:text-sky-300">
+      <Badge variant="outline" className="border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300">
         目录
       </Badge>
     )
@@ -33,7 +33,7 @@ function MenuTypeBadge({ type }: { type: MenuType }) {
     return (
       <Badge
         variant="outline"
-        className="border-emerald-500/30 bg-emerald-500/10 text-[11px] text-emerald-700 dark:text-emerald-300"
+        className="border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
       >
         菜单
       </Badge>
@@ -41,10 +41,7 @@ function MenuTypeBadge({ type }: { type: MenuType }) {
   }
 
   return (
-    <Badge
-      variant="outline"
-      className="border-purple-500/30 bg-purple-500/10 text-[11px] text-purple-700 dark:text-purple-300"
-    >
+    <Badge variant="outline" className="border-purple-500/30 bg-purple-500/10 text-purple-700 dark:text-purple-300">
       按钮
     </Badge>
   )
@@ -68,13 +65,71 @@ function StatusIndicator({ status }: { status: number }) {
 
 function BooleanTag({ value }: { value?: boolean }) {
   if (!value) {
-    return <span className="text-xs text-muted-foreground/50">否</span>
+    return <span className="text-sm text-muted-foreground/50">否</span>
   }
 
   return (
-    <Badge variant="secondary" className="px-1.5 py-0 text-[10px] font-normal text-primary">
+    <Badge variant="secondary" className="font-normal">
       是
     </Badge>
+  )
+}
+
+function RowActions({
+  menu,
+  onAction,
+  hasCreatePermission,
+  hasUpdatePermission,
+  hasDeletePermission
+}: {
+  menu: MenuResp
+  onAction: (action: MenuAction, menu: MenuResp) => void
+  hasCreatePermission: boolean
+  hasUpdatePermission: boolean
+  hasDeletePermission: boolean
+}) {
+  const canAddChild = menu.type === 1 || menu.type === 2
+
+  return (
+    <div className="flex items-center justify-center">
+      <DropdownMenu>
+        <Tooltip>
+          <TooltipTrigger render={<DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />} />}>
+            <MoreHorizontal className="size-4" />
+          </TooltipTrigger>
+          <TooltipContent side="top" sideOffset={8}>
+            更多操作
+          </TooltipContent>
+        </Tooltip>
+        <DropdownMenuContent align="end" className="w-36">
+          <DropdownMenuGroup>
+            {hasUpdatePermission && (
+              <DropdownMenuItem onClick={() => onAction('edit', menu)}>
+                <PenLine />
+                修改菜单
+              </DropdownMenuItem>
+            )}
+            {hasCreatePermission && canAddChild && (
+              <DropdownMenuItem onClick={() => onAction('add-child', menu)}>
+                <Plus />
+                添加下级
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuGroup>
+          {hasDeletePermission && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuGroup>
+                <DropdownMenuItem variant="destructive" onClick={() => onAction('delete', menu)}>
+                  <Trash2 />
+                  删除
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+            </>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   )
 }
 
@@ -93,10 +148,9 @@ export function createMenuColumns({
 }: CreateMenuColumnsOptions): ColumnDef<DataTableFeatures, MenuResp>[] {
   return [
     {
-      id: 'title',
       accessorKey: 'title',
       header: '菜单名称',
-      size: 260,
+      enableHiding: false,
       cell: ({ row }) => {
         const menu = row.original
         const canExpand = row.getCanExpand()
@@ -105,8 +159,7 @@ export function createMenuColumns({
         const Icon = menu.icon ? resolveMenuIcon(menu.icon) : Folder
 
         return (
-          <div className="flex items-center gap-1.5" style={{ paddingLeft: `${depth * 20}px` }}>
-            {/* Tree expansion arrow */}
+          <div className="flex items-center gap-2" style={{ paddingLeft: `${depth * 24}px` }}>
             {canExpand ? (
               <button
                 type="button"
@@ -118,23 +171,18 @@ export function createMenuColumns({
                 aria-label={isExpanded ? '折叠' : '展开'}
               >
                 <ChevronRight
-                  className={cn(
-                    'size-3.5 transition-transform duration-200',
-                    isExpanded && 'rotate-90 text-foreground'
-                  )}
+                  className={cn('size-4 transition-transform duration-200', isExpanded && 'rotate-90 text-foreground')}
                 />
               </button>
             ) : (
               <span className="size-5 shrink-0" />
             )}
 
-            {/* Menu icon */}
-            <Icon className="size-3.5 shrink-0 text-muted-foreground" />
+            <Icon className="size-4 shrink-0 text-muted-foreground" />
 
-            {/* Title */}
             <span
               className={cn(
-                'truncate text-xs',
+                'truncate text-sm',
                 menu.type === 1 && 'font-medium text-foreground',
                 menu.type === 2 && 'text-foreground',
                 menu.type === 3 && 'text-muted-foreground'
@@ -147,75 +195,59 @@ export function createMenuColumns({
       }
     },
     {
-      id: 'type',
       accessorKey: 'type',
-      header: '类型',
-      size: 80,
+      header: () => <div className="text-center">类型</div>,
       cell: ({ row }) => (
-        <div className="flex items-center justify-center">
+        <div className="flex justify-center">
           <MenuTypeBadge type={row.original.type} />
         </div>
       )
     },
     {
-      id: 'status',
-      accessorKey: 'status',
-      header: '状态',
-      size: 80,
+      accessorKey: 'path',
+      header: '路由地址',
+      cell: ({ row }) => <span className="font-mono text-sm text-muted-foreground">{row.original.path || '-'}</span>
+    },
+    {
+      accessorKey: 'component',
+      header: '组件路径',
       cell: ({ row }) => (
-        <div className="flex items-center justify-center">
+        <span className="font-mono text-sm text-muted-foreground">{row.original.component || '-'}</span>
+      )
+    },
+    {
+      accessorKey: 'permission',
+      header: '权限标识',
+      cell: ({ row }) =>
+        row.original.permission ? (
+          <Badge variant="secondary" className="font-mono text-xs">
+            {row.original.permission}
+          </Badge>
+        ) : (
+          <span className="text-sm text-muted-foreground">-</span>
+        )
+    },
+    {
+      accessorKey: 'sort',
+      header: () => <div className="text-center">排序</div>,
+      cell: ({ row }) => (
+        <div className="text-center">
+          <span className="text-sm text-muted-foreground tabular-nums">{row.original.sort}</span>
+        </div>
+      )
+    },
+    {
+      accessorKey: 'status',
+      header: () => <div className="text-center">状态</div>,
+      cell: ({ row }) => (
+        <div className="flex justify-center">
           <StatusIndicator status={row.original.status} />
         </div>
       )
     },
     {
-      id: 'path',
-      accessorKey: 'path',
-      header: '路由地址',
-      size: 160,
-      cell: ({ row }) => (
-        <span className="truncate font-mono text-xs text-muted-foreground">{row.original.path || '-'}</span>
-      )
-    },
-    {
-      id: 'permission',
-      accessorKey: 'permission',
-      header: '权限标识',
-      size: 160,
-      cell: ({ row }) => {
-        const code = row.original.permission
-        if (!code) return <span className="text-muted-foreground">-</span>
-
-        return (
-          <Badge variant="outline" className="border-border/70 font-mono text-[11px] font-normal">
-            {code}
-          </Badge>
-        )
-      }
-    },
-    {
-      id: 'component',
-      accessorKey: 'component',
-      header: '组件路径',
-      size: 170,
-      cell: ({ row }) => (
-        <span className="truncate font-mono text-xs text-muted-foreground" title={row.original.component ?? ''}>
-          {row.original.component || '-'}
-        </span>
-      )
-    },
-    {
-      id: 'sort',
-      accessorKey: 'sort',
-      header: '排序',
-      size: 60,
-      cell: ({ row }) => <span className="flex justify-center text-xs text-muted-foreground">{row.original.sort}</span>
-    },
-    {
-      id: 'isHidden',
       accessorKey: 'isHidden',
-      header: '隐藏',
-      size: 60,
+      header: () => <div className="text-center">隐藏</div>,
       cell: ({ row }) => (
         <div className="flex justify-center">
           <BooleanTag value={row.original.isHidden} />
@@ -223,10 +255,8 @@ export function createMenuColumns({
       )
     },
     {
-      id: 'isExternal',
       accessorKey: 'isExternal',
-      header: '外链',
-      size: 60,
+      header: () => <div className="text-center">外链</div>,
       cell: ({ row }) => (
         <div className="flex justify-center">
           <BooleanTag value={row.original.isExternal} />
@@ -234,10 +264,8 @@ export function createMenuColumns({
       )
     },
     {
-      id: 'isCache',
       accessorKey: 'isCache',
-      header: '缓存',
-      size: 60,
+      header: () => <div className="text-center">缓存</div>,
       cell: ({ row }) => (
         <div className="flex justify-center">
           <BooleanTag value={row.original.isCache} />
@@ -246,100 +274,17 @@ export function createMenuColumns({
     },
     {
       id: 'actions',
-      header: '操作',
-      size: 130,
-      cell: ({ row }) => {
-        const menu = row.original
-        const canAddChild = menu.type === 1 || menu.type === 2
-
-        return (
-          <div className="flex items-center justify-center gap-1">
-            {/* Inline Quick Action: Add child */}
-            {hasCreatePermission && canAddChild && (
-              <Tooltip>
-                <TooltipTrigger
-                  render={
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-xs"
-                      aria-label="新增子级菜单"
-                      onClick={() => onAction('add-child', menu)}
-                    />
-                  }
-                >
-                  <Plus className="size-3.5 text-muted-foreground hover:text-foreground" />
-                </TooltipTrigger>
-                <TooltipContent side="top">新增下级</TooltipContent>
-              </Tooltip>
-            )}
-
-            {/* Inline Quick Action: Edit */}
-            {hasUpdatePermission && (
-              <Tooltip>
-                <TooltipTrigger
-                  render={
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-xs"
-                      aria-label="修改菜单"
-                      onClick={() => onAction('edit', menu)}
-                    />
-                  }
-                >
-                  <PenLine className="size-3.5 text-muted-foreground hover:text-foreground" />
-                </TooltipTrigger>
-                <TooltipContent side="top">修改</TooltipContent>
-              </Tooltip>
-            )}
-
-            {/* Dropdown Menu for more actions */}
-            <DropdownMenu>
-              <Tooltip>
-                <TooltipTrigger
-                  render={
-                    <DropdownMenuTrigger render={<Button variant="ghost" size="icon-xs" aria-label="更多操作" />} />
-                  }
-                >
-                  <MoreHorizontal className="size-3.5" />
-                </TooltipTrigger>
-                <TooltipContent side="top">更多</TooltipContent>
-              </Tooltip>
-
-              <DropdownMenuContent align="end" className="min-w-32 text-xs">
-                <DropdownMenuGroup>
-                  {hasUpdatePermission && (
-                    <DropdownMenuItem onClick={() => onAction('edit', menu)}>
-                      <PenLine className="mr-2 size-3.5" />
-                      修改菜单
-                    </DropdownMenuItem>
-                  )}
-                  {hasCreatePermission && canAddChild && (
-                    <DropdownMenuItem onClick={() => onAction('add-child', menu)}>
-                      <Plus className="mr-2 size-3.5" />
-                      添加下级菜单
-                    </DropdownMenuItem>
-                  )}
-                </DropdownMenuGroup>
-
-                {hasDeletePermission && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={() => onAction('delete', menu)}
-                      className="text-destructive focus:text-destructive"
-                    >
-                      <Trash2 className="mr-2 size-3.5" />
-                      删除菜单
-                    </DropdownMenuItem>
-                  </>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        )
-      }
+      header: () => <div className="text-center">操作</div>,
+      enableHiding: false,
+      cell: ({ row }) => (
+        <RowActions
+          menu={row.original}
+          onAction={onAction}
+          hasCreatePermission={hasCreatePermission}
+          hasUpdatePermission={hasUpdatePermission}
+          hasDeletePermission={hasDeletePermission}
+        />
+      )
     }
   ]
 }
