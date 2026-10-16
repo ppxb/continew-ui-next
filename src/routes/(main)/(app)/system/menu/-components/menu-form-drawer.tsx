@@ -39,7 +39,7 @@ const formSchema = z
     isHidden: z.boolean()
   })
   .superRefine((data, ctx) => {
-    // 菜单必须填写路由地址（非外链需以 / 开头）
+    // 菜单类型必须填写路由地址
     if (data.type === 2) {
       if (!data.path || !data.path.trim()) {
         ctx.addIssue({
@@ -164,7 +164,7 @@ export function MenuFormDrawer({ menuId, defaultParentId, open, onClose, menuTre
     },
     onSuccess: () => {
       toast.add({
-        title: isEdit ? '菜单更新成功' : '菜单创建成功',
+        title: isEdit ? '修改菜单成功' : '新增菜单成功',
         type: 'success'
       })
       void queryClient.invalidateQueries({ queryKey: menuKeys.trees() })
@@ -192,7 +192,7 @@ export function MenuFormDrawer({ menuId, defaultParentId, open, onClose, menuTre
       }}
       swipeDirection="right"
     >
-      <DrawerContent className="data-[swipe-axis=x]:sm:[--drawer-content-width:34rem]">
+      <DrawerContent className="data-[swipe-axis=x]:sm:[--drawer-content-width:32rem]">
         <DrawerHeader className="flex-row items-center justify-between gap-2 border-b p-4 md:gap-2">
           <DrawerTitle className="text-base font-semibold">{isEdit ? '修改菜单' : '新增菜单'}</DrawerTitle>
           <DrawerClose render={<Button variant="ghost" size="icon-sm" disabled={mutation.isPending} />}>
@@ -202,180 +202,235 @@ export function MenuFormDrawer({ menuId, defaultParentId, open, onClose, menuTre
         </DrawerHeader>
 
         {isEdit && isLoadingDetail ? (
-          <div className="space-y-4 p-6">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
+          <div className="flex min-h-0 flex-1 flex-col gap-4 p-4">
+            <Skeleton className="h-9 w-full" />
+            <Skeleton className="h-9 w-full" />
+            <Skeleton className="h-9 w-full" />
+            <Skeleton className="h-9 w-full" />
+            <Skeleton className="h-9 w-full" />
           </div>
         ) : (
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex min-h-0 flex-1 flex-col overflow-y-auto p-6">
-            <FieldGroup className="gap-5">
-              {/* Type Switcher */}
-              <Controller
-                control={form.control}
-                name="type"
-                render={({ field }) => (
-                  <Field className="gap-1.5">
-                    <FieldLabel>菜单类型</FieldLabel>
-                    <div className="grid grid-cols-3 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => field.onChange(1)}
-                        className={cn(
-                          'flex items-center justify-center gap-2 rounded-lg border p-2.5 text-xs font-medium transition-colors',
-                          field.value === 1
-                            ? 'border-sky-500/50 bg-sky-500/10 text-sky-700 shadow-2xs dark:text-sky-300'
-                            : 'border-border/60 bg-muted/30 text-muted-foreground hover:bg-muted/60 hover:text-foreground'
-                        )}
-                      >
-                        <Folder className="size-4 shrink-0" />
-                        <span>目录</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => field.onChange(2)}
-                        className={cn(
-                          'flex items-center justify-center gap-2 rounded-lg border p-2.5 text-xs font-medium transition-colors',
-                          field.value === 2
-                            ? 'border-emerald-500/50 bg-emerald-500/10 text-emerald-700 shadow-2xs dark:text-emerald-300'
-                            : 'border-border/60 bg-muted/30 text-muted-foreground hover:bg-muted/60 hover:text-foreground'
-                        )}
-                      >
-                        <FileText className="size-4 shrink-0" />
-                        <span>菜单</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => field.onChange(3)}
-                        className={cn(
-                          'flex items-center justify-center gap-2 rounded-lg border p-2.5 text-xs font-medium transition-colors',
-                          field.value === 3
-                            ? 'border-purple-500/50 bg-purple-500/10 text-purple-700 shadow-2xs dark:text-purple-300'
-                            : 'border-border/60 bg-muted/30 text-muted-foreground hover:bg-muted/60 hover:text-foreground'
-                        )}
-                      >
-                        <MousePointerClick className="size-4 shrink-0" />
-                        <span>按钮</span>
-                      </button>
-                    </div>
-                  </Field>
-                )}
-              />
-
-              {/* Parent Menu */}
-              <Controller
-                control={form.control}
-                name="parentId"
-                render={({ field }) => (
-                  <Field className="gap-1.5">
-                    <FieldLabel>上级菜单</FieldLabel>
-                    <MenuParentSelect
-                      value={field.value}
-                      onChange={field.onChange}
-                      menuTree={menuTree}
-                      currentMenuId={menuId}
-                      disabled={mutation.isPending}
-                    />
-                    <FieldDescription>可选择所属父级目录或页面，若不选择默认为顶级根节点</FieldDescription>
-                  </Field>
-                )}
-              />
-
-              {/* Title & Icon row */}
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="flex min-h-0 flex-1 flex-col">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
+              <FieldGroup className="gap-4">
+                {/* Type Switcher (Disabled in Edit Mode) */}
                 <Controller
                   control={form.control}
-                  name="title"
+                  name="type"
+                  render={({ field }) => {
+                    const isTypeDisabled = isEdit || mutation.isPending
+
+                    return (
+                      <Field className="gap-1.5">
+                        <FieldLabel>菜单类型</FieldLabel>
+                        <div className="grid grid-cols-3 gap-2">
+                          <button
+                            type="button"
+                            disabled={isTypeDisabled}
+                            onClick={() => !isTypeDisabled && field.onChange(1)}
+                            className={cn(
+                              'flex items-center justify-center gap-2 rounded-lg border p-2.5 text-xs font-medium transition-colors',
+                              field.value === 1
+                                ? cn(
+                                    'border-sky-500/50 bg-sky-500/10 text-sky-700 shadow-2xs dark:text-sky-300',
+                                    isTypeDisabled && 'opacity-60'
+                                  )
+                                : isTypeDisabled
+                                  ? 'border-border/40 bg-muted/20 text-muted-foreground/40 opacity-50'
+                                  : 'border-border/60 bg-muted/30 text-muted-foreground hover:bg-muted/60 hover:text-foreground',
+                              isTypeDisabled && 'pointer-events-none'
+                            )}
+                          >
+                            <Folder className="size-4 shrink-0" />
+                            <span>目录</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            disabled={isTypeDisabled}
+                            onClick={() => !isTypeDisabled && field.onChange(2)}
+                            className={cn(
+                              'flex items-center justify-center gap-2 rounded-lg border p-2.5 text-xs font-medium transition-colors',
+                              field.value === 2
+                                ? cn(
+                                    'border-emerald-500/50 bg-emerald-500/10 text-emerald-700 shadow-2xs dark:text-emerald-300',
+                                    isTypeDisabled && 'opacity-60'
+                                  )
+                                : isTypeDisabled
+                                  ? 'border-border/40 bg-muted/20 text-muted-foreground/40 opacity-50'
+                                  : 'border-border/60 bg-muted/30 text-muted-foreground hover:bg-muted/60 hover:text-foreground',
+                              isTypeDisabled && 'pointer-events-none'
+                            )}
+                          >
+                            <FileText className="size-4 shrink-0" />
+                            <span>菜单</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            disabled={isTypeDisabled}
+                            onClick={() => !isTypeDisabled && field.onChange(3)}
+                            className={cn(
+                              'flex items-center justify-center gap-2 rounded-lg border p-2.5 text-xs font-medium transition-colors',
+                              field.value === 3
+                                ? cn(
+                                    'border-purple-500/50 bg-purple-500/10 text-purple-700 shadow-2xs dark:text-purple-300',
+                                    isTypeDisabled && 'opacity-60'
+                                  )
+                                : isTypeDisabled
+                                  ? 'border-border/40 bg-muted/20 text-muted-foreground/40 opacity-50'
+                                  : 'border-border/60 bg-muted/30 text-muted-foreground hover:bg-muted/60 hover:text-foreground',
+                              isTypeDisabled && 'pointer-events-none'
+                            )}
+                          >
+                            <MousePointerClick className="size-4 shrink-0" />
+                            <span>按钮</span>
+                          </button>
+                        </div>
+                        {isEdit && (
+                          <FieldDescription className="text-muted-foreground">
+                            编辑菜单时不支持修改菜单类型
+                          </FieldDescription>
+                        )}
+                      </Field>
+                    )
+                  }}
+                />
+
+                {/* Parent Menu */}
+                <Controller
+                  control={form.control}
+                  name="parentId"
                   render={({ field, fieldState }) => (
                     <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-                      <FieldLabel htmlFor="menu-title">
-                        {currentType === 3 ? '按钮名称' : '菜单标题'}
-                        <span className="text-destructive">*</span>
-                      </FieldLabel>
-                      <Input
-                        {...field}
-                        id="menu-title"
-                        placeholder={currentType === 3 ? '例如：新增' : '例如：用户管理'}
+                      <FieldLabel>上级菜单</FieldLabel>
+                      <MenuParentSelect
+                        value={field.value}
+                        onChange={field.onChange}
+                        menuTree={menuTree}
+                        currentMenuId={menuId}
                         disabled={mutation.isPending}
+                        invalid={fieldState.invalid}
                       />
                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>
                   )}
                 />
 
-                {currentType !== 3 && (
+                {/* Required Fields Upfront: Title & Sort (2 columns on PC) */}
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <Controller
                     control={form.control}
-                    name="icon"
+                    name="title"
+                    render={({ field, fieldState }) => (
+                      <Field className="gap-1.5" data-invalid={fieldState.invalid}>
+                        <FieldLabel htmlFor="menu-title">
+                          {currentType === 3 ? '按钮名称' : '菜单名称'}
+                          <span className="text-destructive">*</span>
+                        </FieldLabel>
+                        <Input
+                          {...field}
+                          id="menu-title"
+                          placeholder={currentType === 3 ? '例如：新增' : '例如：用户管理'}
+                          disabled={mutation.isPending}
+                          aria-invalid={fieldState.invalid}
+                        />
+                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                      </Field>
+                    )}
+                  />
+
+                  <Controller
+                    control={form.control}
+                    name="sort"
+                    render={({ field, fieldState }) => (
+                      <Field className="gap-1.5" data-invalid={fieldState.invalid}>
+                        <FieldLabel htmlFor="menu-sort">
+                          排序
+                          <span className="text-destructive">*</span>
+                        </FieldLabel>
+                        <Input
+                          id="menu-sort"
+                          type="number"
+                          min={1}
+                          value={field.value}
+                          onChange={e => field.onChange(e.target.valueAsNumber || 1)}
+                          placeholder="数值越小越靠前"
+                          disabled={mutation.isPending}
+                          aria-invalid={fieldState.invalid}
+                        />
+                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                      </Field>
+                    )}
+                  />
+                </div>
+
+                {/* Route Path & Menu Icon on the same row on PC (DIR & MENU) */}
+                {currentType !== 3 && (
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <Controller
+                      control={form.control}
+                      name="path"
+                      render={({ field, fieldState }) => (
+                        <Field className="gap-1.5" data-invalid={fieldState.invalid}>
+                          <FieldLabel htmlFor="menu-path">
+                            路由地址
+                            {currentType === 2 && <span className="text-destructive">*</span>}
+                          </FieldLabel>
+                          <Input
+                            {...field}
+                            value={field.value ?? ''}
+                            id="menu-path"
+                            placeholder={isExternal ? 'https://example.com' : '/system/user'}
+                            disabled={mutation.isPending}
+                            aria-invalid={fieldState.invalid}
+                          />
+                          <FieldDescription>
+                            {isExternal
+                              ? '外部网页完整链接，以 http:// 或 https:// 开头'
+                              : '访问的前端路由路径，以 / 开头'}
+                          </FieldDescription>
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
+                      )}
+                    />
+
+                    <Controller
+                      control={form.control}
+                      name="icon"
+                      render={({ field }) => (
+                        <Field className="gap-1.5">
+                          <FieldLabel>菜单图标</FieldLabel>
+                          <IconPicker value={field.value} onChange={field.onChange} disabled={mutation.isPending} />
+                        </Field>
+                      )}
+                    />
+                  </div>
+                )}
+
+                {/* Button specific: Permission code */}
+                {currentType === 3 && (
+                  <Controller
+                    control={form.control}
+                    name="permission"
                     render={({ field }) => (
                       <Field className="gap-1.5">
-                        <FieldLabel>菜单图标</FieldLabel>
-                        <IconPicker value={field.value} onChange={field.onChange} disabled={mutation.isPending} />
+                        <FieldLabel htmlFor="menu-permission">权限标识</FieldLabel>
+                        <Input
+                          {...field}
+                          value={field.value ?? ''}
+                          id="menu-permission"
+                          placeholder="例如：system:user:create"
+                          disabled={mutation.isPending}
+                        />
+                        <FieldDescription>接口鉴权代码</FieldDescription>
                       </Field>
                     )}
                   />
                 )}
-              </div>
 
-              {/* Sort Order */}
-              <Controller
-                control={form.control}
-                name="sort"
-                render={({ field, fieldState }) => (
-                  <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="menu-sort">
-                      排序序号
-                      <span className="text-destructive">*</span>
-                    </FieldLabel>
-                    <Input
-                      id="menu-sort"
-                      type="number"
-                      min={1}
-                      value={field.value}
-                      onChange={e => field.onChange(e.target.valueAsNumber || 1)}
-                      placeholder="数值越小越靠前"
-                      disabled={mutation.isPending}
-                    />
-                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                  </Field>
-                )}
-              />
-
-              {/* Route Path (DIR & MENU) */}
-              {currentType !== 3 && (
-                <Controller
-                  control={form.control}
-                  name="path"
-                  render={({ field, fieldState }) => (
-                    <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-                      <FieldLabel htmlFor="menu-path">
-                        路由地址
-                        {currentType === 2 && <span className="text-destructive">*</span>}
-                      </FieldLabel>
-                      <Input
-                        {...field}
-                        value={field.value ?? ''}
-                        id="menu-path"
-                        placeholder={isExternal ? 'https://example.com' : '/system/user'}
-                        disabled={mutation.isPending}
-                      />
-                      <FieldDescription>
-                        {isExternal
-                          ? '外部网页完整链接，以 http:// 或 https:// 开头'
-                          : '访问的内部前端路由路径，以 / 开头'}
-                      </FieldDescription>
-                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                    </Field>
-                  )}
-                />
-              )}
-
-              {/* Menu specific fields: Name, Component, Permission, Redirect */}
-              {currentType === 2 && (
-                <>
+                {/* Menu specific fields: Name & Component (2 columns on PC) */}
+                {currentType === 2 && (
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <Controller
                       control={form.control}
@@ -411,7 +466,49 @@ export function MenuFormDrawer({ menuId, defaultParentId, open, onClose, menuTre
                       )}
                     />
                   </div>
+                )}
 
+                {/* Menu specific fields: Permission & Redirect (2 columns on PC) */}
+                {currentType === 2 && (
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <Controller
+                      control={form.control}
+                      name="permission"
+                      render={({ field }) => (
+                        <Field className="gap-1.5">
+                          <FieldLabel htmlFor="menu-permission">权限标识</FieldLabel>
+                          <Input
+                            {...field}
+                            value={field.value ?? ''}
+                            id="menu-permission"
+                            placeholder="例如：system:user:list（选填）"
+                            disabled={mutation.isPending}
+                          />
+                        </Field>
+                      )}
+                    />
+
+                    <Controller
+                      control={form.control}
+                      name="redirect"
+                      render={({ field }) => (
+                        <Field className="gap-1.5">
+                          <FieldLabel htmlFor="menu-redirect">重定向地址</FieldLabel>
+                          <Input
+                            {...field}
+                            value={field.value ?? ''}
+                            id="menu-redirect"
+                            placeholder="例如：/system/user（选填）"
+                            disabled={mutation.isPending}
+                          />
+                        </Field>
+                      )}
+                    />
+                  </div>
+                )}
+
+                {/* Directory specific field: Redirect address */}
+                {currentType === 1 && (
                   <Controller
                     control={form.control}
                     name="redirect"
@@ -422,144 +519,107 @@ export function MenuFormDrawer({ menuId, defaultParentId, open, onClose, menuTre
                           {...field}
                           value={field.value ?? ''}
                           id="menu-redirect"
-                          placeholder="例如：/system/user"
+                          placeholder="例如：/system/user（选填）"
                           disabled={mutation.isPending}
                         />
                       </Field>
                     )}
                   />
-                </>
-              )}
+                )}
 
-              {/* Permission code (MENU & BUTTON) */}
-              {currentType !== 1 && (
+                {/* Switches - One per line, no card wrapper */}
                 <Controller
                   control={form.control}
-                  name="permission"
+                  name="status"
                   render={({ field }) => (
-                    <Field className="gap-1.5">
-                      <FieldLabel htmlFor="menu-permission">
-                        权限标识
-                        {currentType === 3 && (
-                          <span className="ml-1.5 text-xs font-normal text-muted-foreground">（对应接口鉴权代码）</span>
-                        )}
-                      </FieldLabel>
-                      <Input
-                        {...field}
-                        value={field.value ?? ''}
-                        id="menu-permission"
-                        placeholder="例如：system:user:create"
+                    <Field orientation="horizontal" className="items-center justify-between">
+                      <FieldContent>
+                        <FieldLabel>菜单状态</FieldLabel>
+                        <FieldDescription>
+                          {field.value === 1
+                            ? '启用状态，正常在系统导航与权限中生效'
+                            : '禁用状态，该菜单及按钮将不可用'}
+                        </FieldDescription>
+                      </FieldContent>
+                      <Switch
+                        checked={field.value === 1}
+                        onCheckedChange={checked => field.onChange(checked ? 1 : 2)}
                         disabled={mutation.isPending}
                       />
                     </Field>
                   )}
                 />
-              )}
 
-              {/* Toggle Switches */}
-              <div className="space-y-3 rounded-lg border bg-muted/20 p-4">
-                <span className="text-xs font-medium text-foreground">状态与开关控制</span>
-
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {currentType !== 3 && (
                   <Controller
                     control={form.control}
-                    name="status"
+                    name="isHidden"
                     render={({ field }) => (
                       <Field orientation="horizontal" className="items-center justify-between">
                         <FieldContent>
-                          <FieldLabel className="text-xs font-normal">菜单状态</FieldLabel>
-                          <FieldDescription className="text-[11px]">启用后在侧边栏显示</FieldDescription>
+                          <FieldLabel>隐藏菜单</FieldLabel>
+                          <FieldDescription>
+                            {field.value ? '已隐藏，不会在侧边栏导航中展示' : '正常在侧边栏导航中展示'}
+                          </FieldDescription>
                         </FieldContent>
-                        <Switch
-                          checked={field.value === 1}
-                          onCheckedChange={checked => field.onChange(checked ? 1 : 2)}
-                          disabled={mutation.isPending}
-                        />
+                        <Switch checked={field.value} onCheckedChange={field.onChange} disabled={mutation.isPending} />
                       </Field>
                     )}
                   />
+                )}
 
-                  {currentType !== 3 && (
-                    <Controller
-                      control={form.control}
-                      name="isHidden"
-                      render={({ field }) => (
-                        <Field orientation="horizontal" className="items-center justify-between">
-                          <FieldContent>
-                            <FieldLabel className="text-xs font-normal">隐藏菜单</FieldLabel>
-                            <FieldDescription className="text-[11px]">不显示在侧边栏菜单中</FieldDescription>
-                          </FieldContent>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            disabled={mutation.isPending}
-                          />
-                        </Field>
-                      )}
-                    />
-                  )}
+                {currentType !== 3 && (
+                  <Controller
+                    control={form.control}
+                    name="isExternal"
+                    render={({ field }) => (
+                      <Field orientation="horizontal" className="items-center justify-between">
+                        <FieldContent>
+                          <FieldLabel>是否外链</FieldLabel>
+                          <FieldDescription>
+                            {field.value ? '开启后点击将通过新标签页打开外部链接' : '内部前端路由页面'}
+                          </FieldDescription>
+                        </FieldContent>
+                        <Switch checked={field.value} onCheckedChange={field.onChange} disabled={mutation.isPending} />
+                      </Field>
+                    )}
+                  />
+                )}
 
-                  {currentType !== 3 && (
-                    <Controller
-                      control={form.control}
-                      name="isExternal"
-                      render={({ field }) => (
-                        <Field orientation="horizontal" className="items-center justify-between">
-                          <FieldContent>
-                            <FieldLabel className="text-xs font-normal">是否外链</FieldLabel>
-                            <FieldDescription className="text-[11px]">点击后新标签页打开网页</FieldDescription>
-                          </FieldContent>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            disabled={mutation.isPending}
-                          />
-                        </Field>
-                      )}
-                    />
-                  )}
+                {currentType === 2 && (
+                  <Controller
+                    control={form.control}
+                    name="isCache"
+                    render={({ field }) => (
+                      <Field orientation="horizontal" className="items-center justify-between">
+                        <FieldContent>
+                          <FieldLabel>是否缓存</FieldLabel>
+                          <FieldDescription>
+                            {field.value ? '开启 KeepAlive 缓存，切换路由时保持页面状态' : '不缓存页面'}
+                          </FieldDescription>
+                        </FieldContent>
+                        <Switch checked={field.value} onCheckedChange={field.onChange} disabled={mutation.isPending} />
+                      </Field>
+                    )}
+                  />
+                )}
+              </FieldGroup>
+            </div>
 
-                  {currentType === 2 && (
-                    <Controller
-                      control={form.control}
-                      name="isCache"
-                      render={({ field }) => (
-                        <Field orientation="horizontal" className="items-center justify-between">
-                          <FieldContent>
-                            <FieldLabel className="text-xs font-normal">是否缓存</FieldLabel>
-                            <FieldDescription className="text-[11px]">页面切换时保持组件状态</FieldDescription>
-                          </FieldContent>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            disabled={mutation.isPending}
-                          />
-                        </Field>
-                      )}
-                    />
-                  )}
-                </div>
-              </div>
-            </FieldGroup>
-
-            <DrawerFooter className="mt-auto border-t px-0 pt-4">
-              <div className="flex w-full items-center justify-end gap-2">
-                <Button type="button" variant="outline" onClick={onClose} disabled={mutation.isPending}>
-                  取消
-                </Button>
-                <Button type="submit" disabled={mutation.isPending}>
-                  {mutation.isPending ? (
-                    <>
-                      <Spinner className="mr-1.5 size-3.5" />
-                      提交中…
-                    </>
-                  ) : isEdit ? (
-                    '保存修改'
-                  ) : (
-                    '立即创建'
-                  )}
-                </Button>
-              </div>
+            <DrawerFooter className="flex-row justify-end gap-2 border-t p-4">
+              <Button type="button" variant="outline" onClick={onClose} disabled={mutation.isPending}>
+                取消
+              </Button>
+              <Button type="submit" disabled={mutation.isPending}>
+                {mutation.isPending ? (
+                  <>
+                    <Spinner className="mr-1.5 size-3.5" />
+                    保存中
+                  </>
+                ) : (
+                  '保存'
+                )}
+              </Button>
             </DrawerFooter>
           </form>
         )}

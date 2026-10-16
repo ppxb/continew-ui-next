@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import { Check, Search, X } from 'lucide-react'
+import { Check, Search, X, icons, type LucideIcon } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -12,9 +12,387 @@ import {
   DialogTrigger
 } from '@/components/ui/dialog'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { MENU_ICONS, resolveMenuIcon } from '@/navigation/sidebar/menu-icons'
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { resolveMenuIcon } from '@/navigation/sidebar/menu-icons'
 import { cn } from 'cn'
+
+export interface IconCategory {
+  key: string
+  label: string
+  keywords: string[]
+}
+
+export const ICON_CATEGORIES: IconCategory[] = [
+  {
+    key: 'common',
+    label: '常用推荐',
+    keywords: [
+      'layout',
+      'dashboard',
+      'home',
+      'house',
+      'app',
+      'grid',
+      'menu',
+      'sidebar',
+      'settings',
+      'config',
+      'user',
+      'users',
+      'role',
+      'shield',
+      'lock',
+      'key',
+      'folder',
+      'file',
+      'table',
+      'list',
+      'check',
+      'bell',
+      'search',
+      'chart',
+      'database',
+      'server',
+      'monitor',
+      'terminal',
+      'link',
+      'mail',
+      'message',
+      'calendar',
+      'clock',
+      'tag',
+      'flag',
+      'bookmark',
+      'filter',
+      'download',
+      'upload',
+      'tool',
+      'wrench',
+      'help',
+      'info',
+      'alert',
+      'power',
+      'log-in',
+      'log-out'
+    ]
+  },
+  {
+    key: 'user',
+    label: '用户权限',
+    keywords: [
+      'user',
+      'users',
+      'person',
+      'people',
+      'member',
+      'account',
+      'contact',
+      'shield',
+      'lock',
+      'key',
+      'badge',
+      'award',
+      'medal',
+      'crown',
+      'fingerprint',
+      'id-card',
+      'license',
+      'passcode',
+      'security',
+      'protect',
+      'safe',
+      'auth'
+    ]
+  },
+  {
+    key: 'system',
+    label: '系统设备',
+    keywords: [
+      'settings',
+      'cog',
+      'gear',
+      'sliders',
+      'toggle',
+      'switch',
+      'cpu',
+      'memory',
+      'hard-drive',
+      'database',
+      'server',
+      'terminal',
+      'code',
+      'bug',
+      'network',
+      'wifi',
+      'bluetooth',
+      'power',
+      'battery',
+      'plug',
+      'radio',
+      'satellite',
+      'monitor',
+      'computer',
+      'laptop',
+      'tablet',
+      'smartphone',
+      'device',
+      'printer',
+      'scanner',
+      'keyboard',
+      'mouse',
+      'watch',
+      'bot',
+      'circuit'
+    ]
+  },
+  {
+    key: 'layout',
+    label: '布局导航',
+    keywords: [
+      'layout',
+      'grid',
+      'sidebar',
+      'panel',
+      'split',
+      'columns',
+      'rows',
+      'table',
+      'window',
+      'frame',
+      'app',
+      'dock',
+      'maximize',
+      'minimize',
+      'fullscreen',
+      'navigation',
+      'compass',
+      'map',
+      'pin',
+      'locate',
+      'route',
+      'signpost',
+      'arrow',
+      'chevron',
+      'corner',
+      'move',
+      'pointer',
+      'mouse'
+    ]
+  },
+  {
+    key: 'files',
+    label: '文档文件',
+    keywords: [
+      'file',
+      'files',
+      'folder',
+      'folders',
+      'archive',
+      'clipboard',
+      'book',
+      'bookmark',
+      'notebook',
+      'newspaper',
+      'receipt',
+      'invoice',
+      'paperclip',
+      'draft',
+      'page',
+      'signature',
+      'contract',
+      'text',
+      'doc'
+    ]
+  },
+  {
+    key: 'chart',
+    label: '数据图表',
+    keywords: [
+      'chart',
+      'graph',
+      'trending',
+      'gauge',
+      'activity',
+      'analytics',
+      'bar',
+      'pie',
+      'line',
+      'scatter',
+      'radar',
+      'histogram',
+      'target',
+      'percent',
+      'calculator',
+      'scale',
+      'binary',
+      'variable',
+      'math',
+      'sigma'
+    ]
+  },
+  {
+    key: 'commerce',
+    label: '商务交易',
+    keywords: [
+      'dollar',
+      'currency',
+      'coin',
+      'credit-card',
+      'wallet',
+      'banknote',
+      'payment',
+      'shopping',
+      'cart',
+      'bag',
+      'store',
+      'shop',
+      'package',
+      'box',
+      'boxes',
+      'truck',
+      'container',
+      'warehouse',
+      'barcode',
+      'qr-code',
+      'tag',
+      'tags',
+      'ticket',
+      'coupon',
+      'gift',
+      'trophy'
+    ]
+  },
+  {
+    key: 'communication',
+    label: '消息通讯',
+    keywords: [
+      'mail',
+      'email',
+      'inbox',
+      'send',
+      'message',
+      'chat',
+      'speech',
+      'comment',
+      'bell',
+      'notification',
+      'phone',
+      'call',
+      'contact',
+      'share',
+      'at-sign',
+      'rss',
+      'podcast',
+      'megaphone',
+      'announcement',
+      'reply',
+      'forward'
+    ]
+  },
+  {
+    key: 'editor',
+    label: '编辑设计',
+    keywords: [
+      'edit',
+      'pen',
+      'pencil',
+      'brush',
+      'palette',
+      'paint',
+      'eraser',
+      'scissors',
+      'crop',
+      'layers',
+      'blend',
+      'sparkles',
+      'wand',
+      'ruler',
+      'compass',
+      'bold',
+      'italic',
+      'underline',
+      'strikethrough',
+      'align',
+      'heading',
+      'type',
+      'font',
+      'quote',
+      'highlighter'
+    ]
+  },
+  {
+    key: 'media',
+    label: '媒体影音',
+    keywords: [
+      'image',
+      'picture',
+      'photo',
+      'camera',
+      'video',
+      'film',
+      'movie',
+      'tv',
+      'music',
+      'audio',
+      'sound',
+      'volume',
+      'speaker',
+      'headphones',
+      'mic',
+      'play',
+      'pause',
+      'stop',
+      'skip',
+      'rewind',
+      'disc',
+      'radio'
+    ]
+  }
+]
+
+function toKebabCase(string: string): string {
+  return string
+    .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+    .replace(/([A-Z])([A-Z][a-z])/g, '$1-$2')
+    .toLowerCase()
+}
+
+interface LucideIconMeta {
+  pascal: string
+  kebab: string
+  component: LucideIcon
+  categories: Set<string>
+}
+
+// Precompute icon metadata once across module scope
+const ALL_LUCIDE_ICONS: LucideIconMeta[] = Object.entries(icons).map(([pascal, component]) => {
+  const kebab = toKebabCase(pascal)
+  const matched = new Set<string>()
+  for (const cat of ICON_CATEGORIES) {
+    if (cat.keywords.some(kw => kebab.includes(kw))) {
+      matched.add(cat.key)
+    }
+  }
+  return {
+    pascal,
+    kebab,
+    component,
+    categories: matched
+  }
+})
+
+const CATEGORY_COUNTS: Record<string, number> = {
+  all: ALL_LUCIDE_ICONS.length
+}
+for (const cat of ICON_CATEGORIES) {
+  let count = 0
+  for (const icon of ALL_LUCIDE_ICONS) {
+    if (icon.categories.has(cat.key)) count++
+  }
+  CATEGORY_COUNTS[cat.key] = count
+}
+
+const PAGE_SIZE = 120
 
 interface IconPickerProps {
   readonly value?: string | null
@@ -25,16 +403,58 @@ interface IconPickerProps {
 export function IconPicker({ value, onChange, disabled }: IconPickerProps) {
   const [open, setOpen] = React.useState(false)
   const [search, setSearch] = React.useState('')
+  const [activeCategory, setActiveCategory] = React.useState('common')
+  const [visibleLimit, setVisibleLimit] = React.useState(PAGE_SIZE)
 
-  const iconEntries = React.useMemo(() => {
-    const list = Object.entries(MENU_ICONS)
-    if (!search.trim()) return list
-    const q = search.trim().toLowerCase()
-    return list.filter(([name]) => name.toLowerCase().includes(q))
-  }, [search])
+  const categoryItems = React.useMemo(
+    () => [
+      { value: 'all', label: `全部 (${CATEGORY_COUNTS.all})` },
+      { value: 'common', label: `常用推荐 (${CATEGORY_COUNTS.common})` },
+      ...ICON_CATEGORIES.filter(cat => cat.key !== 'common').map(cat => ({
+        value: cat.key,
+        label: `${cat.label} (${CATEGORY_COUNTS[cat.key]})`
+      }))
+    ],
+    []
+  )
 
-  const handleSelect = (name: string) => {
-    onChange(name)
+  const handleCategoryChange = (key: string) => {
+    setActiveCategory(key)
+    setVisibleLimit(PAGE_SIZE)
+  }
+
+  const handleSearchChange = (val: string) => {
+    setSearch(val)
+    setVisibleLimit(PAGE_SIZE)
+  }
+
+  const filteredIcons = React.useMemo(() => {
+    let list = ALL_LUCIDE_ICONS
+    if (activeCategory !== 'all') {
+      list = list.filter(item => item.categories.has(activeCategory))
+    }
+    if (search.trim()) {
+      const q = search.trim().toLowerCase()
+      list = list.filter(item => item.kebab.includes(q) || item.pascal.toLowerCase().includes(q))
+    }
+    return list
+  }, [activeCategory, search])
+
+  const visibleIcons = React.useMemo(() => {
+    return filteredIcons.slice(0, visibleLimit)
+  }, [filteredIcons, visibleLimit])
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget
+    if (scrollHeight - scrollTop - clientHeight < 160) {
+      if (visibleLimit < filteredIcons.length) {
+        setVisibleLimit(prev => Math.min(prev + PAGE_SIZE, filteredIcons.length))
+      }
+    }
+  }
+
+  const handleSelect = (kebabName: string) => {
+    onChange(kebabName)
     setOpen(false)
   }
 
@@ -62,7 +482,7 @@ export function IconPicker({ value, onChange, disabled }: IconPickerProps) {
                 {React.createElement(resolveMenuIcon(value), {
                   className: 'size-4 shrink-0 text-foreground'
                 })}
-                <span className="font-mono text-xs">{value}</span>
+                <span className="text-xs">{value}</span>
               </>
             ) : (
               <span className="text-xs text-muted-foreground">点击选择图标</span>
@@ -83,77 +503,124 @@ export function IconPicker({ value, onChange, disabled }: IconPickerProps) {
         </DialogTrigger>
       </div>
 
-      <DialogContent className="max-w-md sm:max-w-lg">
+      <DialogContent className="max-w-md sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>选择菜单图标</DialogTitle>
-          <DialogDescription>挑选符合菜单语义的 Lucide 图标，支持实时名称搜索。</DialogDescription>
+          <DialogDescription>项目内置完整的 Lucide 图标库</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3 pt-1">
-          <InputGroup className="h-9">
-            <InputGroupAddon>
-              <Search className="size-4 text-muted-foreground" />
-            </InputGroupAddon>
-            <InputGroupInput
-              placeholder="搜索图标名称（如 user, settings, chart...）"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              autoFocus
-            />
-            {search && (
-              <InputGroupAddon align="inline-end">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-xs"
-                  aria-label="清空搜索"
-                  onClick={() => setSearch('')}
-                >
-                  <X className="size-3.5" />
-                </Button>
+          {/* 搜索与分类筛选栏 */}
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <InputGroup className="h-9 flex-1">
+              <InputGroupAddon>
+                <Search className="size-4 text-muted-foreground" />
               </InputGroupAddon>
-            )}
-          </InputGroup>
+              <InputGroupInput
+                placeholder="搜索图标名称"
+                value={search}
+                onChange={e => handleSearchChange(e.target.value)}
+                autoFocus
+              />
+              {search && (
+                <InputGroupAddon align="inline-end">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-xs"
+                    aria-label="清空搜索"
+                    onClick={() => handleSearchChange('')}
+                  >
+                    <X className="size-3.5" />
+                  </Button>
+                </InputGroupAddon>
+              )}
+            </InputGroup>
 
-          <div className="max-h-72 overflow-y-auto rounded-lg border bg-muted/20 p-2">
-            {iconEntries.length === 0 ? (
-              <div className="flex h-32 flex-col items-center justify-center text-xs text-muted-foreground">
-                未找到匹配的图标
+            <Select
+              value={activeCategory}
+              onValueChange={val => {
+                if (val) handleCategoryChange(val)
+              }}
+              items={categoryItems}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="选择分类" />
+              </SelectTrigger>
+              <SelectContent align="end">
+                <SelectGroup>
+                  {categoryItems.map(item => (
+                    <SelectItem key={item.value} value={item.value}>
+                      {item.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* 图标网格列表（无 Tooltip，快速滚动零延迟） */}
+          <div onScroll={handleScroll} className="max-h-84 overflow-y-auto rounded-lg border bg-muted/20 p-2.5">
+            {filteredIcons.length === 0 ? (
+              <div className="flex h-40 flex-col items-center justify-center gap-1.5 text-xs text-muted-foreground">
+                <span>未找到匹配的图标</span>
+                {activeCategory !== 'all' && (
+                  <Button
+                    type="button"
+                    variant="link"
+                    size="sm"
+                    onClick={() => handleCategoryChange('all')}
+                    className="h-auto p-0 text-xs text-primary"
+                  >
+                    切换至「全部」分类继续搜索
+                  </Button>
+                )}
               </div>
             ) : (
-              <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
-                {iconEntries.map(([name, IconComponent]) => {
-                  const isSelected = value === name
-                  return (
-                    <Tooltip key={name}>
-                      <TooltipTrigger
-                        render={
-                          <button
-                            type="button"
-                            onClick={() => handleSelect(name)}
-                            className={cn(
-                              'relative flex flex-col items-center justify-center gap-1.5 rounded-md border p-2 text-xs transition-colors',
-                              isSelected
-                                ? 'border-primary bg-primary/10 font-medium text-primary'
-                                : 'border-border/60 bg-background text-muted-foreground hover:border-foreground/30 hover:bg-muted/50 hover:text-foreground'
-                            )}
-                          />
-                        }
+              <div className="space-y-3">
+                <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10">
+                  {visibleIcons.map(item => {
+                    const IconComponent = item.component
+                    const isSelected = value === item.kebab || value === item.pascal
+                    return (
+                      <button
+                        key={item.kebab}
+                        type="button"
+                        onClick={() => handleSelect(item.kebab)}
+                        className={cn(
+                          'group relative flex flex-col items-center justify-center gap-1.5 rounded-lg border p-2 text-xs transition-colors hover:border-foreground/30 hover:bg-muted/50',
+                          isSelected
+                            ? 'border-primary bg-primary/10 font-medium text-primary'
+                            : 'border-border/60 bg-background text-muted-foreground hover:text-foreground'
+                        )}
                       >
-                        <IconComponent className="size-5 shrink-0" />
-                        <span className="w-full truncate text-center font-mono text-[10px] leading-tight">{name}</span>
+                        <IconComponent className="size-5 shrink-0 transition-transform group-hover:scale-110" />
+                        <span className="w-full truncate text-center text-[11px] leading-tight text-foreground/80">
+                          {item.kebab}
+                        </span>
                         {isSelected && (
                           <span className="absolute top-1 right-1 flex size-3 items-center justify-center rounded-full bg-primary text-primary-foreground">
                             <Check className="size-2" />
                           </span>
                         )}
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="text-xs">
-                        {name}
-                      </TooltipContent>
-                    </Tooltip>
-                  )
-                })}
+                      </button>
+                    )
+                  })}
+                </div>
+
+                {visibleLimit < filteredIcons.length && (
+                  <div className="flex justify-center pt-1 pb-1">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setVisibleLimit(prev => Math.min(prev + PAGE_SIZE, filteredIcons.length))}
+                      className="text-xs text-muted-foreground hover:text-foreground"
+                    >
+                      加载更多（已显示 {visibleIcons.length} / 共 {filteredIcons.length}）
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </div>

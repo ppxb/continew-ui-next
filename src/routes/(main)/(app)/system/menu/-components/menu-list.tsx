@@ -21,12 +21,7 @@ import { MenuFormDrawer } from './menu-form-drawer'
 import { MenuTable } from './menu-table'
 import { MenuToolbar } from './menu-toolbar'
 
-const HIDDEN_BY_DEFAULT: ColumnVisibilityState = {
-  component: false,
-  isExternal: false,
-  isCache: false,
-  sort: false
-}
+const DEFAULT_COLUMN_VISIBILITY: ColumnVisibilityState = {}
 
 const SEARCH_DEBOUNCE_MS = 250
 const EMPTY_TREE: MenuResp[] = []
@@ -87,7 +82,7 @@ export function MenuList() {
 
   // Table state
   const [expanded, setExpanded] = React.useState<ExpandedState>({})
-  const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>(HIDDEN_BY_DEFAULT)
+  const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>(DEFAULT_COLUMN_VISIBILITY)
 
   // Drawer & Dialog states
   const [formMenuId, setFormMenuId] = React.useState<string | number | null>(null)
@@ -225,7 +220,7 @@ export function MenuList() {
         onToggleExpandAll={handleToggleExpandAll}
         onClearCache={() => clearCacheMutation.mutate()}
         onToggleFullscreen={toggleFullscreen}
-        onResetColumns={() => setColumnVisibility(HIDDEN_BY_DEFAULT)}
+        onResetColumns={() => setColumnVisibility(DEFAULT_COLUMN_VISIBILITY)}
       />
 
       <MenuTable
@@ -244,9 +239,7 @@ export function MenuList() {
       <Card className="pb-0">
         <CardHeader className="border-b has-data-[slot=card-action]:grid-cols-1 md:has-data-[slot=card-action]:grid-cols-[1fr_auto]">
           <CardTitle className="text-xl leading-none">菜单管理</CardTitle>
-          <CardDescription className="max-w-sm leading-snug">
-            配置系统目录、路由页面与按钮鉴权标识，层级管理导航树
-          </CardDescription>
+          <CardDescription className="max-w-sm leading-snug">配置系统目录、路由页面与按钮权限</CardDescription>
           <CardAction className="col-start-1 row-start-auto flex w-full flex-wrap justify-start gap-2 justify-self-stretch md:col-start-2 md:row-span-2 md:row-start-1 md:w-auto md:flex-nowrap md:justify-end md:justify-self-end">
             <InputGroup className="h-7 w-full md:w-64">
               <InputGroupAddon align="inline-start">
