@@ -22,22 +22,11 @@ function DataScopeBadge({ scope }: { scope: RoleResp['dataScope'] }) {
   const label = DATA_SCOPE_MAP[scope] ?? '未知'
 
   if (scope === 1) {
-    return (
-      <Badge
-        variant="outline"
-        className="border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-      >
-        {label}
-      </Badge>
-    )
+    return <Badge className="bg-emerald-500/10 font-normal text-emerald-600 dark:text-emerald-400">{label}</Badge>
   }
 
   if (scope === 5) {
-    return (
-      <Badge variant="outline" className="border-purple-500/30 bg-purple-500/10 text-purple-600 dark:text-purple-400">
-        {label}
-      </Badge>
-    )
+    return <Badge className="bg-purple-500/10 font-normal text-purple-600 dark:text-purple-400">{label}</Badge>
   }
 
   return (

@@ -23,56 +23,24 @@ export type MenuAction = 'edit' | 'add-child' | 'delete'
 
 function MenuTypeBadge({ type }: { type: MenuType }) {
   if (type === 1) {
-    return (
-      <Badge variant="outline" className="border-sky-500/30 bg-sky-500/10 font-normal text-sky-700 dark:text-sky-300">
-        目录
-      </Badge>
-    )
+    return <Badge className="bg-sky-500/10 font-normal text-sky-700 dark:text-sky-300">目录</Badge>
   }
 
   if (type === 2) {
-    return (
-      <Badge
-        variant="outline"
-        className="border-emerald-500/30 bg-emerald-500/10 font-normal text-emerald-700 dark:text-emerald-300"
-      >
-        菜单
-      </Badge>
-    )
+    return <Badge className="bg-emerald-500/10 font-normal text-emerald-700 dark:text-emerald-300">菜单</Badge>
   }
 
-  return (
-    <Badge
-      variant="outline"
-      className="border-purple-500/30 bg-purple-500/10 font-normal text-purple-700 dark:text-purple-300"
-    >
-      按钮
-    </Badge>
-  )
+  return <Badge className="bg-purple-500/10 font-normal text-purple-700 dark:text-purple-300">按钮</Badge>
 }
 
 function BooleanBadge({ value }: { value?: boolean }) {
   const isTrue = Boolean(value)
 
   if (isTrue) {
-    return (
-      <Badge
-        variant="outline"
-        className="border-emerald-500/30 bg-emerald-500/10 font-normal text-emerald-600 dark:text-emerald-400"
-      >
-        是
-      </Badge>
-    )
+    return <Badge className="bg-emerald-500/10 font-normal text-emerald-600 dark:text-emerald-400">是</Badge>
   }
 
-  return (
-    <Badge
-      variant="outline"
-      className="border-destructive/30 bg-destructive/10 font-normal text-destructive dark:text-destructive"
-    >
-      否
-    </Badge>
-  )
+  return <Badge className="bg-destructive/10 font-normal text-destructive dark:text-destructive">否</Badge>
 }
 
 function RowActions({
