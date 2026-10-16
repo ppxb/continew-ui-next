@@ -1,12 +1,14 @@
 import { JSEncrypt } from 'jsencrypt'
 
 /**
- * Encrypts the login password with the backend RSA public key.
+ * Encrypts a payload the backend decrypts with its RSA private key.
  *
- * The backend decrypts it with `SecureUtils.decryptPasswordByRsaPrivateKey`, which
- * uses PKCS#1 v1.5 padding. WebCrypto only supports OAEP, so JSEncrypt is used.
+ * A login password goes through `SecureUtils.decryptPasswordByRsaPrivateKey` and a storage Secret
+ * Key through `SecureUtils.decryptByRsaPrivateKey`; both read the same `RsaProperties` key pair,
+ * so one helper covers both. That decryption uses PKCS#1 v1.5 padding, and WebCrypto only supports
+ * OAEP, so JSEncrypt is used.
  */
-export function encryptPassword(plainPassword: string): string {
+export function encryptByRsa(plainText: string): string {
   const publicKey = import.meta.env.VITE_APP_RSA_PUBLIC_KEY
 
   if (!publicKey || publicKey.startsWith('REPLACE_WITH')) {
@@ -16,11 +18,14 @@ export function encryptPassword(plainPassword: string): string {
   const encryptor = new JSEncrypt()
   encryptor.setPublicKey(publicKey)
 
-  const encrypted = encryptor.encrypt(plainPassword)
+  const encrypted = encryptor.encrypt(plainText)
 
   if (!encrypted) {
-    throw new Error('Failed to encrypt the password with the configured RSA public key.')
+    throw new Error('Failed to encrypt the payload with the configured RSA public key.')
   }
 
   return encrypted
 }
+
+/** Encrypts the login password; the name every password screen calls it by. */
+export const encryptPassword = encryptByRsa
