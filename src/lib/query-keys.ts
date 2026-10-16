@@ -1,3 +1,4 @@
+import type { AppPageQuery } from '@/lib/api/app'
 import type { RolePageQuery, RoleUserPageQuery } from '@/lib/api/role'
 import type { UserPageQuery } from '@/lib/api/user'
 
@@ -40,4 +41,14 @@ export const roleKeys = {
   permissions: () => [...roleKeys.all, 'permission-tree'] as const,
   users: (id: string | number | null, query?: RoleUserPageQuery) => [...roleKeys.all, 'users', id, query] as const,
   userIds: (id: string | number | null) => [...roleKeys.all, 'user-ids', id] as const
+}
+
+export const appKeys = {
+  all: ['open', 'app'] as const,
+  lists: () => [...appKeys.all, 'list'] as const,
+  list: (query?: AppPageQuery) => [...appKeys.lists(), query] as const,
+  details: () => [...appKeys.all, 'detail'] as const,
+  detail: (id: string | number | null) => [...appKeys.details(), id] as const,
+  secrets: () => [...appKeys.all, 'secret'] as const,
+  secret: (id: string | number | null) => [...appKeys.secrets(), id] as const
 }
