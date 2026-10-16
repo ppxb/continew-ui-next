@@ -285,9 +285,13 @@ export function Tree<T = Record<string, unknown>>({
   // When selectedKey changes, expand its ancestors so the selection is visible. This is gated on the
   // selection itself: also reacting to expandedKeySet (as this effect used to) meant that collapsing
   // any ancestor of the selected node immediately re-expanded it, so the node could never be closed.
+  // Clearing the selection resets the gate, so re-picking the same node reveals it again.
   const lastAutoExpandedKey = React.useRef<TreeKey | null | undefined>(undefined)
   React.useEffect(() => {
-    if (selectedKey === undefined || selectedKey === null) return
+    if (selectedKey === undefined || selectedKey === null) {
+      lastAutoExpandedKey.current = undefined
+      return
+    }
     if (lastAutoExpandedKey.current === selectedKey) return
     lastAutoExpandedKey.current = selectedKey
     const ancestors = index.ancestorsMap.get(selectedKey) ?? []

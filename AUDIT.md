@@ -1,36 +1,26 @@
 # AUDIT.md — continew-ui-next 前端审计报告
 
 审计对象：`continew-ui-next`（React 19 + TanStack Router 文件式路由的纯客户端 SPA + Tailwind v4 + shadcn/ui base-nova + Base UI 原语 + TanStack Query + TanStack Table v9 + react-hook-form + zod）
-审计基线：v1 基线 `ce44df6`（审计开始时工作树干净）；本文已更新到 **v2**，基线 `f5baed3` + 本轮 tree/常量收拢改动，见 §0 修订记录
+审计基线：v1 为 `ce44df6`；本版已按当前代码状态重写，已修复的问题直接删除、不再保留，见 §0 口径说明
 代码规模：`src/**/*.ts(x)` 共 418 文件
 本文所有路径均相对 `continew-ui-next/`。
 
 ---
 
-## 0. 修订记录（v2）
+## 0. 口径说明
 
-v1 的发现全部保留在正文中，已解决的在原处以 **【已修复 v2】** 标注，不删原文。
+本节记录判定口径，避免后续 review 重复提出同一问题。
 
-### 0.1 已修复
-
-| # | 项目 | 位置 | 处置 |
-|---|---|---|---|
-| 1 | R2：`table.tsx` 被加了 `containerClassName` prop，改变上游公开契约 | §3.2(a) | **已还原**（`82309ad`）：移除该 prop，两个消费点改为从父容器用 `*:data-[slot=table-container]:…` 触达内层容器 |
-| 2 | R2：`sidebar.tsx` 4 处 class 被改写成 v4 简写并删掉上游注释 | §3.2(a) | **已还原**（`beb9883`）：`-left-(--sidebar-width)` / `-right-(--sidebar-width)` / `after:inset-s-1/2` / `after:w-0.5` 恢复上游写法，补回 `// Adjust the padding for floating and inset variants.` 注释 |
-| 3 | 跨特性深层相对导入复用 `StatusCell` | §11、§9 | **已修复**（`f5baed3`）：新建 `src/components/status-cell.tsx`，消掉 user / app / client 三份逐字相同的重复定义，9 个调用点统一导入，两处跨路由导入（`@/routes/...`、`'../../user/...'`）消失 |
-| 4 | `EMPTY_PLACEHOLDER = '—'` 4 处重复定义 | §5.11 | **已修复**：收拢到 `src/lib/constants.ts`，4 个定义文件 + 5 个借用方共 9 个文件改指同一处 |
-| 5 | `tree.tsx` / `tree-select.tsx` 的 R3/R4 违规（原生 `<button>`、原生 `<input>`、`title=`、`role="button"` 伪按钮、4 处冗余 `aria-label`） | §3.3、§3.4 | **已修复**：原生元素换 shadcn `Button`/`Input`，`title` 与冗余 `aria-label` 换 `Tooltip`，伪按钮改真 `Button`。明细见 §3.2(c) |
-
-### 0.2 口径澄清（v2，需所有者确认后写进 AGENTS.md）
+### 0.1 规则口径澄清（需所有者确认后写进 AGENTS.md）
 
 - **R2 的准确表述**：规则约束的是"不要修改 shadcn 上游原件"，**不是**"`ui/` 目录里只能有上游文件"。所有者已确认 `tree.tsx`、`tree-select.tsx`、`password-input.tsx`、`striped-pattern.tsx` 属"基础组件"，放 `ui/` 语义更清晰，是**有意安排**。故 v1 §3.2(b) 的"混入自研组件"结论作废。
 - **`ui/` 目录构成**：64 个文件 = 上游原件 + 4 个基础组件。`tree.tsx` / `tree-select.tsx` / `password-input.tsx` 是项目自研；`striped-pattern.tsx` 是外部组件，**已核实不在 base-nova registry**（`/r/styles/base-nova/striped-pattern.json` → 404，`components.json` 的 `registries` 为空 `{}`），`shadcn add` 不会覆盖它，放 `ui/` 无风险。
 - **复合控件 ARIA 例外**：`tree.tsx` 的 `role="tree"` / `role="treeitem"` / `aria-selected` / `aria-expanded` / `tabIndex` 是该控件可访问性的实现本身，**没有可替代的库原语**（Base UI 1.9.0 只有 accordion / context-menu / menu / menubar / navigation-menu，无 tree）。建议写明：自研复合控件为自身提供 ARIA 不受 R3 约束。
 - **`aria-label` 在 `ui/` 内本就允许**：AGENTS.md 原文是 "Do not add `aria-label` outside the shadcn components in `src/components/ui/`"。本轮把 `tree-select.tsx` 的 4 处 `aria-label` 换成 `Tooltip` 属**体验改进**（Tooltip 有可见文案），不是规则强制。
 
-### 0.3 统计口径修正
+### 0.2 统计口径
 
-v1 §2.1 的 "shadcn ui" 一列统计有误：`aria-invalid` 把 `aria-invalid:` 变体类名也算进去了，且漏统计了 `role=`（17 处）与 `sidebar.tsx` 的原生 `<button>`。v2 用统一的精确模式重算了全部三列，见 §2.1。
+统计时 `aria-invalid` / `aria-label` 用带 `=` 的精确匹配（排除 `aria-invalid:` 这类变体类名）；`title=` 原始命中含 5 处组件同名 prop（`config-storage.tsx:254,265`、`storage-group-panel.tsx:66`、`nav-main.tsx:202,215`），净计 8 处。
 
 ---
 

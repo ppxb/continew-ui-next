@@ -1,6 +1,5 @@
 import type { ColumnDef } from '@tanstack/react-table'
-
-import { Eye, KeyRound, MoreHorizontal, PenLine, ShieldCheck, Trash2 } from 'lucide-react'
+import { Eye, KeyRound, MoreHorizontal, Pen, ShieldCheck, Trash2 } from 'lucide-react'
 
 import { StatusCell } from '@/components/status-cell'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -64,7 +63,7 @@ function RowActions({ user, onAction }: { user: UserResp; onAction: (action: Use
               用户详情
             </DropdownMenuItem>
             <DropdownMenuItem disabled={isLocked} onClick={() => onAction('edit', user)}>
-              <PenLine />
+              <Pen />
               修改用户
             </DropdownMenuItem>
           </DropdownMenuGroup>
