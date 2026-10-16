@@ -20,6 +20,16 @@ export const deptKeys = {
   trees: () => [...deptKeys.all, 'tree'] as const
 }
 
+export const menuKeys = {
+  all: ['system', 'menu'] as const,
+  trees: () => [...menuKeys.all, 'tree'] as const,
+  tree: (query?: { title?: string; status?: number }) => [...menuKeys.trees(), query] as const,
+  dicts: () => [...menuKeys.all, 'tree-dict'] as const,
+  dict: () => [...menuKeys.dicts()] as const,
+  details: () => [...menuKeys.all, 'detail'] as const,
+  detail: (id: string | number | null) => [...menuKeys.details(), id] as const
+}
+
 export const roleKeys = {
   all: ['system', 'role'] as const,
   lists: () => [...roleKeys.all, 'list'] as const,

@@ -41,7 +41,7 @@ import {
  * The backend keeps iconify-style kebab-case names; the table covers every name the
  * seeded menus use plus the ones the system screens are likely to add.
  */
-const MENU_ICONS: Record<string, LucideIcon> = {
+export const MENU_ICONS: Record<string, LucideIcon> = {
   apps: LayoutGrid,
   box: Boxes,
   bookmark: Bookmark,
