@@ -118,9 +118,7 @@ function SystemConfigPage() {
     <div className="flex flex-col gap-4 pb-4" data-content-padding="false">
       <div className="px-4 pt-4 md:px-6">
         <h1 className="text-xl font-semibold tracking-tight">系统配置</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          管理系统基础信息、密码安全策略、邮件服务、短信网关、文件存储与第三方客户端认证
-        </p>
+        <p className="mt-1 text-sm text-muted-foreground">管理系统基础信息和其他可配置项</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="min-h-0 flex-1 gap-0">
