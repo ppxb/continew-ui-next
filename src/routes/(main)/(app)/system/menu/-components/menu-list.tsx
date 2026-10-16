@@ -72,18 +72,6 @@ function filterMenuTree(nodes: MenuResp[], keyword: string): MenuResp[] {
   return result
 }
 
-/** Recursively counts total items in a tree. */
-function countTreeNodes(nodes: MenuResp[]): number {
-  let count = 0
-  for (const node of nodes) {
-    count += 1
-    if (node.children && node.children.length > 0) {
-      count += countTreeNodes(node.children)
-    }
-  }
-  return count
-}
-
 export function MenuList() {
   const queryClient = useQueryClient()
   const { hasPermission } = usePermission()
@@ -136,8 +124,6 @@ export function MenuList() {
     return filterMenuTree(rawTree, keyword)
   }, [rawTree, keyword])
 
-  const totalNodes = React.useMemo(() => countTreeNodes(filteredTree), [filteredTree])
-
   // Automatically expand all matching branches when searching
   React.useEffect(() => {
     if (keyword) {
@@ -187,6 +173,8 @@ export function MenuList() {
       expanded,
       columnVisibility
     },
+    manualPagination: true,
+    paginateExpandedRows: false,
     onExpandedChange: setExpanded,
     onColumnVisibilityChange: setColumnVisibility
   })
@@ -245,7 +233,7 @@ export function MenuList() {
         isLoading={query.isPending}
         isError={query.isError}
         isStale={query.isPlaceholderData}
-        total={totalNodes}
+        isFullscreen={isFullscreen}
         onRetry={() => void query.refetch()}
       />
     </>
@@ -253,7 +241,7 @@ export function MenuList() {
 
   return (
     <>
-      <Card>
+      <Card className="pb-0">
         <CardHeader className="border-b has-data-[slot=card-action]:grid-cols-1 md:has-data-[slot=card-action]:grid-cols-[1fr_auto]">
           <CardTitle className="text-xl leading-none">菜单管理</CardTitle>
           <CardDescription className="max-w-sm leading-snug">
@@ -287,7 +275,7 @@ export function MenuList() {
           </CardAction>
         </CardHeader>
 
-        <CardContent className="flex flex-col gap-4 px-0">
+        <CardContent className="flex flex-col gap-4 px-0 pb-0">
           {isFullscreen ? <div ref={spacerRef} style={{ height: reservedHeight }} /> : null}
 
           <div ref={fullscreenRef} className={cn('flex flex-col gap-4', isFullscreen && 'bg-background')}>

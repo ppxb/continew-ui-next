@@ -14,7 +14,7 @@ function TableSkeletonRows({ columnCount }: { columnCount: number }) {
         <TableRow key={rowIndex} className="hover:bg-transparent">
           {Array.from({ length: columnCount }).map((_, colIndex) => (
             <TableCell key={colIndex} className="py-4 align-middle">
-              <Skeleton className={cn('h-4', colIndex === 0 ? 'w-48' : colIndex === 1 ? 'mx-auto w-12' : 'w-20')} />
+              <Skeleton className={cn('h-4', colIndex === 0 ? 'w-48' : colIndex === 1 ? 'w-12' : 'w-20')} />
             </TableCell>
           ))}
         </TableRow>
@@ -28,22 +28,28 @@ interface MenuTableProps {
   readonly isLoading: boolean
   readonly isError: boolean
   readonly isStale: boolean
-  readonly total: number
+  readonly isFullscreen?: boolean
   readonly onRetry?: () => void
 }
 
-export function MenuTable({ table, isLoading, isError, isStale, total, onRetry }: MenuTableProps) {
-  const rows = table.getRowModel().rows
+export function MenuTable({ table, isLoading, isError, isStale, isFullscreen, onRetry }: MenuTableProps) {
+  const rows = table.getExpandedRowModel().rows
 
   return (
     <div className="flex flex-1 flex-col">
       <Table
+        containerClassName={cn(
+          'overflow-auto',
+          isFullscreen
+            ? 'h-[calc(100vh-6.5rem)] max-h-[calc(100vh-6.5rem)]'
+            : 'max-h-[calc(100vh-17rem)] md:max-h-[calc(100dvh-17rem)]'
+        )}
         className={cn(
           "**:data-[slot='table-cell']:px-4 **:data-[slot='table-head']:px-4",
           isStale && 'opacity-60 transition-opacity'
         )}
       >
-        <TableHeader className="[&_tr]:border-t">
+        <TableHeader className="sticky top-0 z-10 bg-background shadow-2xs [&_th]:bg-background [&_tr]:border-t">
           {table.getHeaderGroups().map(headerGroup => (
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map(header => (
@@ -88,12 +94,6 @@ export function MenuTable({ table, isLoading, isError, isStale, total, onRetry }
           )}
         </TableBody>
       </Table>
-
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t px-4 pt-4">
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-          <span className="tabular-nums">共 {total} 项菜单节点</span>
-        </div>
-      </div>
     </div>
   )
 }
