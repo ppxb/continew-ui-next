@@ -224,7 +224,7 @@ export function ConfigSite() {
           <div className="flex flex-wrap items-center justify-between gap-3 border-b pb-3">
             <div>
               <h2 className="text-base font-semibold tracking-tight">网站基础配置</h2>
-              <p className="mt-0.5 text-xs text-muted-foreground">设置系统的名称、Logo、图标与版权等基础信息</p>
+              <p className="text-muted-foreground">设置系统的名称、Logo、图标与版权等基础信息</p>
             </div>
             <div className="flex items-center gap-2">
               {!isEdit ? (
@@ -266,10 +266,10 @@ export function ConfigSite() {
             {/* Logo & Favicon row */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {/* Logo */}
-              <Field className="gap-1.5">
+              <Field>
                 <div className="flex flex-col gap-0.5">
-                  <FieldLabel className="text-left font-medium">{optionMap.SITE_LOGO?.name || '系统 LOGO'}</FieldLabel>
-                  <FieldDescription className="text-xs text-muted-foreground">
+                  <FieldLabel>{optionMap.SITE_LOGO?.name || '系统 LOGO'}</FieldLabel>
+                  <FieldDescription>
                     {optionMap.SITE_LOGO?.description || '显示在登录界面和系统导航栏'}
                   </FieldDescription>
                 </div>
@@ -292,7 +292,6 @@ export function ConfigSite() {
                       isEdit &&
                         'cursor-pointer hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none'
                     )}
-                    title={isEdit ? '点击上传系统 LOGO' : undefined}
                   >
                     {form.SITE_LOGO ? (
                       <img src={form.SITE_LOGO} alt="Site Logo" className="size-full object-contain p-1.5" />
@@ -301,8 +300,7 @@ export function ConfigSite() {
                     )}
                     {isEdit && (
                       <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/45 text-white opacity-0 transition-opacity group-hover:opacity-100">
-                        <Upload className="size-3.5" />
-                        <span className="mt-0.5 text-[9px] font-medium">点击上传</span>
+                        <Upload className="size-4" />
                       </div>
                     )}
                   </div>
@@ -310,12 +308,10 @@ export function ConfigSite() {
               </Field>
 
               {/* Favicon */}
-              <Field className="gap-1.5">
+              <Field>
                 <div className="flex flex-col gap-0.5">
-                  <FieldLabel className="text-left font-medium">
-                    {optionMap.SITE_FAVICON?.name || '系统图标'}
-                  </FieldLabel>
-                  <FieldDescription className="text-xs text-muted-foreground">
+                  <FieldLabel>{optionMap.SITE_FAVICON?.name || '系统图标'}</FieldLabel>
+                  <FieldDescription>
                     {optionMap.SITE_FAVICON?.description || '浏览器标签页显示的网站图标'}
                   </FieldDescription>
                 </div>
@@ -338,7 +334,6 @@ export function ConfigSite() {
                       isEdit &&
                         'cursor-pointer hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none'
                     )}
-                    title={isEdit ? '点击上传系统图标' : undefined}
                   >
                     {form.SITE_FAVICON ? (
                       <img src={form.SITE_FAVICON} alt="Site Favicon" className="size-7 object-contain" />
@@ -347,8 +342,7 @@ export function ConfigSite() {
                     )}
                     {isEdit && (
                       <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/45 text-white opacity-0 transition-opacity group-hover:opacity-100">
-                        <Upload className="size-3.5" />
-                        <span className="mt-0.5 text-[9px] font-medium">点击上传</span>
+                        <Upload className="size-4" />
                       </div>
                     )}
                   </div>
@@ -358,82 +352,65 @@ export function ConfigSite() {
 
             {/* Row 1: System Title & Beian */}
             <div className="grid grid-cols-1 items-start gap-4 sm:grid-cols-2">
-              <Field className="gap-1.5">
-                <div className="flex flex-col gap-0.5">
-                  <FieldLabel className="text-left font-medium">
-                    {optionMap.SITE_TITLE?.name || '系统名称'}
-                    <span className="text-destructive">*</span>
-                  </FieldLabel>
-                  <FieldDescription className="text-xs text-muted-foreground">
-                    {optionMap.SITE_TITLE?.description || '显示在浏览器标题栏和登录界面'}
-                  </FieldDescription>
-                </div>
+              <Field>
+                <FieldLabel>
+                  {optionMap.SITE_TITLE?.name || '系统名称'}
+                  <span className="text-destructive">*</span>
+                </FieldLabel>
+                <FieldDescription>
+                  {optionMap.SITE_TITLE?.description || '显示在浏览器标题栏和登录界面'}
+                </FieldDescription>
                 <Input
                   value={form.SITE_TITLE}
                   onChange={e => setForm(prev => ({ ...prev, SITE_TITLE: e.target.value }))}
                   placeholder="请输入系统名称"
                   maxLength={18}
                   disabled={!isEdit}
-                  className="transition-none disabled:bg-transparent dark:disabled:bg-transparent"
                 />
               </Field>
 
-              <Field className="gap-1.5">
-                <div className="flex flex-col gap-0.5">
-                  <FieldLabel className="text-left font-medium">{optionMap.SITE_BEIAN?.name || '备案号'}</FieldLabel>
-                  <FieldDescription className="text-xs text-muted-foreground">
-                    {optionMap.SITE_BEIAN?.description || '工信部 ICP 备案编号'}
-                  </FieldDescription>
-                </div>
+              <Field>
+                <FieldLabel>{optionMap.SITE_BEIAN?.name || '备案号'}</FieldLabel>
+                <FieldDescription>{optionMap.SITE_BEIAN?.description || '工信部 ICP 备案编号'}</FieldDescription>
                 <Input
                   value={form.SITE_BEIAN}
                   onChange={e => setForm(prev => ({ ...prev, SITE_BEIAN: e.target.value }))}
                   placeholder="请输入备案号"
                   maxLength={30}
                   disabled={!isEdit}
-                  className="transition-none disabled:bg-transparent dark:disabled:bg-transparent"
                 />
               </Field>
             </div>
 
             {/* Row 2: Copyright */}
-            <Field className="gap-1.5">
-              <div className="flex flex-col gap-0.5">
-                <FieldLabel className="text-left font-medium">
-                  {optionMap.SITE_COPYRIGHT?.name || '版权声明'}
-                  <span className="text-destructive">*</span>
-                </FieldLabel>
-                <FieldDescription className="text-xs text-muted-foreground">
-                  {optionMap.SITE_COPYRIGHT?.description || '显示在登录界面和管理页脚'}
-                </FieldDescription>
-              </div>
+            <Field>
+              <FieldLabel>
+                {optionMap.SITE_COPYRIGHT?.name || '版权声明'}
+                <span className="text-destructive">*</span>
+              </FieldLabel>
+              <FieldDescription>{optionMap.SITE_COPYRIGHT?.description || '显示在登录界面和管理页脚'}</FieldDescription>
               <Input
                 value={form.SITE_COPYRIGHT}
                 onChange={e => setForm(prev => ({ ...prev, SITE_COPYRIGHT: e.target.value }))}
                 placeholder="请输入版权声明"
                 disabled={!isEdit}
-                className="transition-none disabled:bg-transparent dark:disabled:bg-transparent"
               />
             </Field>
 
             {/* Row 3: System Description */}
-            <Field className="gap-1.5">
-              <div className="flex flex-col gap-0.5">
-                <FieldLabel className="text-left font-medium">
-                  {optionMap.SITE_DESCRIPTION?.name || '系统描述'}
-                  <span className="text-destructive">*</span>
-                </FieldLabel>
-                <FieldDescription className="text-xs text-muted-foreground">
-                  {optionMap.SITE_DESCRIPTION?.description || '用于 SEO 的网站元描述'}
-                </FieldDescription>
-              </div>
+            <Field>
+              <FieldLabel>
+                {optionMap.SITE_DESCRIPTION?.name || '系统描述'}
+                <span className="text-destructive">*</span>
+              </FieldLabel>
+              <FieldDescription>{optionMap.SITE_DESCRIPTION?.description || '用于 SEO 的网站元描述'}</FieldDescription>
               <Textarea
                 value={form.SITE_DESCRIPTION}
                 onChange={e => setForm(prev => ({ ...prev, SITE_DESCRIPTION: e.target.value }))}
                 placeholder="请输入系统描述"
                 rows={2}
                 disabled={!isEdit}
-                className="resize-none transition-none disabled:bg-transparent dark:disabled:bg-transparent"
+                className="resize-none"
               />
             </Field>
           </div>

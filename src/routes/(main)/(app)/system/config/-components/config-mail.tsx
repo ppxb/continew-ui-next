@@ -221,11 +221,7 @@ export function ConfigMail() {
               </FieldLabel>
               <FieldDescription>{optionMap.MAIL_PROTOCOL?.description || '邮件发送协议类型'}</FieldDescription>
             </FieldContent>
-            <Input
-              value={form.MAIL_PROTOCOL.toUpperCase()}
-              disabled
-              className="mt-1 font-mono transition-none disabled:bg-transparent dark:disabled:bg-transparent"
-            />
+            <Input value={form.MAIL_PROTOCOL.toUpperCase()} disabled />
           </Field>
 
           {/* Host */}
@@ -242,7 +238,6 @@ export function ConfigMail() {
               onChange={e => setForm(prev => ({ ...prev, MAIL_HOST: e.target.value }))}
               placeholder="例如：smtp.126.com"
               disabled={!isEdit}
-              className="mt-1 font-mono transition-none disabled:bg-transparent dark:disabled:bg-transparent"
             />
           </Field>
 
@@ -262,7 +257,6 @@ export function ConfigMail() {
               onChange={e => setForm(prev => ({ ...prev, MAIL_PORT: Number.parseInt(e.target.value, 10) || 0 }))}
               placeholder="465"
               disabled={!isEdit}
-              className="mt-1 font-mono transition-none disabled:bg-transparent dark:disabled:bg-transparent"
             />
           </Field>
 
@@ -280,7 +274,6 @@ export function ConfigMail() {
               onChange={e => setForm(prev => ({ ...prev, MAIL_USERNAME: e.target.value }))}
               placeholder="例如：charles7c@126.com"
               disabled={!isEdit}
-              className="mt-1 font-mono transition-none disabled:bg-transparent dark:disabled:bg-transparent"
             />
           </Field>
 
@@ -295,14 +288,14 @@ export function ConfigMail() {
                 {optionMap.MAIL_PASSWORD?.description || '邮箱客户端专用密码或 SMTP 授权码'}
               </FieldDescription>
             </FieldContent>
-            <div className="relative mt-1">
+            <div className="relative">
               <Input
                 type={showPassword ? 'text' : 'password'}
                 value={form.MAIL_PASSWORD}
                 onChange={e => setForm(prev => ({ ...prev, MAIL_PASSWORD: e.target.value }))}
                 placeholder="请输入邮箱授权码"
                 disabled={!isEdit}
-                className="pr-10 font-mono transition-none disabled:bg-transparent dark:disabled:bg-transparent"
+                className="pr-10"
               />
               <Button
                 type="button"
@@ -336,28 +329,27 @@ export function ConfigMail() {
                 onChange={e => setForm(prev => ({ ...prev, MAIL_SSL_PORT: Number.parseInt(e.target.value, 10) || 0 }))}
                 placeholder="465"
                 disabled={!isEdit}
-                className="mt-1 font-mono transition-none disabled:bg-transparent dark:disabled:bg-transparent"
               />
             </Field>
           )}
         </div>
 
         {/* SSL Enabled */}
-        <div className="flex items-center justify-between rounded-lg border p-4">
-          <div className="space-y-0.5">
-            <label className="cursor-pointer text-sm leading-none font-medium">
+        <Field orientation="horizontal" className="items-center justify-between">
+          <FieldContent>
+            <FieldLabel className="text-left font-medium">
               {optionMap.MAIL_SSL_ENABLED?.name || '启用SSL加密'}
-            </label>
-            <p className="mt-1 text-xs text-muted-foreground">
+            </FieldLabel>
+            <FieldDescription>
               {optionMap.MAIL_SSL_ENABLED?.description || '是否启用 SSL/TLS 安全加密连接'}
-            </p>
-          </div>
+            </FieldDescription>
+          </FieldContent>
           <Switch
             checked={form.MAIL_SSL_ENABLED === 1}
             onCheckedChange={checked => setForm(prev => ({ ...prev, MAIL_SSL_ENABLED: checked ? 1 : 0 }))}
             disabled={!isEdit}
           />
-        </div>
+        </Field>
       </div>
 
       {/* Reset Confirmation Dialog */}
