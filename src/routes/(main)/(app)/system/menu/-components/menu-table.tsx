@@ -35,15 +35,20 @@ interface MenuTableProps {
 export function MenuTable({ table, isLoading, isError, isStale, isFullscreen, onRetry }: MenuTableProps) {
   const rows = table.getExpandedRowModel().rows
 
+  // shadcn's Table puts `className` on the inner <table>; its own scroll container is the
+  // `data-slot="table-container"` div. Reaching that container from here keeps the overflow and the
+  // height — and therefore the sticky header — on one scroll container, without patching the
+  // shadcn component.
+  const tableContainerClassName = cn(
+    '*:data-[slot=table-container]:overflow-auto',
+    isFullscreen
+      ? '*:data-[slot=table-container]:h-[calc(100vh-6.5rem)] *:data-[slot=table-container]:max-h-[calc(100vh-6.5rem)]'
+      : '*:data-[slot=table-container]:max-h-[calc(100vh-17rem)] md:*:data-[slot=table-container]:max-h-[calc(100dvh-17rem)]'
+  )
+
   return (
-    <div className="flex flex-1 flex-col">
+    <div className={cn('flex flex-1 flex-col', tableContainerClassName)}>
       <Table
-        containerClassName={cn(
-          'overflow-auto',
-          isFullscreen
-            ? 'h-[calc(100vh-6.5rem)] max-h-[calc(100vh-6.5rem)]'
-            : 'max-h-[calc(100vh-17rem)] md:max-h-[calc(100dvh-17rem)]'
-        )}
         className={cn(
           "**:data-[slot='table-cell']:px-4 **:data-[slot='table-head']:px-4",
           isStale && 'opacity-60 transition-opacity'
