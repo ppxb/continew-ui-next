@@ -49,11 +49,14 @@ export function MenuTable({ table, isLoading, isError, isStale, isFullscreen, on
           isStale && 'opacity-60 transition-opacity'
         )}
       >
-        <TableHeader className="sticky top-0 z-10 bg-background shadow-2xs [&_th]:bg-background [&_tr]:border-t">
+        <TableHeader className="[&_tr]:border-t">
           {table.getHeaderGroups().map(headerGroup => (
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map(header => (
-                <TableHead key={header.id} className="py-4 font-normal whitespace-nowrap">
+                <TableHead
+                  key={header.id}
+                  className="sticky top-0 z-10 border-b bg-background py-4 font-normal whitespace-nowrap"
+                >
                   {header.isPlaceholder ? null : <table.FlexRender header={header} />}
                 </TableHead>
               ))}
