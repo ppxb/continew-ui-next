@@ -69,9 +69,7 @@ export function RoleDeleteDialog({ role, open, onClose, onSuccess }: RoleDeleteD
           <AlertDialogTitle>删除角色</AlertDialogTitle>
           <AlertDialogDescription>
             {isSystem ? (
-              <span className="font-medium text-destructive">
-                系统内置角色不可删除。
-              </span>
+              <span className="font-medium text-destructive">系统内置角色不可删除。</span>
             ) : (
               `确定要删除角色「${role?.name ?? ''}」吗？删除后该角色下关联的用户权限将失效，操作不可撤回。`
             )}

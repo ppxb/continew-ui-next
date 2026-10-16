@@ -5,13 +5,7 @@ import { ChevronsDownUp, ChevronsUpDown, Search, Square, SquareCheck, X } from '
 import { Button } from '@/components/ui/button'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import {
-  buildTreeIndex,
-  Tree,
-  type TreeKey,
-  type TreeNodeData,
-  TreeSkeleton
-} from '@/components/ui/tree'
+import { buildTreeIndex, Tree, type TreeKey, type TreeNodeData, TreeSkeleton } from '@/components/ui/tree'
 import { cn } from 'cn'
 
 export type CheckableTreeNode<T = Record<string, unknown>> = TreeNodeData<T>
@@ -155,13 +149,7 @@ export function RoleCheckableTree<T = Record<string, unknown>>({
               <Tooltip>
                 <TooltipTrigger
                   render={
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-xs"
-                      aria-label="全选"
-                      onClick={handleSelectAll}
-                    />
+                    <Button type="button" variant="ghost" size="icon-xs" aria-label="全选" onClick={handleSelectAll} />
                   }
                 >
                   <SquareCheck className="size-3.5" />
@@ -172,13 +160,7 @@ export function RoleCheckableTree<T = Record<string, unknown>>({
               <Tooltip>
                 <TooltipTrigger
                   render={
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-xs"
-                      aria-label="清空"
-                      onClick={handleClearAll}
-                    />
+                    <Button type="button" variant="ghost" size="icon-xs" aria-label="清空" onClick={handleClearAll} />
                   }
                 >
                   <Square className="size-3.5" />
@@ -194,7 +176,7 @@ export function RoleCheckableTree<T = Record<string, unknown>>({
       <div
         className={cn(
           'overflow-auto overscroll-contain rounded-md border bg-background/50 p-1.5 select-none',
-          treeContainerClassName || (isFlex1 ? 'min-h-0 flex-1' : 'min-h-36 max-h-72')
+          treeContainerClassName || (isFlex1 ? 'min-h-0 flex-1' : 'max-h-72 min-h-36')
         )}
       >
         <Tree

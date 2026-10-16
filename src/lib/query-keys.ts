@@ -1,5 +1,8 @@
 import type { AppPageQuery } from '@/lib/api/app'
+import type { ClientQuery } from '@/lib/api/client'
 import type { RolePageQuery, RoleUserPageQuery } from '@/lib/api/role'
+import type { SmsConfigQuery } from '@/lib/api/sms'
+import type { StorageQuery } from '@/lib/api/storage'
 import type { UserPageQuery } from '@/lib/api/user'
 
 /**
@@ -54,4 +57,39 @@ export const appKeys = {
   detail: (id: string | number | null) => [...appKeys.details(), id] as const,
   secrets: () => [...appKeys.all, 'secret'] as const,
   secret: (id: string | number | null) => [...appKeys.secrets(), id] as const
+}
+
+export const optionKeys = {
+  all: ['system', 'option'] as const,
+  lists: () => [...optionKeys.all, 'list'] as const,
+  list: (category?: string) => [...optionKeys.lists(), category] as const
+}
+
+export const smsKeys = {
+  all: ['system', 'sms'] as const,
+  lists: () => [...smsKeys.all, 'list'] as const,
+  list: (query?: SmsConfigQuery) => [...smsKeys.lists(), query] as const,
+  details: () => [...smsKeys.all, 'detail'] as const,
+  detail: (id: string | number | null) => [...smsKeys.details(), id] as const
+}
+
+export const storageKeys = {
+  all: ['system', 'storage'] as const,
+  lists: () => [...storageKeys.all, 'list'] as const,
+  list: (query?: StorageQuery) => [...storageKeys.lists(), query] as const,
+  details: () => [...storageKeys.all, 'detail'] as const,
+  detail: (id: string | number | null) => [...storageKeys.details(), id] as const
+}
+
+export const clientKeys = {
+  all: ['system', 'client'] as const,
+  lists: () => [...clientKeys.all, 'list'] as const,
+  list: (query?: ClientQuery) => [...clientKeys.lists(), query] as const,
+  details: () => [...clientKeys.all, 'detail'] as const,
+  detail: (id: string | number | null) => [...clientKeys.details(), id] as const
+}
+
+export const dictKeys = {
+  all: ['system', 'dict'] as const,
+  code: (code: string) => [...dictKeys.all, code] as const
 }

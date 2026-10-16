@@ -28,7 +28,11 @@ function Page() {
         </Button>
       </div>
 
-      <iframe src={`${import.meta.env.BASE_URL}mail`} title="Mail preview" className="min-h-0 flex-1 rounded-lg border bg-background" />
+      <iframe
+        src={`${import.meta.env.BASE_URL}mail`}
+        title="Mail preview"
+        className="min-h-0 flex-1 rounded-lg border bg-background"
+      />
     </div>
   )
 }

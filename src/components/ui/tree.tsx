@@ -389,7 +389,7 @@ export function Tree<T = Record<string, unknown>>({
     <div
       role="tree"
       className={cn(
-        'flex flex-col gap-0.5 select-none min-w-full w-fit',
+        'flex w-fit min-w-full flex-col gap-0.5 select-none',
         '[--tree-indent:0.625rem] sm:[--tree-indent:1.125rem]',
         className
       )}
@@ -430,7 +430,7 @@ export function Tree<T = Record<string, unknown>>({
             aria-expanded={hasChildren ? isExpanded : undefined}
             tabIndex={node.disabled ? -1 : 0}
             className={cn(
-              'group/tree-item relative flex min-h-8 sm:min-h-7.5 items-center gap-1.5 rounded-md px-1.5 py-1 text-sm transition-colors outline-none min-w-full w-fit',
+              'group/tree-item relative flex min-h-8 w-fit min-w-full items-center gap-1.5 rounded-md px-1.5 py-1 text-sm transition-colors outline-none sm:min-h-7.5',
               isClickable ? 'cursor-pointer' : 'cursor-default',
               !checkable && isSelected
                 ? 'bg-accent font-medium text-accent-foreground'
@@ -464,13 +464,13 @@ export function Tree<T = Record<string, unknown>>({
                 type="button"
                 tabIndex={-1}
                 aria-label={isExpanded ? '折叠节点' : '展开节点'}
-                className="flex size-6 sm:size-4 shrink-0 items-center justify-center rounded-xs text-muted-foreground transition-transform hover:text-foreground touch-manipulation -ml-1 sm:ml-0"
+                className="-ml-1 flex size-6 shrink-0 touch-manipulation items-center justify-center rounded-xs text-muted-foreground transition-transform hover:text-foreground sm:ml-0 sm:size-4"
                 onClick={e => toggleExpand(node.id, e)}
               >
                 <ChevronRight className={cn('size-3.5 transition-transform duration-150', isExpanded && 'rotate-90')} />
               </button>
             ) : (
-              <span className="size-6 sm:size-4 shrink-0 -ml-1 sm:ml-0" aria-hidden="true" />
+              <span className="-ml-1 size-6 shrink-0 sm:ml-0 sm:size-4" aria-hidden="true" />
             )}
 
             {/* Checkbox for checkable mode */}

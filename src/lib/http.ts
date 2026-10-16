@@ -116,10 +116,10 @@ function buildUrl(path: string, query?: RequestOptions['query']) {
   return queryString ? `${url}?${queryString}` : url
 }
 
-function buildHeaders(path: string, hasBody: boolean, extra?: HeadersInit) {
+function buildHeaders(path: string, hasBody: boolean, extra?: HeadersInit, isFormData = false) {
   const headers = new Headers(extra)
 
-  if (hasBody && !headers.has('Content-Type')) {
+  if (hasBody && !headers.has('Content-Type') && !isFormData) {
     headers.set('Content-Type', 'application/json')
   }
 
@@ -197,6 +197,7 @@ async function handleSessionExpired(failedGeneration: number, message: string) {
 async function send<T>(method: string, path: string, options: RequestOptions, isRetry: boolean): Promise<T> {
   const { body, query, skipAuthRefresh, silent, headers, ...init } = options
   const generation = getAuthGeneration()
+  const isFormData = typeof FormData !== 'undefined' && body instanceof FormData
 
   let response: Response
   try {
@@ -204,8 +205,8 @@ async function send<T>(method: string, path: string, options: RequestOptions, is
       ...init,
       method,
       credentials: 'include',
-      headers: buildHeaders(path, body !== undefined, headers),
-      body: body === undefined ? undefined : JSON.stringify(body),
+      headers: buildHeaders(path, body !== undefined, headers, isFormData),
+      body: body === undefined ? undefined : isFormData ? body : JSON.stringify(body),
       signal: init.signal ?? AbortSignal.timeout(REQUEST_TIMEOUT_MS)
     })
   } catch {

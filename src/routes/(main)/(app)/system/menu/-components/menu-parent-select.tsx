@@ -32,10 +32,7 @@ function collectDescendantIds(nodes: MenuResp[], targetId: string | number): Set
 }
 
 /** Transforms menu tree nodes into generic TreeNodeData for TreeSelect. */
-function toMenuTreeNodeData(
-  nodes: MenuResp[],
-  disabledIds: Set<string>
-): TreeNodeData<MenuResp>[] {
+function toMenuTreeNodeData(nodes: MenuResp[], disabledIds: Set<string>): TreeNodeData<MenuResp>[] {
   const result: TreeNodeData<MenuResp>[] = []
 
   for (const node of nodes) {
@@ -53,10 +50,7 @@ function toMenuTreeNodeData(
       icon: iconComponent,
       disabled: isDisabled,
       data: node,
-      children:
-        node.children && node.children.length > 0
-          ? toMenuTreeNodeData(node.children, disabledIds)
-          : undefined
+      children: node.children && node.children.length > 0 ? toMenuTreeNodeData(node.children, disabledIds) : undefined
     })
   }
 
