@@ -413,15 +413,15 @@ export function ConfigSecurity() {
         {/* Switch policies */}
         <div className="grid grid-cols-1 gap-6 pt-2 sm:grid-cols-2">
           {/* Allow contain username */}
-          <div className="flex items-center justify-between rounded-lg border p-4">
-            <div className="space-y-0.5">
-              <label className="cursor-pointer text-sm leading-none font-medium">
+          <Field orientation="horizontal" className="items-center justify-between">
+            <FieldContent>
+              <FieldLabel className="text-left font-medium">
                 {optionMap.PASSWORD_ALLOW_CONTAIN_USERNAME?.name || '是否允许密码包含用户名'}
-              </label>
-              <p className="mt-1 text-xs text-muted-foreground">
+              </FieldLabel>
+              <FieldDescription>
                 {optionMap.PASSWORD_ALLOW_CONTAIN_USERNAME?.description || '是否允许密码包含正序或倒序的用户名字符'}
-              </p>
-            </div>
+              </FieldDescription>
+            </FieldContent>
             <Switch
               checked={form.PASSWORD_ALLOW_CONTAIN_USERNAME === 1}
               onCheckedChange={checked =>
@@ -429,24 +429,24 @@ export function ConfigSecurity() {
               }
               disabled={!isEdit}
             />
-          </div>
+          </Field>
 
           {/* Require symbols */}
-          <div className="flex items-center justify-between rounded-lg border p-4">
-            <div className="space-y-0.5">
-              <label className="cursor-pointer text-sm leading-none font-medium">
+          <Field orientation="horizontal" className="items-center justify-between">
+            <FieldContent>
+              <FieldLabel className="text-left font-medium">
                 {optionMap.PASSWORD_REQUIRE_SYMBOLS?.name || '密码是否必须包含特殊字符'}
-              </label>
-              <p className="mt-1 text-xs text-muted-foreground">
+              </FieldLabel>
+              <FieldDescription>
                 {optionMap.PASSWORD_REQUIRE_SYMBOLS?.description || '是否要求密码必须包含特殊字符（如：!@#$%）'}
-              </p>
-            </div>
+              </FieldDescription>
+            </FieldContent>
             <Switch
               checked={form.PASSWORD_REQUIRE_SYMBOLS === 1}
               onCheckedChange={checked => setForm(prev => ({ ...prev, PASSWORD_REQUIRE_SYMBOLS: checked ? 1 : 0 }))}
               disabled={!isEdit}
             />
-          </div>
+          </Field>
         </div>
       </div>
 
