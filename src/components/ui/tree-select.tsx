@@ -177,20 +177,13 @@ export function TreeSelect<T = Record<string, unknown>>({
 
         <div className="flex shrink-0 items-center gap-1 text-muted-foreground">
           {clearable && hasValue && !disabled && (
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <span
-                    className="flex size-4 items-center justify-center rounded-xs opacity-70 transition-opacity hover:opacity-100"
-                    onClick={handleClear}
-                    onPointerDown={e => e.stopPropagation()}
-                  />
-                }
-              >
-                <X className="size-3" />
-              </TooltipTrigger>
-              <TooltipContent side="top">清空已选</TooltipContent>
-            </Tooltip>
+            <span
+              className="flex size-4 items-center justify-center rounded-xs opacity-70 transition-opacity hover:opacity-100"
+              onClick={handleClear}
+              onPointerDown={e => e.stopPropagation()}
+            >
+              <X className="size-3" />
+            </span>
           )}
           <ChevronDown
             className={cn('size-4 text-muted-foreground transition-transform duration-150', open && 'rotate-180')}

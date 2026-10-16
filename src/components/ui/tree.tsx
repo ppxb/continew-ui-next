@@ -5,7 +5,6 @@ import { Check, ChevronRight, Folder, FolderOpen } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
 export type TreeKey = string | number
 
@@ -283,19 +282,20 @@ export function Tree<T = Record<string, unknown>>({
     [checkedKeySet, checkStrictly, index, onCheckedChange]
   )
 
-  // When selectedKey changes and isn't visible, expand its ancestors
+  // When selectedKey changes, expand its ancestors so the selection is visible. This is gated on the
+  // selection itself: also reacting to expandedKeySet (as this effect used to) meant that collapsing
+  // any ancestor of the selected node immediately re-expanded it, so the node could never be closed.
+  const lastAutoExpandedKey = React.useRef<TreeKey | null | undefined>(undefined)
   React.useEffect(() => {
-    if (selectedKey !== undefined && selectedKey !== null) {
-      const ancestors = index.ancestorsMap.get(selectedKey) ?? []
-      if (ancestors.length > 0) {
-        const missing = ancestors.filter(k => !expandedKeySet.has(k))
-        if (missing.length > 0) {
-          const next = new Set(expandedKeySet)
-          missing.forEach(k => next.add(k))
-          updateExpandedKeys(next)
-        }
-      }
-    }
+    if (selectedKey === undefined || selectedKey === null) return
+    if (lastAutoExpandedKey.current === selectedKey) return
+    lastAutoExpandedKey.current = selectedKey
+    const ancestors = index.ancestorsMap.get(selectedKey) ?? []
+    const missing = ancestors.filter(k => !expandedKeySet.has(k))
+    if (missing.length === 0) return
+    const next = new Set(expandedKeySet)
+    missing.forEach(k => next.add(k))
+    updateExpandedKeys(next)
   }, [selectedKey, index.ancestorsMap, expandedKeySet, updateExpandedKeys])
 
   // Search filter and auto-expansion
@@ -462,25 +462,16 @@ export function Tree<T = Record<string, unknown>>({
           >
             {/* Toggle arrow with generous touch target on mobile */}
             {hasChildren ? (
-              <Tooltip>
-                <TooltipTrigger
-                  render={
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-xs"
-                      tabIndex={-1}
-                      className="-ml-1 size-6 shrink-0 touch-manipulation text-muted-foreground hover:text-foreground sm:ml-0 sm:size-4"
-                      onClick={e => toggleExpand(node.id, e)}
-                    />
-                  }
-                >
-                  <ChevronRight
-                    className={cn('size-3.5 transition-transform duration-150', isExpanded && 'rotate-90')}
-                  />
-                </TooltipTrigger>
-                <TooltipContent side="top">{isExpanded ? '折叠节点' : '展开节点'}</TooltipContent>
-              </Tooltip>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-xs"
+                tabIndex={-1}
+                className="-ml-1 size-6 shrink-0 touch-manipulation text-muted-foreground hover:text-foreground sm:ml-0 sm:size-4"
+                onClick={e => toggleExpand(node.id, e)}
+              >
+                <ChevronRight className={cn('size-3.5 transition-transform duration-150', isExpanded && 'rotate-90')} />
+              </Button>
             ) : (
               <span className="-ml-1 size-6 shrink-0 sm:ml-0 sm:size-4" />
             )}
