@@ -159,9 +159,8 @@ export function HeaderTabs() {
 
   return (
     <nav
-      aria-label="快捷标签导航"
       data-slot="header-tabs"
-      className="inline-flex h-8 max-w-full scrollbar-none items-center gap-1 overflow-x-auto rounded-lg border border-border/70 bg-muted/40 p-0.5 shadow-2xs backdrop-blur-xs select-none"
+      className="inline-flex h-8 max-w-full scrollbar-none items-center gap-1 overflow-x-auto rounded-lg border border-border/70 p-0.5 select-none"
     >
       {tabs.map(tab => {
         const isActive = tab.path === pathname
@@ -176,14 +175,12 @@ export function HeaderTabs() {
                 className={cn(
                   'group relative flex h-7 max-w-[130px] min-w-0 shrink items-center gap-1.5 rounded-md px-2.5 text-xs transition-all duration-150',
                   isActive
-                    ? 'border border-border/80 bg-background font-medium text-foreground shadow-xs'
-                    : 'border border-transparent text-muted-foreground hover:bg-background/60 hover:text-foreground'
+                    ? 'border border-border/80'
+                    : 'border border-transparent text-muted-foreground hover:bg-accent-foreground/5 hover:text-foreground'
                 )}
               >
                 {/* Active indicator dot with emerald green styling */}
-                {isActive && (
-                  <span className="size-1.5 shrink-0 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.7)]" />
-                )}
+                {isActive && <span className="size-1.5 shrink-0 rounded-full bg-emerald-500" />}
 
                 {/* Menu Lucide Icon */}
                 <Icon
