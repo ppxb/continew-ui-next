@@ -36,10 +36,6 @@ export interface TreeSelectProps<T = Record<string, unknown>> {
   placeholderColor?: 'muted' | 'foreground'
 }
 
-/**
- * Reusable TreeSelect component built on shadcn styling and Popover primitive.
- * High-performance, keyboard navigable, searchable, and clearable.
- */
 export function TreeSelect<T = Record<string, unknown>>({
   data,
   value,
@@ -71,7 +67,6 @@ export function TreeSelect<T = Record<string, unknown>>({
   const [searchKeyword, setSearchKeyword] = React.useState('')
   const [expandedKeys, setExpandedKeys] = React.useState<TreeKey[] | undefined>(undefined)
 
-  // Map of all nodes and ancestor chains for instant path/label lookups
   const { nodeMap, ancestorsMap, allKeys } = React.useMemo(() => {
     const map = new Map<TreeKey, TreeNodeData<T>>()
     const aMap = new Map<TreeKey, TreeKey[]>()
@@ -92,26 +87,21 @@ export function TreeSelect<T = Record<string, unknown>>({
     return { nodeMap: map, ancestorsMap: aMap, allKeys: keys }
   }, [data])
 
-  // Selected node and display text
   const selectedNode = value !== undefined && value !== null ? nodeMap.get(value) : null
   const hasValue = Boolean(selectedNode)
 
-  const { displayText, fullPath } = React.useMemo(() => {
+  const displayText = React.useMemo(() => {
     if (!selectedNode || value === undefined || value === null) {
-      return { displayText: '', fullPath: '' }
+      return ''
     }
 
     const ancestors = ancestorsMap.get(value) ?? []
     const pathSegments = [...ancestors.map(k => nodeMap.get(k)?.label).filter(Boolean), selectedNode.label]
     const path = pathSegments.join(pathSeparator)
 
-    return {
-      displayText: showPathInTrigger ? path : selectedNode.label,
-      fullPath: path
-    }
+    return showPathInTrigger ? path : selectedNode.label
   }, [selectedNode, value, ancestorsMap, nodeMap, pathSeparator, showPathInTrigger])
 
-  // Reset search when closed
   React.useEffect(() => {
     if (!open) {
       setSearchKeyword('')
@@ -139,12 +129,6 @@ export function TreeSelect<T = Record<string, unknown>>({
     setExpandedKeys([])
   }
 
-  const triggerText = loading ? '加载中…' : hasValue ? displayText : placeholder
-  const triggerTextClassName = cn(
-    'truncate',
-    !hasValue && placeholderColor === 'muted' ? 'text-muted-foreground' : 'text-foreground'
-  )
-
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
@@ -165,14 +149,14 @@ export function TreeSelect<T = Record<string, unknown>>({
       >
         <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden">
           {triggerPrefix && <span className="shrink-0 text-muted-foreground">{triggerPrefix}</span>}
-          {fullPath ? (
-            <Tooltip>
-              <TooltipTrigger render={<span className={triggerTextClassName} />}>{triggerText}</TooltipTrigger>
-              <TooltipContent side="top">{fullPath}</TooltipContent>
-            </Tooltip>
-          ) : (
-            <span className={triggerTextClassName}>{triggerText}</span>
-          )}
+          <span
+            className={cn(
+              'truncate',
+              !hasValue && placeholderColor === 'muted' ? 'text-muted-foreground' : 'text-foreground'
+            )}
+          >
+            {loading ? '加载中…' : hasValue ? displayText : placeholder}
+          </span>
         </div>
 
         <div className="flex shrink-0 items-center gap-1 text-muted-foreground">
@@ -200,7 +184,6 @@ export function TreeSelect<T = Record<string, unknown>>({
           popupClassName
         )}
       >
-        {/* Search & Action Toolbar */}
         {(searchable || showExpandActions) && (
           <div className="flex items-center gap-1.5 border-b border-border/60 bg-muted/20 px-2 py-1.5">
             {searchable && (
@@ -214,23 +197,16 @@ export function TreeSelect<T = Record<string, unknown>>({
                   className="h-7 rounded-md border-0 bg-transparent py-0 pr-7 pl-7 text-xs focus-visible:ring-0 md:text-xs dark:bg-transparent"
                 />
                 {searchKeyword && (
-                  <Tooltip>
-                    <TooltipTrigger
-                      render={
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon-xs"
-                          tabIndex={-1}
-                          className="absolute right-1.5 size-4 text-muted-foreground hover:text-foreground"
-                          onClick={() => setSearchKeyword('')}
-                        />
-                      }
-                    >
-                      <X className="size-3" />
-                    </TooltipTrigger>
-                    <TooltipContent side="top">清空搜索</TooltipContent>
-                  </Tooltip>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-xs"
+                    tabIndex={-1}
+                    className="absolute right-1.5 size-4 text-muted-foreground hover:text-foreground"
+                    onClick={() => setSearchKeyword('')}
+                  >
+                    <X className="size-3" />
+                  </Button>
                 )}
               </div>
             )}
@@ -259,7 +235,6 @@ export function TreeSelect<T = Record<string, unknown>>({
           </div>
         )}
 
-        {/* Tree Content Body */}
         <div className="max-h-72 overflow-y-auto overscroll-contain p-1">
           {showAllOption && !searchKeyword && (
             <Button

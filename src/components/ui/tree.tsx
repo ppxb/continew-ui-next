@@ -40,11 +40,9 @@ export interface TreeProps<T = Record<string, unknown>> {
   index?: TreeIndex<T>
   selectedKey?: TreeKey | null
   onSelect?: (key: TreeKey, node: TreeNodeData<T>) => void
-  /** Enables multi-selection via checkboxes */
   checkable?: boolean
   checkedKeys?: TreeKey[]
   onCheckedChange?: (keys: TreeKey[]) => void
-  /** If true, parent and child checkboxes are decoupled */
   checkStrictly?: boolean
   expandedKeys?: TreeKey[]
   defaultExpandedKeys?: TreeKey[]
@@ -58,7 +56,6 @@ export interface TreeProps<T = Record<string, unknown>> {
   renderAction?: (props: TreeRenderNodeProps<T>) => React.ReactNode
   emptyText?: React.ReactNode
   className?: string
-  /** Indentation per depth level in rem, defaults to 1.125rem (responsive to 0.625rem on mobile) */
   indentRem?: number
 }
 
@@ -71,9 +68,6 @@ export interface TreeIndex<T> {
   allKeys: TreeKey[]
 }
 
-/**
- * Builds high-performance flat maps for O(1) lookups, descendants tracking and ancestor chain recovery.
- */
 export function buildTreeIndex<T>(nodes: TreeNodeData<T>[]): TreeIndex<T> {
   const nodeMap = new Map<TreeKey, TreeNodeData<T>>()
   const parentMap = new Map<TreeKey, TreeKey | null>()
@@ -101,7 +95,6 @@ export function buildTreeIndex<T>(nodes: TreeNodeData<T>[]): TreeIndex<T> {
 
   traverse(nodes, [], null)
 
-  // Pre-calculate full descendants list per node in O(N) reverse post-order
   for (let i = allKeys.length - 1; i >= 0; i--) {
     const key = allKeys[i]
     const children = directChildrenMap.get(key) ?? []
@@ -121,9 +114,6 @@ export function buildTreeIndex<T>(nodes: TreeNodeData<T>[]): TreeIndex<T> {
   return { nodeMap, parentMap, directChildrenMap, descendantsMap, ancestorsMap, allKeys }
 }
 
-/**
- * Highlights search matches within node labels.
- */
 export function HighlightText({ text, keyword }: { text?: string; keyword?: string }) {
   if (!text) return null
   if (!keyword || !keyword.trim()) {
@@ -152,11 +142,6 @@ export function HighlightText({ text, keyword }: { text?: string; keyword?: stri
   )
 }
 
-/**
- * Standalone Tree component that renders hierarchical data with high performance,
- * keyboard accessibility, search auto-expansion, mobile-first touch optimization,
- * and optional checkbox multi-selection.
- */
 export function Tree<T = Record<string, unknown>>({
   data,
   index: externalIndex,
@@ -189,7 +174,6 @@ export function Tree<T = Record<string, unknown>>({
     if (defaultExpandedKeys) {
       return new Set(defaultExpandedKeys)
     }
-    // Auto expand ancestors of selected node by default so it's visible
     if (selectedKey !== undefined && selectedKey !== null) {
       const ancestors = index.ancestorsMap.get(selectedKey) ?? []
       return new Set(ancestors)
@@ -214,12 +198,10 @@ export function Tree<T = Record<string, unknown>>({
     [isControlledExpanded, onExpandedKeysChange]
   )
 
-  // Checked keys management
   const checkedKeySet = React.useMemo(() => {
     return new Set((controlledCheckedKeys ?? []).map(String))
   }, [controlledCheckedKeys])
 
-  // Pre-calculate indeterminate keys in O(checkedKeys * depth)
   const indeterminateKeySet = React.useMemo(() => {
     if (!checkable || checkStrictly || checkedKeySet.size === 0) {
       return new Set<string>()
@@ -282,10 +264,6 @@ export function Tree<T = Record<string, unknown>>({
     [checkedKeySet, checkStrictly, index, onCheckedChange]
   )
 
-  // When selectedKey changes, expand its ancestors so the selection is visible. This is gated on the
-  // selection itself: also reacting to expandedKeySet (as this effect used to) meant that collapsing
-  // any ancestor of the selected node immediately re-expanded it, so the node could never be closed.
-  // Clearing the selection resets the gate, so re-picking the same node reveals it again.
   const lastAutoExpandedKey = React.useRef<TreeKey | null | undefined>(undefined)
   React.useEffect(() => {
     if (selectedKey === undefined || selectedKey === null) {
@@ -302,7 +280,6 @@ export function Tree<T = Record<string, unknown>>({
     updateExpandedKeys(next)
   }, [selectedKey, index.ancestorsMap, expandedKeySet, updateExpandedKeys])
 
-  // Search filter and auto-expansion
   const trimmedSearch = searchKeyword.trim().toLowerCase()
   const searchMatchInfo = React.useMemo(() => {
     if (!trimmedSearch) return null
@@ -325,7 +302,6 @@ export function Tree<T = Record<string, unknown>>({
     return { matchedNodeKeys, searchExpandedKeys }
   }, [trimmedSearch, index])
 
-  // Compute visible flat nodes
   const visibleNodes = React.useMemo(() => {
     const list: Array<{ node: TreeNodeData<T>; depth: number; hasChildren: boolean }> = []
 
@@ -408,7 +384,6 @@ export function Tree<T = Record<string, unknown>>({
           ? searchMatchInfo.searchExpandedKeys.has(node.id)
           : expandedKeySet.has(node.id)
 
-        // Indeterminate check in O(1)
         const isIndeterminate =
           checkable && !checkStrictly && !isChecked && hasChildren ? indeterminateKeySet.has(keyStr) : false
 
@@ -464,7 +439,6 @@ export function Tree<T = Record<string, unknown>>({
               }
             }}
           >
-            {/* Toggle arrow with generous touch target on mobile */}
             {hasChildren ? (
               <Button
                 type="button"
@@ -480,7 +454,6 @@ export function Tree<T = Record<string, unknown>>({
               <span className="-ml-1 size-6 shrink-0 sm:ml-0 sm:size-4" />
             )}
 
-            {/* Checkbox for checkable mode */}
             {checkable && (
               <Checkbox
                 checked={isChecked}
@@ -493,7 +466,6 @@ export function Tree<T = Record<string, unknown>>({
               />
             )}
 
-            {/* Icon */}
             {showIcons && (node.icon || renderIcon || hasChildren) && (
               <span className="flex size-4 shrink-0 items-center justify-center text-muted-foreground">
                 {renderIcon ? (
@@ -516,7 +488,6 @@ export function Tree<T = Record<string, unknown>>({
               </span>
             )}
 
-            {/* Label and badges */}
             <div className="flex items-center gap-1.5 whitespace-nowrap">
               <span className="shrink-0 font-normal text-foreground">
                 {renderLabel ? renderLabel(renderContext) : <HighlightText text={node.label} keyword={trimmedSearch} />}
@@ -525,10 +496,8 @@ export function Tree<T = Record<string, unknown>>({
               {node.subtitle}
             </div>
 
-            {/* Action buttons (e.g. edit, delete) */}
             {renderAction && renderAction(renderContext)}
 
-            {/* Selected checkmark indicator for single select */}
             {!checkable && isSelected && <Check className="size-4 shrink-0 text-primary" />}
           </div>
         )
@@ -537,9 +506,6 @@ export function Tree<T = Record<string, unknown>>({
   )
 }
 
-/**
- * Animated skeleton placeholder for tree loading state.
- */
 export function TreeSkeleton({ rows = 5, className }: { rows?: number; className?: string }) {
   const depths = [0, 1, 2, 1, 0, 1, 2]
 

@@ -258,7 +258,7 @@ export function ConfigSms() {
         table={table}
         isLoading={query.isPending}
         isError={query.isError}
-        isStale={query.isPlaceholderData || query.isError}
+        isStale={query.isPlaceholderData}
         onRetry={() => void query.refetch()}
       />
     </>

@@ -87,7 +87,7 @@ export function MenuTable({ table, isLoading, isError, isStale, isFullscreen, on
               <TableCell colSpan={table.getVisibleLeafColumns().length} className="h-32 text-center">
                 {isError ? (
                   <div className="flex flex-col items-center justify-center gap-2">
-                    <span className="text-sm text-destructive">数据加载失败</span>
+                    <span className="text-xs text-muted-foreground">数据加载失败</span>
                     {onRetry ? (
                       <Button type="button" variant="outline" size="sm" onClick={onRetry}>
                         重新加载
@@ -95,7 +95,7 @@ export function MenuTable({ table, isLoading, isError, isStale, isFullscreen, on
                     ) : null}
                   </div>
                 ) : (
-                  <span className="text-sm text-muted-foreground">暂无数据</span>
+                  <span className="text-xs text-muted-foreground">暂无数据</span>
                 )}
               </TableCell>
             </TableRow>
