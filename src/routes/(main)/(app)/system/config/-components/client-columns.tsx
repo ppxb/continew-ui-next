@@ -17,9 +17,8 @@ import {
 import { toast } from '@/components/ui/toast'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import type { ClientResp } from '@/lib/api/client'
+import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 import type { DataTableFeatures } from '@/lib/data-table-features'
-
-export const EMPTY_PLACEHOLDER = '—'
 
 export const AUTH_TYPE_OPTIONS = [
   { label: '账号密码', value: 'ACCOUNT' },

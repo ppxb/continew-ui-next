@@ -2,8 +2,10 @@ import * as React from 'react'
 import { cn } from 'cn'
 import { Check, ChevronRight, Folder, FolderOpen } from 'lucide-react'
 
+import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
 export type TreeKey = string | number
 
@@ -460,17 +462,27 @@ export function Tree<T = Record<string, unknown>>({
           >
             {/* Toggle arrow with generous touch target on mobile */}
             {hasChildren ? (
-              <button
-                type="button"
-                tabIndex={-1}
-                aria-label={isExpanded ? '折叠节点' : '展开节点'}
-                className="-ml-1 flex size-6 shrink-0 touch-manipulation items-center justify-center rounded-xs text-muted-foreground transition-transform hover:text-foreground sm:ml-0 sm:size-4"
-                onClick={e => toggleExpand(node.id, e)}
-              >
-                <ChevronRight className={cn('size-3.5 transition-transform duration-150', isExpanded && 'rotate-90')} />
-              </button>
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon-xs"
+                      tabIndex={-1}
+                      className="-ml-1 size-6 shrink-0 touch-manipulation text-muted-foreground hover:text-foreground sm:ml-0 sm:size-4"
+                      onClick={e => toggleExpand(node.id, e)}
+                    />
+                  }
+                >
+                  <ChevronRight
+                    className={cn('size-3.5 transition-transform duration-150', isExpanded && 'rotate-90')}
+                  />
+                </TooltipTrigger>
+                <TooltipContent side="top">{isExpanded ? '折叠节点' : '展开节点'}</TooltipContent>
+              </Tooltip>
             ) : (
-              <span className="-ml-1 size-6 shrink-0 sm:ml-0 sm:size-4" aria-hidden="true" />
+              <span className="-ml-1 size-6 shrink-0 sm:ml-0 sm:size-4" />
             )}
 
             {/* Checkbox for checkable mode */}

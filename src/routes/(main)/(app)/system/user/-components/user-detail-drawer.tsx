@@ -10,8 +10,9 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from '@/components/ui/toast'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import type { UserDetailResp } from '@/lib/api/user'
+import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 
-import { EMPTY_PLACEHOLDER, genderLabel, RoleCell } from './user-display'
+import { genderLabel, RoleCell } from './user-display'
 import { useUserDetail } from './use-user-detail'
 
 const COPIED_FEEDBACK_MS = 1500

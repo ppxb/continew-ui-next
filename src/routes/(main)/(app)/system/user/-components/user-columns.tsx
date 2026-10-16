@@ -16,10 +16,11 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import type { UserResp } from '@/lib/api/user'
+import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 import { getInitials } from '@/lib/utils'
 
-import { EMPTY_PLACEHOLDER, genderLabel, RoleCell } from './user-display'
+import { genderLabel, RoleCell } from './user-display'
 
 /** The row actions the table raises. */
 export type UserAction = 'detail' | 'edit' | 'resetPassword' | 'assignRoles' | 'delete'

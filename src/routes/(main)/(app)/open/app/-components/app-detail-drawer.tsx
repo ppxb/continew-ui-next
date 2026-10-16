@@ -10,8 +10,9 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from '@/components/ui/toast'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import type { AppDetailResp } from '@/lib/api/app'
+import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 
-import { EMPTY_PLACEHOLDER, ExpireTimeCell } from './app-display'
+import { ExpireTimeCell } from './app-display'
 import { useAppDetail } from './use-app-detail'
 
 const COPIED_FEEDBACK_MS = 1500

@@ -8,9 +8,6 @@ import { toast } from '@/components/ui/toast'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import type { AppResp } from '@/lib/api/app'
 
-/** Stands in for a value the backend leaves empty. */
-export const EMPTY_PLACEHOLDER = '—'
-
 const COPIED_FEEDBACK_MS = 1500
 
 export function appLabel(app: Pick<AppResp, 'name'>) {

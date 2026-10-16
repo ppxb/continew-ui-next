@@ -2,10 +2,11 @@ import * as React from 'react'
 import { cn } from 'cn'
 import { ChevronsDownUp, ChevronsUpDown, ChevronDown, Search, X } from 'lucide-react'
 
-import { Tree, TreeSkeleton, type TreeKey, type TreeNodeData, type TreeProps } from '@/components/tree'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { Tree, TreeSkeleton, type TreeKey, type TreeNodeData, type TreeProps } from '@/components/ui/tree'
 
 export interface TreeSelectProps<T = Record<string, unknown>> {
   data: TreeNodeData<T>[]
@@ -138,6 +139,12 @@ export function TreeSelect<T = Record<string, unknown>>({
     setExpandedKeys([])
   }
 
+  const triggerText = loading ? '加载中…' : hasValue ? displayText : placeholder
+  const triggerTextClassName = cn(
+    'truncate',
+    !hasValue && placeholderColor === 'muted' ? 'text-muted-foreground' : 'text-foreground'
+  )
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
@@ -158,29 +165,32 @@ export function TreeSelect<T = Record<string, unknown>>({
       >
         <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden">
           {triggerPrefix && <span className="shrink-0 text-muted-foreground">{triggerPrefix}</span>}
-          <span
-            title={fullPath || undefined}
-            className={cn(
-              'truncate',
-              !hasValue && placeholderColor === 'muted' ? 'text-muted-foreground' : 'text-foreground'
-            )}
-          >
-            {loading ? '加载中…' : hasValue ? displayText : placeholder}
-          </span>
+          {fullPath ? (
+            <Tooltip>
+              <TooltipTrigger render={<span className={triggerTextClassName} />}>{triggerText}</TooltipTrigger>
+              <TooltipContent side="top">{fullPath}</TooltipContent>
+            </Tooltip>
+          ) : (
+            <span className={triggerTextClassName}>{triggerText}</span>
+          )}
         </div>
 
         <div className="flex shrink-0 items-center gap-1 text-muted-foreground">
           {clearable && hasValue && !disabled && (
-            <span
-              role="button"
-              tabIndex={-1}
-              aria-label="清空已选"
-              className="flex size-4 items-center justify-center rounded-xs opacity-70 transition-opacity hover:opacity-100"
-              onClick={handleClear}
-              onPointerDown={e => e.stopPropagation()}
-            >
-              <X className="size-3" />
-            </span>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <span
+                    className="flex size-4 items-center justify-center rounded-xs opacity-70 transition-opacity hover:opacity-100"
+                    onClick={handleClear}
+                    onPointerDown={e => e.stopPropagation()}
+                  />
+                }
+              >
+                <X className="size-3" />
+              </TooltipTrigger>
+              <TooltipContent side="top">清空已选</TooltipContent>
+            </Tooltip>
           )}
           <ChevronDown
             className={cn('size-4 text-muted-foreground transition-transform duration-150', open && 'rotate-180')}
@@ -203,23 +213,31 @@ export function TreeSelect<T = Record<string, unknown>>({
             {searchable && (
               <div className="relative flex flex-1 items-center">
                 <Search className="pointer-events-none absolute left-2 size-3.5 text-muted-foreground" />
-                <input
+                <Input
                   type="text"
                   value={searchKeyword}
                   onChange={e => setSearchKeyword(e.target.value)}
                   placeholder={searchPlaceholder}
-                  className="h-7 w-full rounded-md bg-transparent pr-7 pl-7 text-xs outline-none placeholder:text-muted-foreground"
+                  className="h-7 rounded-md border-0 bg-transparent py-0 pr-7 pl-7 text-xs focus-visible:ring-0 md:text-xs dark:bg-transparent"
                 />
                 {searchKeyword && (
-                  <button
-                    type="button"
-                    tabIndex={-1}
-                    aria-label="清空搜索"
-                    onClick={() => setSearchKeyword('')}
-                    className="absolute right-1.5 flex size-4 items-center justify-center rounded-xs text-muted-foreground hover:text-foreground"
-                  >
-                    <X className="size-3" />
-                  </button>
+                  <Tooltip>
+                    <TooltipTrigger
+                      render={
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-xs"
+                          tabIndex={-1}
+                          className="absolute right-1.5 size-4 text-muted-foreground hover:text-foreground"
+                          onClick={() => setSearchKeyword('')}
+                        />
+                      }
+                    >
+                      <X className="size-3" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top">清空搜索</TooltipContent>
+                  </Tooltip>
                 )}
               </div>
             )}
@@ -228,15 +246,7 @@ export function TreeSelect<T = Record<string, unknown>>({
               <div className="flex shrink-0 items-center gap-0.5">
                 <Tooltip>
                   <TooltipTrigger
-                    render={
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-xs"
-                        aria-label="全部展开"
-                        onClick={handleExpandAll}
-                      />
-                    }
+                    render={<Button type="button" variant="ghost" size="icon-xs" onClick={handleExpandAll} />}
                   >
                     <ChevronsUpDown className="size-3" />
                   </TooltipTrigger>
@@ -245,15 +255,7 @@ export function TreeSelect<T = Record<string, unknown>>({
 
                 <Tooltip>
                   <TooltipTrigger
-                    render={
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-xs"
-                        aria-label="全部收起"
-                        onClick={handleCollapseAll}
-                      />
-                    }
+                    render={<Button type="button" variant="ghost" size="icon-xs" onClick={handleCollapseAll} />}
                   >
                     <ChevronsDownUp className="size-3" />
                   </TooltipTrigger>
@@ -267,27 +269,22 @@ export function TreeSelect<T = Record<string, unknown>>({
         {/* Tree Content Body */}
         <div className="max-h-72 overflow-y-auto overscroll-contain p-1">
           {showAllOption && !searchKeyword && (
-            <div
-              role="button"
-              tabIndex={0}
+            <Button
+              type="button"
+              variant="ghost"
               onClick={() => {
                 onChange?.(null, null)
                 setOpen(false)
               }}
-              onKeyDown={e => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault()
-                  onChange?.(null, null)
-                  setOpen(false)
-                }
-              }}
               className={cn(
-                'mb-1 flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-xs transition-colors outline-none',
-                !hasValue ? 'bg-accent font-medium text-accent-foreground' : 'text-foreground hover:bg-muted/50'
+                'mb-1 flex h-auto w-full cursor-pointer items-center justify-start gap-2 rounded-md px-2 py-1.5 text-xs font-normal transition-colors outline-none',
+                !hasValue
+                  ? 'bg-accent font-medium text-accent-foreground hover:bg-accent'
+                  : 'text-foreground hover:bg-muted/50'
               )}
             >
               <span>{allOptionLabel}</span>
-            </div>
+            </Button>
           )}
           {loading ? (
             <TreeSkeleton rows={5} />

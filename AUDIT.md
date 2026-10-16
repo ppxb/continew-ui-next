@@ -1,9 +1,36 @@
 # AUDIT.md — continew-ui-next 前端审计报告
 
 审计对象：`continew-ui-next`（React 19 + TanStack Router 文件式路由的纯客户端 SPA + Tailwind v4 + shadcn/ui base-nova + Base UI 原语 + TanStack Query + TanStack Table v9 + react-hook-form + zod）
-审计基线：`ce44df6`，审计开始时 `git status` 为空（工作树干净）
-代码规模：`src/**/*.ts(x)` 共 416 文件 / 51,492 行
+审计基线：v1 基线 `ce44df6`（审计开始时工作树干净）；本文已更新到 **v2**，基线 `f5baed3` + 本轮 tree/常量收拢改动，见 §0 修订记录
+代码规模：`src/**/*.ts(x)` 共 418 文件
 本文所有路径均相对 `continew-ui-next/`。
+
+---
+
+## 0. 修订记录（v2）
+
+v1 的发现全部保留在正文中，已解决的在原处以 **【已修复 v2】** 标注，不删原文。
+
+### 0.1 已修复
+
+| # | 项目 | 位置 | 处置 |
+|---|---|---|---|
+| 1 | R2：`table.tsx` 被加了 `containerClassName` prop，改变上游公开契约 | §3.2(a) | **已还原**（`82309ad`）：移除该 prop，两个消费点改为从父容器用 `*:data-[slot=table-container]:…` 触达内层容器 |
+| 2 | R2：`sidebar.tsx` 4 处 class 被改写成 v4 简写并删掉上游注释 | §3.2(a) | **已还原**（`beb9883`）：`-left-(--sidebar-width)` / `-right-(--sidebar-width)` / `after:inset-s-1/2` / `after:w-0.5` 恢复上游写法，补回 `// Adjust the padding for floating and inset variants.` 注释 |
+| 3 | 跨特性深层相对导入复用 `StatusCell` | §11、§9 | **已修复**（`f5baed3`）：新建 `src/components/status-cell.tsx`，消掉 user / app / client 三份逐字相同的重复定义，9 个调用点统一导入，两处跨路由导入（`@/routes/...`、`'../../user/...'`）消失 |
+| 4 | `EMPTY_PLACEHOLDER = '—'` 4 处重复定义 | §5.11 | **已修复**：收拢到 `src/lib/constants.ts`，4 个定义文件 + 5 个借用方共 9 个文件改指同一处 |
+| 5 | `tree.tsx` / `tree-select.tsx` 的 R3/R4 违规（原生 `<button>`、原生 `<input>`、`title=`、`role="button"` 伪按钮、4 处冗余 `aria-label`） | §3.3、§3.4 | **已修复**：原生元素换 shadcn `Button`/`Input`，`title` 与冗余 `aria-label` 换 `Tooltip`，伪按钮改真 `Button`。明细见 §3.2(c) |
+
+### 0.2 口径澄清（v2，需所有者确认后写进 AGENTS.md）
+
+- **R2 的准确表述**：规则约束的是"不要修改 shadcn 上游原件"，**不是**"`ui/` 目录里只能有上游文件"。所有者已确认 `tree.tsx`、`tree-select.tsx`、`password-input.tsx`、`striped-pattern.tsx` 属"基础组件"，放 `ui/` 语义更清晰，是**有意安排**。故 v1 §3.2(b) 的"混入自研组件"结论作废。
+- **`ui/` 目录构成**：64 个文件 = 上游原件 + 4 个基础组件。`tree.tsx` / `tree-select.tsx` / `password-input.tsx` 是项目自研；`striped-pattern.tsx` 是外部组件，**已核实不在 base-nova registry**（`/r/styles/base-nova/striped-pattern.json` → 404，`components.json` 的 `registries` 为空 `{}`），`shadcn add` 不会覆盖它，放 `ui/` 无风险。
+- **复合控件 ARIA 例外**：`tree.tsx` 的 `role="tree"` / `role="treeitem"` / `aria-selected` / `aria-expanded` / `tabIndex` 是该控件可访问性的实现本身，**没有可替代的库原语**（Base UI 1.9.0 只有 accordion / context-menu / menu / menubar / navigation-menu，无 tree）。建议写明：自研复合控件为自身提供 ARIA 不受 R3 约束。
+- **`aria-label` 在 `ui/` 内本就允许**：AGENTS.md 原文是 "Do not add `aria-label` outside the shadcn components in `src/components/ui/`"。本轮把 `tree-select.tsx` 的 4 处 `aria-label` 换成 `Tooltip` 属**体验改进**（Tooltip 有可见文案），不是规则强制。
+
+### 0.3 统计口径修正
+
+v1 §2.1 的 "shadcn ui" 一列统计有误：`aria-invalid` 把 `aria-invalid:` 变体类名也算进去了，且漏统计了 `role=`（17 处）与 `sidebar.tsx` 的原生 `<button>`。v2 用统一的精确模式重算了全部三列，见 §2.1。
 
 ---
 
@@ -13,9 +40,9 @@
 
 | 区域 | 文件数 | 说明 |
 |---|---|---|
-| 业务代码 | 161 | `routes/(main)/(app)/**`、`routes/(main)/auth/**`、`lib/**`、`hooks/**`、`stores/**`、`navigation/**`、`components/**`（不含 `ui/**`） |
+| 业务代码 | 164 | `routes/(main)/(app)/**`、`routes/(main)/auth/**`、`lib/**`、`hooks/**`、`stores/**`、`navigation/**`、`components/**`（不含 `ui/**`）。含 v2 移入的 `components/password-input.tsx`、新增的 `components/status-cell.tsx` 与 `lib/constants.ts` |
 | 模板示例代码 | 190 | `routes/(main)/dashboard/**`、`chat/**`、`mail/**`（继承自 next-shadcn-admin-dashboard） |
-| shadcn 原始组件 | 65 | `components/ui/**`（约 7,586 行） |
+| shadcn 原始组件 | 64 | `components/ui/**`（含 4 个所有者确认为"基础组件"的自研/外部文件，见 §0.2） |
 
 ### 1.2 硬规则口径（所有者定义）
 
@@ -49,15 +76,18 @@
 
 | 项 | 业务代码 | 模板示例 | shadcn ui |
 |---|---|---|---|
+| 文件数 | 164 | 190 | 64 |
 | `font-mono` | **0 ✅** | 7（豁免） | 2（上游） |
-| `aria-invalid` | 56 | 8 | 0 |
-| `aria-label` | 32 | 93 | 43 |
-| `role=` | 8 | 6 | 0 |
-| DOM `title=` | 8 | 6 | 2 |
-| 原生 `<button>` | 18 | 4 | 0 |
+| `aria-invalid=` | 56 | 6 | 5（上游原语自身的属性声明，非调用方传入） |
+| `aria-label=` | 33 | 92 | 8 |
+| `role=` | 8 | 6 | 17（全部是上游原语内部的 ARIA，如 `breadcrumb`/`carousel`/`pagination`/`tree`） |
+| DOM `title=` | 13 → **净 8** | 6 | 1（`sidebar.tsx` 上游的 `title="Toggle Sidebar"`） |
+| 原生 `<button>` | 18 | 4 | 1（同上） |
 | 原生 `<input>` | 2 | 0 | 0 |
 | 原生 `<img>` | 6 | 0 | 0 |
 | 原生 `<table>` | 0 | 0 | 0 |
+
+> v2 重算说明：`aria-invalid` / `aria-label` 改为带 `=` 的精确匹配（排除 `aria-invalid:` 变体类名）；业务代码 `aria-label` 由 32 升到 33，是因为 `password-input.tsx` 从 `ui/` 移入业务代码；`title=` 原始命中 13 处，其中 5 处是组件同名 prop（`config-storage.tsx:254,265`、`storage-group-panel.tsx:66`、`nav-main.tsx:202,215`），净计 8 处，与 v1 一致。
 
 ### 2.2 必修清单（高）
 
@@ -101,16 +131,18 @@
 
 #### (a) 被业务提交手改的 5 个文件
 
-| 文件 | 改动 | 提交 | 严重度 |
-|---|---|---|---|
-| `components/ui/table.tsx:6-10` | 新增 `containerClassName` prop，改变上游公开契约；`dept-table.tsx:41`、`menu-table.tsx:41` 依赖它 | `ddd1bbc` | **高** |
-| `components/ui/tooltip.tsx:38` | `rounded-md` → `rounded-2xl` | `910d205` | 中 |
-| `components/ui/toast.tsx:23` | `z-50` → `z-[100]` | `10b8453` | 中 |
-| `components/ui/button.tsx:6` | 基础变体追加 `cursor-pointer`（影响所有按钮） | `63b9273` | 中 |
-| `components/ui/sidebar.tsx:212,266` | 物理方向任意值改为逻辑属性，并删掉上游注释 | `135cc09` | 中 |
-| `components/ui/tooltip.tsx:44` | `rounded-[2px]` → `rounded-xs` | `63b9273` | 低 |
-| `components/ui/table.tsx:52,64` | `[&:has([role=checkbox])]:pr-0` → `has-[[role=checkbox]]:pr-0`（语义等价） | `910d205` | 低 |
-| `components/ui/button.tsx`、`toast.tsx` | 引号格式往返两轮（`135cc09` 改双引号 → `a7dcba0` 改回单引号），无语义变化 | — | 低 |
+| 文件 | 改动 | 提交 | 严重度 | v2 状态 |
+|---|---|---|---|---|
+| `components/ui/table.tsx:6-10` | 新增 `containerClassName` prop，改变上游公开契约；`dept-table.tsx:41`、`menu-table.tsx:41` 依赖它 | `ddd1bbc` | **高** | ✅ **已还原**（`82309ad`） |
+| `components/ui/sidebar.tsx:212,266` | 物理方向任意值改为逻辑属性，并删掉上游注释 | `135cc09` | 中 | ✅ **已还原**（`beb9883`） |
+| `components/ui/tooltip.tsx:38` | `rounded-md` → `rounded-2xl` | `910d205` | 中 | ✅ 所有者确认**有意**（对齐 miyabi 样式），保留 |
+| `components/ui/toast.tsx:23` | `z-50` → `z-[100]` | `10b8453` | 中 | ✅ 所有者确认**有意**（z-index 层级），保留 |
+| `components/ui/button.tsx:6` | 基础变体追加 `cursor-pointer`（影响所有按钮） | `63b9273` | 中 | ✅ 所有者确认**有意**，保留。Tailwind v4 的 preflight 已不再给 `<button>` 设 `cursor: pointer`（产物 CSS 里除 utility 外无任何 `cursor` 声明），所以这行确实恢复了手型光标，非冗余 |
+| `components/ui/tooltip.tsx:44` | `rounded-[2px]` → `rounded-xs` | `63b9273` | 低 | ✅ **等价**（`--radius-xs: .125rem` = 2px），保留 |
+| `components/ui/table.tsx:52,64` | `[&:has([role=checkbox])]:pr-0` → `has-[[role=checkbox]]:pr-0`（语义等价） | `910d205` | 低 | ✅ 已随 `82309ad` 一并还原 |
+| `components/ui/button.tsx`、`toast.tsx` | 引号格式往返两轮（`135cc09` 改双引号 → `a7dcba0` 改回单引号），无语义变化 | — | 低 | 无需处理 |
+
+**结论（v2）**：`ui/` 里"改上游原件"的问题**已清零**——2 处还原、3 处经所有者确认属有意改动、2 处本就语义等价、1 处仅格式往返。
 
 证据（`git show -U0 ddd1bbc -- src/components/ui/table.tsx`）：
 
@@ -125,24 +157,45 @@
 +    <div data-slot="table-container" className={cn('relative w-full overflow-x-auto', containerClassName)}>
 ```
 
-**[已复核]** `containerClassName` 的消费点只有 `dept-table.tsx:41`、`menu-table.tsx:41`，回退成本很低。
+**[已复核]** `containerClassName` 的消费点只有 `dept-table.tsx:41`、`menu-table.tsx:41`，回退成本很低。**v2 已按此回退**：两个消费点改用 `*:data-[slot=table-container]:<utility>` 从父容器触达内层容器（生成的选择器特异性 `(0,2,0)`，稳定压过上游 `.overflow-x-auto` 的 `(0,1,0)`），`ui/table.tsx` 已无任何本地改动。
 
 > 合规例外，**不应还原**：`sidebar.tsx:342` 的 `overscroll-contain` 是 AGENTS.md 明文要求保留的；`1979956` 删除 19 个文件的 `'use client'` 与 `733dc87` 对 61 个文件的纯格式化均为 AGENTS.md 授权操作。
 
-#### (b) 混入 `components/ui/` 的自研组件（945 行）
+#### (b) `components/ui/` 里的项目基础组件 —— **口径已澄清，非违规**
 
-| 文件 | 行数 | 引入提交 | 建议 |
+v1 曾判定这是"自研组件混入 `ui/`"。**所有者已明确：`ui/` 是基础组件目录，语义上就该放这类组件**，故本条作废。R2 约束的是"不要改上游原件"，不是"`ui/` 只能有上游文件"。
+
+| 文件 | 行数 | 性质 | v2 处置 |
 |---|---|---|---|
-| `components/ui/tree.tsx` | 554 | `7f8ffdc feat(ui): add reusable Tree and TreeSelect components…` | 原样移到 `src/components/`，改 4 处 import（`dept-parent-select.tsx:5`、`menu-parent-select.tsx:6`、`role-checkable-tree.tsx:8`、`dept-tree-select.tsx:6`） |
-| `components/ui/tree-select.tsx` | 313 | 同上（后被 `10b8453` 塞入业务专属 props `triggerPrefix`/`showAllOption`/`allOptionLabel='全部'`） | 同上，改 3 处 import |
-| `components/ui/striped-pattern.tsx` | 47 | `c21bf39 feat(auth): add a striped pattern to the login panel background` | 移到 `src/components/` 或 `auth/-components/`（当前唯一引用 `auth/route.tsx:6`） |
-| `components/ui/password-input.tsx` | 31 | `064c99d feat(system): … password visibility toggle` | 移到 `src/components/`，改 4 处 import（`sms/storage/user-form-drawer.tsx`、`user-reset-password-dialog.tsx`） |
+| `components/ui/tree.tsx` | 554 | 项目自研基础组件（`7f8ffdc`） | 曾移到 `components/`，**按所有者要求移回 `ui/`**，并修掉其中可修的问题（见 (c)） |
+| `components/ui/tree-select.tsx` | 313 | 项目自研基础组件（后被 `10b8453` 加入业务向 props `triggerPrefix`/`showAllOption`/`allOptionLabel`） | 同上 |
+| `components/ui/password-input.tsx` | 31 | 项目自研基础组件（`064c99d`） | **已移到 `src/components/`**（`f5baed3`） |
+| `components/ui/striped-pattern.tsx` | 47 | **外部组件**（`c21bf39`）。已核实**不在 base-nova registry**（`/r/styles/base-nova/striped-pattern.json` → 404，`components.json` 的 `registries` 为空 `{}`），故 `shadcn add` 不会覆盖它 | 保留在 `ui/` |
 
-结论：`components/ui/` 65 个文件中 **9 个（13.8%）已非上游原样**（5 改 + 4 自研）。建议在 review checklist 或 CI 中加一条「该目录必须与 `shadcn add` 输出一致」。
+> 建议把这条口径写进 AGENTS.md（"`ui/` = 上游原件 + 项目基础组件；R2 只约束不改上游原件"），否则后续 review 会反复把 `tree.tsx` 判为违规。
+
+#### (c) `tree.tsx` / `tree-select.tsx` 内的 R3/R4 违规（v2 已修）
+
+这两个文件原先在 `ui/` 内被当作"上游原件"豁免，所以 v1 未把它们的违规计入业务代码——但它们本来就是项目代码。v2 按 R3/R4 清理了可清理的部分：
+
+| 位置 | 原状 | v2 处置 |
+|---|---|---|
+| `tree.tsx:463` | 原生 `<button>` 做展开箭头 | → `Button variant="ghost" size="icon-xs"`，外层包 `Tooltip`（`展开节点`/`折叠节点`），删掉 `aria-label` |
+| `tree.tsx:473` | 占位 `<span aria-hidden="true">` | 删掉 `aria-hidden`（空 span 本就不进可访问树） |
+| `tree-select.tsx:206` | 原生 `<input type="text">` 搜索框 | → shadcn `Input`（用 `className` 抵消 `h-8` / `rounded-lg` / `border` / `md:text-sm` / `dark:bg-input/30`，保持原视觉） |
+| `tree-select.tsx:214` | 原生 `<button>` 清空搜索 | → `Button variant="ghost" size="icon-xs"` + `Tooltip` |
+| `tree-select.tsx:175-177` | `<span role="button" tabIndex={-1} aria-label="清空已选">` | → 去掉三个属性，改 `Tooltip`。原本 `tabIndex={-1}` 就不可键盘到达，故无键盘回归；真 `<button>` 不能嵌在触发器 `<button>` 内 |
+| `tree-select.tsx:271-283` | `<div role="button" tabIndex={0} onKeyDown>` 伪造成"全部"选项 | → 真 `Button variant="ghost"`（Enter/Space 由原生按钮承担，删掉手写 `onKeyDown`） |
+| `tree-select.tsx:162` | `title={fullPath}` 截断提示 | → `Tooltip`（抽了 `triggerText` / `triggerTextClassName` 两个局部常量，避免分支重复） |
+| `tree-select.tsx:236,253` | `Button` 上的 `aria-label="全部展开"` / `"全部收起"` | 删掉（同处 `TooltipContent` 已有可见文案） |
+
+**有意保留（复合控件必需，建议写进 AGENTS.md 例外）**：`tree.tsx:392,430-433` 的 `role="tree"` / `role="treeitem"` / `aria-selected` / `aria-expanded` / `tabIndex`（键盘漫游焦点模型），`:472` 展开箭头的 `tabIndex={-1}`（焦点归 `treeitem`），`:497` `Checkbox` 的 `aria-label={node.label}`（该标签是复选框的**兄弟节点**而非 `<label for>`，去掉后复选框将无可访问名称；且 AGENTS.md 本就允许在 `ui/` 内使用 `aria-label`）。Base UI 1.9.0 无 tree 原语（只有 accordion / context-menu / menu / menubar / navigation-menu），没有可替代的库组件。
+
+> `tree-select.tsx:157` 的 `aria-invalid={invalid}` 保留，与 §3.3 的全局 `aria-invalid` 口径一致，等所有者拍板后统一处理。
 
 ### 3.3 R3 无障碍属性
 
-业务代码共 56 处 `aria-invalid` + 32 处 `aria-label` + 8 处 `role=` + 8 处 DOM `title=`。
+业务代码共 56 处 `aria-invalid` + 33 处 `aria-label` + 8 处 `role=` + 8 处 DOM `title=`（v2 重算：`aria-label` 由 32 升到 33，因为 `password-input.tsx` 从 `ui/` 移入业务代码）。
 
 **`aria-label`（32 处，集中在 app-shell 与权限树）**
 
@@ -155,6 +208,7 @@
 | `routes/(main)/(app)/system/menu/-components/icon-picker.tsx:495,531` | 2 |
 | `components/app-shell/app-breadcrumb.tsx:217`、`components/simple-icon.tsx:17` | 各 1 |
 | `routes/(main)/(app)/open/app/-components/app-list.tsx:210`、`system/config/-components/sms-toolbar.tsx:94`、`system/dept/-components/dept-columns.tsx:127`、`system/menu/-components/menu-columns.tsx:139`、`system/menu/-components/menu-list.tsx:260`、`system/role/-components/role-permission-drawer.tsx:123`、`auth/-components/captcha-image.tsx:22` | 各 1 |
+| `components/password-input.tsx:17` | 1（v2 从 `ui/` 移入业务代码，总数由 32 → 33） |
 
 改法统一：删掉 `aria-label`，改用可见文本、`<span className="sr-only">`（项目已有写法：`app-detail-drawer.tsx:172`、`user-detail-drawer.tsx:164-167`）或 `Tooltip`（`role-checkable-tree.tsx` 已在同文件用 Tooltip）。
 
@@ -265,7 +319,7 @@
 | `PAGE_SIZE_OPTIONS` `[10,20,30,40,50]` | 5 份 |
 | 分页页脚组合 | 5 份 |
 | `RowActions` | 7 份 |
-| `EMPTY_PLACEHOLDER = '—'` | 4 处重复定义（`user-display.tsx:5`、`app-display.tsx:12`、`client-columns.tsx:21`、`storage-display.tsx:5`） |
+| `EMPTY_PLACEHOLDER = '—'` | ~~4 处重复定义（`user-display.tsx:5`、`app-display.tsx:12`、`client-columns.tsx:21`、`storage-display.tsx:5`）~~ **【已修复 v2】**：收拢到 `src/lib/constants.ts`，4 个定义文件 + 5 个借用方共 9 个文件改指同一处 |
 
 **建议**：在 `src/components/data-table/` 建一个泛型外壳（`table` 由调用方传入 + 稳定空数组 + 三态 + 分页页脚），把 `getPageNumbers`/`preventPaginationNavigation`/`PAGE_SIZE_OPTIONS` 提到 `src/lib/`。7 个屏只保留列定义、工具栏与文案差异。这符合 AGENTS.md「组件被其他特性复用后应上移」。
 
@@ -462,7 +516,7 @@
 
 - **[低]** `system/config/-components/sms-form-drawer.tsx:180` — `secretKey: values.secretKey.trim() || undefined!`，非空断言既无意义又绕过 strict 类型。
 - **[低]** `system/user/-components/user-assign-roles-dialog.tsx:190` — `user={user!}`，`UserAssignRolesForm` 声明的是必填 `user: UserResp`。
-- **[低]** `system/user/-components/user-display.tsx:23` — `status?: UserResp['status'] | number | null`，`UserResp['status']` 已是 `1 | 2`，追加 `| number` 抹掉枚举精度。
+- **[低]** ~~`system/user/-components/user-display.tsx:23` — `status?: UserResp['status'] | number | null`，`UserResp['status']` 已是 `1 | 2`，追加 `| number` 抹掉枚举精度。~~ **【已修复 v2】**：该重复定义已删除，`StatusCell` 收拢到 `src/components/status-cell.tsx`。新签名仍为 `status?: number | null`，因为 `RoleUserResp.status?: number`（`role.ts:101`）比其余调用点更宽，收窄成 `1 | 2` 会直接 typecheck 失败；要收窄需先改该 API 类型。
 - **[低]** `system/config/-components/client-columns.tsx:129-134`、`client-detail-drawer.tsx:80-82`、`client-form-drawer.tsx:130-132`、`client-auth-type-select.tsx:11,22,39,60` — 一批默认值/可选 prop 永远不会被触发（唯一调用点总是传全量，`disabled` 从不传），如 `const map = authTypeMap ?? AUTH_TYPE_MAP`。
 - **[低]** `system/dept/-components/dept-delete-dialog.tsx:46-49` — `handleDelete` 的守卫与渲染守卫 `{!cannotDelete && …}`（`:80`）重复，且 `!dept?.id` 不可达。
 - **[低]** `system/dept/-components/dept-form-drawer.tsx:26` — `z.union([z.string(), z.number()])` 已排除 `null/undefined`，`refine` 仍重复校验。
@@ -476,7 +530,7 @@
 ## 11. 不满足项目最佳实践
 
 - **[高]** `auth/-components/login-form.tsx:37-38` — 硬编码预填超管账号口令（`admin`/`admin123`）。
-- **[中]** 跨特性深层相对导入：`system/role/-components/role-user-drawer.tsx:29`（`'../../user/-components/user-display'`）、`dept-columns.tsx:18`、`menu-columns.tsx:19`（`'@/routes/(main)/(app)/system/user/-components/user-display'`）复用 `StatusCell`。AGENTS.md 要求「组件被其他特性复用后应上移到 `src/components/`」。同一符号已被 dept/menu/role/user 四处复用。
+- **[中]** ~~跨特性深层相对导入：`system/role/-components/role-user-drawer.tsx:29`（`'../../user/-components/user-display'`）、`dept-columns.tsx:18`、`menu-columns.tsx:19`（`'@/routes/(main)/(app)/system/user/-components/user-display'`）复用 `StatusCell`。AGENTS.md 要求「组件被其他特性复用后应上移到 `src/components/`」。同一符号已被 dept/menu/role/user 四处复用。~~ **【已修复 v2】**：`StatusCell` 已上移到 `src/components/status-cell.tsx`（`f5baed3`），上述三处跨路由导入（两处绝对路径 + 一处 `'../../user/…'`）全部消失；同时消掉了 user / app / client 三份逐字相同的重复定义，9 个调用点统一导入。
 - **[中]** 错误态缺失（AGENTS.md 第 12 条要求处理 error）：§4 第 3、4、7 条。
 - **[中]** 表单校验方式不统一：4 个表单式配置面板用 `useState` + `toast` 手写校验，8 个抽屉用 `react-hook-form + zod`；且校验覆盖不一致（`PASSWORD_ERROR_LOCK_COUNT` 0-10、`PASSWORD_ERROR_LOCK_MINUTES` 1-1440 在 UI 写了范围却未校验，`config-security.tsx:139-153`）。
 - **[中]** `system/config/-components/client-delete-dialog.tsx:51` — 手写 destructive 样式而不用 `variant="destructive"`；`:40` 删除进行中仍可 Esc/点遮罩关闭（另 5 个删除对话框都做了 `isDeleting` 守卫）。
@@ -533,11 +587,12 @@
 8. `components/app-shell/index.tsx:48-52` 把 `requireAuth` 提到 `ensureMenuLoaded` 之前（§11）。
 9. `lib/cookie.ts:8-18` 补编解码（§11）—— `mail.tsx:68` 传入 `JSON.stringify` 的值会被读回错误内容。
 
-### 批次 2：R2 还原（低风险、可批量）
+### 批次 2：R2 还原（低风险、可批量）—— **v2 已基本完成**
 
-7. `components/ui/table.tsx` 回退 `containerClassName`，调用点自行包 `<div>`（`dept-table.tsx:41`、`menu-table.tsx:41`）。
-8. 回退 `tooltip.tsx` / `toast.tsx` / `button.tsx` / `sidebar.tsx` 的私有样式改动（`sidebar.tsx:342` 的 `overscroll-contain` 保留）。
-9. 把 4 个自研组件移出 `ui/`：`tree.tsx`、`tree-select.tsx` → `src/components/`；`striped-pattern.tsx` → `auth/-components/`；`password-input.tsx` → `src/components/`。
+7. ~~`components/ui/table.tsx` 回退 `containerClassName`，调用点自行包 `<div>`~~ ✅ **已完成**（`82309ad`）：调用点改用 `*:data-[slot=table-container]:…` 触达内层容器。
+8. ~~回退 `tooltip.tsx` / `toast.tsx` / `button.tsx` / `sidebar.tsx` 的私有样式改动~~ ✅ **部分完成**：`sidebar.tsx` 已还原（`beb9883`）；`tooltip.tsx` / `toast.tsx` / `button.tsx` 经所有者确认属**有意改动**，保留（见 §3.2(a)）。`sidebar.tsx:342` 的 `overscroll-contain` 按 AGENTS.md 保留。
+9. ~~把 4 个自研组件移出 `ui/`~~ ✅ **口径已澄清**：`ui/` 是基础组件目录，`tree.tsx` / `tree-select.tsx` / `striped-pattern.tsx` 按所有者要求**留在 `ui/`**；`password-input.tsx` 已移到 `src/components/`（`f5baed3`）。见 §0.2、§3.2(b)。
+10. **（v2 新增）** 把 §0.2 的三条口径写进 AGENTS.md：`ui/` 允许放项目基础组件；自研复合控件的 ARIA 不受 R3 约束；`aria-label` 在 `ui/` 内允许。
 
 ### 批次 3：删死代码（零风险、收益最大）
 

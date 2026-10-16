@@ -2,8 +2,8 @@ import * as React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Building2 } from 'lucide-react'
 
-import type { TreeNodeData } from '@/components/tree'
-import { TreeSelect } from '@/components/tree-select'
+import { TreeSelect } from '@/components/ui/tree-select'
+import type { TreeNodeData } from '@/components/ui/tree'
 import { deptKeys, getDeptTree, type DeptTreeNode } from '@/lib/api/dept'
 
 const LOOKUP_STALE_MS = 5 * 60_000

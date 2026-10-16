@@ -1,8 +1,6 @@
 import { Badge } from '@/components/ui/badge'
 import type { StorageResp, StorageStatus, StorageType } from '@/lib/api/storage'
-
-/** Stands in for a value the backend leaves empty. */
-export const EMPTY_PLACEHOLDER = '—'
+import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 
 const TYPE_LABELS: Record<StorageType, string> = {
   1: '本地存储',

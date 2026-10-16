@@ -14,9 +14,10 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import type { AppResp } from '@/lib/api/app'
+import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 
-import { AccessKeyCell, EMPTY_PLACEHOLDER, ExpireTimeCell } from './app-display'
+import { AccessKeyCell, ExpireTimeCell } from './app-display'
 
 /** The row actions the table raises. */
 export type AppAction = 'detail' | 'edit' | 'secret' | 'resetSecret' | 'delete'

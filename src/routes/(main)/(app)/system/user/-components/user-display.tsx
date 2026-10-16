@@ -1,8 +1,6 @@
 import { Badge } from '@/components/ui/badge'
 import type { UserResp } from '@/lib/api/user'
-
-/** Stands in for a value the backend masks or leaves empty. */
-export const EMPTY_PLACEHOLDER = '—'
+import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 
 /** `GenderEnum` arrives as its numeric value. */
 const GENDER_LABELS: Record<number, string> = {
