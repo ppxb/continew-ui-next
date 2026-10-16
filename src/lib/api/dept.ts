@@ -1,18 +1,23 @@
-import { http } from '@/lib/http'
+import { downloadFile, http } from '@/lib/http'
 
-/**
- * A node of `GET /system/dept/tree`.
- *
- * The backend serializes Hutool's `Tree`, so departments arrive nested under `children`.
- * Ids follow the same big-number rule as everywhere else, which is why they stay untyped
- * as `string | number` instead of being narrowed.
- */
-export interface DeptTreeNode {
+/** Response model for a department node in `GET /system/dept/tree` or `GET /system/dept/{id}`. */
+export interface DeptResp {
   id: string | number
   parentId: string | number | null
   name: string
-  children?: DeptTreeNode[]
+  status: 1 | 2
+  sort: number
+  isSystem: boolean
+  description: string | null
+  createUserString?: string | null
+  createTime?: string | null
+  updateUserString?: string | null
+  updateTime?: string | null
+  children?: DeptResp[]
 }
+
+/** Backward compatibility alias for components relying on `DeptTreeNode`. */
+export type DeptTreeNode = DeptResp
 
 /** One flattened department, tagged with its depth for indented display. */
 export interface DeptOption {
@@ -21,9 +26,60 @@ export interface DeptOption {
   depth: number
 }
 
-/** The whole department tree. There is no flat list endpoint for departments. */
-export function getDeptTree() {
-  return http.get<DeptTreeNode[]>('/system/dept/tree')
+/** Query parameters for `GET /system/dept/tree`. */
+export interface DeptQuery {
+  description?: string
+  status?: number
+}
+
+/** Request payload for creating or updating a department. */
+export interface DeptReq {
+  parentId: string | number
+  name: string
+  sort?: number
+  status?: 1 | 2
+  description?: string | null
+}
+
+/** Fetches the whole department tree from `GET /system/dept/tree`. */
+export function getDeptTree(): Promise<DeptResp[]>
+export function getDeptTree(query?: DeptQuery): Promise<DeptResp[]>
+export function getDeptTree(query?: unknown): Promise<DeptResp[]> {
+  const isContext = query && typeof query === 'object' && 'queryKey' in query
+  const actualQuery = isContext ? undefined : (query as DeptQuery | undefined)
+  return http.get<DeptResp[]>('/system/dept/tree', {
+    query: actualQuery as Record<string, string | number | boolean | null | undefined>
+  })
+}
+
+/** Fetches a single department record by ID. */
+export function getDept(id: string | number) {
+  return http.get<DeptResp>(`/system/dept/${id}`)
+}
+
+/** Creates a new department. */
+export function createDept(body: DeptReq) {
+  return http.post<{ id: string | number }>('/system/dept', body)
+}
+
+/** Updates an existing department. */
+export function updateDept(id: string | number, body: DeptReq) {
+  return http.put<void>(`/system/dept/${id}`, body)
+}
+
+/** Batch deletes departments. Accepts `{ ids }`. */
+export function deleteDepts(ids: Array<string | number>) {
+  return http.del<void>('/system/dept', { body: { ids } })
+}
+
+/** Deletes a single department. */
+export function deleteDept(id: string | number) {
+  return deleteDepts([id])
+}
+
+/** Exports department data to Excel. */
+export function exportDept(query?: DeptQuery) {
+  return downloadFile('/system/dept/export', query as Record<string, string | number | boolean | null | undefined>)
 }
 
 /** Flattens the tree in display order, parents before their children. */

@@ -18,7 +18,10 @@ export const userKeys = {
 
 export const deptKeys = {
   all: ['system', 'dept'] as const,
-  trees: () => [...deptKeys.all, 'tree'] as const
+  trees: () => [...deptKeys.all, 'tree'] as const,
+  tree: (query?: { description?: string; status?: number }) => [...deptKeys.trees(), query] as const,
+  details: () => [...deptKeys.all, 'detail'] as const,
+  detail: (id: string | number | null) => [...deptKeys.details(), id] as const
 }
 
 export const menuKeys = {

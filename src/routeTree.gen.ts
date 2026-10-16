@@ -42,6 +42,7 @@ import { Route as mainDashboardRolesRouteRouteImport } from './routes/(main)/das
 import { Route as mainDashboardTasksRouteRouteImport } from './routes/(main)/dashboard/tasks/route'
 import { Route as mainDashboardUsersRouteRouteImport } from './routes/(main)/dashboard/users/route'
 import { Route as mainappOpenAppRouteRouteImport } from './routes/(main)/(app)/open/app/route'
+import { Route as mainappSystemDeptRouteRouteImport } from './routes/(main)/(app)/system/dept/route'
 import { Route as mainappSystemMenuRouteRouteImport } from './routes/(main)/(app)/system/menu/route'
 import { Route as mainappSystemRoleRouteRouteImport } from './routes/(main)/(app)/system/role/route'
 import { Route as mainappSystemUserRouteRouteImport } from './routes/(main)/(app)/system/user/route'
@@ -229,6 +230,11 @@ const mainappOpenAppRouteRoute = mainappOpenAppRouteRouteImport.update({
   path: '/open/app',
   getParentRoute: () => mainappRouteRoute,
 } as any)
+const mainappSystemDeptRouteRoute = mainappSystemDeptRouteRouteImport.update({
+  id: '/system/dept',
+  path: '/system/dept',
+  getParentRoute: () => mainappRouteRoute,
+} as any)
 const mainappSystemMenuRouteRoute = mainappSystemMenuRouteRouteImport.update({
   id: '/system/menu',
   path: '/system/menu',
@@ -302,6 +308,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/$': typeof mainDashboardSplatRoute
   '/dashboard/': typeof mainDashboardIndexRoute
   '/open/app': typeof mainappOpenAppRouteRoute
+  '/system/dept': typeof mainappSystemDeptRouteRoute
   '/system/menu': typeof mainappSystemMenuRouteRoute
   '/system/role': typeof mainappSystemRoleRouteRoute
   '/system/user': typeof mainappSystemUserRouteRoute
@@ -342,6 +349,7 @@ export interface FileRoutesByTo {
   '/dashboard/$': typeof mainDashboardSplatRoute
   '/dashboard': typeof mainDashboardIndexRoute
   '/open/app': typeof mainappOpenAppRouteRoute
+  '/system/dept': typeof mainappSystemDeptRouteRoute
   '/system/menu': typeof mainappSystemMenuRouteRoute
   '/system/role': typeof mainappSystemRoleRouteRoute
   '/system/user': typeof mainappSystemUserRouteRoute
@@ -385,6 +393,7 @@ export interface FileRoutesById {
   '/(main)/dashboard/$': typeof mainDashboardSplatRoute
   '/(main)/dashboard/': typeof mainDashboardIndexRoute
   '/(main)/(app)/open/app': typeof mainappOpenAppRouteRoute
+  '/(main)/(app)/system/dept': typeof mainappSystemDeptRouteRoute
   '/(main)/(app)/system/menu': typeof mainappSystemMenuRouteRoute
   '/(main)/(app)/system/role': typeof mainappSystemRoleRouteRoute
   '/(main)/(app)/system/user': typeof mainappSystemUserRouteRoute
@@ -428,6 +437,7 @@ export interface FileRouteTypes {
     | '/dashboard/$'
     | '/dashboard/'
     | '/open/app'
+    | '/system/dept'
     | '/system/menu'
     | '/system/role'
     | '/system/user'
@@ -468,6 +478,7 @@ export interface FileRouteTypes {
     | '/dashboard/$'
     | '/dashboard'
     | '/open/app'
+    | '/system/dept'
     | '/system/menu'
     | '/system/role'
     | '/system/user'
@@ -510,6 +521,7 @@ export interface FileRouteTypes {
     | '/(main)/dashboard/$'
     | '/(main)/dashboard/'
     | '/(main)/(app)/open/app'
+    | '/(main)/(app)/system/dept'
     | '/(main)/(app)/system/menu'
     | '/(main)/(app)/system/role'
     | '/(main)/(app)/system/user'
@@ -762,6 +774,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof mainappOpenAppRouteRouteImport
       parentRoute: typeof mainappRouteRoute
     }
+    '/(main)/(app)/system/dept': {
+      id: '/(main)/(app)/system/dept'
+      path: '/system/dept'
+      fullPath: '/system/dept'
+      preLoaderRoute: typeof mainappSystemDeptRouteRouteImport
+      parentRoute: typeof mainappRouteRoute
+    }
     '/(main)/(app)/system/menu': {
       id: '/(main)/(app)/system/menu'
       path: '/system/menu'
@@ -817,6 +836,7 @@ declare module '@tanstack/react-router' {
 interface mainappRouteRouteChildren {
   mainappSplatRoute: typeof mainappSplatRoute
   mainappOpenAppRouteRoute: typeof mainappOpenAppRouteRoute
+  mainappSystemDeptRouteRoute: typeof mainappSystemDeptRouteRoute
   mainappSystemMenuRouteRoute: typeof mainappSystemMenuRouteRoute
   mainappSystemRoleRouteRoute: typeof mainappSystemRoleRouteRoute
   mainappSystemUserRouteRoute: typeof mainappSystemUserRouteRoute
@@ -825,6 +845,7 @@ interface mainappRouteRouteChildren {
 const mainappRouteRouteChildren: mainappRouteRouteChildren = {
   mainappSplatRoute: mainappSplatRoute,
   mainappOpenAppRouteRoute: mainappOpenAppRouteRoute,
+  mainappSystemDeptRouteRoute: mainappSystemDeptRouteRoute,
   mainappSystemMenuRouteRoute: mainappSystemMenuRouteRoute,
   mainappSystemRoleRouteRoute: mainappSystemRoleRouteRoute,
   mainappSystemUserRouteRoute: mainappSystemUserRouteRoute,
