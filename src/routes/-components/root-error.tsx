@@ -16,7 +16,7 @@ export function RootError({ error, reset }: ErrorComponentProps) {
       </div>
       <div className="flex flex-wrap justify-center gap-2">
         <Button onClick={reset}>Try again</Button>
-        <Button nativeButton={false} variant="outline" render={<Link to="/dashboard/default" replace />}>
+        <Button nativeButton={false} variant="outline" render={<Link to="/dashboard" replace />}>
           Go to dashboard
         </Button>
       </div>

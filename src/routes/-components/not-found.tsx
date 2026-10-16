@@ -7,7 +7,7 @@ export function NotFound() {
     <div className="flex h-dvh flex-col items-center justify-center space-y-2 text-center">
       <h1 className="text-2xl font-semibold">Page not found.</h1>
       <p className="text-muted-foreground">The page you are looking for could not be found.</p>
-      <Button nativeButton={false} variant="outline" render={<Link to="/dashboard/default" replace />}>
+      <Button nativeButton={false} variant="outline" render={<Link to="/dashboard" replace />}>
         Go back home
       </Button>
     </div>
