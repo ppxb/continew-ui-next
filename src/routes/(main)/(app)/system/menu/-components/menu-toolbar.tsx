@@ -43,6 +43,20 @@ interface MenuToolbarProps {
   readonly onResetColumns: () => void
 }
 
+const COLUMN_LABEL_MAP: Record<string, string> = {
+  title: '菜单名称',
+  type: '类型',
+  path: '路由地址',
+  name: '组件名称',
+  component: '组件路径',
+  permission: '权限标识',
+  sort: '排序',
+  status: '状态',
+  isHidden: '隐藏',
+  isExternal: '外链',
+  isCache: '缓存'
+}
+
 export function MenuToolbar({
   table,
   isRefreshing,
@@ -107,7 +121,9 @@ export function MenuToolbar({
               <DropdownMenuLabel>显示的列</DropdownMenuLabel>
               <DropdownMenuSeparator />
               {hideableColumns.map(column => {
-                const label = typeof column.columnDef.header === 'string' ? column.columnDef.header : column.id
+                const label =
+                  COLUMN_LABEL_MAP[column.id] ||
+                  (typeof column.columnDef.header === 'string' ? column.columnDef.header : column.id)
 
                 return (
                   <DropdownMenuCheckboxItem

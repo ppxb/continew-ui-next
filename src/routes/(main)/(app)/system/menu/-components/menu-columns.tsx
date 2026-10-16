@@ -16,6 +16,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import type { MenuResp, MenuType } from '@/lib/api/menu'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 import { resolveMenuIcon } from '@/navigation/sidebar/menu-icons'
+import { StatusCell } from '@/routes/(main)/(app)/system/user/-components/user-display'
 import { cn } from 'cn'
 
 export type MenuAction = 'edit' | 'add-child' | 'delete'
@@ -47,30 +48,12 @@ function MenuTypeBadge({ type }: { type: MenuType }) {
   )
 }
 
-function StatusIndicator({ status }: { status: number }) {
-  const isEnabled = status === 1
+function BooleanBadge({ value }: { value?: boolean }) {
+  const isTrue = Boolean(value)
 
   return (
-    <div className="inline-flex items-center gap-1.5 text-xs">
-      <span
-        className={cn(
-          'size-1.5 shrink-0 rounded-full',
-          isEnabled ? 'bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.6)]' : 'bg-muted-foreground/40'
-        )}
-      />
-      <span className={isEnabled ? 'text-foreground' : 'text-muted-foreground'}>{isEnabled ? '启用' : '禁用'}</span>
-    </div>
-  )
-}
-
-function BooleanTag({ value }: { value?: boolean }) {
-  if (!value) {
-    return <span className="text-sm text-muted-foreground/50">否</span>
-  }
-
-  return (
-    <Badge variant="secondary" className="font-normal">
-      是
+    <Badge variant={isTrue ? 'secondary' : 'outline'} className={cn('font-normal', !isTrue && 'text-muted-foreground')}>
+      {isTrue ? '是' : '否'}
     </Badge>
   )
 }
@@ -178,7 +161,7 @@ export function createMenuColumns({
               <span className="size-5 shrink-0" />
             )}
 
-            <Icon className="size-4 shrink-0 text-muted-foreground" />
+            {menu.type !== 3 && <Icon className="size-4 shrink-0 text-muted-foreground" />}
 
             <span
               className={cn(
@@ -196,7 +179,7 @@ export function createMenuColumns({
     },
     {
       accessorKey: 'type',
-      header: () => <div className="text-center">类型</div>,
+      header: '类型',
       cell: ({ row }) => (
         <div className="flex justify-center">
           <MenuTypeBadge type={row.original.type} />
@@ -206,30 +189,31 @@ export function createMenuColumns({
     {
       accessorKey: 'path',
       header: '路由地址',
-      cell: ({ row }) => <span className="font-mono text-sm text-muted-foreground">{row.original.path || '-'}</span>
+      cell: ({ row }) => <span className="text-sm text-muted-foreground">{row.original.path || '-'}</span>
+    },
+    {
+      accessorKey: 'name',
+      header: '组件名称',
+      cell: ({ row }) => <span className="text-sm text-foreground">{row.original.name || '-'}</span>
     },
     {
       accessorKey: 'component',
       header: '组件路径',
-      cell: ({ row }) => (
-        <span className="font-mono text-sm text-muted-foreground">{row.original.component || '-'}</span>
-      )
+      cell: ({ row }) => <span className="text-sm text-muted-foreground">{row.original.component || '-'}</span>
     },
     {
       accessorKey: 'permission',
       header: '权限标识',
       cell: ({ row }) =>
         row.original.permission ? (
-          <Badge variant="secondary" className="font-mono text-xs">
-            {row.original.permission}
-          </Badge>
+          <Badge variant="secondary">{row.original.permission}</Badge>
         ) : (
           <span className="text-sm text-muted-foreground">-</span>
         )
     },
     {
       accessorKey: 'sort',
-      header: () => <div className="text-center">排序</div>,
+      header: '排序',
       cell: ({ row }) => (
         <div className="text-center">
           <span className="text-sm text-muted-foreground tabular-nums">{row.original.sort}</span>
@@ -238,37 +222,37 @@ export function createMenuColumns({
     },
     {
       accessorKey: 'status',
-      header: () => <div className="text-center">状态</div>,
+      header: '状态',
       cell: ({ row }) => (
         <div className="flex justify-center">
-          <StatusIndicator status={row.original.status} />
+          <StatusCell status={row.original.status} />
         </div>
       )
     },
     {
       accessorKey: 'isHidden',
-      header: () => <div className="text-center">隐藏</div>,
+      header: '隐藏',
       cell: ({ row }) => (
         <div className="flex justify-center">
-          <BooleanTag value={row.original.isHidden} />
+          <BooleanBadge value={row.original.isHidden} />
         </div>
       )
     },
     {
       accessorKey: 'isExternal',
-      header: () => <div className="text-center">外链</div>,
+      header: '外链',
       cell: ({ row }) => (
         <div className="flex justify-center">
-          <BooleanTag value={row.original.isExternal} />
+          <BooleanBadge value={row.original.isExternal} />
         </div>
       )
     },
     {
       accessorKey: 'isCache',
-      header: () => <div className="text-center">缓存</div>,
+      header: '缓存',
       cell: ({ row }) => (
         <div className="flex justify-center">
-          <BooleanTag value={row.original.isCache} />
+          <BooleanBadge value={row.original.isCache} />
         </div>
       )
     },
