@@ -14,6 +14,7 @@ import {
   AlertDialogTitle
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
+import { Field, FieldContent, FieldDescription, FieldLabel } from '@/components/ui/field'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
 import { Switch } from '@/components/ui/switch'
@@ -162,23 +163,23 @@ export function ConfigLogin() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center justify-between rounded-lg border p-4">
-          <div className="space-y-0.5">
-            <label className="cursor-pointer text-sm leading-none font-medium">
+      <div className="flex flex-col gap-4 max-w-xl">
+        <Field orientation="horizontal" className="items-center justify-between">
+          <FieldContent>
+            <FieldLabel className="text-left font-medium">
               {optionMap.LOGIN_CAPTCHA_ENABLED?.name || '是否启用验证码'}
-            </label>
-            <p className="mt-1 text-xs text-muted-foreground">
+            </FieldLabel>
+            <FieldDescription>
               {optionMap.LOGIN_CAPTCHA_ENABLED?.description ||
                 '开启后，用户在后台登录时需要输入图形验证码以防止暴力破解'}
-            </p>
-          </div>
+            </FieldDescription>
+          </FieldContent>
           <Switch
             checked={form.LOGIN_CAPTCHA_ENABLED === 1}
             onCheckedChange={checked => setForm(prev => ({ ...prev, LOGIN_CAPTCHA_ENABLED: checked ? 1 : 0 }))}
             disabled={!isEdit}
           />
-        </div>
+        </Field>
       </div>
 
       {/* Reset Confirmation Dialog */}
