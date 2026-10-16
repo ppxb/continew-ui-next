@@ -4,9 +4,11 @@ import { queryOptions, useQuery } from '@tanstack/react-query'
 
 import { getUserRoutes } from '@/lib/api/auth'
 import { ApiError } from '@/lib/http'
+import { getAccessToken } from '@/lib/auth-session'
 import { getCachedMenu, setCachedMenu } from '@/lib/menu-cache'
 import { queryClient } from '@/lib/query-client'
 import { STATIC_MENU_ITEMS, toMenuGroups } from '@/navigation/sidebar/menu'
+import { useAuthStore } from '@/stores/auth/auth-provider'
 
 /** The menu only changes when the signed-in user or its roles change. */
 export const MENU_QUERY_KEY = ['auth', 'menu'] as const
@@ -23,7 +25,11 @@ export const menuQueryOptions = queryOptions({
 })
 
 export function useMenuRoutes() {
-  return useQuery(menuQueryOptions)
+  const status = useAuthStore(state => state.status)
+  return useQuery({
+    ...menuQueryOptions,
+    enabled: status === 'authenticated' && Boolean(getAccessToken())
+  })
 }
 
 /**

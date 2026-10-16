@@ -213,7 +213,7 @@ async function send<T>(method: string, path: string, options: RequestOptions, is
   }
 
   if (response.status === 401) {
-    if (skipAuthRefresh || path === REFRESH_PATH || isRetry) {
+    if (skipAuthRefresh || path === REFRESH_PATH || isRetry || !getAccessToken()) {
       const payload = await readPayload<T>(response)
       const message = payload?.msg || (payload as { message?: string })?.message || '登录状态已失效，请重新登录'
       await handleSessionExpired(generation, message)
