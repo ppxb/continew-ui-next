@@ -20,6 +20,7 @@ export interface ClientResp {
   createTime?: string
   updateUserString?: string
   updateTime?: string
+  disabled?: boolean
 }
 
 export interface ClientQuery {

@@ -43,7 +43,7 @@ function toCheckablePermissionNodes(nodes: RolePermissionResp[]): CheckableTreeN
       searchTerms: node.permission ?? '',
       tag: typeLabel ? <Badge variant="secondary">{typeLabel}</Badge> : null,
       subtitle: node.permission ? (
-        <Badge variant="secondary" className="font-mono text-[11px]">
+        <Badge variant="secondary" className="text-[11px]">
           {node.permission}
         </Badge>
       ) : null,

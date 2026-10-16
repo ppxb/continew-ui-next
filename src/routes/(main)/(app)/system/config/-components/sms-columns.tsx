@@ -43,9 +43,7 @@ export function createSmsColumns(
     {
       accessorKey: 'supplier',
       header: '服务厂商',
-      cell: ({ row }) => (
-        <Badge variant="outline">{supplierMap[row.original.supplier] || row.original.supplier}</Badge>
-      )
+      cell: ({ row }) => <Badge variant="outline">{supplierMap[row.original.supplier] || row.original.supplier}</Badge>
     },
     {
       accessorKey: 'accessKey',
@@ -53,8 +51,8 @@ export function createSmsColumns(
       cell: ({ row }) => {
         const val = row.original.accessKey
         return (
-          <div className="flex items-center gap-1.5 font-mono text-xs">
-            <span className="max-w-[140px] truncate">{val}</span>
+          <div className="flex items-center gap-1.5 text-xs">
+            <span className="max-w-35 truncate">{val}</span>
             <button
               type="button"
               onClick={() => {
@@ -78,7 +76,7 @@ export function createSmsColumns(
     {
       accessorKey: 'templateId',
       header: '模板 ID',
-      cell: ({ row }) => <span className="font-mono text-xs">{row.original.templateId}</span>
+      cell: ({ row }) => <span className="text-xs">{row.original.templateId}</span>
     },
     {
       accessorKey: 'weight',
@@ -152,10 +150,7 @@ export function createSmsColumns(
                       </DropdownMenuItem>
                     )}
                     {canDelete && (
-                      <DropdownMenuItem
-                        variant="destructive"
-                        onClick={() => onAction('delete', record)}
-                      >
+                      <DropdownMenuItem variant="destructive" onClick={() => onAction('delete', record)}>
                         <Trash2 className="size-4" />
                         删除
                       </DropdownMenuItem>
