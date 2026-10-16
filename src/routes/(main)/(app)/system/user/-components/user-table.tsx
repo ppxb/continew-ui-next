@@ -147,7 +147,7 @@ export function UserTable({ table, isLoading, isError, isStale, onRetry }: UserT
       </Table>
 
       {rowCount > 0 ? (
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t px-4 pt-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t px-4 py-4">
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <span>每页</span>

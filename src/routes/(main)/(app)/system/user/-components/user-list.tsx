@@ -1,11 +1,8 @@
 import * as React from 'react'
-
 import { useQuery } from '@tanstack/react-query'
 import { type ColumnVisibilityState, type PaginationState, useTable } from '@tanstack/react-table'
-
 import { cn } from 'cn'
 import { Search } from 'lucide-react'
-
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -265,7 +262,7 @@ export function UserList() {
 
   return (
     <>
-      <Card>
+      <Card className="pb-0">
         <CardHeader className="has-data-[slot=card-action]:grid-cols-1 md:has-data-[slot=card-action]:grid-cols-[1fr_auto]">
           <CardTitle className="text-xl">用户管理</CardTitle>
           <CardDescription>维护系统用户，查看用户的基本信息</CardDescription>
@@ -275,7 +272,6 @@ export function UserList() {
                 <Search className="size-3.5" />
               </InputGroupAddon>
               <InputGroupInput
-                className="h-7"
                 placeholder="搜索用户名、昵称、描述"
                 value={searchInput}
                 onChange={event => setSearchInput(event.target.value)}
