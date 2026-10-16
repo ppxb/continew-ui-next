@@ -5,6 +5,7 @@ import { type ColumnDef, type PaginationState, type RowSelectionState, useTable 
 
 import { Plus, Search, Trash2, Users, UserX, X } from 'lucide-react'
 
+import { StatusCell } from '@/components/status-cell'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -26,7 +27,6 @@ import { dataTableFeatures, type DataTableFeatures } from '@/lib/data-table-feat
 import { getInitials } from '@/lib/utils'
 
 import { RoleUserAddDialog } from './role-user-add-dialog'
-import { StatusCell } from '../../user/-components/user-display'
 
 const EMPTY_MEMBERS: RoleUserResp[] = []
 

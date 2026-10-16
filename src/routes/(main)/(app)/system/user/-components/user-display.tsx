@@ -20,17 +20,6 @@ export function userLabel(user: Pick<UserResp, 'nickname' | 'username'>) {
   return user.nickname || user.username
 }
 
-export function StatusCell({ status }: { status?: UserResp['status'] | number | null }) {
-  const isEnabled = status === 1
-
-  return (
-    <Badge variant="secondary">
-      <span className={isEnabled ? 'size-1.5 rounded-full bg-green-600' : 'size-1.5 rounded-full bg-destructive'} />
-      {isEnabled ? '启用' : '禁用'}
-    </Badge>
-  )
-}
-
 interface RoleCellProps {
   readonly roleNames: string[]
   /**

@@ -3,6 +3,7 @@ import * as React from 'react'
 import { cn } from 'cn'
 import { Check, Copy, Smartphone, X } from 'lucide-react'
 
+import { StatusCell } from '@/components/status-cell'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
@@ -15,8 +16,7 @@ import {
   EMPTY_PLACEHOLDER,
   LOGOUT_MODE_MAP,
   REFRESH_TOKEN_MODE_MAP,
-  REPLACED_RANGE_MAP,
-  StatusCell
+  REPLACED_RANGE_MAP
 } from './client-columns'
 
 const COPIED_FEEDBACK_MS = 1500

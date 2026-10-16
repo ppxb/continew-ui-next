@@ -3,6 +3,7 @@ import * as React from 'react'
 import type { ColumnDef } from '@tanstack/react-table'
 import { Check, Copy, Eye, MoreHorizontal, PenLine, Trash2 } from 'lucide-react'
 
+import { StatusCell } from '@/components/status-cell'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -72,17 +73,6 @@ function TextCell({ value }: { value: string | null | undefined }) {
   return <span className="text-sm">{value || EMPTY_PLACEHOLDER}</span>
 }
 
-export function StatusCell({ status }: { status?: ClientResp['status'] | number | null }) {
-  const isEnabled = status === 1
-
-  return (
-    <Badge variant="secondary">
-      <span className={isEnabled ? 'size-1.5 rounded-full bg-green-600' : 'size-1.5 rounded-full bg-destructive'} />
-      {isEnabled ? '启用' : '禁用'}
-    </Badge>
-  )
-}
-
 function ClientIdCell({ clientId }: { clientId: string }) {
   const [copied, setCopied] = React.useState(false)
   const timer = React.useRef<ReturnType<typeof setTimeout>>(undefined)
@@ -136,7 +126,7 @@ function AuthTypeCell({ authTypes, authTypeMap }: { authTypes?: string[]; authTy
   return (
     <div className="flex items-center gap-1 whitespace-nowrap">
       {authTypes.map(at => (
-        <Badge key={at} variant="secondary" className="shrink-0 whitespace-nowrap font-normal">
+        <Badge key={at} variant="secondary" className="shrink-0 font-normal whitespace-nowrap">
           {map[at] || at}
         </Badge>
       ))}

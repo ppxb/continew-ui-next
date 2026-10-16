@@ -2,6 +2,7 @@ import type { ColumnDef } from '@tanstack/react-table'
 
 import { Eye, KeyRound, MoreHorizontal, PenLine, ShieldCheck, Trash2 } from 'lucide-react'
 
+import { StatusCell } from '@/components/status-cell'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -18,7 +19,7 @@ import type { UserResp } from '@/lib/api/user'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 import { getInitials } from '@/lib/utils'
 
-import { EMPTY_PLACEHOLDER, genderLabel, RoleCell, StatusCell } from './user-display'
+import { EMPTY_PLACEHOLDER, genderLabel, RoleCell } from './user-display'
 
 /** The row actions the table raises. */
 export type UserAction = 'detail' | 'edit' | 'resetPassword' | 'assignRoles' | 'delete'

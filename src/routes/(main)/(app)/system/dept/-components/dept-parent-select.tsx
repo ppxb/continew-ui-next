@@ -2,8 +2,8 @@ import * as React from 'react'
 
 import { Building2 } from 'lucide-react'
 
-import type { TreeKey, TreeNodeData } from '@/components/ui/tree'
-import { TreeSelect } from '@/components/ui/tree-select'
+import type { TreeKey, TreeNodeData } from '@/components/tree'
+import { TreeSelect } from '@/components/tree-select'
 import type { DeptResp } from '@/lib/api/dept'
 
 /** Recursively collects the target ID and all its descendant IDs to prevent cyclic parenting. */

@@ -2,6 +2,7 @@ import type { ColumnDef } from '@tanstack/react-table'
 
 import { Building2, ChevronRight, MoreHorizontal, PenLine, Plus, Trash2 } from 'lucide-react'
 
+import { StatusCell } from '@/components/status-cell'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -15,7 +16,6 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import type { DeptResp } from '@/lib/api/dept'
 import type { DataTableFeatures } from '@/lib/data-table-features'
-import { StatusCell } from '@/routes/(main)/(app)/system/user/-components/user-display'
 import { cn } from 'cn'
 
 export type DeptAction = 'edit' | 'add-child' | 'delete'

@@ -2,6 +2,7 @@ import type { ColumnDef } from '@tanstack/react-table'
 
 import { Eye, KeyRound, MoreHorizontal, PenLine, RotateCcw, Trash2 } from 'lucide-react'
 
+import { StatusCell } from '@/components/status-cell'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -15,7 +16,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import type { AppResp } from '@/lib/api/app'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 
-import { AccessKeyCell, EMPTY_PLACEHOLDER, ExpireTimeCell, StatusCell } from './app-display'
+import { AccessKeyCell, EMPTY_PLACEHOLDER, ExpireTimeCell } from './app-display'
 
 /** The row actions the table raises. */
 export type AppAction = 'detail' | 'edit' | 'secret' | 'resetSecret' | 'delete'

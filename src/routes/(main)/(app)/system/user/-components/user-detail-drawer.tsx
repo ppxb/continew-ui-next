@@ -3,6 +3,7 @@ import * as React from 'react'
 import { cn } from 'cn'
 import { Check, Copy, User, X } from 'lucide-react'
 
+import { StatusCell } from '@/components/status-cell'
 import { Button } from '@/components/ui/button'
 import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -10,7 +11,7 @@ import { toast } from '@/components/ui/toast'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import type { UserDetailResp } from '@/lib/api/user'
 
-import { EMPTY_PLACEHOLDER, genderLabel, RoleCell, StatusCell } from './user-display'
+import { EMPTY_PLACEHOLDER, genderLabel, RoleCell } from './user-display'
 import { useUserDetail } from './use-user-detail'
 
 const COPIED_FEEDBACK_MS = 1500

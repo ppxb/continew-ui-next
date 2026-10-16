@@ -2,8 +2,8 @@ import * as React from 'react'
 
 import { FileText, Folder } from 'lucide-react'
 
-import { TreeSelect } from '@/components/ui/tree-select'
-import type { TreeKey, TreeNodeData } from '@/components/ui/tree'
+import type { TreeKey, TreeNodeData } from '@/components/tree'
+import { TreeSelect } from '@/components/tree-select'
 import type { MenuResp } from '@/lib/api/menu'
 import { resolveMenuIcon } from '@/navigation/sidebar/menu-icons'
 

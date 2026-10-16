@@ -7,6 +7,7 @@ import { z } from 'zod'
 
 import { KeyRound } from 'lucide-react'
 
+import { PasswordInput } from '@/components/password-input'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -17,7 +18,6 @@ import {
   DialogTitle
 } from '@/components/ui/dialog'
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
-import { PasswordInput } from '@/components/ui/password-input'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
 import { resetUserPassword, userKeys, type UserResp } from '@/lib/api/user'

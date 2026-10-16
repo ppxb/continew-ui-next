@@ -2,6 +2,7 @@ import type { ColumnDef } from '@tanstack/react-table'
 
 import { ChevronRight, Folder, MoreHorizontal, PenLine, Plus, Trash2 } from 'lucide-react'
 
+import { StatusCell } from '@/components/status-cell'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -16,7 +17,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import type { MenuResp, MenuType } from '@/lib/api/menu'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 import { resolveMenuIcon } from '@/navigation/sidebar/menu-icons'
-import { StatusCell } from '@/routes/(main)/(app)/system/user/-components/user-display'
 import { cn } from 'cn'
 
 export type MenuAction = 'edit' | 'add-child' | 'delete'

@@ -2,10 +2,10 @@ import * as React from 'react'
 import { cn } from 'cn'
 import { ChevronsDownUp, ChevronsUpDown, ChevronDown, Search, X } from 'lucide-react'
 
+import { Tree, TreeSkeleton, type TreeKey, type TreeNodeData, type TreeProps } from '@/components/tree'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { Tree, TreeSkeleton, type TreeKey, type TreeNodeData, type TreeProps } from '@/components/ui/tree'
 
 export interface TreeSelectProps<T = Record<string, unknown>> {
   data: TreeNodeData<T>[]

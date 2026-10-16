@@ -17,17 +17,6 @@ export function appLabel(app: Pick<AppResp, 'name'>) {
   return app.name
 }
 
-export function StatusCell({ status }: { status?: AppResp['status'] | number | null }) {
-  const isEnabled = status === 1
-
-  return (
-    <Badge variant="secondary">
-      <span className={isEnabled ? 'size-1.5 rounded-full bg-green-600' : 'size-1.5 rounded-full bg-destructive'} />
-      {isEnabled ? '启用' : '禁用'}
-    </Badge>
-  )
-}
-
 export function ExpireTimeCell({ expireTime }: { expireTime: string | null | undefined }) {
   if (!expireTime) {
     return <span className="text-sm text-muted-foreground">永久有效</span>
