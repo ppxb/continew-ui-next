@@ -142,9 +142,9 @@ interface UserAssignRolesDialogProps {
 export function UserAssignRolesDialog({ user, open, onClose }: UserAssignRolesDialogProps) {
   const userId = user?.id ?? null
 
-  // Shares its key with the detail and edit drawers, so all three read one cached record. The
-  // options make this one refetch every time the dialog opens rather than trust that cache.
-  const detail = useUserDetail(userId, { enabled: open, alwaysRefetch: true })
+  // Shares its key with the detail and edit drawers, so all three read one cached record; the hook
+  // refetches it on open, so the picker never seeds from a stale list row.
+  const detail = useUserDetail(userId, { enabled: open })
 
   const isDetailLoading = detail.isPending || detail.fetchStatus !== 'idle'
 

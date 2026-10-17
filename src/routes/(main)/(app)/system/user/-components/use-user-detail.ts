@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { skipToken, useQuery } from '@tanstack/react-query'
 
 import { getUser, userKeys } from '@/lib/api/user'
 
@@ -10,35 +10,27 @@ interface UserDetailOptions {
    * here, because every drawer stays mounted for the whole page, so it would only fire once.
    */
   readonly enabled?: boolean
-  /**
-   * Treat the cached record as stale straight away, so switching `enabled` back on always refetches
-   * instead of serving a record that has not aged out of `DEFAULT_STALE_TIME_MS` yet.
-   */
-  readonly alwaysRefetch?: boolean
 }
 
 /**
  * One user's record, shared by the detail, edit and role dialogs through a single query key.
  *
- * Callers pass `enabled: open` together with `alwaysRefetch`, which is the only thing that can
- * refresh the record: the shared client turns off `refetchOnMount`, `refetchOnWindowFocus` and
- * `refetchOnReconnect`, and every drawer stays mounted for the whole page, so a plain `useQuery`
- * would keep serving whatever it fetched the first time.
+ * Callers pass `enabled: open`, and the `staleTime: 0` below is what turns that into a refetch: the
+ * shared client turns off `refetchOnMount`, `refetchOnWindowFocus` and `refetchOnReconnect`, and
+ * every drawer stays mounted for the whole page, so a plain `useQuery` would keep serving whatever
+ * it fetched the first time.
+ *
+ * A null id means no record is selected yet, which covers a create and a closed dialog. `skipToken`
+ * keeps the query idle, so the fetch function never has to guard against a null id.
  */
-export function useUserDetail(
-  userId: string | number | null,
-  { enabled = true, alwaysRefetch = false }: UserDetailOptions = {}
-) {
+export function useUserDetail(userId: string | number | null, { enabled = true }: UserDetailOptions = {}) {
   return useQuery({
     queryKey: userKeys.detail(userId),
-    queryFn: () => {
-      if (userId === null) {
-        throw new Error('A user detail was requested without an id')
-      }
-
-      return getUser(userId)
-    },
-    enabled: enabled && userId !== null,
-    staleTime: alwaysRefetch ? 0 : undefined
+    queryFn: userId === null ? skipToken : () => getUser(userId),
+    enabled,
+    // Stale straight away, so switching `enabled` on always refetches. This deliberately overrides
+    // the client's one-minute default: a drawer about to edit the record needs the current one, not
+    // whatever the cache happens to hold.
+    staleTime: 0
   })
 }

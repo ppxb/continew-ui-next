@@ -141,7 +141,7 @@ interface UserDetailDrawerProps {
 export function UserDetailDrawer({ userId, open, onClose }: UserDetailDrawerProps) {
   // Fetch on open rather than trust the cache: another admin may have edited the record, and the
   // client turns off every automatic refetch trigger, so a plain query would keep the first response.
-  const query = useUserDetail(userId, { enabled: open, alwaysRefetch: true })
+  const query = useUserDetail(userId, { enabled: open })
 
   const detail = query.data
 

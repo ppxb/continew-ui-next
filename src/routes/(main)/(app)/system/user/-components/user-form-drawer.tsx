@@ -204,7 +204,7 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
   // Shares its key with the detail drawer, so opening either one warms the other. Fetching on open
   // matters more here than there: the form submits every field, so a stale base would overwrite
   // whatever another admin saved in the meantime.
-  const detail = useUserDetail(userId, { enabled: open, alwaysRefetch: true })
+  const detail = useUserDetail(userId, { enabled: open })
 
   const depts = useQuery({
     queryKey: deptKeys.trees(),
