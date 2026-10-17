@@ -201,9 +201,10 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
   const queryClient = useQueryClient()
   const isCreate = userId === null
 
-  // Shares its key with the detail drawer, so opening either one warms the other. A create has no
-  // id, which leaves this query disabled.
-  const detail = useUserDetail(userId)
+  // Shares its key with the detail drawer, so opening either one warms the other. Fetching on open
+  // matters more here than there: the form submits every field, so a stale base would overwrite
+  // whatever another admin saved in the meantime.
+  const detail = useUserDetail(userId, { enabled: open, alwaysRefetch: true })
 
   const depts = useQuery({
     queryKey: deptKeys.trees(),
@@ -221,9 +222,14 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
 
   const form = useForm<FormValues>({ resolver: zodResolver(formSchema), defaultValues: EMPTY_FORM })
 
+  // Fill the form once per open, and only after the record has settled (see the render guard below).
+  // React Query hands back a fresh object on every successful fetch, so without both the gate and
+  // this guard a slow refetch would land on top of what the user has already typed.
+  const filledForRef = React.useRef<string | null>(null)
   React.useEffect(() => {
     if (!open) {
       form.reset(EMPTY_FORM)
+      filledForRef.current = null
       return
     }
 
@@ -232,10 +238,13 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
       return
     }
 
-    if (detail.data) {
-      form.reset(toFormValues(detail.data))
-    }
-  }, [open, isCreate, detail.data, form])
+    if (!detail.data) return
+
+    const key = String(userId)
+    if (filledForRef.current === key) return
+    filledForRef.current = key
+    form.reset(toFormValues(detail.data))
+  }, [open, isCreate, userId, detail.data, form])
 
   const deptOptions = React.useMemo(() => flattenDepts(depts.data ?? []), [depts.data])
   // The pickers speak in strings; these maps give the original id back for the request body.
@@ -324,8 +333,9 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
           </DrawerClose>
         </DrawerHeader>
 
-        {/* A create has nothing to load, so its form is ready the moment the drawer opens. */}
-        {isCreate || detail.data ? (
+        {/* A create has nothing to load, so its form is ready the moment the drawer opens. An edit
+            waits for the record to settle, so the form never renders on a stale base. */}
+        {isCreate || (detail.data && detail.fetchStatus === 'idle') ? (
           <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="flex min-h-0 flex-1 flex-col">
             <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
               <FieldGroup className="gap-4">

@@ -139,7 +139,9 @@ interface UserDetailDrawerProps {
  * spinner while it is still sliding out.
  */
 export function UserDetailDrawer({ userId, open, onClose }: UserDetailDrawerProps) {
-  const query = useUserDetail(userId)
+  // Fetch on open rather than trust the cache: another admin may have edited the record, and the
+  // client turns off every automatic refetch trigger, so a plain query would keep the first response.
+  const query = useUserDetail(userId, { enabled: open, alwaysRefetch: true })
 
   const detail = query.data
 

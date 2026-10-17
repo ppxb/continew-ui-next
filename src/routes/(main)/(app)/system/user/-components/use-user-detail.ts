@@ -11,10 +11,8 @@ interface UserDetailOptions {
    */
   readonly enabled?: boolean
   /**
-   * Treat the cached record as stale straight away, so switching `enabled` back on always refetches.
-   *
-   * The role dialog needs that: saving replaces the whole role set, so it must not seed its picker
-   * from a record that merely has not aged out of `DETAIL_STALE_TIME_MS` yet.
+   * Treat the cached record as stale straight away, so switching `enabled` back on always refetches
+   * instead of serving a record that has not aged out of `DEFAULT_STALE_TIME_MS` yet.
    */
   readonly alwaysRefetch?: boolean
 }
@@ -22,10 +20,10 @@ interface UserDetailOptions {
 /**
  * One user's record, shared by the detail, edit and role dialogs through a single query key.
  *
- * `refetchOnMount` is deliberately left at its default. It is what turns a click on 详情 or
- * 修改 into a request once the cached record has aged past the window, which is the only time
- * fetching should happen. The other automatic triggers are off: with the defaults, regaining
- * window focus refetched the record behind the user's back, even while the drawer was closed.
+ * Callers pass `enabled: open` together with `alwaysRefetch`, which is the only thing that can
+ * refresh the record: the shared client turns off `refetchOnMount`, `refetchOnWindowFocus` and
+ * `refetchOnReconnect`, and every drawer stays mounted for the whole page, so a plain `useQuery`
+ * would keep serving whatever it fetched the first time.
  */
 export function useUserDetail(
   userId: string | number | null,
