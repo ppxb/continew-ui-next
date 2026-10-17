@@ -32,7 +32,7 @@
 |---|---|---|
 | 业务代码 | 164 | `routes/(main)/(app)/**`、`routes/(main)/auth/**`、`lib/**`、`hooks/**`、`stores/**`、`navigation/**`、`components/**`（不含 `ui/**`） |
 | 模板示例代码 | 190 | `routes/(main)/dashboard/**`、`chat/**`、`mail/**`（继承自 next-shadcn-admin-dashboard） |
-| shadcn 原始组件 | 64 | `components/ui/**`（含 4 个所有者确认为"基础组件"的自研/外部文件，见 §0.1） |
+| shadcn 原始组件 | 64 | `components/ui/**`（含 3 个非上游文件：2 个项目基础组件 + 1 个其他 registry 根组件，见 §0.1） |
 
 ### 1.2 硬规则口径（所有者定义）
 
@@ -441,7 +441,7 @@
 - **[低]** 骨架组件逐字段硬编码：`app-detail-drawer.tsx:92-137`（10 组固定宽度 Skeleton）、`app-form-drawer.tsx:55-82`、`UserFormSkeleton`、`ClientFormSkeleton`。字段一改即漂移，应按字段数组/schema 生成。
 - **[低]** `system/config/-components/sms-table.tsx:56-67`、`client-table.tsx:56-69` — 骨架宽度用 5 层嵌套三元，应改为宽度查表数组。
 - **[低]** `routes/(main)/dashboard/patient-monitoring/-components/use-realtime-tick.ts:5-6,10-11` — 两个 tick 间隔常量同为 `100`，却建两个独立 ticker。
-- **[低]** `hooks/use-fullscreen-transition.ts`（148 行）— 用 `Object.assign(el.style, {position,top,left,width,height,zIndex,overflow,transition,paddingTop,paddingBottom,opacity})` 直接写 DOM 内联样式、`void el.offsetHeight` 强制重排、`setTimeout` 定时恢复。CSS 类驱动的展开/收起可以更短，且不会与"ref 必须常驻"耦合出 §4 第 2 条那类 bug。
+- **[低]** `hooks/use-fullscreen-transition.ts`（148 行）— 用 `Object.assign(el.style, {position,top,left,width,height,zIndex,overflow,transition,paddingTop,paddingBottom,opacity})` 直接写 DOM 内联样式、`void el.offsetHeight` 强制重排、`setTimeout` 定时恢复。CSS 类驱动的展开/收起可以更短，也不会与"ref 必须常驻"耦合出同类 bug。
 - **[中]** `lib/preferences/preferences-config.ts:32-50` — `definePreference` 与 `defineBootPreference` 两个泛型工厂函数体都只是 `return definition`，只为一个编译期约束复制了整套签名，而该约束并不成立：注释称布局偏好不能进 localStorage，但 `theme_mode`/`theme_preset`/`content_layout`/`navbar_style`（`:53-79`）用的是宽松版 `definePreference`，六项最终都是 `client-cookie`。应只保留一个 `definePreference`，把"引导期可读"做成显式布尔字段。
 - **[低]** `lib/api/dept.ts:45-53` — 三个重载 + `'queryKey' in query` 鸭子类型，只为让该函数能直接当 `queryFn`；同仓库 `dept-list.tsx:109` 已经用 `queryFn: () => getDeptTree()` 的写法，可直接删掉重载与探测。
 
@@ -464,7 +464,7 @@
 ## 11. 不满足项目最佳实践
 
 - **[高]** `auth/-components/login-form.tsx:37-38` — 硬编码预填超管账号口令（`admin`/`admin123`）。
-- **[中]** 错误态缺失（AGENTS.md 第 12 条要求处理 error）：§4 第 3、4、7 条。
+- **[中]** 错误态缺失（AGENTS.md 第 12 条要求处理 error）：§4 第 2、3、6 条。
 - **[中]** 表单校验方式不统一：4 个表单式配置面板用 `useState` + `toast` 手写校验，8 个抽屉用 `react-hook-form + zod`；且校验覆盖不一致（`PASSWORD_ERROR_LOCK_COUNT` 0-10、`PASSWORD_ERROR_LOCK_MINUTES` 1-1440 在 UI 写了范围却未校验，`config-security.tsx:139-153`）。
 - **[中]** `system/config/-components/client-delete-dialog.tsx:51` — 手写 destructive 样式而不用 `variant="destructive"`；`:40` 删除进行中仍可 Esc/点遮罩关闭（另 5 个删除对话框都做了 `isDeleting` 守卫）。
 - **[低]** `system/role/-components/role-list.tsx:136` — `isRefreshing={query.isFetching}`，首屏加载也显示「刷新中」；`user-list.tsx:242` 的正确写法是 `query.isFetching && !query.isPending`。
@@ -511,9 +511,9 @@
 ### 批次 1：正确性与安全（建议立即）
 
 1. `role-user-drawer` 的 invalidate key（§4-1）—— 用户可见的功能失效。
-2. 4 个表单式配置面板补 `isError`（§4-3）—— 否则会静默覆盖后端配置。
-3. `client/sms-form-drawer` 补编辑态 `isError`（§4-4）。
-4. `dept-delete-dialog` 守卫改用原始树（§4-5）。
+2. 4 个表单式配置面板补 `isError`（§4-2）—— 否则会静默覆盖后端配置。
+3. `client/sms-form-drawer` 补编辑态 `isError`（§4-3）。
+4. `dept-delete-dialog` 守卫改用原始树（§4-4）。
 5. 删除 `login-form.tsx:37-38` 的硬编码账号口令（§11）。
 6. `lib/http.ts:220-221` 去掉 401 的重复 toast（§11）。
 7. `components/app-shell/index.tsx:48-52` 把 `requireAuth` 提到 `ensureMenuLoaded` 之前（§11）。
@@ -521,7 +521,7 @@
 
 ### 批次 2：口径落地
 
-10. 把 §0.1 的三条口径写进 AGENTS.md：`ui/` 允许放项目基础组件；自研复合控件的 ARIA 不受 R3 约束；`aria-label` 在 `ui/` 内允许。
+10. 把 §0.1 的三条口径写进 AGENTS.md：`ui/` 的定位是「registry 引入的根组件 + 项目自己的基础组件」；自研复合控件为自身提供的 ARIA 不受 R3 约束；`aria-label` 在 `ui/` 内允许。
 
 ### 批次 3：删死代码（零风险、收益最大）
 
