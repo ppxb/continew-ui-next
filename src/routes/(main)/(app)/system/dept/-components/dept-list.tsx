@@ -273,24 +273,14 @@ export function DeptList() {
           </CardAction>
         </CardHeader>
 
-        <CardContent className="flex flex-col gap-4 p-0 pt-4 pb-0">{!isFullscreen && tableSection}</CardContent>
-      </Card>
+        <CardContent className="flex flex-col gap-4 px-0">
+          {isFullscreen ? <div ref={spacerRef} style={{ height: reservedHeight }} /> : null}
 
-      {/* Fullscreen overlay */}
-      {isFullscreen && (
-        <>
-          <div ref={spacerRef} style={{ height: reservedHeight }} />
-          <div
-            ref={fullscreenRef}
-            className={cn(
-              'fixed inset-0 z-50 flex flex-col bg-background p-4 md:p-6',
-              'transition-all duration-200 ease-in-out'
-            )}
-          >
-            <div className="flex flex-1 flex-col overflow-hidden rounded-xl border bg-card pt-4">{tableSection}</div>
+          <div ref={fullscreenRef} className={cn('flex flex-col gap-4', isFullscreen && 'bg-background')}>
+            {tableSection}
           </div>
-        </>
-      )}
+        </CardContent>
+      </Card>
 
       {/* Form Drawer */}
       <DeptFormDrawer

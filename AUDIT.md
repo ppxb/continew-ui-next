@@ -13,10 +13,10 @@
 
 ### 0.1 规则口径澄清（需所有者确认后写进 AGENTS.md）
 
-- **R2 的准确表述**：规则约束的是"不要修改 shadcn 上游原件"，**不是**"`ui/` 目录里只能有上游文件"。所有者已确认 `tree.tsx`、`tree-select.tsx`、`password-input.tsx`、`striped-pattern.tsx` 属"基础组件"，放 `ui/` 语义更清晰，是**有意安排**。
-- **`ui/` 目录构成**：64 个文件 = 上游原件 + 4 个基础组件。`tree.tsx` / `tree-select.tsx` / `password-input.tsx` 是项目自研；`striped-pattern.tsx` 是外部组件，**已核实不在 base-nova registry**（`/r/styles/base-nova/striped-pattern.json` → 404，`components.json` 的 `registries` 为空 `{}`），`shadcn add` 不会覆盖它，放 `ui/` 无风险。
+- **R2 的准确表述**：规则约束的是"不要修改 shadcn 上游原件"，**不是**"`ui/` 目录里只能有上游文件"。`ui/` 的定位是「registry 引入的根组件 + 项目自己的基础组件」，目前只有 `tree.tsx` / `tree-select.tsx`（项目基础组件）与 `striped-pattern.tsx`（其他 registry 引入的根组件）三个非上游文件，均为**有意安排**。
+- **`ui/` 目录构成**：64 个文件 = 上游原件 + 3 个非上游文件。`tree.tsx` / `tree-select.tsx` 是项目自研的基础组件；`striped-pattern.tsx` 是其他 registry 引入的根组件，**已核实不在 base-nova registry**（`/r/styles/base-nova/striped-pattern.json` → 404，`components.json` 的 `registries` 为空 `{}`），`shadcn add` 不会覆盖它。项目自研但**不属于基础组件**的 `password-input.tsx`，以及业务共享的 `status-cell.tsx`，都在 `src/components/`。
 - **复合控件 ARIA 例外**：`tree.tsx` 的 `role="tree"` / `role="treeitem"` / `aria-selected` / `aria-expanded` / `tabIndex` 是该控件可访问性的实现本身，**没有可替代的库原语**（Base UI 1.9.0 只有 accordion / context-menu / menu / menubar / navigation-menu，无 tree）。建议写明：自研复合控件为自身提供 ARIA 不受 R3 约束。
-- **`aria-label` 在 `ui/` 内本就允许**：AGENTS.md 原文是 "Do not add `aria-label` outside the shadcn components in `src/components/ui/`"。本轮把 `tree-select.tsx` 的 4 处 `aria-label` 换成 `Tooltip` 属**体验改进**（Tooltip 有可见文案），不是规则强制。
+- **`aria-label` 在 `ui/` 内本就允许**：AGENTS.md 原文是 "Do not add `aria-label` outside the shadcn components in `src/components/ui/`"。`tree-select.tsx` 的 4 处 `aria-label` 已全部删除：「全部展开」「全部收起」改用 `Tooltip` 提供可见文案，「清空已选」「清空搜索」直接去掉。属体验取舍，不是规则强制。
 
 ### 0.2 统计口径
 
@@ -82,14 +82,13 @@
 ### 2.2 必修清单（高）
 
 1. **正确性**：`role-user-drawer` 取消授权后成员列表不刷新（invalidate key 不匹配）。
-2. **正确性**：`dept-list` 的「表格全屏」按钮完全无效（ref 挂载时机与 hook 前置条件互斥）。
-3. **正确性**：4 个表单式配置面板（site/security/login/mail）没有错误态，接口失败时会把默认值整批写回。
-4. **正确性**：`client-form-drawer` / `sms-form-drawer` 编辑态详情加载失败会渲染空表单，保存即用默认值覆盖原记录。
-5. **正确性**：`dept-delete-dialog` 的「有子部门不可删」守卫读的是**搜索过滤后**的树，命中父节点时可删除含子部门的节点。
-6. **性能**：`navigation/sidebar/menu-icons.ts:132,327` 与 `system/menu/-components/icon-picker.tsx:3` 都用运行时 `icons` 全量对象索引图标，破坏 tree-shaking（Lucide 官方明确说明动态索引 "is importing all icons during the build"）；叠加 `icon-picker.tsx:368-393` 的模块作用域扫描，打开菜单页即付出整库代价。
-7. **R3/R4**：`config-site.tsx` 手写文件上传（原生 `input[type=file]` + `div[role=button]` + 手写键盘分支 + 5 处原生 `<img>`）；`components/app-shell/header/search-dialog.tsx:131-133` 手写 `<kbd>` 而 `ui/kbd.tsx` 已存在且别处在用。
-8. **最佳实践**：`login-form.tsx:37-38` 硬编码预填超管账号口令 `admin/admin123`。
-9. **最佳实践**：`lib/http.ts:220-221` 在 401 上连弹两条相同 toast（`sessionExpiredHandler` 一次 + `fail()` 一次），叠加 `query-client.ts:21` 的 `retry: 1` 会随重试重复弹；`components/app-shell/index.tsx:48-52` 先 `await ensureMenuLoaded()` 再 `requireAuth`，与它自己 44-46 行的注释相反，未登录深链会先发一次 `GET /auth/user/route` 并可能触发刷新/登出。
+2. **正确性**：4 个表单式配置面板（site/security/login/mail）没有错误态，接口失败时会把默认值整批写回。
+3. **正确性**：`client-form-drawer` / `sms-form-drawer` 编辑态详情加载失败会渲染空表单，保存即用默认值覆盖原记录。
+4. **正确性**：`dept-delete-dialog` 的「有子部门不可删」守卫读的是**搜索过滤后**的树，命中父节点时可删除含子部门的节点。
+5. **性能**：`navigation/sidebar/menu-icons.ts:132,327` 与 `system/menu/-components/icon-picker.tsx:3` 都用运行时 `icons` 全量对象索引图标，破坏 tree-shaking（Lucide 官方明确说明动态索引 "is importing all icons during the build"）；叠加 `icon-picker.tsx:368-393` 的模块作用域扫描，打开菜单页即付出整库代价。
+6. **R3/R4**：`config-site.tsx` 手写文件上传（原生 `input[type=file]` + `div[role=button]` + 手写键盘分支 + 5 处原生 `<img>`）；`components/app-shell/header/search-dialog.tsx:131-133` 手写 `<kbd>` 而 `ui/kbd.tsx` 已存在且别处在用。
+7. **最佳实践**：`login-form.tsx:37-38` 硬编码预填超管账号口令 `admin/admin123`。
+8. **最佳实践**：`lib/http.ts:220-221` 在 401 上连弹两条相同 toast（`sessionExpiredHandler` 一次 + `fail()` 一次），叠加 `query-client.ts:21` 的 `retry: 1` 会随重试重复弹；`components/app-shell/index.tsx:48-52` 先 `await ensureMenuLoaded()` 再 `requireAuth`，与它自己 44-46 行的注释相反，未登录深链会先发一次 `GET /auth/user/route` 并可能触发刷新/登出。
 
 ### 2.3 结构性问题（中，决定长期成本）
 
@@ -218,17 +217,16 @@
 > 这些不在所有者列出的 8 类里，但属"必须修"，单列。
 
 1. **[高·已复核]** `system/role/-components/role-user-drawer.tsx:95,115,376` — 取消授权后成员列表不刷新。失效 key 与查询 key 结构不等：失效用 `roleKeys.users(roleId)` → `['system','role','users',id,undefined]`；列表查询用 `roleKeys.users(roleId, {page,size,description})` → `['system','role','users',id,{…}]`（同文件 70-74 行）。TanStack Query 的 `partialMatchKey` 逐元素比较 `typeof`，`undefined` 与 `object` 不匹配，故失效不命中。修法：新增 `usersRoot: (id) => [...roleKeys.all, 'users', id]` 并用它失效。
-2. **[高·已复核]** `system/dept/-components/dept-list.tsx:280-284` — 「表格全屏」按钮完全无效。`fullscreenRef` 只在 `{isFullscreen && (…)}` 内挂载（276 行同时用 `{!isFullscreen && tableSection}` 隐藏原表），而 `hooks/use-fullscreen-transition.ts:76-77` 的 `openFullscreen` 以 `if (!el) return` 前置返回，首次点击必然空转。对照 `menu-list.tsx:274` 常驻渲染该 ref 因此可用。修法：ref 容器常驻，仅用 `isFullscreen` 控制样式。
-3. **[高]** `system/config/-components/config-site.tsx:71-74`、`config-security.tsx:58-61`、`config-login.tsx:43-46`、`config-mail.tsx:57-60` — option 查询只取 `data`/`isLoading`，无 `isError`。请求失败时 `options` 落为 `[]`、`isLoading` 为 false，面板照常渲染默认值，用户点「修改」→「保存」会把默认值整批写回后端（`config-security.tsx:88-96` 提交 `Object.entries(form)` 全量）。
-4. **[中]** `system/config/-components/client-form-drawer.tsx:147-151,257`、`sms-form-drawer.tsx:206,230-232` — 编辑态详情查询失败无分支：`isEdit && isLoading` 为 false 时直接渲染 `DEFAULT_FORM_VALUES` 空表单，保存即以默认值覆盖原记录（`storage-form-drawer.tsx:736-737` 有 `isError` 分支，可作范例，但也缺重试按钮）。
-5. **[中]** `system/dept/-components/dept-delete-dialog.tsx:27`（同 `menu-delete-dialog.tsx:27`）— `hasChildren` 读的是搜索过滤后的树。`filterDeptTree` 会把 `children` 替换为只含命中子节点的数组（`dept-list.tsx:51-56`），命中父节点而子节点未命中时 `children` 为空，守卫放行，导致删除含子部门的节点。
-6. **[中]** `system/dept/-components/dept-list.tsx:180` — 导出只把关键词当 `description` 传后端，而列表过滤同时匹配 `name`（`dept-list.tsx:38-39`），导出结果 ≠ 当前筛选结果。
-7. **[中]** `system/role/-components/role-permission-drawer.tsx:105,128-157` — 只处理 loading，权限树加载失败静默显示空树（`permTree.isError` 从未读取）。
-8. **[中]** `auth/-components/login-form.tsx:37-38` — 硬编码预填 `username: 'admin', password: 'admin123'`。
-9. **[低]** `system/dept/-components/dept-list.tsx:199-207`（同 `menu-list.tsx:198-206`）— 「展开全部/折叠全部」判定错误：任一节点展开即视为已全展开。
-10. **[低]** `system/role/-components/role-checkable-tree.tsx:50-54` — 注释称「首次加载」，实际依赖 `[index.allKeys]`，`data` 身份变化即重置展开态，丢弃用户折叠操作。
-11. **[低]** `open/app/-components/app-form-drawer.tsx:307` vs `:29-33` — 日历禁用放宽到「昨天」，而 zod 要求「必须是未来时间」，用户可选到必然报错的日期。
-12. **[低]** `routes/-components/not-found.tsx:7` — `h-dvh` 同时用于根 `notFoundComponent` 与 `$.tsx:26` 屏内回退；在 app-shell（`h-12` header）内会多出约一屏滚动。
+2. **[高]** `system/config/-components/config-site.tsx:71-74`、`config-security.tsx:58-61`、`config-login.tsx:43-46`、`config-mail.tsx:57-60` — option 查询只取 `data`/`isLoading`，无 `isError`。请求失败时 `options` 落为 `[]`、`isLoading` 为 false，面板照常渲染默认值，用户点「修改」→「保存」会把默认值整批写回后端（`config-security.tsx:88-96` 提交 `Object.entries(form)` 全量）。
+3. **[中]** `system/config/-components/client-form-drawer.tsx:147-151,257`、`sms-form-drawer.tsx:206,230-232` — 编辑态详情查询失败无分支：`isEdit && isLoading` 为 false 时直接渲染 `DEFAULT_FORM_VALUES` 空表单，保存即以默认值覆盖原记录（`storage-form-drawer.tsx:736-737` 有 `isError` 分支，可作范例，但也缺重试按钮）。
+4. **[中]** `system/dept/-components/dept-delete-dialog.tsx:27`（同 `menu-delete-dialog.tsx:27`）— `hasChildren` 读的是搜索过滤后的树。`filterDeptTree` 会把 `children` 替换为只含命中子节点的数组（`dept-list.tsx:51-56`），命中父节点而子节点未命中时 `children` 为空，守卫放行，导致删除含子部门的节点。
+5. **[中]** `system/dept/-components/dept-list.tsx:180` — 导出只把关键词当 `description` 传后端，而列表过滤同时匹配 `name`（`dept-list.tsx:38-39`），导出结果 ≠ 当前筛选结果。
+6. **[中]** `system/role/-components/role-permission-drawer.tsx:105,128-157` — 只处理 loading，权限树加载失败静默显示空树（`permTree.isError` 从未读取）。
+7. **[中]** `auth/-components/login-form.tsx:37-38` — 硬编码预填 `username: 'admin', password: 'admin123'`。
+8. **[低]** `system/dept/-components/dept-list.tsx:199-207`（同 `menu-list.tsx:198-206`）— 「展开全部/折叠全部」判定错误：任一节点展开即视为已全展开。
+9. **[低]** `system/role/-components/role-checkable-tree.tsx:50-54` — 注释称「首次加载」，实际依赖 `[index.allKeys]`，`data` 身份变化即重置展开态，丢弃用户折叠操作。
+10. **[低]** `open/app/-components/app-form-drawer.tsx:307` vs `:29-33` — 日历禁用放宽到「昨天」，而 zod 要求「必须是未来时间」，用户可选到必然报错的日期。
+11. **[低]** `routes/-components/not-found.tsx:7` — `h-dvh` 同时用于根 `notFoundComponent` 与 `$.tsx:26` 屏内回退；在 app-shell（`h-12` header）内会多出约一屏滚动。
 
 ---
 
@@ -290,7 +288,7 @@
 | `dept-parent-select.tsx` | `menu-parent-select.tsx` | 67.7% |
 | `dept-list.tsx` | `menu-list.tsx` | 65.7% |
 
-此外 `collectDescendantIds`（防环收集）、`selectedValue`/`handleChange`、`COLUMN_LABEL_MAP` 与列 `header` 字符串、`RowActions` 都各写两份。分叉已经产生：全屏能力 dept 用「条件挂载 overlay」、menu 用「常驻 ref」（§4 第 2 条）；`menu-form-drawer.tsx:170` 只失效 `menuKeys.trees()` 而 `dept-form-drawer.tsx:150` 失效 `deptKeys.all`。
+此外 `collectDescendantIds`（防环收集）、`selectedValue`/`handleChange`、`COLUMN_LABEL_MAP` 与列 `header` 字符串、`RowActions` 都各写两份。分叉已经产生：`menu-form-drawer.tsx:170` 只失效 `menuKeys.trees()` 而 `dept-form-drawer.tsx:150` 失效 `deptKeys.all`。
 
 ### 5.8 空状态：手写 17+ 处 vs `ui/empty.tsx` 只用 1 次
 
@@ -513,14 +511,13 @@
 ### 批次 1：正确性与安全（建议立即）
 
 1. `role-user-drawer` 的 invalidate key（§4-1）—— 用户可见的功能失效。
-2. `dept-list` 全屏按钮（§4-2）。
-3. 4 个表单式配置面板补 `isError`（§4-3）—— 否则会静默覆盖后端配置。
-4. `client/sms-form-drawer` 补编辑态 `isError`（§4-4）。
-5. `dept-delete-dialog` 守卫改用原始树（§4-5）。
-6. 删除 `login-form.tsx:37-38` 的硬编码账号口令（§11）。
-7. `lib/http.ts:220-221` 去掉 401 的重复 toast（§11）。
-8. `components/app-shell/index.tsx:48-52` 把 `requireAuth` 提到 `ensureMenuLoaded` 之前（§11）。
-9. `lib/cookie.ts:8-18` 补编解码（§11）—— `mail.tsx:68` 传入 `JSON.stringify` 的值会被读回错误内容。
+2. 4 个表单式配置面板补 `isError`（§4-3）—— 否则会静默覆盖后端配置。
+3. `client/sms-form-drawer` 补编辑态 `isError`（§4-4）。
+4. `dept-delete-dialog` 守卫改用原始树（§4-5）。
+5. 删除 `login-form.tsx:37-38` 的硬编码账号口令（§11）。
+6. `lib/http.ts:220-221` 去掉 401 的重复 toast（§11）。
+7. `components/app-shell/index.tsx:48-52` 把 `requireAuth` 提到 `ensureMenuLoaded` 之前（§11）。
+8. `lib/cookie.ts:8-18` 补编解码（§11）—— `mail.tsx:68` 传入 `JSON.stringify` 的值会被读回错误内容。
 
 ### 批次 2：口径落地
 
