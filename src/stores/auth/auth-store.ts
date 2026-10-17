@@ -29,8 +29,13 @@ export type AuthState = {
   loadUser: () => Promise<void>
 }
 
-export const createAuthStore = () =>
-  createStore<AuthState>()((set, get) => ({
+export const createAuthStore = () => {
+  // While a fetch is already in flight, later callers share that promise instead of firing a second
+  // request. React's StrictMode runs the bootstrap effect twice in development, and an action that
+  // is safe to call twice is the right place to absorb that.
+  let loadPromise: Promise<void> | null = null
+
+  return createStore<AuthState>()((set, get) => ({
     status: getAccessToken() ? 'authenticated' : 'anonymous',
     user: null,
     permissions: [],
@@ -53,25 +58,31 @@ export const createAuthStore = () =>
       await get().loadUser()
     },
 
-    loadUser: async () => {
+    loadUser: () => {
       if (!getAccessToken()) {
         set({ status: 'anonymous', user: null, permissions: [], roles: [] })
-        return
+        return Promise.resolve()
       }
 
-      set({ isLoadingUser: true })
+      if (!loadPromise) {
+        set({ isLoadingUser: true })
 
-      try {
-        const user = await getUserInfo()
-        set({
-          user,
-          permissions: user.permissions ?? [],
-          roles: user.roles ?? [],
-          status: 'authenticated'
-        })
-      } finally {
-        set({ isLoadingUser: false })
+        loadPromise = getUserInfo()
+          .then(user => {
+            set({
+              user,
+              permissions: user.permissions ?? [],
+              roles: user.roles ?? [],
+              status: 'authenticated'
+            })
+          })
+          .finally(() => {
+            loadPromise = null
+            set({ isLoadingUser: false })
+          })
       }
+
+      return loadPromise
     },
 
     clearLocalSession: () => {
@@ -90,3 +101,4 @@ export const createAuthStore = () =>
       get().clearLocalSession()
     }
   }))
+}
