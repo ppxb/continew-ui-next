@@ -11,8 +11,8 @@ import { cn } from 'cn'
 interface ImageUploadFieldProps {
   value: string
   onChange: (value: string) => void
-  label: string
-  description: string
+  label?: string
+  description?: string
   accept?: string
   previewClassName?: string
   invalidFileMessage?: string
@@ -54,7 +54,7 @@ export function ImageUploadField({
   return (
     <Field>
       <FieldLabel>{label}</FieldLabel>
-      <FieldDescription>{description}</FieldDescription>
+      {description && <FieldDescription>{description}</FieldDescription>}
       <div className="flex items-center">
         <Input
           ref={inputRef}

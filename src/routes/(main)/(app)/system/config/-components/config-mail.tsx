@@ -82,6 +82,7 @@ export function ConfigMail() {
     setIsEdit,
     cancelEdit,
     resetForm,
+    submit,
     resetToDefault,
     isResetting,
     resetDialogOpen,
@@ -102,7 +103,7 @@ export function ConfigMail() {
       className="flex flex-col gap-6"
       onSubmit={event => {
         event.preventDefault()
-        void form.handleSubmit()
+        void submit()
       }}
     >
       <div className="flex flex-wrap items-center justify-between gap-4 border-b pb-4">
@@ -151,12 +152,12 @@ export function ConfigMail() {
 
       <div className="flex flex-col gap-6">
         <div className="grid grid-cols-1 items-start gap-6 sm:grid-cols-2">
-          <form.Field name="MAIL_PROTOCOL">
+          <form.Field name="MAIL_PROTOCOL" validators={{ onSubmit: schema.shape.MAIL_PROTOCOL }}>
             {field => (
               <Field>
                 <FieldContent>
                   <FieldLabel className="text-left">
-                    {optionMap.MAIL_PROTOCOL?.name || '邮件协议'}
+                    {optionMap.MAIL_PROTOCOL?.name}
                     {isRequired('MAIL_PROTOCOL') && <RequiredMark />}
                   </FieldLabel>
                   <FieldDescription>{optionMap.MAIL_PROTOCOL?.description}</FieldDescription>
@@ -166,7 +167,7 @@ export function ConfigMail() {
             )}
           </form.Field>
 
-          <form.Field name="MAIL_HOST">
+          <form.Field name="MAIL_HOST" validators={{ onSubmit: schema.shape.MAIL_HOST }}>
             {field => (
               <TextField
                 field={field}
@@ -179,7 +180,7 @@ export function ConfigMail() {
             )}
           </form.Field>
 
-          <form.Field name="MAIL_PORT">
+          <form.Field name="MAIL_PORT" validators={{ onSubmit: schema.shape.MAIL_PORT }}>
             {field => (
               <TextField
                 field={field}
@@ -194,7 +195,7 @@ export function ConfigMail() {
             )}
           </form.Field>
 
-          <form.Field name="MAIL_USERNAME">
+          <form.Field name="MAIL_USERNAME" validators={{ onSubmit: schema.shape.MAIL_USERNAME }}>
             {field => (
               <TextField
                 field={field}
@@ -207,7 +208,7 @@ export function ConfigMail() {
             )}
           </form.Field>
 
-          <form.Field name="MAIL_PASSWORD">
+          <form.Field name="MAIL_PASSWORD" validators={{ onSubmit: schema.shape.MAIL_PASSWORD }}>
             {field => (
               <TextField
                 field={field}
@@ -229,7 +230,7 @@ export function ConfigMail() {
           <form.Subscribe selector={state => state.values.MAIL_SSL_ENABLED === 1}>
             {sslEnabled =>
               sslEnabled && (
-                <form.Field name="MAIL_SSL_PORT">
+                <form.Field name="MAIL_SSL_PORT" validators={{ onSubmit: schema.shape.MAIL_SSL_PORT }}>
                   {field => (
                     <TextField
                       field={field}
@@ -248,7 +249,7 @@ export function ConfigMail() {
           </form.Subscribe>
         </div>
 
-        <form.Field name="MAIL_SSL_ENABLED">
+        <form.Field name="MAIL_SSL_ENABLED" validators={{ onSubmit: schema.shape.MAIL_SSL_ENABLED }}>
           {field => (
             <Field orientation="horizontal" className="items-center justify-between">
               <FieldContent>

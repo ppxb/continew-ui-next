@@ -119,6 +119,7 @@
 | 44 | 密码提示文案漂移（一处"小写字母"，一处"字母"） | `system/user/-components/user-form-drawer.tsx:70` vs `user-reset-password-dialog.tsx:141` | 由同一常量派生 | ✓ |
 | 76 | 4 个表单式面板的头部操作区（修改/保存/重置/取消）与「恢复默认」确认框逐字重复（约 55 行 × 4） | `system/config/-components/config-{site,security,login,mail}.tsx` 的头部按钮区与末尾 `AlertDialog` | 抽 `ConfigPanelHeader` ＋ `ConfigResetDialog`（**新增建议，待裁决**） | ✓ |
 | 79 | 站点面板内联约 200 行预览 mockup（含 3 处原生 `<img>`，均用于预览 mockup；AUDIT §9 / §3.4） | `system/config/-components/config-site.tsx`（mockup 部分） | 抽 `site-preview.tsx`；原生 `<img>` 只留在包装内部 | △ |
+| 80 | 必填标记 `*` 仍在 6 个表单抽屉里硬编码（约 29 处） | `system/config/-components/{client,sms,storage}/form-drawer.tsx`、`system/{dept,menu}/-components/*-form-drawer.tsx`、`open/app/-components/app-form-drawer.tsx` | 统一用 `system/config/-components/required-mark.tsx` 的 `RequiredMark`，规则由各表单 schema 派生 | ✓ |
 
 ### P3 死代码与恒假分支
 
@@ -147,8 +148,7 @@
 | 60 | R2 与删 `ui/**` 死代码的冲突 | 见 #45 | 不删，改标注 | — |
 | 61 | 列排序：接服务端排序还是承认 `accessorKey` 只当 id | `system/user/-components/user-columns.tsx:101`、`user-list.tsx:162`（14 列无一处 `getValue()`） | 明确一种并写进口径 | ✓ |
 | 62 | `tree.tsx` 自研 ARIA 是否豁免 R3 | `src/components/ui/tree.tsx`、`ui/tree-select.tsx` | 写明"自研复合控件为自身提供 ARIA 不受 R3 约束" | △ |
-| 77 | 配置页 4 个面板迁移到 **TanStack Form**（已装 `@tanstack/react-form@1.33.5`）：zod schema 经 Standard Schema 直传 `validators`；用 `<form noValidate>` 包住（与既有 13 个表单一致）；必填的 `*` 与 `required` 由 schema 派生；补齐 security/mail 缺失的范围校验 | `config-site.tsx`、`config-security.tsx`、`config-login.tsx`、`config-mail.tsx`、`use-option-form.ts`；上传组件 `image-upload-field.tsx` 已就绪（受控 `value`/`onChange`，可直接接 `field.state.value`） | 按 login → site → security → mail 顺序逐个迁移，每步独立验证；注意 `ImageUploadField` 的 `Button` 当前没有 `type="button"`，放进 `<form>` 后会变成 submit | — |
-| 78 | 表单库口径：全仓 `react-hook-form` → **TanStack Form**（配置页验证通过后逐步替换） | 17 个 RHF 文件：`auth/-components/login-form.tsx`、`dashboard/profile/-components/password-form.tsx`、`system/user/-components/{user-form-drawer,user-reset-password-dialog,user-assign-roles-dialog}.tsx`、`system/{dept,role,menu}/-components/*-form-drawer.tsx`、`open/app/-components/app-form-drawer.tsx`、`system/config/-components/{client,sms,storage}/form-drawer.tsx`、`dashboard/invoice/**`（5 文件） | 逐特性迁移；全部完成后在 `AGENTS.md` 写明表单库口径，并移除 `@hookform/resolvers` | — |
+| 78 | 表单库口径：全仓 `react-hook-form` → **TanStack Form**（配置页 4 个面板已迁移，可作参考实现） | 17 个 RHF 文件：`auth/-components/login-form.tsx`、`dashboard/profile/-components/password-form.tsx`、`system/user/-components/{user-form-drawer,user-reset-password-dialog,user-assign-roles-dialog}.tsx`、`system/{dept,role,menu}/-components/*-form-drawer.tsx`、`open/app/-components/app-form-drawer.tsx`、`system/config/-components/{client,sms,storage}/form-drawer.tsx`、`dashboard/invoice/**`（5 文件） | 逐特性迁移；全部完成后在 `AGENTS.md` 写明表单库口径，并移除 `@hookform/resolvers`；**每个 `<form.Field>` 必须同时带 `validators={{ onSubmit: schema.shape.X }}`**——只把 schema 放在表单级会导致"首次提交后新变非法的字段不再被校验"（`_handleSubmit` 在 `!isFieldsValid` 时提前 return，走不到表单级校验） | — |
 
 ### P5 用户管理页中低优先
 

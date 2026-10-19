@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 
 import { Field, FieldContent, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
+import { Textarea } from '@/components/ui/textarea'
 
 import { RequiredMark } from './required-mark'
 
@@ -21,6 +22,8 @@ interface TextFieldProps {
   min?: number
   max?: number
   maxLength?: number
+  multiline?: boolean
+  rows?: number
   disabled?: boolean
   addonEnd?: ReactNode
 }
@@ -35,6 +38,8 @@ export function TextField({
   min,
   max,
   maxLength,
+  multiline = false,
+  rows,
   disabled = false,
   addonEnd
 }: TextFieldProps) {
@@ -49,22 +54,37 @@ export function TextField({
         </FieldLabel>
         {description && <FieldDescription>{description}</FieldDescription>}
       </FieldContent>
-      <InputGroup>
-        <InputGroupInput
-          type={type}
-          min={min}
-          max={max}
-          maxLength={maxLength}
+      {multiline ? (
+        <Textarea
           value={field.state.value}
           onChange={event => field.handleChange(event.target.value)}
           onBlur={field.handleBlur}
           placeholder={placeholder}
+          rows={rows}
+          maxLength={maxLength}
           disabled={disabled}
           required={required}
           aria-invalid={invalid}
+          className="resize-none"
         />
-        {addonEnd && <InputGroupAddon align="inline-end">{addonEnd}</InputGroupAddon>}
-      </InputGroup>
+      ) : (
+        <InputGroup>
+          <InputGroupInput
+            type={type}
+            min={min}
+            max={max}
+            maxLength={maxLength}
+            value={field.state.value}
+            onChange={event => field.handleChange(event.target.value)}
+            onBlur={field.handleBlur}
+            placeholder={placeholder}
+            disabled={disabled}
+            required={required}
+            aria-invalid={invalid}
+          />
+          {addonEnd && <InputGroupAddon align="inline-end">{addonEnd}</InputGroupAddon>}
+        </InputGroup>
+      )}
       <FieldError errors={field.state.meta.errors} />
     </Field>
   )

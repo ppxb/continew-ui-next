@@ -3,13 +3,10 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { RetryHint } from './retry-hint'
 
 interface ConfigPanelSkeletonProps {
-  /** Field placeholders to render; `1` renders a single full-width row, like the login panel. */
   fields?: number
-  /** `card` mirrors the site panel, which pairs a bordered form card with a preview column. */
   variant?: 'form' | 'card'
 }
 
-/** Loading placeholder shared by the form-style config panels. */
 export function ConfigPanelSkeleton({ fields = 6, variant = 'form' }: ConfigPanelSkeletonProps) {
   if (variant === 'card') {
     return (
@@ -56,12 +53,6 @@ interface ConfigPanelErrorProps {
   onRetry: () => void
 }
 
-/**
- * Failure placeholder for the form-style config panels.
- *
- * It exists so a failed option request never falls through to the default form: showing code
- * defaults there reads as the backend's real configuration and makes the next save look valid.
- */
 export function ConfigPanelError({ onRetry }: ConfigPanelErrorProps) {
   return (
     <div className="flex flex-col items-center justify-center gap-1 rounded-xl border bg-card p-10 text-center">
