@@ -45,7 +45,11 @@ export const roleKeys = {
   details: () => [...roleKeys.all, 'detail'] as const,
   detail: (id: string | number | null) => [...roleKeys.details(), id] as const,
   permissions: () => [...roleKeys.all, 'permission-tree'] as const,
-  users: (id: string | number | null, query?: RoleUserPageQuery) => [...roleKeys.all, 'users', id, query] as const,
+  // Prefix key for one role's member list. Invalidation must use this key rather than `users(id)`:
+  // `users(id)` appends `undefined` as the query slot, and TanStack Query's `partialMatchKey`
+  // rejects a key whose trailing element has a different `typeof` than the cached one.
+  usersRoot: (id: string | number | null) => [...roleKeys.all, 'users', id] as const,
+  users: (id: string | number | null, query?: RoleUserPageQuery) => [...roleKeys.usersRoot(id), query] as const,
   userIds: (id: string | number | null) => [...roleKeys.all, 'user-ids', id] as const
 }
 

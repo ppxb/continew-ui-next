@@ -8,7 +8,7 @@
 - 路径口径：相对 `continew-ui-next/`
 - 行号口径：**含空行的物理行号**
 - 核验标记：**✓** 已回源核实行号 ｜ **△** 结论成立但行号需现场 `grep` 确认 ｜ **✗** 来源报告有误，本文件已按实测修正
-- 维护约定：只描述**当前状态**；已完成的项直接删除，不保留删除线或修订记录（与 `AUDIT.md` 同一约定）
+- 维护约定：只描述**当前状态**；已完成的项直接删除，不保留删除线或修订记录（与 `AUDIT.md` 同一约定）；编号为稳定标识，删除条目后不重排，以免打断既有引用
 
 ---
 
@@ -65,7 +65,6 @@
 
 | # | 事项 | 文件:行号 | 动作 | 核验 |
 |---|---|---|---|---|
-| 1 | 取消授权后成员列表不刷新（失效键末位 `undefined` vs 查询键末位对象，`partialMatchKey` 不命中） | `src/routes/(main)/(app)/system/role/-components/role-user-drawer.tsx:95,115,376`、`src/lib/query-keys.ts:48` | 新增 `usersRoot(id)` 前缀键并用它失效 | ✓ |
 | 2 | 4 个表单式配置面板无 `isError`：接口失败时 `options=[]`，保存把默认值整批写回 | `system/config/-components/config-site.tsx:71`、`config-security.tsx:58,88`、`config-login.tsx:43`、`config-mail.tsx:57` | 补 `isError` 分支并禁用保存 | ✓ |
 | 3 | 编辑态详情加载失败渲染空表单，保存覆盖原记录 | `system/config/-components/client-form-drawer.tsx:147,257`、`sms-form-drawer.tsx:206,230`；范例 `storage-form-drawer.tsx:736` | 照 `storage-form-drawer` 补 `isError` | ✓ |
 | 4 | 删除守卫读的是**搜索过滤后**的树，可删含子部门的节点 | `system/dept/-components/dept-delete-dialog.tsx:27`、`dept-list.tsx:51-56,164`；同构 `system/menu/-components/menu-delete-dialog.tsx:27` | 用原始树判定 | ✓ |
@@ -175,7 +174,7 @@
 
 ## 3. 建议的执行顺序
 
-1. **P0 的 #1–#9**（一提交一事，回归验证点：授权后列表刷新、配置接口失败不写回、编辑失败不出空表单、过滤状态下不可删父部门、401 只弹一条、未登录深链不发菜单请求）。
+1. **P0 的 #2–#9**（一提交一事，回归验证点：配置接口失败不写回、编辑失败不出空表单、过滤状态下不可删父部门、401 只弹一条、未登录深链不发菜单请求）。
 2. **P4 口径裁决**（#52–#54、#57、#60、#62）——这几条不定，批量整改会反复返工。
 3. **P1 性能**（#21–#24 收益最大）。
 4. **P2 结构性**：先 #33＋#34（表格外壳）＋ #58 接口契约，再 #35–#37；#40 单独排期。

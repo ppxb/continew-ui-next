@@ -92,7 +92,7 @@ export function RoleUserDrawer({ role, open, onClose }: RoleUserDrawerProps) {
       try {
         await unassignRoleFromUsers([member.id])
         toast.add({ title: '已取消成员角色授权', type: 'success' })
-        void queryClient.invalidateQueries({ queryKey: roleKeys.users(roleId) })
+        void queryClient.invalidateQueries({ queryKey: roleKeys.usersRoot(roleId) })
         void queryClient.invalidateQueries({ queryKey: roleKeys.userIds(roleId) })
       } catch {
         // Handled by HTTP layer
@@ -112,7 +112,7 @@ export function RoleUserDrawer({ role, open, onClose }: RoleUserDrawerProps) {
       await unassignRoleFromUsers(selectedIds)
       toast.add({ title: `已批量取消 ${selectedIds.length} 名成员授权`, type: 'success' })
       setRowSelection({})
-      void queryClient.invalidateQueries({ queryKey: roleKeys.users(roleId) })
+      void queryClient.invalidateQueries({ queryKey: roleKeys.usersRoot(roleId) })
       void queryClient.invalidateQueries({ queryKey: roleKeys.userIds(roleId) })
     } catch {
       // Handled by HTTP layer
@@ -373,7 +373,7 @@ export function RoleUserDrawer({ role, open, onClose }: RoleUserDrawerProps) {
         open={isAddOpen}
         onClose={() => setIsAddOpen(false)}
         onSuccess={() => {
-          void queryClient.invalidateQueries({ queryKey: roleKeys.users(roleId) })
+          void queryClient.invalidateQueries({ queryKey: roleKeys.usersRoot(roleId) })
           void queryClient.invalidateQueries({ queryKey: roleKeys.userIds(roleId) })
         }}
       />
