@@ -1,10 +1,9 @@
 import type { ChangeEvent, ReactNode } from 'react'
 
+import { RequiredMark } from '@/components/required-mark'
 import { Field, FieldContent, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { Textarea } from '@/components/ui/textarea'
-
-import { RequiredMark } from './required-mark'
 
 export interface TextFieldApi {
   state: { value: string; meta: { errors: Array<{ message?: string } | undefined> } }
