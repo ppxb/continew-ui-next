@@ -13,13 +13,13 @@ interface UserTableProps {
   readonly table: ReactTable<DataTableFeatures, UserResp>
   readonly isLoading: boolean
   readonly isError: boolean
-  /** The rows on screen come from the previous query, or a refetch failed. */
-  readonly isStale: boolean
+  /** The rows on screen belong to the previous query while the next page loads. */
+  readonly isShowingPreviousRows: boolean
   readonly onRetry?: () => void
 }
 
 /** The table itself plus the server-side pagination footer. */
-export function UserTable({ table, isLoading, isError, isStale, onRetry }: UserTableProps) {
+export function UserTable({ table, isLoading, isError, isShowingPreviousRows, onRetry }: UserTableProps) {
   const rows = table.getRowModel().rows
 
   return (
@@ -27,7 +27,7 @@ export function UserTable({ table, isLoading, isError, isStale, onRetry }: UserT
       <Table
         className={cn(
           "**:data-[slot='table-cell']:px-4 **:data-[slot='table-head']:px-4",
-          isStale && 'opacity-60 transition-opacity'
+          isShowingPreviousRows && 'opacity-60 transition-opacity'
         )}
       >
         <TableHeader className="[&_tr]:border-t">

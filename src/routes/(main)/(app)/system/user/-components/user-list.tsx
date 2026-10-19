@@ -211,7 +211,7 @@ export function UserList() {
         table={table}
         isLoading={query.isPending}
         isError={query.isError}
-        isStale={query.isPlaceholderData}
+        isShowingPreviousRows={query.isPlaceholderData}
         onRetry={() => void query.refetch()}
       />
     </>
