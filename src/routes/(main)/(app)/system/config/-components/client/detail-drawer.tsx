@@ -12,7 +12,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import type { ClientResp } from '@/lib/api/client'
 import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 
-import { AUTH_TYPE_MAP, LOGOUT_MODE_MAP, REFRESH_TOKEN_MODE_MAP, REPLACED_RANGE_MAP } from './client-columns'
+import { AUTH_TYPE_MAP, LOGOUT_MODE_MAP, REFRESH_TOKEN_MODE_MAP, REPLACED_RANGE_MAP } from './columns'
 
 const COPIED_FEEDBACK_MS = 1500
 

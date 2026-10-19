@@ -17,11 +17,11 @@ import { listSmsConfig, setDefaultSmsConfig, type SmsConfigResp } from '@/lib/ap
 import { dataTableFeatures } from '@/lib/data-table-features'
 import { dictKeys, smsKeys } from '@/lib/query-keys'
 
-import { createSmsColumns, type SmsAction } from './sms-columns'
-import { SmsDeleteDialog } from './sms-delete-dialog'
-import { SmsFormDrawer } from './sms-form-drawer'
-import { SmsTable } from './sms-table'
-import { SmsToolbar } from './sms-toolbar'
+import { createSmsColumns, type SmsAction } from './columns'
+import { SmsDeleteDialog } from './delete-dialog'
+import { SmsFormDrawer } from './form-drawer'
+import { SmsTable } from './table'
+import { SmsToolbar } from './toolbar'
 
 const SUPPLIER_PRESETS = [
   { label: '阿里云', value: 'alibaba' },

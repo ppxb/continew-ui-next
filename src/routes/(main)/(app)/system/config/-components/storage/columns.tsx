@@ -14,7 +14,7 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import type { StorageResp } from '@/lib/api/storage'
 
-import { MonoCell, RecycleBinCell, StorageNameCell, StorageStatusBadge } from './storage-display'
+import { MonoCell, RecycleBinCell, StorageNameCell, StorageStatusBadge } from './display'
 
 /** The row actions a storage row raises. */
 export type StorageAction = 'edit' | 'setDefault' | 'toggleStatus' | 'delete'

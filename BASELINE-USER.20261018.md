@@ -59,7 +59,7 @@
 ```
 
 同表单内 `Input`（`ui/input.tsx:11`，`h-8`）与 `SelectTrigger`（默认 `h-8`，`size="sm"` 为 `h-7`）都是 32px，
-只有密码框是 36px。消费者不只本页：`sms-form-drawer.tsx:316`、`storage-form-drawer.tsx:426` 同样受影响。
+只有密码框是 36px。消费者不只本页：`sms/form-drawer.tsx:316`、`storage/form-drawer.tsx:426` 同样受影响。
 
 二选一：删除 `h-9`（以 h-8 为准），或统一把表单控件基线上移到 h-9（需改 `ui/**`，超出当前权限）。
 

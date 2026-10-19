@@ -28,11 +28,11 @@ import {
   OSS_TABLE_MIN_WIDTH,
   type StorageAction,
   type StorageColumnOptions
-} from './storage-columns'
-import { StorageDeleteDialog } from './storage-delete-dialog'
-import { StorageFormDrawer } from './storage-form-drawer'
-import { StorageGroupPanel } from './storage-group-panel'
-import { StorageToolbar } from './storage-toolbar'
+} from './columns'
+import { StorageDeleteDialog } from './delete-dialog'
+import { StorageFormDrawer } from './form-drawer'
+import { StorageGroupPanel } from './group-panel'
+import { StorageToolbar } from './toolbar'
 
 const SEARCH_DEBOUNCE_MS = 300
 

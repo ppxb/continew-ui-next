@@ -9,7 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import type { StorageResp } from '@/lib/api/storage'
 
-import type { StorageColumn } from './storage-columns'
+import type { StorageColumn } from './columns'
 
 /** Keeps the horizontal scrollbar as thin as the infrastructure table's. */
 const SCROLL_CONTAINER_CLASS =

@@ -20,7 +20,7 @@
 
 ### 0.2 统计口径
 
-统计时 `aria-invalid` / `aria-label` 用带 `=` 的精确匹配（排除 `aria-invalid:` 这类变体类名）；`title=` 原始命中含 5 处组件同名 prop（`config-storage.tsx:254,265`、`storage-group-panel.tsx:66`、`nav-main.tsx:202,215`），净计 8 处。
+统计时 `aria-invalid` / `aria-label` 用带 `=` 的精确匹配（排除 `aria-invalid:` 这类变体类名）；`title=` 原始命中含 5 处组件同名 prop（`storage/config-storage.tsx:254,265`、`storage/group-panel.tsx:66`、`nav-main.tsx:202,215`），净计 8 处。
 
 ---
 
@@ -49,7 +49,7 @@
 - 布局用 `<div>`/`<span>`/`<section>`/`<svg>` 是 React 组合的必然结果。
 - `<form>`：`components/ui/` 内没有表单元素级 shadcn 原语（无 `form.tsx`），react-hook-form 必须挂在原生 `<form>` 上（`login-form.tsx:73`、各 `*-form-drawer.tsx`）。
 - `<colgroup>/<col>`、`<dl>/<dt>/<dd>` 属项目既有惯例（`dashboard/infrastructure/-components/project-environments.tsx:113` 同样用法）。
-- 本地组件自身名为 `title` 的 **prop** 不是 DOM `title` 属性：`config-storage.tsx:254,265`、`storage-group-panel.tsx:66` 是 `StorageGroupPanel` 的标题 prop；`nav-main.tsx:202,215` 传给 `CollapsedIconFallback` 的 `title` 已被解构并渲染为 `{title.slice(0, 1)}` 文本（**[已复核]** 不落 DOM，非 R3 违规）。
+- 本地组件自身名为 `title` 的 **prop** 不是 DOM `title` 属性：`storage/config-storage.tsx:254,265`、`storage/group-panel.tsx:66` 是 `StorageGroupPanel` 的标题 prop；`nav-main.tsx:202,215` 传给 `CollapsedIconFallback` 的 `title` 已被解构并渲染为 `{title.slice(0, 1)}` 文本（**[已复核]** 不落 DOM，非 R3 违规）。
 - `aria-invalid` 存在两方口径冲突，本报告单列（见 §3.3 末），不与其他 R3 项混算。
 
 ### 1.4 方法
@@ -83,7 +83,7 @@
 
 1. **正确性**：`role-user-drawer` 取消授权后成员列表不刷新（invalidate key 不匹配）。
 2. **正确性**：4 个表单式配置面板（site/security/login/mail）没有错误态，接口失败时会把默认值整批写回。
-3. **正确性**：`client-form-drawer` / `sms-form-drawer` 编辑态详情加载失败会渲染空表单，保存即用默认值覆盖原记录。
+3. **正确性**：`client/form-drawer` / `sms/form-drawer` 编辑态详情加载失败会渲染空表单，保存即用默认值覆盖原记录。
 4. **正确性**：`dept-delete-dialog` 的「有子部门不可删」守卫读的是**搜索过滤后**的树，命中父节点时可删除含子部门的节点。
 5. **性能**：`navigation/sidebar/menu-icons.ts:132,327` 与 `system/menu/-components/icon-picker.tsx:3` 都用运行时 `icons` 全量对象索引图标，破坏 tree-shaking（Lucide 官方明确说明动态索引 "is importing all icons during the build"）；叠加 `icon-picker.tsx:368-393` 的模块作用域扫描，打开菜单页即付出整库代价。
 6. **R3/R4**：`config-site.tsx` 手写文件上传（原生 `input[type=file]` + `div[role=button]` + 手写键盘分支 + 5 处原生 `<img>`）；`components/app-shell/header/search-dialog.tsx:131-133` 手写 `<kbd>` 而 `ui/kbd.tsx` 已存在且别处在用。
@@ -113,7 +113,7 @@
 
 业务代码 164 文件 **0 命中**。7 处全部落在模板示例代码（`dashboard/(legacy)/finance-v1/-components/card-overview.tsx:60,67,73,77`、`dashboard/tasks/-components/columns.tsx:109`、`dashboard/ecommerce/-components/kpi-strip.tsx:256`、`dashboard/invoice/-components/invoice-paper.tsx:25`），按豁免口径不计。
 
-> 注意：`storage-display.tsx:53` 的注释仍写 "monospaced"，但实现已无 `font-mono`（`MonoCell` 只剩 `block truncate`）——注释过期，见 §11。
+> 注意：`storage/display.tsx:53` 的注释仍写 "monospaced"，但实现已无 `font-mono`（`MonoCell` 只剩 `block truncate`）——注释过期，见 §11。
 
 ### 3.2 R2 修改 shadcn 原始组件
 
@@ -144,21 +144,21 @@
 | `routes/(main)/(app)/system/role/-components/role-user-drawer.tsx:137,148` | 2 |
 | `routes/(main)/(app)/system/menu/-components/icon-picker.tsx:495,531` | 2 |
 | `components/app-shell/app-breadcrumb.tsx:217`、`components/simple-icon.tsx:17` | 各 1 |
-| `routes/(main)/(app)/open/app/-components/app-list.tsx:210`、`system/config/-components/sms-toolbar.tsx:94`、`system/dept/-components/dept-columns.tsx:127`、`system/menu/-components/menu-columns.tsx:139`、`system/menu/-components/menu-list.tsx:260`、`system/role/-components/role-permission-drawer.tsx:123`、`auth/-components/captcha-image.tsx:22` | 各 1 |
+| `routes/(main)/(app)/open/app/-components/app-list.tsx:210`、`system/config/-components/sms/toolbar.tsx:94`、`system/dept/-components/dept-columns.tsx:127`、`system/menu/-components/menu-columns.tsx:139`、`system/menu/-components/menu-list.tsx:260`、`system/role/-components/role-permission-drawer.tsx:123`、`auth/-components/captcha-image.tsx:22` | 各 1 |
 | `components/password-input.tsx:17` | 1 |
 
 改法统一：删掉 `aria-label`，改用可见文本、`<span className="sr-only">`（项目已有写法：`app-detail-drawer.tsx:172`、`user-detail-drawer.tsx:164-167`）或 `Tooltip`（`role-checkable-tree.tsx` 已在同文件用 Tooltip）。
 
 **DOM `title=`（8 处）**
 
-- `system/config/-components/storage-display.tsx:41,46,60` — 截断提示，`title={storage.name}` / `title={storage.code}` / `title={value}`
+- `system/config/-components/storage/display.tsx:41,46,60` — 截断提示，`title={storage.name}` / `title={storage.code}` / `title={value}`
 - `open/app/-components/app-display.tsx:73` — `title={accessKey}`
 - `open/app/-components/app-form-drawer.tsx:267` — `title="清空并设为永久有效"`
-- `system/config/-components/sms-columns.tsx:63` — `title="复制"`
+- `system/config/-components/sms/columns.tsx:63` — `title="复制"`
 - `system/dept/-components/dept-list.tsx:266` — `title="清空搜索"`
 - `auth/-components/captcha-image.tsx:21` — `title="Click to refresh"`（同时还有 `aria-label`）
 
-建议一律换 `Tooltip`（项目内 `client-columns.tsx:107-124` 是正确范例）。
+建议一律换 `Tooltip`（项目内 `client/columns.tsx:107-124` 是正确范例）。
 
 **其他 R3 违规（基础层）**
 
@@ -177,7 +177,7 @@
 - 支持保留的一方：`components/ui/input.tsx:11`、`select`、`checkbox.tsx:10` 只声明 `aria-invalid:` 变体、自身从不设置该属性，调用方不传则错误态边框/ring 失效。
 - 支持删除的一方：同一批 `Field` 上已经写了 `data-invalid={fieldState.invalid}`（`components/ui/field.tsx:49` 的 `data-[invalid=true]:text-destructive` 即由此驱动），两者并存属冗余；且 AGENTS.md 明确「application code passes none of its own（aria-label）」。
 
-**建议**：由所有者拍一次口径。若从严（按 R3 字面），删掉全部 56 处 `aria-invalid` 并确认 `Field`/`FieldError` 的错误视觉仍在；若从宽，则在 AGENTS.md 里把它写成显式例外，避免后续 review 反复争议。涉及文件：`storage-form-drawer.tsx`(9)、`sms-form-drawer.tsx`(8)、`client-form-drawer.tsx`(10)、`user-form-drawer.tsx`(8)、`role-form-drawer.tsx`(5)、`dept-form-drawer.tsx`(3)、`menu-form-drawer.tsx`(3)、`user-reset-password-dialog.tsx`(2)、`app-form-drawer.tsx`(2)、`login-form.tsx`(4)、`profile/-components/password-form.tsx`(3)、`user-role-select.tsx`(1)、`client-auth-type-select.tsx`(1)。
+**建议**：由所有者拍一次口径。若从严（按 R3 字面），删掉全部 56 处 `aria-invalid` 并确认 `Field`/`FieldError` 的错误视觉仍在；若从宽，则在 AGENTS.md 里把它写成显式例外，避免后续 review 反复争议。涉及文件：`storage/form-drawer.tsx`(9)、`sms/form-drawer.tsx`(8)、`client/form-drawer.tsx`(10)、`user-form-drawer.tsx`(8)、`role-form-drawer.tsx`(5)、`dept-form-drawer.tsx`(3)、`menu-form-drawer.tsx`(3)、`user-reset-password-dialog.tsx`(2)、`app-form-drawer.tsx`(2)、`login-form.tsx`(4)、`profile/-components/password-form.tsx`(3)、`user-role-select.tsx`(1)、`client/auth-type-select.tsx`(1)。
 
 ### 3.4 R4 原生 html 元素 / 自实现
 
@@ -186,7 +186,7 @@
 | 位置 | 场景 | 建议 |
 |---|---|---|
 | `system/config/-components/config-site.tsx:425,438` | 预览模式切换（admin/user） | `ToggleGroup`（`components/ui/toggle-group.tsx` 已存在） |
-| `system/config/-components/sms-columns.tsx:56` | 复制 Access Key（且自实现剪贴板、无 try/catch） | `Button variant="ghost" size="icon-xs"` + 复用 `client-columns.tsx:86-127` |
+| `system/config/-components/sms/columns.tsx:56` | 复制 Access Key（且自实现剪贴板、无 try/catch） | `Button variant="ghost" size="icon-xs"` + 复用 `client/columns.tsx:86-127` |
 | `system/menu/-components/menu-form-drawer.tsx:227,248,269` | 菜单类型切换（3 个，各约 20 行重复 class） | `ToggleGroup` 或 `Button`，并用数组 map 生成 |
 | `system/menu/-components/icon-picker.tsx:586` | 图标网格每一格 | `Button variant="ghost"` |
 | `system/menu/-components/menu-columns.tsx:132`、`system/dept/-components/dept-columns.tsx:120` | 树展开/折叠 | `Button variant="ghost" size="icon-xs"` |
@@ -218,7 +218,7 @@
 
 1. **[高·已复核]** `system/role/-components/role-user-drawer.tsx:95,115,376` — 取消授权后成员列表不刷新。失效 key 与查询 key 结构不等：失效用 `roleKeys.users(roleId)` → `['system','role','users',id,undefined]`；列表查询用 `roleKeys.users(roleId, {page,size,description})` → `['system','role','users',id,{…}]`（同文件 70-74 行）。TanStack Query 的 `partialMatchKey` 逐元素比较 `typeof`，`undefined` 与 `object` 不匹配，故失效不命中。修法：新增 `usersRoot: (id) => [...roleKeys.all, 'users', id]` 并用它失效。
 2. **[高]** `system/config/-components/config-site.tsx:71-74`、`config-security.tsx:58-61`、`config-login.tsx:43-46`、`config-mail.tsx:57-60` — option 查询只取 `data`/`isLoading`，无 `isError`。请求失败时 `options` 落为 `[]`、`isLoading` 为 false，面板照常渲染默认值，用户点「修改」→「保存」会把默认值整批写回后端（`config-security.tsx:88-96` 提交 `Object.entries(form)` 全量）。
-3. **[中]** `system/config/-components/client-form-drawer.tsx:147-151,257`、`sms-form-drawer.tsx:206,230-232` — 编辑态详情查询失败无分支：`isEdit && isLoading` 为 false 时直接渲染 `DEFAULT_FORM_VALUES` 空表单，保存即以默认值覆盖原记录（`storage-form-drawer.tsx:736-737` 有 `isError` 分支，可作范例，但也缺重试按钮）。
+3. **[中]** `system/config/-components/client/form-drawer.tsx:147-151,257`、`sms/form-drawer.tsx:206,230-232` — 编辑态详情查询失败无分支：`isEdit && isLoading` 为 false 时直接渲染 `DEFAULT_FORM_VALUES` 空表单，保存即以默认值覆盖原记录（`storage/form-drawer.tsx:736-737` 有 `isError` 分支，可作范例，但也缺重试按钮）。
 4. **[中]** `system/dept/-components/dept-delete-dialog.tsx:27`（同 `menu-delete-dialog.tsx:27`）— `hasChildren` 读的是搜索过滤后的树。`filterDeptTree` 会把 `children` 替换为只含命中子节点的数组（`dept-list.tsx:51-56`），命中父节点而子节点未命中时 `children` 为空，守卫放行，导致删除含子部门的节点。
 5. **[中]** `system/dept/-components/dept-list.tsx:180` — 导出只把关键词当 `description` 传后端，而列表过滤同时匹配 `name`（`dept-list.tsx:38-39`），导出结果 ≠ 当前筛选结果。
 6. **[中]** `system/role/-components/role-permission-drawer.tsx:105,128-157` — 只处理 loading，权限树加载失败静默显示空树（`permTree.isError` 从未读取）。
@@ -241,7 +241,7 @@
 | `system/user/-components/user-table.tsx` | `open/app/-components/app-table.tsx` | **96.2%** |
 | `system/dept/-components/dept-table.tsx` | `system/menu/-components/menu-table.tsx` | **95.8%** |
 | `system/user/-components/user-table.tsx` | `system/role/-components/role-table.tsx` | **95.2%** |
-| `system/config/-components/client-table.tsx` | `system/config/-components/sms-table.tsx` | **94.3%** |
+| `system/config/-components/client/table.tsx` | `system/config/-components/sms/table.tsx` | **94.3%** |
 
 复制的不只是外观，是整套逻辑：`PAGE_SIZE_OPTIONS`、`preventPaginationNavigation`、`PageItem` + `getPageNumbers`、`TableSkeletonRows`、分页页脚（每页/共 N 条/页码）、空态、错误重试。证据：`app-table.tsx:31` 与 `user-table.tsx:31` 的 `function getPageNumbers(currentPage: number, pageCount: number): PageItem[] {` 逐字相同。
 
@@ -260,21 +260,21 @@
 
 ### 5.2 工具栏（8 份）
 
-`user-toolbar`(100) / `role-toolbar`(85) / `app-toolbar`(113) / `client-toolbar`(90) / `sms-toolbar`(93) / `storage-toolbar`(65) / `dept-toolbar`(156) / `menu-toolbar`(142)。`user-toolbar` ↔ `role-toolbar` 相同行占比 78%；隐藏列下拉与全屏按钮在 8 份里逐字相同（`<DropdownMenuLabel>显示的列</DropdownMenuLabel>` 在 `app-toolbar.tsx:86` 与 `user-toolbar.tsx:78` 相同）。建议抽 `DataTableToolbar`，用插槽区分差异。
+`user-toolbar`(100) / `role-toolbar`(85) / `app-toolbar`(113) / `client/toolbar`(90) / `sms/toolbar`(93) / `storage/toolbar`(65) / `dept-toolbar`(156) / `menu-toolbar`(142)。`user-toolbar` ↔ `role-toolbar` 相同行占比 78%；隐藏列下拉与全屏按钮在 8 份里逐字相同（`<DropdownMenuLabel>显示的列</DropdownMenuLabel>` 在 `app-toolbar.tsx:86` 与 `user-toolbar.tsx:78` 相同）。建议抽 `DataTableToolbar`，用插槽区分差异。
 
 ### 5.3 删除对话框（6 份）
 
-`user/role/app/client/sms/storage-delete-dialog` 结构一致（AlertDialog + Media + Spinner + toast + invalidate），且 loading 策略有三种写法：`useState`+try/catch（sms/storage/user/role/dept/menu）、`useMutation`（client）。建议抽 `ConfirmDeleteDialog({ entityLabel, onConfirm })`。
+`user/role/app/client/sms/storage` 六个 `-delete-dialog` 结构一致（AlertDialog + Media + Spinner + toast + invalidate），且 loading 策略有三种写法：`useState`+try/catch（sms/storage/user/role/dept/menu）、`useMutation`（client）。建议抽 `ConfirmDeleteDialog({ entityLabel, onConfirm })`。
 
 ### 5.4 表单抽屉
 
-- `app-form-drawer`(356) / `user-form-drawer`(513) / `role-form-drawer`(332) / `menu-form-drawer`(590) / `dept-form-drawer`(316) / `client-form-drawer`(595) / `sms-form-drawer`(488) / `storage-form-drawer`(689)：骨架组件（`UserFormSkeleton`/`ClientFormSkeleton`/`StorageFormSkeleton`/`AppFormSkeleton`）各写一份，且多为逐字段硬编码。
-- `storage-form-drawer.tsx:54,299-302` 与 `sms-form-drawer.tsx:27,170-173`：条件必填都在 `onSubmit` 里 `setError` 手补，而 schema 里该字段是可选项（同文件的 `superRefine` 已有更合适的模式）。
+- `app-form-drawer`(356) / `user-form-drawer`(513) / `role-form-drawer`(332) / `menu-form-drawer`(590) / `dept-form-drawer`(316) / `client/form-drawer`(595) / `sms/form-drawer`(488) / `storage/form-drawer`(689)：骨架组件（`UserFormSkeleton`/`ClientFormSkeleton`/`StorageFormSkeleton`/`AppFormSkeleton`）各写一份，且多为逐字段硬编码。
+- `storage/form-drawer.tsx:54,299-302` 与 `sms/form-drawer.tsx:27,170-173`：条件必填都在 `onSubmit` 里 `setError` 手补，而 schema 里该字段是可选项（同文件的 `superRefine` 已有更合适的模式）。
 - `menu-form-drawer.tsx:412-430,472-508,511-528`：「权限标识」写两遍、「重定向地址」写两遍。
 
 ### 5.5 复制到剪贴板（5 份）
 
-`app-display.tsx:14`、`app-detail-drawer.tsx:16`、`app-secret-dialog.tsx:28`、`system/user/-components/user-detail-drawer.tsx:16`、`system/config/-components/client-detail-drawer.tsx:22` 各自声明 `COPIED_FEEDBACK_MS = 1500` 并实现一套 copied state + toast + 定时器；`sms-columns.tsx:56-66` 是第 6 份且无 try/catch。`app-detail-drawer.tsx:27-57` 与 `:59-90`（`IdField`/`AccessKeyField`）除 toast 文案外完全相同。建议抽 `CopyField`/`useCopyToClipboard`。
+`app-display.tsx:14`、`app-detail-drawer.tsx:16`、`app-secret-dialog.tsx:28`、`system/user/-components/user-detail-drawer.tsx:16`、`system/config/-components/client/detail-drawer.tsx:22` 各自声明 `COPIED_FEEDBACK_MS = 1500` 并实现一套 copied state + toast + 定时器；`sms/columns.tsx:56-66` 是第 6 份且无 try/catch。`app-detail-drawer.tsx:27-57` 与 `:59-90`（`IdField`/`AccessKeyField`）除 toast 文案外完全相同。建议抽 `CopyField`/`useCopyToClipboard`。
 
 ### 5.6 列表页状态逻辑
 
@@ -292,17 +292,17 @@
 
 ### 5.8 空状态：手写 17+ 处 vs `ui/empty.tsx` 只用 1 次
 
-- 6 个表格写 `暂无数据`（`user-table.tsx:141`、`app-table.tsx:141`、`client-table.tsx:140`、`role-table.tsx:139`、`dept-table.tsx:93`、`menu-table.tsx:93`），`sms-table.tsx:138` 写 `暂无短信配置`（第 7 处，文案还不一致）。
-- `storage-group-panel.tsx:158`（`暂无{title}配置`）、`user-role-select.tsx:82`、`client-auth-type-select.tsx:51`、`role-user-drawer.tsx:318`、`config/route.tsx:113`。
+- 6 个表格写 `暂无数据`（`user-table.tsx:141`、`app-table.tsx:141`、`client/table.tsx:140`、`role-table.tsx:139`、`dept-table.tsx:93`、`menu-table.tsx:93`），`sms/table.tsx:138` 写 `暂无短信配置`（第 7 处，文案还不一致）。
+- `storage/group-panel.tsx:158`（`暂无{title}配置`）、`user-role-select.tsx:82`、`client/auth-type-select.tsx:51`、`role-user-drawer.tsx:318`、`config/route.tsx:113`。
 - 模板示例里 7 处 `No results.` + 10 处 coming-soon 块。
 - 而 `components/ui/empty.tsx`（86 行）全项目只被 `dashboard/file-manager/-components/folders-section.tsx:12` 引用一次。
 
 ### 5.9 config 面板内部
 
-- 「选项数组 → label map」循环写 5 遍（`config-client.tsx:112-142` 四段 + `config-sms.tsx:96-102`）。
+- 「选项数组 → label map」循环写 5 遍（`client/config-client.tsx:112-142` 四段 + `sms/config-sms.tsx:96-102`）。
 - 4 个表单式面板的「option → form 同步」与 `handleResetForm` 各写两遍（`config-site.tsx:86-97` vs `:162-171`、`config-security.tsx:71-84` vs `:121-132`、`config-login.tsx:56-62` vs `:99-103`、`config-mail.tsx:70-82` vs `:119-129`）。
-- `client-detail-drawer.tsx:119-165` 与 `client-columns.tsx:255-322` 把同一批字段格式化写两遍。
-- `config-sms.tsx:106-118`、`config-storage.tsx:94-95`：`queryKey` 与 `queryFn` 各写一遍同样的参数对象。
+- `client/detail-drawer.tsx:119-165` 与 `client/columns.tsx:255-322` 把同一批字段格式化写两遍。
+- `sms/config-sms.tsx:106-118`、`storage/config-storage.tsx:94-95`：`queryKey` 与 `queryFn` 各写一遍同样的参数对象。
 - 列工厂签名不一致：`createClientColumns`(9 个位置参数) / `createSmsColumns`(6 个) vs `createLocalStorageColumns(options)` 对象写法。
 
 ### 5.10 模板示例代码
@@ -326,7 +326,7 @@
 
 ## 6. 低效实现
 
-- **[中]** `system/config/-components/config-sms.tsx:164`、`config-storage.tsx:144` — `useCallback` 依赖整个 `useMutation` 返回对象（每次渲染都是新引用），导致回调与 `columns` 的 `useMemo` 永不命中，列定义每帧重建。对照 `config-client.tsx:174-191` 用 `[]` 是正确的。修法：依赖 `mutation.mutate`（稳定）或放 ref。
+- **[中]** `system/config/-components/sms/config-sms.tsx:164`、`storage/config-storage.tsx:144` — `useCallback` 依赖整个 `useMutation` 返回对象（每次渲染都是新引用），导致回调与 `columns` 的 `useMemo` 永不命中，列定义每帧重建。对照 `client/config-client.tsx:174-191` 用 `[]` 是正确的。修法：依赖 `mutation.mutate`（稳定）或放 ref。
 - **[中]** `system/menu/-components/icon-picker.tsx:368-393` — 在**模块作用域**对整库图标做 O(分类 × 图标) 扫描并构造 1500+ 对象与 Set；`menu-form-drawer` 静态导入该模块，因此只要打开菜单页就付出代价，即使从未打开图标弹窗。
 - **[中]** `system/menu/-components/icon-picker.tsx:447-454,563,611-623` — 同一分页能力做两套（滚动触底自动加载 + 「加载更多」按钮），且 `handleScroll` 每次渲染重建、未节流。
 - **[中]** `system/config/-components/config-site.tsx:141-145,155-159` — 图片经 `readAsDataURL` 转 base64 直接写进 option 值（`:137` 只校验 MIME，无大小上限），而 `lib/api/common.ts:22-28` 已有 `uploadFile()` 返回 `{ url }`。
@@ -370,7 +370,7 @@
 ### 7.4 无引用的组件与导出
 
 - `components/can.tsx`（26 行）— 全项目零引用，而 4 个权限布尔值在 `dept-list`/`menu-list` 手工穿透到 columns/toolbar 两层（`dept-columns.tsx:93-98`、`dept-toolbar.tsx:36-37`）。要么用起来，要么删掉。
-- `system/config/-components/storage-display.tsx:17-19` `storageTypeDescription` — 零引用（注释声称"shown under the drawer title"但无人调用）。
+- `system/config/-components/storage/display.tsx:17-19` `storageTypeDescription` — 零引用（注释声称"shown under the drawer title"但无人调用）。
 - `open/app/-components/app-display.tsx:16-18` `appLabel` — 零引用。
 - `dashboard/kanban/-components/utils.ts:8,13` `findColumnId`/`findTask` — 零引用。
 - `routes/(main)/(app)/$.tsx:38-39` — 为占位页计算源码仓库路径，且在**生产**也渲染（`:39,49`），与 `root-error.tsx:13` 的 `import.meta.env.DEV` 门控不一致。
@@ -410,7 +410,7 @@
 
 - **[中]** `system/role/-components/role-user-drawer.tsx:343` — `<span>` 直接作为 `<ul>`（`PaginationContent`）的子元素，HTML 语义非法（`components/ui/pagination.tsx:20` 渲染 `<ul>`）。应包 `PaginationItem`。
 - **[低]** `system/user/-components/use-fullscreen-transition.ts`（1 行）— 纯转发模块 `export { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'`，而 `user-list.tsx:18` 通过 `'./use-fullscreen-transition'` 导入、其余 7 处直接导入 `@/hooks/...`。删掉该文件并统一导入路径。
-- **[低]** `system/config/-components/client-columns.tsx:23-67` — 8 份常量里 4 对是同一数据的两种写法（`AUTH_TYPE_OPTIONS`/`AUTH_TYPE_MAP`、`REFRESH_TOKEN_MODE_OPTIONS`/`_MAP`、`REPLACED_RANGE_PRESETS`/`_MAP`、`LOGOUT_MODE_PRESETS`/`_MAP`）。可由 OPTIONS 派生 MAP。
+- **[低]** `system/config/-components/client/columns.tsx:23-67` — 8 份常量里 4 对是同一数据的两种写法（`AUTH_TYPE_OPTIONS`/`AUTH_TYPE_MAP`、`REFRESH_TOKEN_MODE_OPTIONS`/`_MAP`、`REPLACED_RANGE_PRESETS`/`_MAP`、`LOGOUT_MODE_PRESETS`/`_MAP`）。可由 OPTIONS 派生 MAP。
 - **[低]** `system/dept/-components/dept-toolbar.tsx:46-56` — `COLUMN_LABEL_MAP` 的 10 个标签与 `dept-columns.tsx:109-186` 的 `header` 完全重复；`menu-toolbar.tsx:124-126` 已用 `column.columnDef.header` 兜底，证明该映射多余。
 - **[低]** `system/dept/-components/dept-columns.tsx:27`（同 `menu-columns.tsx:43`）— `dark:text-destructive` 与基础 `text-destructive` 同值，深色覆盖无效。
 - **[低]** `system/dept/-components/dept-columns.tsx:139` — 三元两分支结果相同（`depth === 0 ? 'font-medium text-foreground' : 'text-foreground'`）。
@@ -419,9 +419,9 @@
 - **[低]** `auth/-components/login-form.tsx:45-48` — 验证码必填在 schema 里是 `z.string().optional()`（`:23`），却在提交时手工 `setError`，同一规则分裂两处。
 - **[低]** `open/app/-components/app-form-drawer.tsx:31,155` 与 `app-display.tsx:36` — `expireTime.replace(/-/g, '/')` 日期解析重复 3 次。
 - **[低]** `open/app/-components/app-form-drawer.tsx:31`、`auth/-components/captcha-image.tsx:28`、`dashboard/invoice/-components/invoice-paper.tsx:25` — `bg-neutral-50 ... text-neutral-950`（invoice-paper）在暗色主题下不可读。
-- **[低]** `system/config/-components/sms-form-drawer.tsx:314-322,369-379,389-400` — `data-invalid` 在同类字段上时有时无（`secretKey`/`weight`/`retryInterval` 的 `Field` 缺 `data-invalid`，无效态样式不生效）。
+- **[低]** `system/config/-components/sms/form-drawer.tsx:314-322,369-379,389-400` — `data-invalid` 在同类字段上时有时无（`secretKey`/`weight`/`retryInterval` 的 `Field` 缺 `data-invalid`，无效态样式不生效）。
 - **[低]** `system/role/-components/role-form-drawer.tsx:92-100` 与 `107-115` — 同一份 `defaultValues` 字面量写两遍（`user-form-drawer.tsx:97` 的 `EMPTY_FORM` 是正确写法）。
-- **[低]** `system/config/-components/config-security.tsx:245,278,310,343,375,407` — `pr-10 transition-none disabled:bg-transparent dark:disabled:bg-transparent` 与 5 处单位后缀 span 重复（`storage-form-drawer.tsx:46` 的 `MB_SUFFIX_CLASS` 是更好写法）。
+- **[低]** `system/config/-components/config-security.tsx:245,278,310,343,375,407` — `pr-10 transition-none disabled:bg-transparent dark:disabled:bg-transparent` 与 5 处单位后缀 span 重复（`storage/form-drawer.tsx:46` 的 `MB_SUFFIX_CLASS` 是更好写法）。
 - **[中]** `lib/api/user.ts:41-44` — 重复定义了与 `lib/api/types.ts:16-19` 完全相同的 `PageResp<T>`，应改为 `import type { PageResp } from './types'`。
 - **[低]** `lib/preferences/layout.ts:2-31` 与 `lib/preferences/theme.ts:1-5` — 选项里的 `label` 从未被读取，UI 把同样文案硬编码了一遍（`{ label: 'Floating', value: 'floating' }` vs `layout-controls.tsx:185-187` 的 `Floating`）。要么让 UI 消费 `*_OPTIONS.label`，要么删掉 `label` 只留 `VALUES`。
 - **[低]** `lib/api/app.ts:46` — `export interface AppDetailResp extends AppResp {}` 空扩展，应为 `export type AppDetailResp = AppResp`。
@@ -439,7 +439,7 @@
 - **[中]** `system/role/-components/role-checkable-tree.tsx:76,179` — 通过嗅探 `className?.includes('flex-1')` 推断布局模式（`isFlex1`）。应改为显式 prop（如 `fill?: boolean`）。
 - **[中]** `system/config/-components/config-site.tsx:419-617` — 约 200 行预览 mockup 内联在配置面板里（全文件 638 行）。应抽 `site-preview.tsx`（AGENTS.md：「Break each new page into focused components」）。
 - **[低]** 骨架组件逐字段硬编码：`app-detail-drawer.tsx:92-137`（10 组固定宽度 Skeleton）、`app-form-drawer.tsx:55-82`、`UserFormSkeleton`、`ClientFormSkeleton`。字段一改即漂移，应按字段数组/schema 生成。
-- **[低]** `system/config/-components/sms-table.tsx:56-67`、`client-table.tsx:56-69` — 骨架宽度用 5 层嵌套三元，应改为宽度查表数组。
+- **[低]** `system/config/-components/sms/table.tsx:56-67`、`client/table.tsx:56-69` — 骨架宽度用 5 层嵌套三元，应改为宽度查表数组。
 - **[低]** `routes/(main)/dashboard/patient-monitoring/-components/use-realtime-tick.ts:5-6,10-11` — 两个 tick 间隔常量同为 `100`，却建两个独立 ticker。
 - **[低]** `hooks/use-fullscreen-transition.ts`（148 行）— 用 `Object.assign(el.style, {position,top,left,width,height,zIndex,overflow,transition,paddingTop,paddingBottom,opacity})` 直接写 DOM 内联样式、`void el.offsetHeight` 强制重排、`setTimeout` 定时恢复。CSS 类驱动的展开/收起可以更短，也不会与"ref 必须常驻"耦合出同类 bug。
 - **[中]** `lib/preferences/preferences-config.ts:32-50` — `definePreference` 与 `defineBootPreference` 两个泛型工厂函数体都只是 `return definition`，只为一个编译期约束复制了整套签名，而该约束并不成立：注释称布局偏好不能进 localStorage，但 `theme_mode`/`theme_preset`/`content_layout`/`navbar_style`（`:53-79`）用的是宽松版 `definePreference`，六项最终都是 `client-cookie`。应只保留一个 `definePreference`，把"引导期可读"做成显式布尔字段。
@@ -449,9 +449,9 @@
 
 ## 10. 过度防御
 
-- **[低]** `system/config/-components/sms-form-drawer.tsx:180` — `secretKey: values.secretKey.trim() || undefined!`，非空断言既无意义又绕过 strict 类型。
+- **[低]** `system/config/-components/sms/form-drawer.tsx:180` — `secretKey: values.secretKey.trim() || undefined!`，非空断言既无意义又绕过 strict 类型。
 - **[低]** `system/user/-components/user-assign-roles-dialog.tsx:190` — `user={user!}`，`UserAssignRolesForm` 声明的是必填 `user: UserResp`。
-- **[低]** `system/config/-components/client-columns.tsx:129-134`、`client-detail-drawer.tsx:80-82`、`client-form-drawer.tsx:130-132`、`client-auth-type-select.tsx:11,22,39,60` — 一批默认值/可选 prop 永远不会被触发（唯一调用点总是传全量，`disabled` 从不传），如 `const map = authTypeMap ?? AUTH_TYPE_MAP`。
+- **[低]** `system/config/-components/client/columns.tsx:129-134`、`client/detail-drawer.tsx:80-82`、`client/form-drawer.tsx:130-132`、`client/auth-type-select.tsx:11,22,39,60` — 一批默认值/可选 prop 永远不会被触发（唯一调用点总是传全量，`disabled` 从不传），如 `const map = authTypeMap ?? AUTH_TYPE_MAP`。
 - **[低]** `system/dept/-components/dept-delete-dialog.tsx:46-49` — `handleDelete` 的守卫与渲染守卫 `{!cannotDelete && …}`（`:80`）重复，且 `!dept?.id` 不可达。
 - **[低]** `system/dept/-components/dept-form-drawer.tsx:26` — `z.union([z.string(), z.number()])` 已排除 `null/undefined`，`refine` 仍重复校验。
 - **[低]** `system/role/-components/role-checkable-tree.tsx:50-54` — 注释「on first load」与实际「每次 data 变化都重置」不符。
@@ -466,12 +466,12 @@
 - **[高]** `auth/-components/login-form.tsx:37-38` — 硬编码预填超管账号口令（`admin`/`admin123`）。
 - **[中]** 错误态缺失（AGENTS.md 第 12 条要求处理 error）：§4 第 2、3、6 条。
 - **[中]** 表单校验方式不统一：4 个表单式配置面板用 `useState` + `toast` 手写校验，8 个抽屉用 `react-hook-form + zod`；且校验覆盖不一致（`PASSWORD_ERROR_LOCK_COUNT` 0-10、`PASSWORD_ERROR_LOCK_MINUTES` 1-1440 在 UI 写了范围却未校验，`config-security.tsx:139-153`）。
-- **[中]** `system/config/-components/client-delete-dialog.tsx:51` — 手写 destructive 样式而不用 `variant="destructive"`；`:40` 删除进行中仍可 Esc/点遮罩关闭（另 5 个删除对话框都做了 `isDeleting` 守卫）。
+- **[中]** `system/config/-components/client/delete-dialog.tsx:51` — 手写 destructive 样式而不用 `variant="destructive"`；`:40` 删除进行中仍可 Esc/点遮罩关闭（另 5 个删除对话框都做了 `isDeleting` 守卫）。
 - **[低]** `system/role/-components/role-list.tsx:136` — `isRefreshing={query.isFetching}`，首屏加载也显示「刷新中」；`user-list.tsx:242` 的正确写法是 `query.isFetching && !query.isPending`。
-- **[低]** 注释与实现矛盾：`system/user/-components/use-user-detail.ts:24-29` 称「refetchOnMount 保持默认值，这就是点击详情会发请求的原因」，而 `lib/query-client.ts:19` 设的是 `refetchOnMount: false`（真正触发的是 `enabled` 由 false 变 true）；`storage-display.tsx:53` 仍写 "monospaced"（§3.1）。
+- **[低]** 注释与实现矛盾：`system/user/-components/use-user-detail.ts:24-29` 称「refetchOnMount 保持默认值，这就是点击详情会发请求的原因」，而 `lib/query-client.ts:19` 设的是 `refetchOnMount: false`（真正触发的是 `enabled` 由 false 变 true）；`storage/display.tsx:53` 仍写 "monospaced"（§3.1）。
 - **[低]** 导入分组/排序：`user-list.tsx:18-19` 本地导入未按手写排序；`role-checkable-tree.tsx:8-9` 把 `cn` 放在 `@/` 别名导入之后（与 `user-list.tsx:6-7` 相反）。
 - **[低]** `auth/route.tsx:23` 与 `auth/login/route.tsx:24-25` — 同一屏中英混排（左栏中文、右栏全英文）。
-- **[低]** `system/config/-components/config-storage.tsx:254,265` 与 `storage-group-panel.tsx:66` 的 `title` prop 是本地组件 prop，但命名与 DOM `title` 混淆，建议改名 `label`。
+- **[低]** `system/config/-components/storage/config-storage.tsx:254,265` 与 `storage/group-panel.tsx:66` 的 `title` prop 是本地组件 prop，但命名与 DOM `title` 混淆，建议改名 `label`。
 - **[低]** 模板示例的任意值颜色（AGENTS.md 禁止 hex/RGB/HSL/OKLCH 任意值）：`dashboard/logistics/-components/shipment-route-map.tsx:171,174,179,183,184,191`（`bg-[#d4dadc]`、`fill-[#0e0e0e]`、`stroke-[#ebd6d8]`）、`invoice/-components/invoice-paper.tsx:82`（`border-[oklch(0.86_0_0)]`）、`finance/-components/wallet.tsx:108`（`shadow-[0_0_8px_rgba(34,197,94,0.5)]`）。
 - **[低]** 开发期噪声：`dashboard/invoice/-components/use-visible-center-position.ts:40` 在 scroll/resize 回调里 `console.log`（有 `import.meta.env.DEV` 门控，故为低）。
 
@@ -492,7 +492,7 @@
 - **[高]** `system/menu/-components/icon-picker.tsx:3` — `import { icons } from 'lucide-react'` 把整个图标库拉进产物（与 `navigation/sidebar/menu-icons.tsx` 的按需策略冲突），叠加 §6 的模块作用域扫描，打开菜单页即付出全量代价。
 - **[中]** `navigation/sidebar/menu-icons.ts:132,327` — 同样引入 `icons` 运行时全量对象并按名字索引（`(icons as Record<string, LucideIcon | undefined>)[pascalName]`），破坏 tree-shaking；Lucide 官方明确说明动态加载 "is importing all icons during the build"。应去掉动态查找，只保留 `MENU_ICONS` 映射（后端可下发的名字本就有限）。注意 `:141-300` 约 160 条映射里有 50+ 条与 `toPascalCase` 查找结果完全相同，两处需一起决策（保留映射表则删除 `icons` 查找）。
 - **[高]** `system/role/-components/role-user-add-dialog.tsx:50-54,115` — 用户搜索无防抖，每次按键发一次请求（`user-list.tsx:75-82` 对同类搜索做了 300ms 防抖）。
-- **[中]** `system/config/-components/config-sms.tsx:164`、`config-storage.tsx:144` — 见 §6（`useCallback` 依赖整个 mutation 对象导致列模型每帧重建）。
+- **[中]** `system/config/-components/sms/config-sms.tsx:164`、`storage/config-storage.tsx:144` — 见 §6（`useCallback` 依赖整个 mutation 对象导致列模型每帧重建）。
 - **[中]** `system/config/-components/config-site.tsx:141-145` — base64 图片写进配置项（见 §6）。
 - **[中]** `system/config/route.tsx:93-103` — 见 §6（memo 失效）。
 - **[低]** `system/role/-components/role-user-drawer.tsx:124,203` — 列定义依赖瞬时状态 `isUnassigning`，每次取消授权都重建整个列模型与全部单元格。
@@ -512,7 +512,7 @@
 
 1. `role-user-drawer` 的 invalidate key（§4-1）—— 用户可见的功能失效。
 2. 4 个表单式配置面板补 `isError`（§4-2）—— 否则会静默覆盖后端配置。
-3. `client/sms-form-drawer` 补编辑态 `isError`（§4-3）。
+3. `client/form-drawer`、`sms/form-drawer` 补编辑态 `isError`（§4-3）。
 4. `dept-delete-dialog` 守卫改用原始树（§4-4）。
 5. 删除 `login-form.tsx:37-38` 的硬编码账号口令（§11）。
 6. `lib/http.ts:220-221` 去掉 401 的重复 toast（§11）。
@@ -554,7 +554,7 @@
 - **`any` 与类型抑制**：业务代码与模板示例代码均无 `any`、`as any`、`@ts-ignore`、`@ts-expect-error`、lint 抑制注释。
 - **TanStack Query**：queryKey 全部走工厂（`lib/query-keys.ts`）；`invalidateQueries` 前缀与 key 结构一致（唯一例外见 §4-1）；抽屉详情 `enabled: open && isEdit` 懒加载；无请求瀑布（各抽屉内查询并行发起）；`placeholderData` 保留旧页；重复订阅由 React Query 去重。
 - **TanStack Table v9**：统一 `dataTableFeatures` 注册；服务端分页屏正确使用 `manualPagination + rowCount + pageCount + autoResetPageIndex:false`；客户端分页屏（role 列表）依赖内置 paginated row model；`getRowId` 与列可见性重置齐备；`table.FlexRender` 用法正确。
-- **性能的其余部分**：列定义、树索引、树数据转换、id 映射表均已 `useMemo`；模块级常量（`HIDDEN_BY_DEFAULT`、`STATUS_OPTIONS`、`PAGE_SIZE_OPTIONS`、`EMPTY_ROWS` 等）均在模块作用域；`config-storage.tsx:43,100`、`config-sms.tsx:45,174`、`config-client.tsx:53,221` 用稳定空数组避免每帧重建；zustand 无「订阅整个 store」问题。
+- **性能的其余部分**：列定义、树索引、树数据转换、id 映射表均已 `useMemo`；模块级常量（`HIDDEN_BY_DEFAULT`、`STATUS_OPTIONS`、`PAGE_SIZE_OPTIONS`、`EMPTY_ROWS` 等）均在模块作用域；`storage/config-storage.tsx:43,100`、`sms/config-sms.tsx:45,174`、`client/config-client.tsx:53,221` 用稳定空数组避免每帧重建；zustand 无「订阅整个 store」问题。
 - **表单校验**：`zod` schema 与后端 `RegexConstants` 的对应关系在注释中说明清楚（`user-form-drawer.tsx:40-67`），`zodResolver` + `Controller` 用法一致。
 - **路由与布局**：`(app)/route.tsx`（25 行）只做 AppShell + Outlet 组合；`(app)/$.tsx` 菜单未命中时回退 `NotFound` 而非误报"施工中"；`auth/route.tsx` 的 `h-dvh` 用于自身根容器（不在 AppShell 内）正确。
 - **登录安全**：`login-form.tsx:60` 的开放重定向防护成立（`startsWith('/')` 拦下绝对地址；`//evil.com` 经 `@tanstack/history` 的 `normalizeProtocolRelative` 规范为内部路径）。

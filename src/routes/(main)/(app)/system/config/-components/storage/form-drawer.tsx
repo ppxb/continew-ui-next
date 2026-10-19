@@ -29,7 +29,7 @@ import {
 import { encryptByRsa } from '@/lib/crypto'
 import { storageKeys } from '@/lib/query-keys'
 
-import { bytesToMegabytes, megabytesToBytes, storageTypeLabel } from './storage-display'
+import { bytesToMegabytes, megabytesToBytes, storageTypeLabel } from './display'
 
 /** Mirrors `RegexConstants.GENERAL_CODE`, which the backend applies to 编码. */
 const CODE_PATTERN = /^[a-zA-Z][a-zA-Z0-9_]{1,29}$/

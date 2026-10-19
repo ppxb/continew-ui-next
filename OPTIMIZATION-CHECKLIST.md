@@ -45,7 +45,7 @@
 ### 1.2 需修正 / 不认可的部分
 
 1. **行号漂移是系统性的**（不是个别笔误）。
-   - `AUDIT.md` 6 处：`user-form-drawer.tsx:470`→**480**、`storage-display.tsx:41,46,60`→**39,44,58**、`app-display.tsx:73`→**59**、`menu-list.tsx:259`→**256**、`header-tabs.tsx:200`→**197**、`user-list.tsx:18`→**15**。
+   - `AUDIT.md` 6 处：`user-form-drawer.tsx:470`→**480**、`storage/display.tsx:41,46,60`→**39,44,58**、`app-display.tsx:73`→**59**、`menu-list.tsx:259`→**256**、`header-tabs.tsx:200`→**197**、`user-list.tsx:18`→**15**。
    - `BASELINE-USER.20261018.md` 13 处，最严重：`user-delete-dialog.tsx:249`（**该文件仅 102 行**，`isDeleting` 在 `:40`）、`user-assign-roles-dialog.tsx:376`→**190**、`user-role-select.tsx:203`（**该文件没有 `new Map(`**）。
 2. **"逐字重复"有夸大**：`TableSkeletonRows` 7 份里**只有 `menu-table.tsx:10` 与 `dept-table.tsx:10` 一对逐字相同**，其余 5 份列宽各异；`user-form-drawer.tsx` 的"9 段相同骨架""10 段结构相同"实际宽度/结构有差异。方向成立，但按"逐字"设计公共接口会踩空。
 3. **2 条"按模式推断"造成的误报，已从清单剔除**：`AUDIT.md` §7.5 的 `user-table.tsx:118` 的 `row.getIsSelected()`（该文件全文无此调用）与 `use-user-detail.ts:36-39` 的 `if (id === null) throw`（已改用 `skipToken`，在 `:29`）。另 `dept-table`/`menu-table` 的 `getIsSelected()` 在 **`:75`** 而非 `:70`。
@@ -65,7 +65,7 @@
 
 | # | 事项 | 文件:行号 | 动作 | 核验 |
 |---|---|---|---|---|
-| 3 | 编辑态详情加载失败渲染空表单，保存覆盖原记录 | `system/config/-components/client-form-drawer.tsx:147,257`、`sms-form-drawer.tsx:206,230`；范例 `storage-form-drawer.tsx:736` | 照 `storage-form-drawer` 补 `isError` | ✓ |
+| 3 | 编辑态详情加载失败渲染空表单，保存覆盖原记录 | `system/config/-components/client/form-drawer.tsx:147,257`、`sms/form-drawer.tsx:206,230`；范例 `storage/form-drawer.tsx:736` | 照 `storage/form-drawer` 补 `isError` | ✓ |
 | 4 | 删除守卫读的是**搜索过滤后**的树，可删含子部门的节点 | `system/dept/-components/dept-delete-dialog.tsx:27`、`dept-list.tsx:51-56,164`；同构 `system/menu/-components/menu-delete-dialog.tsx:27` | 用原始树判定 | ✓ |
 | 5 | 导出只把关键词当 `description` 传后端，导出结果 ≠ 当前筛选 | `system/dept/-components/dept-list.tsx:180`（列表匹配 `name` 见 `:38-39`） | 导出参数与筛选口径对齐 | ✓ |
 | 6 | 权限树加载失败静默显示空树（`permTree.isError` 从未读取） | `system/role/-components/role-permission-drawer.tsx:105,128-157` | 补错误态＋重试 | ✓ |
@@ -81,7 +81,7 @@
 | 16 | `passwordExpiryNotified` 永不重置，换账号不再提示 | `src/stores/auth/auth-provider.tsx:18,30-34` | 清会话/登录成功时复位 | ✓ |
 | 17 | `staleTime: 0` 覆盖同 query 自己声明的 5 分钟 | `src/hooks/use-menu.ts:52` vs `:24` | 用短阈值或 `invalidateQueries` | ✓ |
 | 18 | 刷新后再 401 不走会话失效，与 `send` 不一致 | `src/lib/http.ts:316-334` vs `:217-222` | 统一走 `handleSessionExpired` | ✓ |
-| 19 | 删除对话框手写 destructive 样式；删除中仍可 Esc/遮罩关闭 | `system/config/-components/client-delete-dialog.tsx:51,40` | 用 `variant="destructive"` ＋ `isDeleting` 守卫 | △ |
+| 19 | 删除对话框手写 destructive 样式；删除中仍可 Esc/遮罩关闭 | `system/config/-components/client/delete-dialog.tsx:51,40` | 用 `variant="destructive"` ＋ `isDeleting` 守卫 | △ |
 | 20 | 上传无大小上限、base64 直接写进配置项，而 `uploadFile()` 已存在 | `system/config/-components/config-site.tsx:137,141-145`、`src/lib/api/common.ts:22` | 改用 `uploadFile()` ＋ 大小校验 | ✓ |
 
 ### P1 性能
@@ -92,7 +92,7 @@
 | 22 | 运行时 `icons` 全量对象索引，破坏 tree-shaking | `src/navigation/sidebar/menu-icons.ts:132,327` | 只保留 `MENU_ICONS` 映射 | ✓ |
 | 23 | 用户搜索无防抖，每次按键发一次请求 | `system/role/-components/role-user-add-dialog.tsx:51,115`；范例 `system/user/-components/user-list.tsx:75-82` | 复用 300ms 防抖 | ✓ |
 | 24 | 搜索框 state 在页根：每敲一键重渲染整表（≤50×16 单元格）；回调全内联且子组件无 `React.memo` | `system/user/-components/user-list.tsx:53,242-250,258,274-278`、`user-toolbar.tsx`、`user-table.tsx` | 抽 `UserSearchInput` ＋ `useCallback` ＋ `memo` | ✓ |
-| 25 | `useCallback` 依赖整个 `useMutation` 对象，列模型每帧重建 | `system/config/-components/config-sms.tsx:164`、`config-storage.tsx:144` | 依赖 `mutation.mutate` | ✓ |
+| 25 | `useCallback` 依赖整个 `useMutation` 对象，列模型每帧重建 | `system/config/-components/sms/config-sms.tsx:164`、`storage/config-storage.tsx:144` | 依赖 `mutation.mutate` | ✓ |
 | 26 | 两个 `useMemo` 实际每帧重算（`usePermission` 每次返回新闭包） | `system/config/route.tsx:93-103` | 稳定依赖 | ✓ |
 | 27 | 列定义依赖瞬时状态 `isUnassigning`，每次取消授权重建整表 | `system/role/-components/role-user-drawer.tsx:124,203` | 移出依赖 | ✓ |
 | 28 | 每行重新解析日期 / 每次渲染重建掩码 | `open/app/-components/app-display.tsx:36`、`app-secret-dialog.tsx:49` | 预格式化 / `useMemo` | △ |
@@ -105,16 +105,16 @@
 
 | # | 事项 | 文件:行号 | 动作 | 核验 |
 |---|---|---|---|---|
-| 33 | 7 份表格外壳（相同行 94.3–96.2%，已复算吻合） | `system/user/-components/user-table.tsx`、`open/app/-components/app-table.tsx`、`system/role/-components/role-table.tsx`、`system/config/-components/client-table.tsx`、`sms-table.tsx`、`system/dept/-components/dept-table.tsx`、`system/menu/-components/menu-table.tsx` | 建 `src/components/data-table/` 泛型外壳；**先定接口契约** | ✓ |
+| 33 | 7 份表格外壳（相同行 94.3–96.2%，已复算吻合） | `system/user/-components/user-table.tsx`、`open/app/-components/app-table.tsx`、`system/role/-components/role-table.tsx`、`system/config/-components/client/table.tsx`、`sms/table.tsx`、`system/dept/-components/dept-table.tsx`、`system/menu/-components/menu-table.tsx` | 建 `src/components/data-table/` 泛型外壳；**先定接口契约** | ✓ |
 | 34 | 表格工具散落：`getPageNumbers` 7 份、`preventPaginationNavigation` 9 份、`PAGE_SIZE_OPTIONS` 5 份、`TableSkeletonRows` 7 份（仅 `menu-table.tsx:10`＝`dept-table.tsx:10` 逐字） | 5 个 `*-table.tsx` 的 `:23,25,31,47/48`；另 2 份在 `src/routes/(main)/dashboard/users/-components/users-table.tsx:25`、`dashboard/tasks/-components/tasks.tsx:39`；内联 1 份 `dashboard/crm/-components/opportunities-section.tsx:82-91`；已共享范例 `dashboard/ecommerce/-components/recent-orders-table/formatters.ts:29` | 提到 `src/lib/`；`TableSkeletonRows` 按列宽参数化 | ✓ |
 | 35 | 8 份工具栏（user↔role 79.8%） | user / role / app / client / sms / storage / dept / menu 的 `-toolbar.tsx` | 抽 `DataTableToolbar` ＋ 插槽 | ✓ |
 | 36 | 6 份删除对话框，loading 三种写法（`useState`×5、`useMutation`×1） | `user/role/app/client/sms/storage` 的 `*-delete-dialog.tsx` | 抽 `ConfirmDeleteDialog` | △ |
-| 37 | 6 份剪贴板实现（各写 `COPIED_FEEDBACK_MS`，`sms-columns` 那份无 try/catch） | `open/app/-components/app-display.tsx:14`、`app-detail-drawer.tsx:16`、`app-secret-dialog.tsx:28`、`system/user/-components/user-detail-drawer.tsx:16`、`system/config/-components/client-detail-drawer.tsx:22`、`sms-columns.tsx:56` | 抽 `CopyField` / `useCopyToClipboard` | ✓ |
+| 37 | 6 份剪贴板实现（各写 `COPIED_FEEDBACK_MS`，`sms/columns` 那份无 try/catch） | `open/app/-components/app-display.tsx:14`、`app-detail-drawer.tsx:16`、`app-secret-dialog.tsx:28`、`system/user/-components/user-detail-drawer.tsx:16`、`system/config/-components/client/detail-drawer.tsx:22`、`sms/columns.tsx:56` | 抽 `CopyField` / `useCopyToClipboard` | ✓ |
 | 38 | 列表页状态逻辑逐字复制（防抖/越界回退/全屏容器） | `open/app/-components/app-list.tsx:58-65,88-93,222-226` vs `system/user/-components/user-list.tsx:75-82,123-128,288-292` | 抽 `useDebouncedKeyword` / `usePageBoundsCorrection` / `TableFullscreenContainer` | ✓ |
-| 39 | 空状态手写 17+ 处，而 `ui/empty.tsx` 全项目只用 1 次 | 6 个表格 ＋ `system/config/-components/sms-table.tsx:138`、`storage-group-panel.tsx:158`、`system/user/-components/user-role-select.tsx:82` 等 | 抽 `TableEmptyState`（内部用 `ui/empty.tsx`） | △ |
+| 39 | 空状态手写 17+ 处，而 `ui/empty.tsx` 全项目只用 1 次 | 6 个表格 ＋ `system/config/-components/sms/table.tsx:138`、`storage/group-panel.tsx:158`、`system/user/-components/user-role-select.tsx:82` 等 | 抽 `TableEmptyState`（内部用 `ui/empty.tsx`） | △ |
 | 40 | `dept` 与 `menu` 是双胞胎模块（列表 70.5%、parent-select 67.7%），且已分叉 | `system/dept/-components/dept-list.tsx` ↔ `system/menu/-components/menu-list.tsx`、`dept-parent-select.tsx` ↔ `menu-parent-select.tsx`；分叉证据 `menu-form-drawer.tsx:170` vs `dept-form-drawer.tsx:150` | 合并为泛型树表模块 | ✓ |
 | 41 | 基础层重复：21 条路由标题表、`matchMedia` 两套、`closeAllTabs`＝`resetTabs`、主题清单两份、预设标签构建两遍 | `app-shell/app-breadcrumb.tsx:27-49` ↔ `app-shell/header/header-tabs.tsx:19-41`；`src/hooks/use-lg.ts:5-19` ↔ `use-mobile.ts:5-19`；`src/stores/tabs.ts:103-107,109-111`；`app-shell/header/theme-switcher.tsx:8` ↔ `src/lib/preferences/theme.ts:7`；`app-shell/header/layout-controls.tsx:33-46,83-95` | 收口到 `src/navigation/`、`useMediaQuery` 等 | △ |
-| 42 | config 面板内部剩余重复：选项→label map ×5、client 字段格式化 ×2、`queryKey`＋`queryFn` 各写一遍（表单式 4 个面板的 option→form 同步与保存/恢复逻辑现由 `-components/use-option-form.ts` 提供） | `system/config/-components/config-client.tsx:112-142`、`config-sms.tsx:96-102,106-118`、`config-storage.tsx:94-95`、`client-detail-drawer.tsx:119-165` ↔ `client-columns.tsx:255-322` | 抽格式化器 | △ |
+| 42 | config 面板内部剩余重复：选项→label map ×5、client 字段格式化 ×2、`queryKey`＋`queryFn` 各写一遍（表单式 4 个面板的 option→form 同步与保存/恢复逻辑现由 `-components/use-option-form.ts` 提供） | `system/config/-components/client/config-client.tsx:112-142`、`sms/config-sms.tsx:96-102,106-118`、`storage/config-storage.tsx:94-95`、`client/detail-drawer.tsx:119-165` ↔ `client/columns.tsx:255-322` | 抽格式化器 | △ |
 | 43 | 用户页内部重复：`LOOKUP_STALE_MS` ×6、dept 树查询 ×3、role 字典查询 ×4、`PASSWORD_PATTERN` ×2、`String(id)` Map ×3、`userLabel` ×2、一行转发壳 | `system/user/-components/dept-tree-select.tsx:9,72-77`、`user-role-select.tsx:12,33-38`、`user-form-drawer.tsx:67,73,209-214,217,251,253`、`user-assign-roles-dialog.tsx:31,70-74,77-80`、`user-list.tsx:104-114`、`user-reset-password-dialog.tsx:32`、`user-display.tsx:18`、`user-columns.tsx:32`、`-components/use-fullscreen-transition.ts` | 抽 `useDeptTree()` / `useRoleDict()`，常量上移 | ✓ |
 | 44 | 密码提示文案漂移（一处"小写字母"，一处"字母"） | `system/user/-components/user-form-drawer.tsx:70` vs `user-reset-password-dialog.tsx:141` | 由同一常量派生 | ✓ |
 | 76 | 4 个表单式面板的头部操作区（修改/保存/重置/取消）与「恢复默认」确认框逐字重复（约 55 行 × 4） | `system/config/-components/config-{site,security,login,mail}.tsx` 的头部按钮区与末尾 `AlertDialog` | 抽 `ConfigPanelHeader` ＋ `ConfigResetDialog`（**新增建议，待裁决**） | ✓ |
@@ -126,7 +126,7 @@
 | 45 | `ui/**` 14 文件零引用（1,649 行） | `src/components/ui/`：questionnaire / combobox / menubar / carousel / attachment / navigation-menu / input-otp / accordion / native-select / hover-card / slider / radio-group / aspect-ratio / direction | **建议只标注不删**（与 R2 冲突，`shadcn add` 会回灌） | ✓ |
 | 46 | `(legacy)` 4 目录 25 文件（约 3,300 行）＋ `coming-soon` 无任何引用 | `src/routes/(main)/dashboard/(legacy)/`、`dashboard/coming-soon/route.tsx`（仅 `routeTree.gen.ts` 登记） | 删（零引用） | ✓ |
 | 47 | `lib/api` 9 个死导出 | `src/lib/api/common.ts:22,31`、`app.ts:83`、`role.ts:137,160`、`menu.ts:5,11`、`src/lib/cookie.ts:20`、`src/lib/local-storage.ts:11` | 删或接上（`uploadFile` 应被 #20 用起来） | ✓ |
-| 48 | 组件/工具死代码 | `src/components/can.tsx`、`system/config/-components/storage-display.tsx:17-19`、`open/app/-components/app-display.tsx:16-18`、`dashboard/kanban/-components/utils.ts:8,13`、`system/user/-components/use-fullscreen-transition.ts`、`src/routes/(main)/(app)/$.tsx:38-39` | 删（转发壳删除后统一导入 `@/hooks/`） | △ |
+| 48 | 组件/工具死代码 | `src/components/can.tsx`、`system/config/-components/storage/display.tsx:17-19`、`open/app/-components/app-display.tsx:16-18`、`dashboard/kanban/-components/utils.ts:8,13`、`system/user/-components/use-fullscreen-transition.ts`、`src/routes/(main)/(app)/$.tsx:38-39` | 删（转发壳删除后统一导入 `@/hooks/`） | △ |
 | 49 | query key 与 store 死键 | `src/lib/query-keys.ts:25,33,34,35`、`src/stores/auth/auth-store.ts:23,24,38,62,73`、`src/hooks/use-permission.ts:27-28` | 删 | ✓ |
 | 50 | 恒 false / 不可达分支 | `system/dept/-components/dept-list.tsx:231`、`system/menu/-components/menu-list.tsx:230`、`open/app/-components/app-table.tsx:118`、`system/role/-components/role-table.tsx:116`、`system/dept/-components/dept-table.tsx:75`、`system/menu/-components/menu-table.tsx:75`、`system/role/-components/use-role-detail.ts:26-28`、`open/app/-components/use-app-detail.ts:26-28`、`open/app/-components/app-secret-dialog.tsx:96-100`、`system/role/-components/role-delete-dialog.tsx:26,46`、`src/lib/preferences/preferences-storage.ts:12-21`、`src/stores/tabs.ts:72-75` | 清理。**已剔除 2 条误报**：`user-table.tsx:118`、`use-user-detail.ts:36-39`（不存在） | ✓/✗ |
 | 51 | 无调用方传入的 props（过度设计的配置面） | `system/role/-components/role-checkable-tree.tsx:19-25,40-41`、`system/user/-components/dept-tree-select.tsx:21,61`、`open/app/-components/use-app-detail.ts:13,21,33`、`auth/-components/captcha-image.tsx:6,13` | 删 props | ✓ |
@@ -136,8 +136,8 @@
 | # | 待裁决 | 文件:行号 | 建议 | 核验 |
 |---|---|---|---|---|
 | 52 | `aria-invalid` 56 处：保留还是删 | 13 文件，如 `system/user/-components/user-form-drawer.tsx:348,365,385,408,426,444,518,539`、`user-reset-password-dialog.tsx:139,159`、`user-role-select.tsx:52` | 保留，并在 `AGENTS.md` 写明例外（它是 `ui/**` 失效态样式的功能钩子） | ✓ |
-| 53 | `aria-label` **32** 处 ＋ DOM `title` 净 8 处 ＋ `role=` 8 处 | `app-shell/header/layout-controls.tsx:113-206`（12）、`system/role/-components/role-checkable-tree.tsx:98-163`（5）、`system/config/-components/config-site.tsx:286,328`、`system/menu/-components/icon-picker.tsx:493`、`src/components/simple-icon.tsx:17-18`、`app-shell/sidebar/nav-main.tsx:72,228`、`system/config/-components/storage-display.tsx:39,44,58`、`open/app/-components/app-display.tsx:59` | 一律换 `Tooltip` / `sr-only`；`role=` 最严重 | ✓ |
-| 54 | 表单控件高度基准：`h-8` 还是 `h-9` | `src/components/password-input.tsx:15`（`ui/input-group.tsx:15` 默认 `h-8`；消费者 `system/config/-components/sms-form-drawer.tsx:316`、`storage-form-drawer.tsx:426`） | 删 `h-9`，以 `h-8` 为准（不动 `ui/**`） | ✓ |
+| 53 | `aria-label` **32** 处 ＋ DOM `title` 净 8 处 ＋ `role=` 8 处 | `app-shell/header/layout-controls.tsx:113-206`（12）、`system/role/-components/role-checkable-tree.tsx:98-163`（5）、`system/config/-components/config-site.tsx:286,328`、`system/menu/-components/icon-picker.tsx:493`、`src/components/simple-icon.tsx:17-18`、`app-shell/sidebar/nav-main.tsx:72,228`、`system/config/-components/storage/display.tsx:39,44,58`、`open/app/-components/app-display.tsx:59` | 一律换 `Tooltip` / `sr-only`；`role=` 最严重 | ✓ |
+| 54 | 表单控件高度基准：`h-8` 还是 `h-9` | `src/components/password-input.tsx:15`（`ui/input-group.tsx:15` 默认 `h-8`；消费者 `system/config/-components/sms/form-drawer.tsx:316`、`storage/form-drawer.tsx:426`） | 删 `h-9`，以 `h-8` 为准（不动 `ui/**`） | ✓ |
 | 55 | `font-normal` 覆盖 `font-medium` 的口径 | `system/user/-components/user-table.tsx:107`、`user-columns.tsx:160`、`user-role-select.tsx:98` | 承认并统一（或全局去掉） | ✓ |
 | 56 | 原生 `<button>` 18 处的整改范围（`RetryHint` 已存在，位于 `system/config/-components/retry-hint.tsx`，4 个配置面板的错误态已在用；全目录统一时上移到 `src/components/`） | 清单见 `AUDIT.md` §3.4；用户页三处 `system/user/-components/user-form-drawer.tsx:480`、`user-assign-roles-dialog.tsx:177`、`user-role-select.tsx:77` | 用 `RetryHint` **全目录**统一 | ✓ |
 | 57 | 穿透选择器 `**:data-[slot=…]` 与 `[&_tr]:border-t`（全项目 7–8 处一致） | `system/user/-components/user-table.tsx:99,103` | 改到调用点直接传 `className` | ✓ |
@@ -166,7 +166,7 @@
 
 | # | 事项 | 文件 | 动作 |
 |---|---|---|---|
-| 73 | 修正 `AUDIT.md`：6 处行号/条目（`user-form-drawer:470`→480、`storage-display:41,46,60`→39,44,58、`app-display:73`→59、`menu-list:259`→256、`header-tabs:200`→197、`user-list:18`→15）；删 `user-table.tsx:118` 与 `use-user-detail.ts:36-39` 两条误报；`dept/menu-table:70`→75；`aria-label` 33→32；并删除 §4-1（`role-user-drawer` 失效键）与 §4-2（配置面板缺 `isError`）两条已修复的缺陷 | `AUDIT.md` | 更正 |
+| 73 | 修正 `AUDIT.md`：6 处行号/条目（`user-form-drawer:470`→480、`storage/display:41,46,60`→39,44,58、`app-display:73`→59、`menu-list:259`→256、`header-tabs:200`→197、`user-list:18`→15）；删 `user-table.tsx:118` 与 `use-user-detail.ts:36-39` 两条误报；`dept/menu-table:70`→75；`aria-label` 33→32；并删除 §4-1（`role-user-drawer` 失效键）与 §4-2（配置面板缺 `isError`）两条已修复的缺陷 | `AUDIT.md` | 更正 |
 | 74 | 修正新快照 13 处行号（重点 `user-delete-dialog:249`→40、`user-assign-roles-dialog:376`→190、`user-role-select:203` 无此 Map、role 查询两处行号、`user-display:15`→13、`user-columns:160`→159） | `BASELINE-USER.20261018.md` | 更正 |
 | 75 | 旧稿已过期，避免后续误用 | `BASELINE-USER.md` | 文件头标注 superseded，指向 `BASELINE-USER.20261018.md` |
 

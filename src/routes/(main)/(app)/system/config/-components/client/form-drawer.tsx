@@ -19,13 +19,13 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { createClient, getClient, updateClient, type ClientReq } from '@/lib/api/client'
 import { clientKeys } from '@/lib/query-keys'
 
-import { ClientAuthTypeSelect } from './client-auth-type-select'
+import { ClientAuthTypeSelect } from './auth-type-select'
 import {
   AUTH_TYPE_OPTIONS,
   LOGOUT_MODE_PRESETS,
   REFRESH_TOKEN_MODE_OPTIONS,
   REPLACED_RANGE_PRESETS
-} from './client-columns'
+} from './columns'
 
 const clientFormSchema = z
   .object({

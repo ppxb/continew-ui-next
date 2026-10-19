@@ -19,12 +19,12 @@ import {
   LOGOUT_MODE_PRESETS,
   REPLACED_RANGE_PRESETS,
   type ClientAction
-} from './client-columns'
-import { ClientDeleteDialog } from './client-delete-dialog'
-import { ClientDetailDrawer } from './client-detail-drawer'
-import { ClientFormDrawer } from './client-form-drawer'
-import { ClientTable } from './client-table'
-import { ClientToolbar } from './client-toolbar'
+} from './columns'
+import { ClientDeleteDialog } from './delete-dialog'
+import { ClientDetailDrawer } from './detail-drawer'
+import { ClientFormDrawer } from './form-drawer'
+import { ClientTable } from './table'
+import { ClientToolbar } from './toolbar'
 
 const CLIENT_TYPE_PRESETS = [
   { label: 'PC网页端', value: 'PC' },

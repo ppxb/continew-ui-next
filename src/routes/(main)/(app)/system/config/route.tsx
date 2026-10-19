@@ -7,13 +7,13 @@ import { z } from 'zod'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { usePermission } from '@/hooks/use-permission'
 
-import { ConfigClient } from './-components/config-client'
+import { ConfigClient } from './-components/client/config-client'
 import { ConfigLogin } from './-components/config-login'
 import { ConfigMail } from './-components/config-mail'
 import { ConfigSecurity } from './-components/config-security'
 import { ConfigSite } from './-components/config-site'
-import { ConfigSms } from './-components/config-sms'
-import { ConfigStorage } from './-components/config-storage'
+import { ConfigSms } from './-components/sms/config-sms'
+import { ConfigStorage } from './-components/storage/config-storage'
 
 const searchSchema = z.object({
   tab: z.string().optional()
