@@ -2,8 +2,9 @@ import * as React from 'react'
 
 import { Search, X } from 'lucide-react'
 
-import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '@/components/ui/input-group'
 import { cn } from 'cn'
+
+import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '@/components/ui/input-group'
 
 const DEFAULT_DELAY_MS = 300
 

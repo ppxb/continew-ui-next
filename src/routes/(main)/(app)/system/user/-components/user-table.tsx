@@ -3,42 +3,11 @@ import type { ReactTable } from '@tanstack/react-table'
 import { cn } from 'cn'
 
 import { TablePagination } from '@/components/table-pagination'
+import { TableSkeletonRows } from '@/components/table-skeleton-rows'
 import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import type { UserResp } from '@/lib/api/user'
 import type { DataTableFeatures } from '@/lib/data-table-features'
-
-function TableSkeletonRows({ columnCount }: { columnCount: number }) {
-  return (
-    <>
-      {Array.from({ length: 5 }).map((_, rowIndex) => (
-        <TableRow key={rowIndex} className="hover:bg-transparent">
-          {Array.from({ length: columnCount }).map((_, colIndex) => (
-            <TableCell key={colIndex} className="py-4 align-middle">
-              <Skeleton
-                className={cn(
-                  'h-4',
-                  colIndex === 0
-                    ? 'mx-auto w-6'
-                    : colIndex === 1
-                      ? 'w-24'
-                      : colIndex === 2
-                        ? 'w-20'
-                        : colIndex === 3
-                          ? 'mx-auto w-12 rounded-full'
-                          : colIndex === 4
-                            ? 'mx-auto w-8'
-                            : 'w-24'
-                )}
-              />
-            </TableCell>
-          ))}
-        </TableRow>
-      ))}
-    </>
-  )
-}
 
 interface UserTableProps {
   readonly table: ReactTable<DataTableFeatures, UserResp>
@@ -85,7 +54,10 @@ export function UserTable({ table, isLoading, isError, isStale, onRetry }: UserT
               </TableRow>
             ))
           ) : isLoading ? (
-            <TableSkeletonRows columnCount={table.getVisibleLeafColumns().length} />
+            <TableSkeletonRows
+              table={table}
+              widths={['mx-auto w-6', 'w-24', 'w-20', 'mx-auto w-12 rounded-full', 'mx-auto w-8', 'w-12']}
+            />
           ) : (
             <TableRow>
               <TableCell colSpan={table.getVisibleLeafColumns().length} className="h-32 text-center">
