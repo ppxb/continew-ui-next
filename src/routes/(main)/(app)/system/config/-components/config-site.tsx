@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import { useStore } from '@tanstack/react-form'
+import { useSelector } from '@tanstack/react-form'
 
 import { Check, Globe, LayoutDashboard, Lock, LogIn, Pencil, RefreshCw, RotateCcw, Undo2 } from 'lucide-react'
 import { z } from 'zod'
@@ -74,7 +74,7 @@ export function ConfigSite() {
     setResetDialogOpen
   } = useOptionForm({ category: 'SITE', toForm, schema })
 
-  const values = useStore(form.store, state => state.values)
+  const values = useSelector(form.store, state => state.values)
 
   if (isLoading) {
     return <ConfigPanelSkeleton variant="card" />
