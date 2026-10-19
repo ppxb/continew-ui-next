@@ -1,6 +1,3 @@
-import * as React from 'react'
-
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Check, Pencil, RefreshCw, RotateCcw, Undo2 } from 'lucide-react'
 
 import {
@@ -16,13 +13,13 @@ import {
 import { Button } from '@/components/ui/button'
 import { Field, FieldContent, FieldDescription, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
 import { Switch } from '@/components/ui/switch'
 import { toast } from '@/components/ui/toast'
 import { usePermission } from '@/hooks/use-permission'
-import { listOption, type OptionResp, resetOptionValue, updateOption } from '@/lib/api/option'
-import { optionKeys } from '@/lib/query-keys'
+
+import { ConfigPanelError, ConfigPanelSkeleton } from './config-panel-states'
+import { type OptionMap, useOptionForm } from './use-option-form'
 
 interface SecurityFormState {
   PASSWORD_ERROR_LOCK_COUNT: number
@@ -35,106 +32,45 @@ interface SecurityFormState {
   PASSWORD_REQUIRE_SYMBOLS: number
 }
 
-const DEFAULT_FORM: SecurityFormState = {
-  PASSWORD_ERROR_LOCK_COUNT: 5,
-  PASSWORD_ERROR_LOCK_MINUTES: 5,
-  PASSWORD_EXPIRATION_DAYS: 0,
-  PASSWORD_EXPIRATION_WARNING_DAYS: 0,
-  PASSWORD_REPETITION_TIMES: 3,
-  PASSWORD_MIN_LENGTH: 8,
-  PASSWORD_ALLOW_CONTAIN_USERNAME: 1,
-  PASSWORD_REQUIRE_SYMBOLS: 0
+/**
+ * Maps the PASSWORD options to the form state. The fallbacks are the panel's defaults, so a code
+ * missing from the response keeps a sane value instead of collapsing to 0.
+ */
+function toForm(optionMap: OptionMap): SecurityFormState {
+  return {
+    PASSWORD_ERROR_LOCK_COUNT: Number.parseInt(optionMap.PASSWORD_ERROR_LOCK_COUNT?.value || '5', 10),
+    PASSWORD_ERROR_LOCK_MINUTES: Number.parseInt(optionMap.PASSWORD_ERROR_LOCK_MINUTES?.value || '5', 10),
+    PASSWORD_EXPIRATION_DAYS: Number.parseInt(optionMap.PASSWORD_EXPIRATION_DAYS?.value || '0', 10),
+    PASSWORD_EXPIRATION_WARNING_DAYS: Number.parseInt(optionMap.PASSWORD_EXPIRATION_WARNING_DAYS?.value || '0', 10),
+    PASSWORD_REPETITION_TIMES: Number.parseInt(optionMap.PASSWORD_REPETITION_TIMES?.value || '3', 10),
+    PASSWORD_MIN_LENGTH: Number.parseInt(optionMap.PASSWORD_MIN_LENGTH?.value || '8', 10),
+    PASSWORD_ALLOW_CONTAIN_USERNAME: Number.parseInt(optionMap.PASSWORD_ALLOW_CONTAIN_USERNAME?.value || '1', 10),
+    PASSWORD_REQUIRE_SYMBOLS: Number.parseInt(optionMap.PASSWORD_REQUIRE_SYMBOLS?.value || '0', 10)
+  }
 }
 
 export function ConfigSecurity() {
-  const queryClient = useQueryClient()
   const { hasPermission } = usePermission()
   const canUpdate = hasPermission('system:securityConfig:update')
 
-  const [isEdit, setIsEdit] = React.useState(false)
-  const [form, setForm] = React.useState<SecurityFormState>(DEFAULT_FORM)
-  const [resetDialogOpen, setResetDialogOpen] = React.useState(false)
-
-  const { data: options = [], isLoading } = useQuery({
-    queryKey: optionKeys.list('PASSWORD'),
-    queryFn: () => listOption({ category: 'PASSWORD' })
-  })
-
-  const optionMap = React.useMemo(() => {
-    const map: Record<string, OptionResp> = {}
-    for (const opt of options) {
-      map[opt.code] = opt
-    }
-    return map
-  }, [options])
-
-  React.useEffect(() => {
-    if (!isEdit && options.length > 0) {
-      setForm({
-        PASSWORD_ERROR_LOCK_COUNT: Number.parseInt(optionMap.PASSWORD_ERROR_LOCK_COUNT?.value || '0', 10),
-        PASSWORD_ERROR_LOCK_MINUTES: Number.parseInt(optionMap.PASSWORD_ERROR_LOCK_MINUTES?.value || '0', 10),
-        PASSWORD_EXPIRATION_DAYS: Number.parseInt(optionMap.PASSWORD_EXPIRATION_DAYS?.value || '0', 10),
-        PASSWORD_EXPIRATION_WARNING_DAYS: Number.parseInt(optionMap.PASSWORD_EXPIRATION_WARNING_DAYS?.value || '0', 10),
-        PASSWORD_REPETITION_TIMES: Number.parseInt(optionMap.PASSWORD_REPETITION_TIMES?.value || '0', 10),
-        PASSWORD_MIN_LENGTH: Number.parseInt(optionMap.PASSWORD_MIN_LENGTH?.value || '0', 10),
-        PASSWORD_ALLOW_CONTAIN_USERNAME: Number.parseInt(optionMap.PASSWORD_ALLOW_CONTAIN_USERNAME?.value || '0', 10),
-        PASSWORD_REQUIRE_SYMBOLS: Number.parseInt(optionMap.PASSWORD_REQUIRE_SYMBOLS?.value || '0', 10)
-      })
-    }
-  }, [options, optionMap, isEdit])
-
-  const saveMutation = useMutation({
-    mutationFn: async () => {
-      const payload = Object.entries(form).map(([code, value]) => {
-        const item = optionMap[code]
-        return {
-          id: item?.id ?? 0,
-          code,
-          value: String(value)
-        }
-      })
-      await updateOption(payload)
-    },
-    onSuccess: () => {
-      toast.add({ title: '保存成功', type: 'success' })
-      setIsEdit(false)
-      queryClient.invalidateQueries({ queryKey: optionKeys.list('PASSWORD') })
-    },
-    onError: (err: Error) => {
-      toast.add({ title: err.message || '保存失败', type: 'error' })
-    }
-  })
-
-  const resetMutation = useMutation({
-    mutationFn: () => resetOptionValue({ category: 'PASSWORD' }),
-    onSuccess: () => {
-      toast.add({ title: '恢复成功', type: 'success' })
-      setResetDialogOpen(false)
-      setIsEdit(false)
-      queryClient.invalidateQueries({ queryKey: optionKeys.list('PASSWORD') })
-    },
-    onError: (err: Error) => {
-      toast.add({ title: err.message || '恢复失败', type: 'error' })
-    }
-  })
-
-  const handleResetForm = () => {
-    setForm({
-      PASSWORD_ERROR_LOCK_COUNT: Number.parseInt(optionMap.PASSWORD_ERROR_LOCK_COUNT?.value || '0', 10),
-      PASSWORD_ERROR_LOCK_MINUTES: Number.parseInt(optionMap.PASSWORD_ERROR_LOCK_MINUTES?.value || '0', 10),
-      PASSWORD_EXPIRATION_DAYS: Number.parseInt(optionMap.PASSWORD_EXPIRATION_DAYS?.value || '0', 10),
-      PASSWORD_EXPIRATION_WARNING_DAYS: Number.parseInt(optionMap.PASSWORD_EXPIRATION_WARNING_DAYS?.value || '0', 10),
-      PASSWORD_REPETITION_TIMES: Number.parseInt(optionMap.PASSWORD_REPETITION_TIMES?.value || '0', 10),
-      PASSWORD_MIN_LENGTH: Number.parseInt(optionMap.PASSWORD_MIN_LENGTH?.value || '0', 10),
-      PASSWORD_ALLOW_CONTAIN_USERNAME: Number.parseInt(optionMap.PASSWORD_ALLOW_CONTAIN_USERNAME?.value || '0', 10),
-      PASSWORD_REQUIRE_SYMBOLS: Number.parseInt(optionMap.PASSWORD_REQUIRE_SYMBOLS?.value || '0', 10)
-    })
-  }
-
-  const handleCancel = () => {
-    handleResetForm()
-    setIsEdit(false)
-  }
+  const {
+    form,
+    setForm,
+    optionMap,
+    isLoading,
+    isError,
+    refetch,
+    isEdit,
+    setIsEdit,
+    cancelEdit,
+    resetForm,
+    save,
+    isSaving,
+    resetToDefault,
+    isResetting,
+    resetDialogOpen,
+    setResetDialogOpen
+  } = useOptionForm({ category: 'PASSWORD', toForm })
 
   const handleSave = () => {
     if (form.PASSWORD_EXPIRATION_DAYS > 0 && form.PASSWORD_EXPIRATION_WARNING_DAYS >= form.PASSWORD_EXPIRATION_DAYS) {
@@ -149,28 +85,15 @@ export function ConfigSecurity() {
       toast.add({ title: '历史密码重复校验次数应在 3-32 次之间', type: 'error' })
       return
     }
-    saveMutation.mutate()
+    save()
   }
 
   if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between border-b pb-4">
-          <div className="space-y-1">
-            <Skeleton className="h-6 w-32" />
-            <Skeleton className="h-4 w-64" />
-          </div>
-        </div>
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-          <Skeleton className="h-20 w-full" />
-          <Skeleton className="h-20 w-full" />
-          <Skeleton className="h-20 w-full" />
-          <Skeleton className="h-20 w-full" />
-          <Skeleton className="h-20 w-full" />
-          <Skeleton className="h-20 w-full" />
-        </div>
-      </div>
-    )
+    return <ConfigPanelSkeleton fields={6} />
+  }
+
+  if (isError) {
+    return <ConfigPanelError onRetry={() => void refetch()} />
   }
 
   return (
@@ -198,15 +121,15 @@ export function ConfigSecurity() {
             </>
           ) : (
             <>
-              <Button size="sm" onClick={handleSave} disabled={saveMutation.isPending}>
-                {saveMutation.isPending ? <Spinner className="size-4" /> : <Check className="size-4" />}
+              <Button size="sm" onClick={handleSave} disabled={isSaving}>
+                {isSaving ? <Spinner className="size-4" /> : <Check className="size-4" />}
                 保存
               </Button>
-              <Button size="sm" variant="outline" onClick={handleResetForm} disabled={saveMutation.isPending}>
+              <Button size="sm" variant="outline" onClick={resetForm} disabled={isSaving}>
                 <RefreshCw className="size-4" />
                 重置
               </Button>
-              <Button size="sm" variant="ghost" onClick={handleCancel} disabled={saveMutation.isPending}>
+              <Button size="sm" variant="ghost" onClick={cancelEdit} disabled={isSaving}>
                 <Undo2 className="size-4" />
                 取消
               </Button>
@@ -458,9 +381,9 @@ export function ConfigSecurity() {
             <AlertDialogDescription>确认恢复安全配置为系统默认值吗？该操作不可撤销。</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={resetMutation.isPending}>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={() => resetMutation.mutate()} disabled={resetMutation.isPending}>
-              {resetMutation.isPending ? <Spinner className="size-4" /> : null}
+            <AlertDialogCancel disabled={isResetting}>取消</AlertDialogCancel>
+            <AlertDialogAction onClick={resetToDefault} disabled={isResetting}>
+              {isResetting ? <Spinner className="size-4" /> : null}
               确认恢复
             </AlertDialogAction>
           </AlertDialogFooter>

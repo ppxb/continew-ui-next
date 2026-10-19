@@ -65,7 +65,6 @@
 
 | # | 事项 | 文件:行号 | 动作 | 核验 |
 |---|---|---|---|---|
-| 2 | 4 个表单式配置面板无 `isError`：接口失败时 `options=[]`，保存把默认值整批写回 | `system/config/-components/config-site.tsx:71`、`config-security.tsx:58,88`、`config-login.tsx:43`、`config-mail.tsx:57` | 补 `isError` 分支并禁用保存 | ✓ |
 | 3 | 编辑态详情加载失败渲染空表单，保存覆盖原记录 | `system/config/-components/client-form-drawer.tsx:147,257`、`sms-form-drawer.tsx:206,230`；范例 `storage-form-drawer.tsx:736` | 照 `storage-form-drawer` 补 `isError` | ✓ |
 | 4 | 删除守卫读的是**搜索过滤后**的树，可删含子部门的节点 | `system/dept/-components/dept-delete-dialog.tsx:27`、`dept-list.tsx:51-56,164`；同构 `system/menu/-components/menu-delete-dialog.tsx:27` | 用原始树判定 | ✓ |
 | 5 | 导出只把关键词当 `description` 传后端，导出结果 ≠ 当前筛选 | `system/dept/-components/dept-list.tsx:180`（列表匹配 `name` 见 `:38-39`） | 导出参数与筛选口径对齐 | ✓ |
@@ -115,9 +114,10 @@
 | 39 | 空状态手写 17+ 处，而 `ui/empty.tsx` 全项目只用 1 次 | 6 个表格 ＋ `system/config/-components/sms-table.tsx:138`、`storage-group-panel.tsx:158`、`system/user/-components/user-role-select.tsx:82` 等 | 抽 `TableEmptyState`（内部用 `ui/empty.tsx`） | △ |
 | 40 | `dept` 与 `menu` 是双胞胎模块（列表 70.5%、parent-select 67.7%），且已分叉 | `system/dept/-components/dept-list.tsx` ↔ `system/menu/-components/menu-list.tsx`、`dept-parent-select.tsx` ↔ `menu-parent-select.tsx`；分叉证据 `menu-form-drawer.tsx:170` vs `dept-form-drawer.tsx:150` | 合并为泛型树表模块 | ✓ |
 | 41 | 基础层重复：21 条路由标题表、`matchMedia` 两套、`closeAllTabs`＝`resetTabs`、主题清单两份、预设标签构建两遍 | `app-shell/app-breadcrumb.tsx:27-49` ↔ `app-shell/header/header-tabs.tsx:19-41`；`src/hooks/use-lg.ts:5-19` ↔ `use-mobile.ts:5-19`；`src/stores/tabs.ts:103-107,109-111`；`app-shell/header/theme-switcher.tsx:8` ↔ `src/lib/preferences/theme.ts:7`；`app-shell/header/layout-controls.tsx:33-46,83-95` | 收口到 `src/navigation/`、`useMediaQuery` 等 | △ |
-| 42 | config 面板内部：选项→label map ×5、option→form 同步 ×4、client 字段格式化 ×2、`queryKey`＋`queryFn` 各写一遍 | `system/config/-components/config-client.tsx:112-142`、`config-sms.tsx:96-102,106-118`、`config-storage.tsx:94-95`、`client-detail-drawer.tsx:119-165` ↔ `client-columns.tsx:255-322` | 抽格式化器 / 同步 hook | △ |
+| 42 | config 面板内部剩余重复：选项→label map ×5、client 字段格式化 ×2、`queryKey`＋`queryFn` 各写一遍（表单式 4 个面板的 option→form 同步与保存/恢复逻辑现由 `-components/use-option-form.ts` 提供） | `system/config/-components/config-client.tsx:112-142`、`config-sms.tsx:96-102,106-118`、`config-storage.tsx:94-95`、`client-detail-drawer.tsx:119-165` ↔ `client-columns.tsx:255-322` | 抽格式化器 | △ |
 | 43 | 用户页内部重复：`LOOKUP_STALE_MS` ×6、dept 树查询 ×3、role 字典查询 ×4、`PASSWORD_PATTERN` ×2、`String(id)` Map ×3、`userLabel` ×2、一行转发壳 | `system/user/-components/dept-tree-select.tsx:9,72-77`、`user-role-select.tsx:12,33-38`、`user-form-drawer.tsx:67,73,209-214,217,251,253`、`user-assign-roles-dialog.tsx:31,70-74,77-80`、`user-list.tsx:104-114`、`user-reset-password-dialog.tsx:32`、`user-display.tsx:18`、`user-columns.tsx:32`、`-components/use-fullscreen-transition.ts` | 抽 `useDeptTree()` / `useRoleDict()`，常量上移 | ✓ |
 | 44 | 密码提示文案漂移（一处"小写字母"，一处"字母"） | `system/user/-components/user-form-drawer.tsx:70` vs `user-reset-password-dialog.tsx:141` | 由同一常量派生 | ✓ |
+| 76 | 4 个表单式面板的头部操作区（修改/保存/重置/取消）与「恢复默认」确认框逐字重复（约 55 行 × 4） | `system/config/-components/config-{site,security,login,mail}.tsx` 的头部按钮区与末尾 `AlertDialog` | 抽 `ConfigPanelHeader` ＋ `ConfigResetDialog`（**新增建议，待裁决**） | ✓ |
 
 ### P3 死代码与恒假分支
 
@@ -139,7 +139,7 @@
 | 53 | `aria-label` **32** 处 ＋ DOM `title` 净 8 处 ＋ `role=` 8 处 | `app-shell/header/layout-controls.tsx:113-206`（12）、`system/role/-components/role-checkable-tree.tsx:98-163`（5）、`system/config/-components/config-site.tsx:286,328`、`system/menu/-components/icon-picker.tsx:493`、`src/components/simple-icon.tsx:17-18`、`app-shell/sidebar/nav-main.tsx:72,228`、`system/config/-components/storage-display.tsx:39,44,58`、`open/app/-components/app-display.tsx:59` | 一律换 `Tooltip` / `sr-only`；`role=` 最严重 | ✓ |
 | 54 | 表单控件高度基准：`h-8` 还是 `h-9` | `src/components/password-input.tsx:15`（`ui/input-group.tsx:15` 默认 `h-8`；消费者 `system/config/-components/sms-form-drawer.tsx:316`、`storage-form-drawer.tsx:426`） | 删 `h-9`，以 `h-8` 为准（不动 `ui/**`） | ✓ |
 | 55 | `font-normal` 覆盖 `font-medium` 的口径 | `system/user/-components/user-table.tsx:107`、`user-columns.tsx:160`、`user-role-select.tsx:98` | 承认并统一（或全局去掉） | ✓ |
-| 56 | 原生 `<button>` 18 处的整改范围 | 清单见 `AUDIT.md` §3.4；用户页三处 `system/user/-components/user-form-drawer.tsx:480`、`user-assign-roles-dialog.tsx:177`、`user-role-select.tsx:77` | 抽 `RetryHint` 后**全目录**统一 | ✓ |
+| 56 | 原生 `<button>` 18 处的整改范围（`RetryHint` 已存在，位于 `system/config/-components/retry-hint.tsx`，4 个配置面板的错误态已在用；全目录统一时上移到 `src/components/`） | 清单见 `AUDIT.md` §3.4；用户页三处 `system/user/-components/user-form-drawer.tsx:480`、`user-assign-roles-dialog.tsx:177`、`user-role-select.tsx:77` | 用 `RetryHint` **全目录**统一 | ✓ |
 | 57 | 穿透选择器 `**:data-[slot=…]` 与 `[&_tr]:border-t`（全项目 7–8 处一致） | `system/user/-components/user-table.tsx:99,103` | 改到调用点直接传 `className` | ✓ |
 | 58 | 是否抽 `DataTable` 外壳 | 见 #33 | **做**，但作为独立里程碑，先定接口 | — |
 | 59 | `validateSearch` 是否进 URL | `system/user/route.tsx:5-7`（先例 `system/config/route.tsx:23`、`dashboard/file-manager/route.tsx:15`） | 接（同类页面口径已不一致） | ✓ |
@@ -166,7 +166,7 @@
 
 | # | 事项 | 文件 | 动作 |
 |---|---|---|---|
-| 73 | 修正 `AUDIT.md` 6 处行号/条目（`user-form-drawer:470`→480、`storage-display:41,46,60`→39,44,58、`app-display:73`→59、`menu-list:259`→256、`header-tabs:200`→197、`user-list:18`→15；删 `user-table.tsx:118` 与 `use-user-detail.ts:36-39` 两条；`dept/menu-table:70`→75；`aria-label` 33→32） | `AUDIT.md` | 更正 |
+| 73 | 修正 `AUDIT.md`：6 处行号/条目（`user-form-drawer:470`→480、`storage-display:41,46,60`→39,44,58、`app-display:73`→59、`menu-list:259`→256、`header-tabs:200`→197、`user-list:18`→15）；删 `user-table.tsx:118` 与 `use-user-detail.ts:36-39` 两条误报；`dept/menu-table:70`→75；`aria-label` 33→32；并删除 §4-1（`role-user-drawer` 失效键）与 §4-2（配置面板缺 `isError`）两条已修复的缺陷 | `AUDIT.md` | 更正 |
 | 74 | 修正新快照 13 处行号（重点 `user-delete-dialog:249`→40、`user-assign-roles-dialog:376`→190、`user-role-select:203` 无此 Map、role 查询两处行号、`user-display:15`→13、`user-columns:160`→159） | `BASELINE-USER.20261018.md` | 更正 |
 | 75 | 旧稿已过期，避免后续误用 | `BASELINE-USER.md` | 文件头标注 superseded，指向 `BASELINE-USER.20261018.md` |
 
@@ -174,7 +174,7 @@
 
 ## 3. 建议的执行顺序
 
-1. **P0 的 #2–#9**（一提交一事，回归验证点：配置接口失败不写回、编辑失败不出空表单、过滤状态下不可删父部门、401 只弹一条、未登录深链不发菜单请求）。
+1. **P0 的 #3–#9**（一提交一事，回归验证点：编辑失败不出空表单、过滤状态下不可删父部门、401 只弹一条、未登录深链不发菜单请求）。
 2. **P4 口径裁决**（#52–#54、#57、#60、#62）——这几条不定，批量整改会反复返工。
 3. **P1 性能**（#21–#24 收益最大）。
 4. **P2 结构性**：先 #33＋#34（表格外壳）＋ #58 接口契约，再 #35–#37；#40 单独排期。

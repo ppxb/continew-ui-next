@@ -1,0 +1,72 @@
+import { Skeleton } from '@/components/ui/skeleton'
+
+import { RetryHint } from './retry-hint'
+
+interface ConfigPanelSkeletonProps {
+  /** Field placeholders to render; `1` renders a single full-width row, like the login panel. */
+  fields?: number
+  /** `card` mirrors the site panel, which pairs a bordered form card with a preview column. */
+  variant?: 'form' | 'card'
+}
+
+/** Loading placeholder shared by the form-style config panels. */
+export function ConfigPanelSkeleton({ fields = 6, variant = 'form' }: ConfigPanelSkeletonProps) {
+  if (variant === 'card') {
+    return (
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+        <div className="flex flex-col gap-4 rounded-xl border bg-card p-5">
+          <div className="flex items-center justify-between border-b pb-3">
+            <Skeleton className="h-6 w-32" />
+            <Skeleton className="h-8 w-24" />
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Skeleton className="h-16 w-16 rounded-lg" />
+            <Skeleton className="h-16 w-16 rounded-lg" />
+          </div>
+          <Skeleton className="h-9 w-full" />
+          <Skeleton className="h-9 w-full" />
+          <Skeleton className="h-16 w-full" />
+        </div>
+        <div className="hidden flex-col rounded-xl border bg-card p-5 xl:flex">
+          <Skeleton className="mb-3 h-6 w-28" />
+          <Skeleton className="w-full flex-1 rounded-xl" />
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between border-b pb-4">
+        <div className="space-y-1">
+          <Skeleton className="h-6 w-32" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+      </div>
+      <div className={fields > 1 ? 'grid grid-cols-1 gap-6 sm:grid-cols-2' : 'flex flex-col gap-6'}>
+        {Array.from({ length: fields }).map((_, index) => (
+          <Skeleton key={index} className="h-20 w-full" />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+interface ConfigPanelErrorProps {
+  onRetry: () => void
+}
+
+/**
+ * Failure placeholder for the form-style config panels.
+ *
+ * It exists so a failed option request never falls through to the default form: showing code
+ * defaults there reads as the backend's real configuration and makes the next save look valid.
+ */
+export function ConfigPanelError({ onRetry }: ConfigPanelErrorProps) {
+  return (
+    <div className="flex flex-col items-center justify-center gap-1 rounded-xl border bg-card p-10 text-center">
+      <p className="text-sm text-muted-foreground">配置加载失败，请稍后重试</p>
+      <RetryHint onRetry={onRetry} />
+    </div>
+  )
+}

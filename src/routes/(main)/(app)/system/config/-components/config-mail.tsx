@@ -1,6 +1,5 @@
 import * as React from 'react'
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Check, Eye, EyeOff, Pencil, RefreshCw, RotateCcw, Undo2 } from 'lucide-react'
 
 import {
@@ -16,13 +15,13 @@ import {
 import { Button } from '@/components/ui/button'
 import { Field, FieldContent, FieldDescription, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
 import { Switch } from '@/components/ui/switch'
 import { toast } from '@/components/ui/toast'
 import { usePermission } from '@/hooks/use-permission'
-import { listOption, type OptionResp, resetOptionValue, updateOption } from '@/lib/api/option'
-import { optionKeys } from '@/lib/query-keys'
+
+import { ConfigPanelError, ConfigPanelSkeleton } from './config-panel-states'
+import { type OptionMap, useOptionForm } from './use-option-form'
 
 interface MailFormState {
   MAIL_PROTOCOL: string
@@ -34,104 +33,43 @@ interface MailFormState {
   MAIL_SSL_PORT: number
 }
 
-const DEFAULT_FORM: MailFormState = {
-  MAIL_PROTOCOL: 'smtp',
-  MAIL_HOST: '',
-  MAIL_PORT: 465,
-  MAIL_USERNAME: '',
-  MAIL_PASSWORD: '',
-  MAIL_SSL_ENABLED: 1,
-  MAIL_SSL_PORT: 465
+/** Maps the MAIL options to the form state; each fallback doubles as the initial value. */
+function toForm(optionMap: OptionMap): MailFormState {
+  return {
+    MAIL_PROTOCOL: optionMap.MAIL_PROTOCOL?.value || 'smtp',
+    MAIL_HOST: optionMap.MAIL_HOST?.value || '',
+    MAIL_PORT: Number.parseInt(optionMap.MAIL_PORT?.value || '465', 10),
+    MAIL_USERNAME: optionMap.MAIL_USERNAME?.value || '',
+    MAIL_PASSWORD: optionMap.MAIL_PASSWORD?.value || '',
+    MAIL_SSL_ENABLED: Number.parseInt(optionMap.MAIL_SSL_ENABLED?.value || '1', 10),
+    MAIL_SSL_PORT: Number.parseInt(optionMap.MAIL_SSL_PORT?.value || '465', 10)
+  }
 }
 
 export function ConfigMail() {
-  const queryClient = useQueryClient()
   const { hasPermission } = usePermission()
   const canUpdate = hasPermission('system:mailConfig:update')
 
-  const [isEdit, setIsEdit] = React.useState(false)
   const [showPassword, setShowPassword] = React.useState(false)
-  const [form, setForm] = React.useState<MailFormState>(DEFAULT_FORM)
-  const [resetDialogOpen, setResetDialogOpen] = React.useState(false)
 
-  const { data: options = [], isLoading } = useQuery({
-    queryKey: optionKeys.list('MAIL'),
-    queryFn: () => listOption({ category: 'MAIL' })
-  })
-
-  const optionMap = React.useMemo(() => {
-    const map: Record<string, OptionResp> = {}
-    for (const opt of options) {
-      map[opt.code] = opt
-    }
-    return map
-  }, [options])
-
-  React.useEffect(() => {
-    if (!isEdit && options.length > 0) {
-      setForm({
-        MAIL_PROTOCOL: optionMap.MAIL_PROTOCOL?.value || 'smtp',
-        MAIL_HOST: optionMap.MAIL_HOST?.value || '',
-        MAIL_PORT: Number.parseInt(optionMap.MAIL_PORT?.value || '465', 10),
-        MAIL_USERNAME: optionMap.MAIL_USERNAME?.value || '',
-        MAIL_PASSWORD: optionMap.MAIL_PASSWORD?.value || '',
-        MAIL_SSL_ENABLED: Number.parseInt(optionMap.MAIL_SSL_ENABLED?.value || '1', 10),
-        MAIL_SSL_PORT: Number.parseInt(optionMap.MAIL_SSL_PORT?.value || '465', 10)
-      })
-    }
-  }, [options, optionMap, isEdit])
-
-  const saveMutation = useMutation({
-    mutationFn: async () => {
-      const payload = Object.entries(form).map(([code, value]) => {
-        const item = optionMap[code]
-        return {
-          id: item?.id ?? 0,
-          code,
-          value: String(value)
-        }
-      })
-      await updateOption(payload)
-    },
-    onSuccess: () => {
-      toast.add({ title: '保存成功', type: 'success' })
-      setIsEdit(false)
-      queryClient.invalidateQueries({ queryKey: optionKeys.list('MAIL') })
-    },
-    onError: (err: Error) => {
-      toast.add({ title: err.message || '保存失败', type: 'error' })
-    }
-  })
-
-  const resetMutation = useMutation({
-    mutationFn: () => resetOptionValue({ category: 'MAIL' }),
-    onSuccess: () => {
-      toast.add({ title: '恢复成功', type: 'success' })
-      setResetDialogOpen(false)
-      setIsEdit(false)
-      queryClient.invalidateQueries({ queryKey: optionKeys.list('MAIL') })
-    },
-    onError: (err: Error) => {
-      toast.add({ title: err.message || '恢复失败', type: 'error' })
-    }
-  })
-
-  const handleResetForm = () => {
-    setForm({
-      MAIL_PROTOCOL: optionMap.MAIL_PROTOCOL?.value || 'smtp',
-      MAIL_HOST: optionMap.MAIL_HOST?.value || '',
-      MAIL_PORT: Number.parseInt(optionMap.MAIL_PORT?.value || '465', 10),
-      MAIL_USERNAME: optionMap.MAIL_USERNAME?.value || '',
-      MAIL_PASSWORD: optionMap.MAIL_PASSWORD?.value || '',
-      MAIL_SSL_ENABLED: Number.parseInt(optionMap.MAIL_SSL_ENABLED?.value || '1', 10),
-      MAIL_SSL_PORT: Number.parseInt(optionMap.MAIL_SSL_PORT?.value || '465', 10)
-    })
-  }
-
-  const handleCancel = () => {
-    handleResetForm()
-    setIsEdit(false)
-  }
+  const {
+    form,
+    setForm,
+    optionMap,
+    isLoading,
+    isError,
+    refetch,
+    isEdit,
+    setIsEdit,
+    cancelEdit,
+    resetForm,
+    save,
+    isSaving,
+    resetToDefault,
+    isResetting,
+    resetDialogOpen,
+    setResetDialogOpen
+  } = useOptionForm({ category: 'MAIL', toForm })
 
   const handleSave = () => {
     if (!form.MAIL_HOST.trim()) {
@@ -146,26 +84,15 @@ export function ConfigMail() {
       toast.add({ title: '请输入邮箱服务密码或授权码', type: 'error' })
       return
     }
-    saveMutation.mutate()
+    save()
   }
 
   if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between border-b pb-4">
-          <div className="space-y-1">
-            <Skeleton className="h-6 w-32" />
-            <Skeleton className="h-4 w-64" />
-          </div>
-        </div>
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-          <Skeleton className="h-20 w-full" />
-          <Skeleton className="h-20 w-full" />
-          <Skeleton className="h-20 w-full" />
-          <Skeleton className="h-20 w-full" />
-        </div>
-      </div>
-    )
+    return <ConfigPanelSkeleton fields={4} />
+  }
+
+  if (isError) {
+    return <ConfigPanelError onRetry={() => void refetch()} />
   }
 
   return (
@@ -193,15 +120,15 @@ export function ConfigMail() {
             </>
           ) : (
             <>
-              <Button size="sm" onClick={handleSave} disabled={saveMutation.isPending}>
-                {saveMutation.isPending ? <Spinner className="size-4" /> : <Check className="size-4" />}
+              <Button size="sm" onClick={handleSave} disabled={isSaving}>
+                {isSaving ? <Spinner className="size-4" /> : <Check className="size-4" />}
                 保存
               </Button>
-              <Button size="sm" variant="outline" onClick={handleResetForm} disabled={saveMutation.isPending}>
+              <Button size="sm" variant="outline" onClick={resetForm} disabled={isSaving}>
                 <RefreshCw className="size-4" />
                 重置
               </Button>
-              <Button size="sm" variant="ghost" onClick={handleCancel} disabled={saveMutation.isPending}>
+              <Button size="sm" variant="ghost" onClick={cancelEdit} disabled={isSaving}>
                 <Undo2 className="size-4" />
                 取消
               </Button>
@@ -360,9 +287,9 @@ export function ConfigMail() {
             <AlertDialogDescription>确认恢复邮件配置为系统默认值吗？该操作不可撤销。</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={resetMutation.isPending}>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={() => resetMutation.mutate()} disabled={resetMutation.isPending}>
-              {resetMutation.isPending ? <Spinner className="size-4" /> : null}
+            <AlertDialogCancel disabled={isResetting}>取消</AlertDialogCancel>
+            <AlertDialogAction onClick={resetToDefault} disabled={isResetting}>
+              {isResetting ? <Spinner className="size-4" /> : null}
               确认恢复
             </AlertDialogAction>
           </AlertDialogFooter>

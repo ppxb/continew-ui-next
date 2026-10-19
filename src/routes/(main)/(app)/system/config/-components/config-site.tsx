@@ -1,6 +1,5 @@
 import * as React from 'react'
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Check,
   Globe,
@@ -28,14 +27,14 @@ import {
 import { Button } from '@/components/ui/button'
 import { Field, FieldDescription, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/components/ui/toast'
 import { usePermission } from '@/hooks/use-permission'
-import { listOption, type OptionResp, resetOptionValue, updateOption } from '@/lib/api/option'
-import { optionKeys } from '@/lib/query-keys'
 import { cn } from 'cn'
+
+import { ConfigPanelError, ConfigPanelSkeleton } from './config-panel-states'
+import { type OptionMap, useOptionForm } from './use-option-form'
 
 interface SiteFormState {
   SITE_LOGO: string
@@ -46,90 +45,45 @@ interface SiteFormState {
   SITE_BEIAN: string
 }
 
-const DEFAULT_FORM: SiteFormState = {
-  SITE_LOGO: '',
-  SITE_FAVICON: '',
-  SITE_TITLE: '',
-  SITE_DESCRIPTION: '',
-  SITE_COPYRIGHT: '',
-  SITE_BEIAN: ''
+/** Maps the SITE options to the form state; each fallback doubles as the initial value. */
+function toForm(optionMap: OptionMap): SiteFormState {
+  return {
+    SITE_LOGO: optionMap.SITE_LOGO?.value || '',
+    SITE_FAVICON: optionMap.SITE_FAVICON?.value || '',
+    SITE_TITLE: optionMap.SITE_TITLE?.value || '',
+    SITE_DESCRIPTION: optionMap.SITE_DESCRIPTION?.value || '',
+    SITE_COPYRIGHT: optionMap.SITE_COPYRIGHT?.value || '',
+    SITE_BEIAN: optionMap.SITE_BEIAN?.value || ''
+  }
 }
 
 export function ConfigSite() {
-  const queryClient = useQueryClient()
   const { hasPermission } = usePermission()
   const canUpdate = hasPermission('system:siteConfig:update')
 
-  const [isEdit, setIsEdit] = React.useState(false)
-  const [form, setForm] = React.useState<SiteFormState>(DEFAULT_FORM)
   const [previewMode, setPreviewMode] = React.useState<'admin' | 'login'>('admin')
-  const [resetDialogOpen, setResetDialogOpen] = React.useState(false)
 
   const logoInputRef = React.useRef<HTMLInputElement>(null)
   const faviconInputRef = React.useRef<HTMLInputElement>(null)
 
-  const { data: options = [], isLoading } = useQuery({
-    queryKey: optionKeys.list('SITE'),
-    queryFn: () => listOption({ category: 'SITE' })
-  })
-
-  // Map option array to key-value record
-  const optionMap = React.useMemo(() => {
-    const map: Record<string, OptionResp> = {}
-    for (const opt of options) {
-      map[opt.code] = opt
-    }
-    return map
-  }, [options])
-
-  // Sync form state when options load or when edit state resets
-  React.useEffect(() => {
-    if (!isEdit && options.length > 0) {
-      setForm({
-        SITE_LOGO: optionMap.SITE_LOGO?.value || '',
-        SITE_FAVICON: optionMap.SITE_FAVICON?.value || '',
-        SITE_TITLE: optionMap.SITE_TITLE?.value || '',
-        SITE_DESCRIPTION: optionMap.SITE_DESCRIPTION?.value || '',
-        SITE_COPYRIGHT: optionMap.SITE_COPYRIGHT?.value || '',
-        SITE_BEIAN: optionMap.SITE_BEIAN?.value || ''
-      })
-    }
-  }, [options, optionMap, isEdit])
-
-  const saveMutation = useMutation({
-    mutationFn: async () => {
-      const payload = Object.entries(form).map(([code, value]) => {
-        const item = optionMap[code]
-        return {
-          id: item?.id ?? 0,
-          code,
-          value: value ?? ''
-        }
-      })
-      await updateOption(payload)
-    },
-    onSuccess: () => {
-      toast.add({ title: '保存成功', type: 'success' })
-      setIsEdit(false)
-      queryClient.invalidateQueries({ queryKey: optionKeys.list('SITE') })
-    },
-    onError: (err: Error) => {
-      toast.add({ title: err.message || '保存失败', type: 'error' })
-    }
-  })
-
-  const resetMutation = useMutation({
-    mutationFn: () => resetOptionValue({ category: 'SITE' }),
-    onSuccess: () => {
-      toast.add({ title: '恢复成功', type: 'success' })
-      setResetDialogOpen(false)
-      setIsEdit(false)
-      queryClient.invalidateQueries({ queryKey: optionKeys.list('SITE') })
-    },
-    onError: (err: Error) => {
-      toast.add({ title: err.message || '恢复失败', type: 'error' })
-    }
-  })
+  const {
+    form,
+    setForm,
+    optionMap,
+    isLoading,
+    isError,
+    refetch,
+    isEdit,
+    setIsEdit,
+    cancelEdit,
+    resetForm,
+    save,
+    isSaving,
+    resetToDefault,
+    isResetting,
+    resetDialogOpen,
+    setResetDialogOpen
+  } = useOptionForm({ category: 'SITE', toForm })
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -159,22 +113,6 @@ export function ConfigSite() {
     reader.readAsDataURL(file)
   }
 
-  const handleResetForm = () => {
-    setForm({
-      SITE_LOGO: optionMap.SITE_LOGO?.value || '',
-      SITE_FAVICON: optionMap.SITE_FAVICON?.value || '',
-      SITE_TITLE: optionMap.SITE_TITLE?.value || '',
-      SITE_DESCRIPTION: optionMap.SITE_DESCRIPTION?.value || '',
-      SITE_COPYRIGHT: optionMap.SITE_COPYRIGHT?.value || '',
-      SITE_BEIAN: optionMap.SITE_BEIAN?.value || ''
-    })
-  }
-
-  const handleCancel = () => {
-    handleResetForm()
-    setIsEdit(false)
-  }
-
   const handleSave = () => {
     if (!form.SITE_TITLE.trim()) {
       toast.add({ title: '请输入系统名称', type: 'error' })
@@ -188,31 +126,15 @@ export function ConfigSite() {
       toast.add({ title: '请输入版权声明', type: 'error' })
       return
     }
-    saveMutation.mutate()
+    save()
   }
 
   if (isLoading) {
-    return (
-      <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
-        <div className="flex flex-col gap-4 rounded-xl border bg-card p-5">
-          <div className="flex items-center justify-between border-b pb-3">
-            <Skeleton className="h-6 w-32" />
-            <Skeleton className="h-8 w-24" />
-          </div>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Skeleton className="h-16 w-16 rounded-lg" />
-            <Skeleton className="h-16 w-16 rounded-lg" />
-          </div>
-          <Skeleton className="h-9 w-full" />
-          <Skeleton className="h-9 w-full" />
-          <Skeleton className="h-16 w-full" />
-        </div>
-        <div className="hidden flex-col rounded-xl border bg-card p-5 xl:flex">
-          <Skeleton className="mb-3 h-6 w-28" />
-          <Skeleton className="w-full flex-1 rounded-xl" />
-        </div>
-      </div>
-    )
+    return <ConfigPanelSkeleton variant="card" />
+  }
+
+  if (isError) {
+    return <ConfigPanelError onRetry={() => void refetch()} />
   }
 
   return (
@@ -244,15 +166,15 @@ export function ConfigSite() {
                 </>
               ) : (
                 <>
-                  <Button size="sm" onClick={handleSave} disabled={saveMutation.isPending}>
-                    {saveMutation.isPending ? <Spinner className="size-4" /> : <Check className="size-4" />}
+                  <Button size="sm" onClick={handleSave} disabled={isSaving}>
+                    {isSaving ? <Spinner className="size-4" /> : <Check className="size-4" />}
                     保存
                   </Button>
-                  <Button size="sm" variant="outline" onClick={handleResetForm} disabled={saveMutation.isPending}>
+                  <Button size="sm" variant="outline" onClick={resetForm} disabled={isSaving}>
                     <RefreshCw className="size-4" />
                     重置
                   </Button>
-                  <Button size="sm" variant="ghost" onClick={handleCancel} disabled={saveMutation.isPending}>
+                  <Button size="sm" variant="ghost" onClick={cancelEdit} disabled={isSaving}>
                     <Undo2 className="size-4" />
                     取消
                   </Button>
@@ -625,9 +547,9 @@ export function ConfigSite() {
             <AlertDialogDescription>确认恢复基础配置为系统默认值吗？该操作不可撤销。</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={resetMutation.isPending}>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={() => resetMutation.mutate()} disabled={resetMutation.isPending}>
-              {resetMutation.isPending ? <Spinner className="size-4" /> : null}
+            <AlertDialogCancel disabled={isResetting}>取消</AlertDialogCancel>
+            <AlertDialogAction onClick={resetToDefault} disabled={isResetting}>
+              {isResetting ? <Spinner className="size-4" /> : null}
               确认恢复
             </AlertDialogAction>
           </AlertDialogFooter>
