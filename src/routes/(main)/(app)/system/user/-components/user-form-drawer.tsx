@@ -257,7 +257,7 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
   const form = useForm({
     defaultValues: EMPTY_FORM,
     validationLogic: revalidateLogic(),
-    validators: { onSubmit: formSchema },
+    validators: { onDynamic: formSchema },
     onSubmit: async ({ value }) => {
       if (userId === null) {
         let password: string
