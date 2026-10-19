@@ -23,8 +23,6 @@ import { toast } from '@/components/ui/toast'
 import { resetUserPassword, userKeys, type UserResp } from '@/lib/api/user'
 import { encryptPassword } from '@/lib/crypto'
 
-import { userLabel } from './user-display'
-
 /**
  * Mirrors the backend default policy (`RegexConstants.PASSWORD`): 8 to 32 characters with at
  * least one digit and one lowercase letter. The profile password form enforces the same rule.
@@ -93,7 +91,7 @@ export function UserResetPasswordDialog({ user, open, onClose }: UserResetPasswo
       // A reset moves `pwdResetTime`, which only the detail response carries, so that one
       // record is invalidated and the list is left alone.
       void queryClient.invalidateQueries({ queryKey: userKeys.detail(user.id) })
-      toast.add({ title: `已重置「${userLabel(user)}」的密码`, type: 'success' })
+      toast.add({ title: `密码重置成功`, type: 'success' })
     } catch {
       // The HTTP layer already reported the failure.
     }
