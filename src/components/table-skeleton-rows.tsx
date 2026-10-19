@@ -32,9 +32,9 @@ export function TableSkeletonRows<TRow extends RowData>({
   return (
     <>
       {Array.from({ length: rowCount }).map((_, rowIndex) => (
-        <TableRow key={rowIndex}>
+        <TableRow key={rowIndex} className="hover:bg-transparent">
           {Array.from({ length: columnCount }).map((_, colIndex) => (
-            <TableCell key={colIndex}>
+            <TableCell key={colIndex} className="py-4 align-middle">
               <Skeleton className={cn('h-4', widths[colIndex] ?? fallbackWidth)} />
             </TableCell>
           ))}

@@ -115,11 +115,7 @@ export function UserResetPasswordDialog({ user, open, onClose }: UserResetPasswo
             <KeyRound className="size-4" />
             <DialogTitle>重置密码</DialogTitle>
           </div>
-          <DialogDescription>
-            {user === null
-              ? '为该用户设置新的登录密码。'
-              : `为「${userLabel(user)}」设置新的登录密码，重置后该用户会被强制下线。`}
-          </DialogDescription>
+          <DialogDescription>为该用户设置新的登录密码</DialogDescription>
         </DialogHeader>
 
         <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">

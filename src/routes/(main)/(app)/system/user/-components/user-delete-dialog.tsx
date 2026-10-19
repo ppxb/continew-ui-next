@@ -19,8 +19,6 @@ import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
 import { deleteUser, userKeys, type UserResp } from '@/lib/api/user'
 
-import { userLabel } from './user-display'
-
 interface UserDeleteDialogProps {
   /** The user being deleted, or `null` before the first one is picked. */
   readonly user: UserResp | null
@@ -76,11 +74,7 @@ export function UserDeleteDialog({ user, open, onClose }: UserDeleteDialogProps)
             <TriangleAlert />
           </AlertDialogMedia>
           <AlertDialogTitle>删除用户</AlertDialogTitle>
-          <AlertDialogDescription>
-            {user === null
-              ? '是否确定删除该用户？删除后不可恢复。'
-              : `是否确定删除用户「${userLabel(user)}(${user.username})」？删除后不可恢复。`}
-          </AlertDialogDescription>
+          <AlertDialogDescription>是否确定删除该用户？删除后不可恢复</AlertDialogDescription>
         </AlertDialogHeader>
 
         <AlertDialogFooter>

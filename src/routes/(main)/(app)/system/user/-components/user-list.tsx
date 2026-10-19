@@ -47,16 +47,13 @@ export function UserList() {
   const [status, setStatus] = React.useState<UserStatus | undefined>(undefined)
   const [keyword, setKeyword] = React.useState('')
   const [isExporting, setIsExporting] = React.useState(false)
+  // One state per overlay: a null value means it is closed, so "which record" and "is it open" can
+  // never drift apart. The form drawer holds an object, because a null id there means 新增.
   const [detailUserId, setDetailUserId] = React.useState<string | number | null>(null)
-  const [isDetailOpen, setIsDetailOpen] = React.useState(false)
-  const [formUserId, setFormUserId] = React.useState<string | number | null>(null)
-  const [isFormOpen, setIsFormOpen] = React.useState(false)
+  const [formTarget, setFormTarget] = React.useState<{ userId: string | number | null } | null>(null)
   const [resetUser, setResetUser] = React.useState<UserResp | null>(null)
-  const [isResetOpen, setIsResetOpen] = React.useState(false)
   const [roleUser, setRoleUser] = React.useState<UserResp | null>(null)
-  const [isRolesOpen, setIsRolesOpen] = React.useState(false)
   const [deletingUser, setDeletingUser] = React.useState<UserResp | null>(null)
-  const [isDeleteOpen, setIsDeleteOpen] = React.useState(false)
   const { isFullscreen, reservedHeight, fullscreenRef, spacerRef, toggleFullscreen } = useFullscreenTransition()
 
   const handleSearch = React.useCallback((next: string) => {
@@ -114,32 +111,25 @@ export function UserList() {
   const handleRowAction = React.useCallback((action: UserAction, user: UserResp) => {
     if (action === 'detail') {
       setDetailUserId(user.id)
-      setIsDetailOpen(true)
       return
     }
 
     if (action === 'edit') {
-      setFormUserId(user.id)
-      setIsFormOpen(true)
+      setFormTarget({ userId: user.id })
       return
     }
 
     if (action === 'resetPassword') {
       setResetUser(user)
-      setIsResetOpen(true)
       return
     }
 
     if (action === 'assignRoles') {
       setRoleUser(user)
-      setIsRolesOpen(true)
       return
     }
 
-    if (action === 'delete') {
-      setDeletingUser(user)
-      setIsDeleteOpen(true)
-    }
+    setDeletingUser(user)
   }, [])
 
   const columns = React.useMemo(() => createUserColumns(handleRowAction, rowOffset), [handleRowAction, rowOffset])
@@ -221,10 +211,7 @@ export function UserList() {
         isRefreshing={query.isFetching && !query.isPending}
         isExporting={isExporting}
         isFullscreen={isFullscreen}
-        onCreate={() => {
-          setFormUserId(null)
-          setIsFormOpen(true)
-        }}
+        onCreate={() => setFormTarget({ userId: null })}
         onImport={() => reportPending('导入数据')}
         onExport={() => void handleExport()}
         onRefresh={() => void query.refetch()}
@@ -262,11 +249,15 @@ export function UserList() {
         </CardContent>
       </Card>
 
-      <UserDetailDrawer userId={detailUserId} open={isDetailOpen} onClose={() => setIsDetailOpen(false)} />
-      <UserFormDrawer userId={formUserId} open={isFormOpen} onClose={() => setIsFormOpen(false)} />
-      <UserResetPasswordDialog user={resetUser} open={isResetOpen} onClose={() => setIsResetOpen(false)} />
-      <UserAssignRolesDialog user={roleUser} open={isRolesOpen} onClose={() => setIsRolesOpen(false)} />
-      <UserDeleteDialog user={deletingUser} open={isDeleteOpen} onClose={() => setIsDeleteOpen(false)} />
+      <UserDetailDrawer userId={detailUserId} open={detailUserId !== null} onClose={() => setDetailUserId(null)} />
+      <UserFormDrawer
+        userId={formTarget?.userId ?? null}
+        open={formTarget !== null}
+        onClose={() => setFormTarget(null)}
+      />
+      <UserResetPasswordDialog user={resetUser} open={resetUser !== null} onClose={() => setResetUser(null)} />
+      <UserAssignRolesDialog user={roleUser} open={roleUser !== null} onClose={() => setRoleUser(null)} />
+      <UserDeleteDialog user={deletingUser} open={deletingUser !== null} onClose={() => setDeletingUser(null)} />
     </>
   )
 }

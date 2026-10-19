@@ -24,7 +24,6 @@ import { listRoleDict, roleKeys } from '@/lib/api/role'
 import { assignUserRoles, userKeys, type UserResp } from '@/lib/api/user'
 
 import { useUserDetail } from './use-user-detail'
-import { userLabel } from './user-display'
 import { UserRoleSelect } from './user-role-select'
 
 /** Roles barely change, so reopening the dialog should not refetch them. */
@@ -163,9 +162,7 @@ export function UserAssignRolesDialog({ user, open, onClose }: UserAssignRolesDi
             <ShieldCheck className="size-4" />
             <DialogTitle>分配角色</DialogTitle>
           </div>
-          <DialogDescription>
-            {user === null ? '为该用户分配角色。' : `为「${userLabel(user)}」分配角色，保存后以当前勾选结果为准。`}
-          </DialogDescription>
+          <DialogDescription>为该用户分配角色</DialogDescription>
         </DialogHeader>
 
         {isDetailLoading ? (
