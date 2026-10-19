@@ -1,18 +1,6 @@
 import * as React from 'react'
 
-import {
-  Check,
-  Globe,
-  ImagePlus,
-  LayoutDashboard,
-  Lock,
-  LogIn,
-  Pencil,
-  RefreshCw,
-  RotateCcw,
-  Undo2,
-  Upload
-} from 'lucide-react'
+import { Check, Globe, LayoutDashboard, Lock, LogIn, Pencil, RefreshCw, RotateCcw, Undo2 } from 'lucide-react'
 
 import {
   AlertDialog,
@@ -34,6 +22,7 @@ import { usePermission } from '@/hooks/use-permission'
 import { cn } from 'cn'
 
 import { ConfigPanelError, ConfigPanelSkeleton } from './config-panel-states'
+import { ImageUploadField } from './image-upload-field'
 import { type OptionMap, useOptionForm } from './use-option-form'
 
 interface SiteFormState {
@@ -63,9 +52,6 @@ export function ConfigSite() {
 
   const [previewMode, setPreviewMode] = React.useState<'admin' | 'login'>('admin')
 
-  const logoInputRef = React.useRef<HTMLInputElement>(null)
-  const faviconInputRef = React.useRef<HTMLInputElement>(null)
-
   const {
     form,
     setForm,
@@ -84,34 +70,6 @@ export function ConfigSite() {
     resetDialogOpen,
     setResetDialogOpen
   } = useOptionForm({ category: 'SITE', toForm })
-
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    if (!file.type.startsWith('image/')) {
-      toast.add({ title: '请选择有效的图片文件', type: 'error' })
-      return
-    }
-    const reader = new FileReader()
-    reader.onload = evt => {
-      setForm(prev => ({ ...prev, SITE_LOGO: String(evt.target?.result || '') }))
-    }
-    reader.readAsDataURL(file)
-  }
-
-  const handleFaviconUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    if (!file.type.startsWith('image/')) {
-      toast.add({ title: '请选择有效的图标文件', type: 'error' })
-      return
-    }
-    const reader = new FileReader()
-    reader.onload = evt => {
-      setForm(prev => ({ ...prev, SITE_FAVICON: String(evt.target?.result || '') }))
-    }
-    reader.readAsDataURL(file)
-  }
 
   const handleSave = () => {
     if (!form.SITE_TITLE.trim()) {
@@ -187,89 +145,24 @@ export function ConfigSite() {
           <div className="flex flex-col gap-3.5">
             {/* Logo & Favicon row */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {/* Logo */}
-              <Field>
-                <div className="flex flex-col gap-0.5">
-                  <FieldLabel>{optionMap.SITE_LOGO?.name || '系统 LOGO'}</FieldLabel>
-                  <FieldDescription>
-                    {optionMap.SITE_LOGO?.description || '显示在登录界面和系统导航栏'}
-                  </FieldDescription>
-                </div>
-                <div className="flex items-center">
-                  <input
-                    ref={logoInputRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleLogoUpload}
-                    disabled={!isEdit}
-                  />
-                  <div
-                    role={isEdit ? 'button' : undefined}
-                    tabIndex={isEdit ? 0 : undefined}
-                    onClick={() => isEdit && logoInputRef.current?.click()}
-                    onKeyDown={e => isEdit && (e.key === 'Enter' || e.key === ' ') && logoInputRef.current?.click()}
-                    className={cn(
-                      'group relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-muted/20 transition-all',
-                      isEdit &&
-                        'cursor-pointer hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none'
-                    )}
-                  >
-                    {form.SITE_LOGO ? (
-                      <img src={form.SITE_LOGO} alt="Site Logo" className="size-full object-contain p-1.5" />
-                    ) : (
-                      <ImagePlus className="size-5 text-muted-foreground/50 transition-colors group-hover:text-muted-foreground" />
-                    )}
-                    {isEdit && (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/45 text-white opacity-0 transition-opacity group-hover:opacity-100">
-                        <Upload className="size-4" />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </Field>
+              <ImageUploadField
+                label={optionMap.SITE_LOGO?.name || '系统 LOGO'}
+                description={optionMap.SITE_LOGO?.description || '显示在登录界面和系统导航栏'}
+                value={form.SITE_LOGO}
+                onChange={value => setForm(prev => ({ ...prev, SITE_LOGO: value }))}
+                disabled={!isEdit}
+              />
 
-              {/* Favicon */}
-              <Field>
-                <div className="flex flex-col gap-0.5">
-                  <FieldLabel>{optionMap.SITE_FAVICON?.name || '系统图标'}</FieldLabel>
-                  <FieldDescription>
-                    {optionMap.SITE_FAVICON?.description || '浏览器标签页显示的网站图标'}
-                  </FieldDescription>
-                </div>
-                <div className="flex items-center">
-                  <input
-                    ref={faviconInputRef}
-                    type="file"
-                    accept="image/*,.ico"
-                    className="hidden"
-                    onChange={handleFaviconUpload}
-                    disabled={!isEdit}
-                  />
-                  <div
-                    role={isEdit ? 'button' : undefined}
-                    tabIndex={isEdit ? 0 : undefined}
-                    onClick={() => isEdit && faviconInputRef.current?.click()}
-                    onKeyDown={e => isEdit && (e.key === 'Enter' || e.key === ' ') && faviconInputRef.current?.click()}
-                    className={cn(
-                      'group relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-muted/20 transition-all',
-                      isEdit &&
-                        'cursor-pointer hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none'
-                    )}
-                  >
-                    {form.SITE_FAVICON ? (
-                      <img src={form.SITE_FAVICON} alt="Site Favicon" className="size-7 object-contain" />
-                    ) : (
-                      <ImagePlus className="size-5 text-muted-foreground/50 transition-colors group-hover:text-muted-foreground" />
-                    )}
-                    {isEdit && (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/45 text-white opacity-0 transition-opacity group-hover:opacity-100">
-                        <Upload className="size-4" />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </Field>
+              <ImageUploadField
+                label={optionMap.SITE_FAVICON?.name || '系统图标'}
+                description={optionMap.SITE_FAVICON?.description || '浏览器标签页显示的网站图标'}
+                accept="image/*,.ico"
+                previewClassName="size-7 object-contain"
+                invalidFileMessage="请选择有效的图标文件"
+                value={form.SITE_FAVICON}
+                onChange={value => setForm(prev => ({ ...prev, SITE_FAVICON: value }))}
+                disabled={!isEdit}
+              />
             </div>
 
             {/* Row 1: System Title & Beian */}

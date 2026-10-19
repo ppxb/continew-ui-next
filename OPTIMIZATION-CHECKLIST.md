@@ -82,7 +82,7 @@
 | 17 | `staleTime: 0` 覆盖同 query 自己声明的 5 分钟 | `src/hooks/use-menu.ts:52` vs `:24` | 用短阈值或 `invalidateQueries` | ✓ |
 | 18 | 刷新后再 401 不走会话失效，与 `send` 不一致 | `src/lib/http.ts:316-334` vs `:217-222` | 统一走 `handleSessionExpired` | ✓ |
 | 19 | 删除对话框手写 destructive 样式；删除中仍可 Esc/遮罩关闭 | `system/config/-components/client/delete-dialog.tsx:51,40` | 用 `variant="destructive"` ＋ `isDeleting` 守卫 | △ |
-| 20 | 上传无大小上限、base64 直接写进配置项，而 `uploadFile()` 已存在 | `system/config/-components/config-site.tsx:137,141-145`、`src/lib/api/common.ts:22` | 改用 `uploadFile()` ＋ 大小校验 | ✓ |
+| 20 | 上传无大小上限、base64 直接写进配置项，而 `uploadFile()` 已存在 | `system/config/-components/image-upload-field.tsx:39-49`、`src/lib/api/common.ts:22` | 改用 `uploadFile()` ＋ 大小校验 | ✓ |
 
 ### P1 性能
 
@@ -118,6 +118,7 @@
 | 43 | 用户页内部重复：`LOOKUP_STALE_MS` ×6、dept 树查询 ×3、role 字典查询 ×4、`PASSWORD_PATTERN` ×2、`String(id)` Map ×3、`userLabel` ×2、一行转发壳 | `system/user/-components/dept-tree-select.tsx:9,72-77`、`user-role-select.tsx:12,33-38`、`user-form-drawer.tsx:67,73,209-214,217,251,253`、`user-assign-roles-dialog.tsx:31,70-74,77-80`、`user-list.tsx:104-114`、`user-reset-password-dialog.tsx:32`、`user-display.tsx:18`、`user-columns.tsx:32`、`-components/use-fullscreen-transition.ts` | 抽 `useDeptTree()` / `useRoleDict()`，常量上移 | ✓ |
 | 44 | 密码提示文案漂移（一处"小写字母"，一处"字母"） | `system/user/-components/user-form-drawer.tsx:70` vs `user-reset-password-dialog.tsx:141` | 由同一常量派生 | ✓ |
 | 76 | 4 个表单式面板的头部操作区（修改/保存/重置/取消）与「恢复默认」确认框逐字重复（约 55 行 × 4） | `system/config/-components/config-{site,security,login,mail}.tsx` 的头部按钮区与末尾 `AlertDialog` | 抽 `ConfigPanelHeader` ＋ `ConfigResetDialog`（**新增建议，待裁决**） | ✓ |
+| 79 | 站点面板内联约 200 行预览 mockup（含 3 处原生 `<img>`，均用于预览 mockup；AUDIT §9 / §3.4） | `system/config/-components/config-site.tsx`（mockup 部分） | 抽 `site-preview.tsx`；原生 `<img>` 只留在包装内部 | △ |
 
 ### P3 死代码与恒假分支
 
@@ -136,7 +137,7 @@
 | # | 待裁决 | 文件:行号 | 建议 | 核验 |
 |---|---|---|---|---|
 | 52 | `aria-invalid` 56 处：保留还是删 | 13 文件，如 `system/user/-components/user-form-drawer.tsx:348,365,385,408,426,444,518,539`、`user-reset-password-dialog.tsx:139,159`、`user-role-select.tsx:52` | 保留，并在 `AGENTS.md` 写明例外（它是 `ui/**` 失效态样式的功能钩子） | ✓ |
-| 53 | `aria-label` **32** 处 ＋ DOM `title` 净 8 处 ＋ `role=` 8 处 | `app-shell/header/layout-controls.tsx:113-206`（12）、`system/role/-components/role-checkable-tree.tsx:98-163`（5）、`system/config/-components/config-site.tsx:286,328`、`system/menu/-components/icon-picker.tsx:493`、`src/components/simple-icon.tsx:17-18`、`app-shell/sidebar/nav-main.tsx:72,228`、`system/config/-components/storage/display.tsx:39,44,58`、`open/app/-components/app-display.tsx:59` | 一律换 `Tooltip` / `sr-only`；`role=` 最严重 | ✓ |
+| 53 | `aria-label` **32** 处 ＋ DOM `title` 净 8 处 ＋ `role=` **6** 处 | `app-shell/header/layout-controls.tsx:113-206`（12）、`system/role/-components/role-checkable-tree.tsx:98-163`（5）、`system/menu/-components/icon-picker.tsx:493`、`src/components/simple-icon.tsx:17-18`、`app-shell/sidebar/nav-main.tsx:72,228`、`system/config/-components/storage/display.tsx:39,44,58`、`open/app/-components/app-display.tsx:59` | 一律换 `Tooltip` / `sr-only`；`role=` 最严重 | ✓ |
 | 54 | 表单控件高度基准：`h-8` 还是 `h-9` | `src/components/password-input.tsx:15`（`ui/input-group.tsx:15` 默认 `h-8`；消费者 `system/config/-components/sms/form-drawer.tsx:316`、`storage/form-drawer.tsx:426`） | 删 `h-9`，以 `h-8` 为准（不动 `ui/**`） | ✓ |
 | 55 | `font-normal` 覆盖 `font-medium` 的口径 | `system/user/-components/user-table.tsx:107`、`user-columns.tsx:160`、`user-role-select.tsx:98` | 承认并统一（或全局去掉） | ✓ |
 | 56 | 原生 `<button>` 18 处的整改范围（`RetryHint` 已存在，位于 `system/config/-components/retry-hint.tsx`，4 个配置面板的错误态已在用；全目录统一时上移到 `src/components/`） | 清单见 `AUDIT.md` §3.4；用户页三处 `system/user/-components/user-form-drawer.tsx:480`、`user-assign-roles-dialog.tsx:177`、`user-role-select.tsx:77` | 用 `RetryHint` **全目录**统一 | ✓ |
@@ -146,6 +147,8 @@
 | 60 | R2 与删 `ui/**` 死代码的冲突 | 见 #45 | 不删，改标注 | — |
 | 61 | 列排序：接服务端排序还是承认 `accessorKey` 只当 id | `system/user/-components/user-columns.tsx:101`、`user-list.tsx:162`（14 列无一处 `getValue()`） | 明确一种并写进口径 | ✓ |
 | 62 | `tree.tsx` 自研 ARIA 是否豁免 R3 | `src/components/ui/tree.tsx`、`ui/tree-select.tsx` | 写明"自研复合控件为自身提供 ARIA 不受 R3 约束" | △ |
+| 77 | 配置页 4 个面板迁移到 **TanStack Form**（已装 `@tanstack/react-form@1.33.5`）：zod schema 经 Standard Schema 直传 `validators`；用 `<form noValidate>` 包住（与既有 13 个表单一致）；必填的 `*` 与 `required` 由 schema 派生；补齐 security/mail 缺失的范围校验 | `config-site.tsx`、`config-security.tsx`、`config-login.tsx`、`config-mail.tsx`、`use-option-form.ts`；上传组件 `image-upload-field.tsx` 已就绪（受控 `value`/`onChange`，可直接接 `field.state.value`） | 按 login → site → security → mail 顺序逐个迁移，每步独立验证；注意 `ImageUploadField` 的 `Button` 当前没有 `type="button"`，放进 `<form>` 后会变成 submit | — |
+| 78 | 表单库口径：全仓 `react-hook-form` → **TanStack Form**（配置页验证通过后逐步替换） | 17 个 RHF 文件：`auth/-components/login-form.tsx`、`dashboard/profile/-components/password-form.tsx`、`system/user/-components/{user-form-drawer,user-reset-password-dialog,user-assign-roles-dialog}.tsx`、`system/{dept,role,menu}/-components/*-form-drawer.tsx`、`open/app/-components/app-form-drawer.tsx`、`system/config/-components/{client,sms,storage}/form-drawer.tsx`、`dashboard/invoice/**`（5 文件） | 逐特性迁移；全部完成后在 `AGENTS.md` 写明表单库口径，并移除 `@hookform/resolvers` | — |
 
 ### P5 用户管理页中低优先
 
@@ -166,7 +169,7 @@
 
 | # | 事项 | 文件 | 动作 |
 |---|---|---|---|
-| 73 | 修正 `AUDIT.md`：6 处行号/条目（`user-form-drawer:470`→480、`storage/display:41,46,60`→39,44,58、`app-display:73`→59、`menu-list:259`→256、`header-tabs:200`→197、`user-list:18`→15）；删 `user-table.tsx:118` 与 `use-user-detail.ts:36-39` 两条误报；`dept/menu-table:70`→75；`aria-label` 33→32；并删除 §4-1（`role-user-drawer` 失效键）与 §4-2（配置面板缺 `isError`）两条已修复的缺陷 | `AUDIT.md` | 更正 |
+| 73 | 修正 `AUDIT.md`：6 处行号/条目（`user-form-drawer:470`→480、`storage/display:41,46,60`→39,44,58、`app-display:73`→59、`menu-list:259`→256、`header-tabs:200`→197、`user-list:18`→15）；删 `user-table.tsx:118` 与 `use-user-detail.ts:36-39` 两条误报；`dept/menu-table:70`→75；`aria-label` 33→32；更新 §2.1 机械计数与 §3.3/§3.4 对应条目（`role=` 8→6、原生 `<input>` 2→0、原生 `<img>` 6→5，且 `config-site` 的引用行号已失效）；并删除 §4-1（`role-user-drawer` 失效键）与 §4-2（配置面板缺 `isError`）两条已修复的缺陷 | `AUDIT.md` | 更正 |
 | 74 | 修正新快照 13 处行号（重点 `user-delete-dialog:249`→40、`user-assign-roles-dialog:376`→190、`user-role-select:203` 无此 Map、role 查询两处行号、`user-display:15`→13、`user-columns:160`→159） | `BASELINE-USER.20261018.md` | 更正 |
 | 75 | 旧稿已过期，避免后续误用 | `BASELINE-USER.md` | 文件头标注 superseded，指向 `BASELINE-USER.20261018.md` |
 
