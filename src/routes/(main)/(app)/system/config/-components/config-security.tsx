@@ -1,24 +1,13 @@
-import { Check, Pencil, RefreshCw, RotateCcw, Undo2 } from 'lucide-react'
 import { z } from 'zod'
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle
-} from '@/components/ui/alert-dialog'
-import { Button } from '@/components/ui/button'
 import { Field, FieldContent, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field'
 import { InputGroupText } from '@/components/ui/input-group'
-import { Spinner } from '@/components/ui/spinner'
 import { Switch } from '@/components/ui/switch'
 import { usePermission } from '@/hooks/use-permission'
 
+import { ConfigPanelHeader } from './config-panel-header'
 import { ConfigPanelError, ConfigPanelSkeleton } from './config-panel-states'
+import { ConfigResetDialog } from './config-reset-dialog'
 import { TextField } from './text-field'
 import { type OptionMap, useOptionForm } from './use-option-form'
 
@@ -86,6 +75,7 @@ export function ConfigSecurity() {
     isLoading,
     isError,
     refetch,
+    isSubmitting,
     isEdit,
     setIsEdit,
     cancelEdit,
@@ -114,49 +104,17 @@ export function ConfigSecurity() {
         void submit()
       }}
     >
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b pb-4">
-        <div>
-          <h2 className="font-heading text-base font-semibold tracking-tight">安全策略配置</h2>
-          <p className="text-sm text-muted-foreground">配置密码复杂度、重试锁定与密码过期提醒策略</p>
-        </div>
-        <div className="flex items-center gap-2">
-          {!isEdit ? (
-            <>
-              {canUpdate && (
-                <Button size="sm" onClick={() => setIsEdit(true)}>
-                  <Pencil />
-                  修改
-                </Button>
-              )}
-              {canUpdate && (
-                <Button size="sm" variant="outline" onClick={() => setResetDialogOpen(true)}>
-                  <RotateCcw />
-                  恢复默认
-                </Button>
-              )}
-            </>
-          ) : (
-            <form.Subscribe selector={state => state.isSubmitting}>
-              {isSubmitting => (
-                <>
-                  <Button type="submit" size="sm" disabled={isSubmitting}>
-                    {isSubmitting ? <Spinner /> : <Check />}
-                    保存
-                  </Button>
-                  <Button type="button" size="sm" variant="outline" onClick={resetForm} disabled={isSubmitting}>
-                    <RefreshCw />
-                    重置
-                  </Button>
-                  <Button type="button" size="sm" variant="ghost" onClick={cancelEdit} disabled={isSubmitting}>
-                    <Undo2 />
-                    取消
-                  </Button>
-                </>
-              )}
-            </form.Subscribe>
-          )}
-        </div>
-      </div>
+      <ConfigPanelHeader
+        title="安全策略配置"
+        description="配置密码复杂度、重试锁定与密码过期提醒策略"
+        canUpdate={canUpdate}
+        isEdit={isEdit}
+        isSubmitting={isSubmitting}
+        onEdit={() => setIsEdit(true)}
+        onResetDefault={() => setResetDialogOpen(true)}
+        onResetForm={resetForm}
+        onCancel={cancelEdit}
+      />
 
       <div className="flex flex-col gap-6">
         <div className="grid grid-cols-1 items-start gap-6 sm:grid-cols-2">
@@ -276,9 +234,7 @@ export function ConfigSecurity() {
             {field => (
               <Field orientation="horizontal" className="items-center justify-between">
                 <FieldContent>
-                  <FieldLabel className="text-left font-medium">
-                    {optionMap.PASSWORD_ALLOW_CONTAIN_USERNAME?.name}
-                  </FieldLabel>
+                  <FieldLabel>{optionMap.PASSWORD_ALLOW_CONTAIN_USERNAME?.name}</FieldLabel>
                   <FieldDescription>{optionMap.PASSWORD_ALLOW_CONTAIN_USERNAME?.description}</FieldDescription>
                   <FieldError errors={field.state.meta.errors} />
                 </FieldContent>
@@ -296,7 +252,7 @@ export function ConfigSecurity() {
             {field => (
               <Field orientation="horizontal" className="items-center justify-between">
                 <FieldContent>
-                  <FieldLabel className="text-left font-medium">{optionMap.PASSWORD_REQUIRE_SYMBOLS?.name}</FieldLabel>
+                  <FieldLabel>{optionMap.PASSWORD_REQUIRE_SYMBOLS?.name}</FieldLabel>
                   <FieldDescription>{optionMap.PASSWORD_REQUIRE_SYMBOLS?.description}</FieldDescription>
                   <FieldError errors={field.state.meta.errors} />
                 </FieldContent>
@@ -312,21 +268,13 @@ export function ConfigSecurity() {
         </div>
       </div>
 
-      <AlertDialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>确认恢复默认</AlertDialogTitle>
-            <AlertDialogDescription>确认恢复安全配置为系统默认值吗？该操作不可撤销。</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isResetting}>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={resetToDefault} disabled={isResetting}>
-              {isResetting ? <Spinner /> : null}
-              确认恢复
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfigResetDialog
+        open={resetDialogOpen}
+        onOpenChange={setResetDialogOpen}
+        onConfirm={resetToDefault}
+        isResetting={isResetting}
+        description="确认恢复安全配置为系统默认值吗？该操作不可撤销。"
+      />
     </form>
   )
 }

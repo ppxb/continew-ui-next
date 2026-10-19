@@ -1,23 +1,12 @@
-import { Check, Pencil, RefreshCw, RotateCcw, Undo2 } from 'lucide-react'
 import { z } from 'zod'
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle
-} from '@/components/ui/alert-dialog'
-import { Button } from '@/components/ui/button'
 import { Field, FieldContent, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field'
-import { Spinner } from '@/components/ui/spinner'
 import { Switch } from '@/components/ui/switch'
 import { usePermission } from '@/hooks/use-permission'
 
 import { ConfigPanelError, ConfigPanelSkeleton } from './config-panel-states'
+import { ConfigPanelHeader } from './config-panel-header'
+import { ConfigResetDialog } from './config-reset-dialog'
 import { type OptionMap, useOptionForm } from './use-option-form'
 
 const schema = z.object({
@@ -42,6 +31,7 @@ export function ConfigLogin() {
     isLoading,
     isError,
     refetch,
+    isSubmitting,
     isEdit,
     setIsEdit,
     cancelEdit,
@@ -70,49 +60,17 @@ export function ConfigLogin() {
         void submit()
       }}
     >
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b pb-4">
-        <div>
-          <h2 className="font-heading text-base font-semibold tracking-tight">登录配置</h2>
-          <p className="text-sm text-muted-foreground">配置图形验证码与登录行为策略</p>
-        </div>
-        <div className="flex items-center gap-2">
-          {!isEdit ? (
-            <>
-              {canUpdate && (
-                <Button size="sm" onClick={() => setIsEdit(true)}>
-                  <Pencil />
-                  修改
-                </Button>
-              )}
-              {canUpdate && (
-                <Button size="sm" variant="outline" onClick={() => setResetDialogOpen(true)}>
-                  <RotateCcw />
-                  恢复默认
-                </Button>
-              )}
-            </>
-          ) : (
-            <form.Subscribe selector={state => state.isSubmitting}>
-              {isSubmitting => (
-                <>
-                  <Button type="submit" size="sm" disabled={isSubmitting}>
-                    {isSubmitting ? <Spinner /> : <Check />}
-                    保存
-                  </Button>
-                  <Button type="button" size="sm" variant="outline" onClick={resetForm} disabled={isSubmitting}>
-                    <RefreshCw />
-                    重置
-                  </Button>
-                  <Button type="button" size="sm" variant="ghost" onClick={cancelEdit} disabled={isSubmitting}>
-                    <Undo2 />
-                    取消
-                  </Button>
-                </>
-              )}
-            </form.Subscribe>
-          )}
-        </div>
-      </div>
+      <ConfigPanelHeader
+        title="登录配置"
+        description="配置图形验证码与登录行为策略"
+        canUpdate={canUpdate}
+        isEdit={isEdit}
+        isSubmitting={isSubmitting}
+        onEdit={() => setIsEdit(true)}
+        onResetDefault={() => setResetDialogOpen(true)}
+        onResetForm={resetForm}
+        onCancel={cancelEdit}
+      />
 
       <div className="flex max-w-xl flex-col gap-4">
         <form.Field name="LOGIN_CAPTCHA_ENABLED" validators={{ onSubmit: schema.shape.LOGIN_CAPTCHA_ENABLED }}>
@@ -134,21 +92,13 @@ export function ConfigLogin() {
         </form.Field>
       </div>
 
-      <AlertDialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>确认恢复默认</AlertDialogTitle>
-            <AlertDialogDescription>确认恢复登录配置为系统默认值吗？该操作不可撤销。</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isResetting}>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={resetToDefault} disabled={isResetting}>
-              {isResetting ? <Spinner /> : null}
-              确认恢复
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfigResetDialog
+        open={resetDialogOpen}
+        onOpenChange={setResetDialogOpen}
+        onConfirm={resetToDefault}
+        isResetting={isResetting}
+        description="确认恢复登录配置为系统默认值吗？该操作不可撤销。"
+      />
     </form>
   )
 }

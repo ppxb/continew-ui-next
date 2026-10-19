@@ -75,7 +75,6 @@ export function ImageUploadField({
           </div>
         ) : (
           <Button
-            type="button"
             size="icon-lg"
             className={cn(
               'group relative flex size-14 shrink-0 items-center justify-center overflow-hidden',
@@ -91,7 +90,7 @@ export function ImageUploadField({
                 'bg-black/45 text-white opacity-0 transition-opacity group-hover:opacity-100'
               )}
             >
-              <Upload className="size-4" />
+              <Upload />
             </span>
           </Button>
         )}

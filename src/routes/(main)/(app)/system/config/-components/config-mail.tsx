@@ -1,27 +1,17 @@
 import * as React from 'react'
 
-import { Check, Eye, EyeOff, Pencil, RefreshCw, RotateCcw, Undo2 } from 'lucide-react'
+import { Eye, EyeOff } from 'lucide-react'
 import { z } from 'zod'
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle
-} from '@/components/ui/alert-dialog'
-import { Button } from '@/components/ui/button'
 import { Field, FieldContent, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { InputGroupButton } from '@/components/ui/input-group'
-import { Spinner } from '@/components/ui/spinner'
 import { Switch } from '@/components/ui/switch'
 import { usePermission } from '@/hooks/use-permission'
 
+import { ConfigPanelHeader } from './config-panel-header'
 import { ConfigPanelError, ConfigPanelSkeleton } from './config-panel-states'
+import { ConfigResetDialog } from './config-reset-dialog'
 import { RequiredMark } from './required-mark'
 import { TextField } from './text-field'
 import { type OptionMap, useOptionForm } from './use-option-form'
@@ -78,6 +68,7 @@ export function ConfigMail() {
     isLoading,
     isError,
     refetch,
+    isSubmitting,
     isEdit,
     setIsEdit,
     cancelEdit,
@@ -106,49 +97,17 @@ export function ConfigMail() {
         void submit()
       }}
     >
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b pb-4">
-        <div>
-          <h2 className="font-heading text-base font-semibold tracking-tight">邮件服务配置</h2>
-          <p className="text-sm text-muted-foreground">配置系统用于发送通知、验证码及报警邮件的 SMTP 邮箱服务</p>
-        </div>
-        <div className="flex items-center gap-2">
-          {!isEdit ? (
-            <>
-              {canUpdate && (
-                <Button type="button" size="sm" onClick={() => setIsEdit(true)}>
-                  <Pencil />
-                  修改
-                </Button>
-              )}
-              {canUpdate && (
-                <Button type="button" size="sm" variant="outline" onClick={() => setResetDialogOpen(true)}>
-                  <RotateCcw />
-                  恢复默认
-                </Button>
-              )}
-            </>
-          ) : (
-            <form.Subscribe selector={state => state.isSubmitting}>
-              {isSubmitting => (
-                <>
-                  <Button type="submit" size="sm" disabled={isSubmitting}>
-                    {isSubmitting ? <Spinner /> : <Check />}
-                    保存
-                  </Button>
-                  <Button type="button" size="sm" variant="outline" onClick={resetForm} disabled={isSubmitting}>
-                    <RefreshCw />
-                    重置
-                  </Button>
-                  <Button type="button" size="sm" variant="ghost" onClick={cancelEdit} disabled={isSubmitting}>
-                    <Undo2 />
-                    取消
-                  </Button>
-                </>
-              )}
-            </form.Subscribe>
-          )}
-        </div>
-      </div>
+      <ConfigPanelHeader
+        title="邮件服务配置"
+        description="配置系统用于发送通知、验证码及报警邮件的 SMTP 邮箱服务"
+        canUpdate={canUpdate}
+        isEdit={isEdit}
+        isSubmitting={isSubmitting}
+        onEdit={() => setIsEdit(true)}
+        onResetDefault={() => setResetDialogOpen(true)}
+        onResetForm={resetForm}
+        onCancel={cancelEdit}
+      />
 
       <div className="flex flex-col gap-6">
         <div className="grid grid-cols-1 items-start gap-6 sm:grid-cols-2">
@@ -156,7 +115,7 @@ export function ConfigMail() {
             {field => (
               <Field>
                 <FieldContent>
-                  <FieldLabel className="text-left">
+                  <FieldLabel>
                     {optionMap.MAIL_PROTOCOL?.name}
                     {isRequired('MAIL_PROTOCOL') && <RequiredMark />}
                   </FieldLabel>
@@ -253,7 +212,7 @@ export function ConfigMail() {
           {field => (
             <Field orientation="horizontal" className="items-center justify-between">
               <FieldContent>
-                <FieldLabel className="text-left font-medium">{optionMap.MAIL_SSL_ENABLED?.name}</FieldLabel>
+                <FieldLabel>{optionMap.MAIL_SSL_ENABLED?.name}</FieldLabel>
                 <FieldDescription>{optionMap.MAIL_SSL_ENABLED?.description}</FieldDescription>
                 <FieldError errors={field.state.meta.errors} />
               </FieldContent>
@@ -268,21 +227,13 @@ export function ConfigMail() {
         </form.Field>
       </div>
 
-      <AlertDialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>确认恢复默认</AlertDialogTitle>
-            <AlertDialogDescription>确认恢复邮件配置为系统默认值吗？该操作不可撤销。</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isResetting}>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={resetToDefault} disabled={isResetting}>
-              {isResetting ? <Spinner /> : null}
-              确认恢复
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfigResetDialog
+        open={resetDialogOpen}
+        onOpenChange={setResetDialogOpen}
+        onConfirm={resetToDefault}
+        isResetting={isResetting}
+        description="确认恢复邮件配置为系统默认值吗？该操作不可撤销。"
+      />
     </form>
   )
 }

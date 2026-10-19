@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { type StandardSchemaV1, useForm } from '@tanstack/react-form'
+import { type StandardSchemaV1, useForm, useSelector } from '@tanstack/react-form'
 
 import { toast } from '@/components/ui/toast'
 import { listOption, type OptionReq, type OptionResp, resetOptionValue, updateOption } from '@/lib/api/option'
@@ -11,9 +11,13 @@ export type OptionMap = Record<string, OptionResp>
 
 const EMPTY_OPTIONS: OptionResp[] = []
 
-function buildPayload(form: object, optionMap: OptionMap): OptionReq[] {
+/**
+ * Codes missing from `optionMap` are skipped: the backend resolves every entry by `id` and rejects
+ * the batch otherwise.
+ */
+function buildPayload(values: object, optionMap: OptionMap): OptionReq[] {
   const payload: OptionReq[] = []
-  for (const [code, value] of Object.entries(form)) {
+  for (const [code, value] of Object.entries(values)) {
     const option = optionMap[code]
     if (!option) continue
     payload.push({ id: option.id, code, value: String(value) })
@@ -24,6 +28,13 @@ function buildPayload(form: object, optionMap: OptionMap): OptionReq[] {
 interface UseOptionFormOptions<TForm extends object> {
   category: string
   toForm: (optionMap: OptionMap) => TForm
+  /**
+   * The whole-object schema, validated on submit.
+   *
+   * Every `<form.Field>` must also carry `validators={{ onSubmit: schema.shape.X }}`: `handleSubmit`
+   * runs the field validators first and returns as soon as they report an invalid form, so a rule
+   * that only sits on the form never runs again and fields that turn invalid later show no error.
+   */
   schema: StandardSchemaV1<TForm>
 }
 
@@ -62,16 +73,14 @@ export function useOptionForm<TForm extends object>({ category, toForm, schema }
     }
   })
 
-  const toFormRef = React.useRef(toForm)
-  React.useEffect(() => {
-    toFormRef.current = toForm
-  })
-
+  // `keepDefaultValues` is load-bearing: `reset(values)` otherwise rewrites the form's own
+  // defaultValues, and the next render's `update(opts)` reads that as "defaults changed" and puts the
+  // `toForm({})` fallbacks back into the form, which the panel would then save to the backend.
   React.useEffect(() => {
     if (!isEdit && options.length > 0) {
-      form.reset(toFormRef.current(optionMap), { keepDefaultValues: true })
+      form.reset(toForm(optionMap), { keepDefaultValues: true })
     }
-  }, [form, isEdit, optionMap, options.length])
+  }, [form, isEdit, optionMap, options.length, toForm])
 
   const resetMutation = useMutation({
     mutationFn: () => resetOptionValue({ category }),
@@ -86,7 +95,7 @@ export function useOptionForm<TForm extends object>({ category, toForm, schema }
     }
   })
 
-  const resetForm = () => form.reset(toFormRef.current(optionMap), { keepDefaultValues: true })
+  const resetForm = () => form.reset(toForm(optionMap), { keepDefaultValues: true })
 
   const cancelEdit = () => {
     resetForm()
@@ -95,6 +104,11 @@ export function useOptionForm<TForm extends object>({ category, toForm, schema }
 
   const resetToDefault = () => resetMutation.mutate()
 
+  /**
+   * Validates the whole object before submitting: `handleSubmit` returns as soon as the field
+   * validators report an invalid form, so a form-level rule (a cross-field one, say) would otherwise
+   * stay hidden until the other errors were fixed.
+   */
   const submit = async () => {
     await form.validate('submit')
     await form.handleSubmit()
@@ -106,6 +120,7 @@ export function useOptionForm<TForm extends object>({ category, toForm, schema }
     isLoading: query.isLoading,
     isError: query.isError,
     refetch: query.refetch,
+    isSubmitting: useSelector(form.store, state => state.isSubmitting),
     isEdit,
     setIsEdit,
     cancelEdit,

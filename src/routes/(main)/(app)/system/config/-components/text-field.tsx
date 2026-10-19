@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type { ChangeEvent, ReactNode } from 'react'
 
 import { Field, FieldContent, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
@@ -44,44 +44,33 @@ export function TextField({
   addonEnd
 }: TextFieldProps) {
   const invalid = field.state.meta.errors.length > 0
+  const controlProps = {
+    value: field.state.value,
+    onChange: (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => field.handleChange(event.target.value),
+    onBlur: field.handleBlur,
+    placeholder,
+    maxLength,
+    disabled,
+    required,
+    'aria-invalid': invalid
+  }
 
   return (
     <Field data-invalid={invalid}>
       <FieldContent>
-        <FieldLabel className="text-left">
-          {label}
-          {required && <RequiredMark />}
-        </FieldLabel>
+        {label && (
+          <FieldLabel className="text-left">
+            {label}
+            {required && <RequiredMark />}
+          </FieldLabel>
+        )}
         {description && <FieldDescription>{description}</FieldDescription>}
       </FieldContent>
       {multiline ? (
-        <Textarea
-          value={field.state.value}
-          onChange={event => field.handleChange(event.target.value)}
-          onBlur={field.handleBlur}
-          placeholder={placeholder}
-          rows={rows}
-          maxLength={maxLength}
-          disabled={disabled}
-          required={required}
-          aria-invalid={invalid}
-          className="resize-none"
-        />
+        <Textarea {...controlProps} rows={rows} className="resize-none" />
       ) : (
         <InputGroup>
-          <InputGroupInput
-            type={type}
-            min={min}
-            max={max}
-            maxLength={maxLength}
-            value={field.state.value}
-            onChange={event => field.handleChange(event.target.value)}
-            onBlur={field.handleBlur}
-            placeholder={placeholder}
-            disabled={disabled}
-            required={required}
-            aria-invalid={invalid}
-          />
+          <InputGroupInput {...controlProps} type={type} min={min} max={max} />
           {addonEnd && <InputGroupAddon align="inline-end">{addonEnd}</InputGroupAddon>}
         </InputGroup>
       )}
