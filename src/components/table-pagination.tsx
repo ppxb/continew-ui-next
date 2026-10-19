@@ -89,7 +89,7 @@ export function TablePagination<TRow extends RowData>({ table }: TablePagination
             <PaginationPrevious
               href="#"
               text=""
-              className={!table.getCanPreviousPage() ? 'pointer-events-none opacity-50' : undefined}
+              className={!table.getCanPreviousPage() ? 'opacity-50' : undefined}
               onClick={event => {
                 preventPaginationNavigation(event)
                 table.previousPage()
@@ -120,7 +120,7 @@ export function TablePagination<TRow extends RowData>({ table }: TablePagination
             <PaginationNext
               href="#"
               text=""
-              className={!table.getCanNextPage() ? 'pointer-events-none opacity-50' : undefined}
+              className={!table.getCanNextPage() ? 'opacity-50' : undefined}
               onClick={event => {
                 preventPaginationNavigation(event)
                 table.nextPage()
