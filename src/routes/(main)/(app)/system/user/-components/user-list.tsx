@@ -2,9 +2,8 @@ import * as React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { type ColumnVisibilityState, type PaginationState, useTable } from '@tanstack/react-table'
 import { cn } from 'cn'
-import { Search } from 'lucide-react'
+import { TableSearch } from '@/components/table-search'
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from '@/components/ui/toast'
 import { deptKeys, getDeptTree } from '@/lib/api/dept'
@@ -34,8 +33,6 @@ const HIDDEN_BY_DEFAULT: ColumnVisibilityState = {
 /** The user query sorts on its own `t1` table alias. */
 const DEFAULT_SORT = 't1.id,desc'
 
-const SEARCH_DEBOUNCE_MS = 300
-
 /** Stable empty array, so an empty page does not rebuild the table's row model. */
 const EMPTY_ROWS: UserResp[] = []
 
@@ -50,7 +47,6 @@ export function UserList() {
   const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>(HIDDEN_BY_DEFAULT)
   const [deptId, setDeptId] = React.useState<string | number | undefined>(undefined)
   const [status, setStatus] = React.useState<UserStatus | undefined>(undefined)
-  const [searchInput, setSearchInput] = React.useState('')
   const [keyword, setKeyword] = React.useState('')
   const [isExporting, setIsExporting] = React.useState(false)
   const [detailUserId, setDetailUserId] = React.useState<string | number | null>(null)
@@ -68,15 +64,11 @@ export function UserList() {
   const [isDeleteOpen, setIsDeleteOpen] = React.useState(false)
   const { isFullscreen, reservedHeight, fullscreenRef, spacerRef, toggleFullscreen } = useFullscreenTransition()
 
-  // Debounced so typing in the search box does not fire a request per keystroke.
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      setKeyword(searchInput.trim())
-      setPagination(current => (current.pageIndex === 0 ? current : { ...current, pageIndex: 0 }))
-    }, SEARCH_DEBOUNCE_MS)
-
-    return () => clearTimeout(timer)
-  }, [searchInput])
+  // `TableSearch` debounces; a new keyword always goes back to the first page.
+  const handleSearch = React.useCallback((next: string) => {
+    setKeyword(next)
+    setPagination(current => (current.pageIndex === 0 ? current : { ...current, pageIndex: 0 }))
+  }, [])
 
   const query = useQuery({
     queryKey: userKeys.list({
@@ -267,16 +259,7 @@ export function UserList() {
           <CardTitle className="text-xl">用户管理</CardTitle>
           <CardDescription>维护系统用户，查看用户的基本信息</CardDescription>
           <CardAction className="col-start-1 row-start-auto flex w-full flex-wrap justify-start gap-2 justify-self-stretch md:col-start-2 md:row-span-2 md:row-start-1 md:w-auto md:flex-nowrap md:justify-end md:justify-self-end">
-            <InputGroup className="h-7 w-full md:w-64">
-              <InputGroupAddon align="inline-start">
-                <Search className="size-3.5" />
-              </InputGroupAddon>
-              <InputGroupInput
-                placeholder="搜索用户名、昵称、描述"
-                value={searchInput}
-                onChange={event => setSearchInput(event.target.value)}
-              />
-            </InputGroup>
+            <TableSearch placeholder="搜索用户名、昵称、描述" onSearch={handleSearch} />
           </CardAction>
         </CardHeader>
 
