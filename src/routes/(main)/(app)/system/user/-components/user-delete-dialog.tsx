@@ -37,6 +37,22 @@ export function UserDeleteDialog({ user, open, onClose }: UserDeleteDialogProps)
   const queryClient = useQueryClient()
   const [isDeleting, setIsDeleting] = React.useState(false)
 
+  // The parent clears `user` when the dialog closes, but the exit animation keeps rendering this
+  // copy, so the name would vanish mid-close. Keep the last record around for that window; `user`
+  // still wins while it is set, so opening a second user never shows the previous name.
+  const [lastUser, setLastUser] = React.useState<UserResp | null>(null)
+
+  React.useEffect(() => {
+    if (user) {
+      setLastUser(user)
+    }
+  }, [user])
+
+  const shownUser = user ?? lastUser
+  // The nickname reads better, the username is the unambiguous one, so show both when they differ.
+  const shownName = shownUser ? shownUser.nickname || shownUser.username : ''
+  const shownLabel = shownUser?.nickname ? `${shownUser.nickname}(${shownUser.username})` : shownName
+
   const handleDelete = async () => {
     if (user === null) {
       return
@@ -74,7 +90,9 @@ export function UserDeleteDialog({ user, open, onClose }: UserDeleteDialogProps)
             <TriangleAlert />
           </AlertDialogMedia>
           <AlertDialogTitle>删除用户</AlertDialogTitle>
-          <AlertDialogDescription>是否确定删除该用户？删除后不可恢复</AlertDialogDescription>
+          <AlertDialogDescription>
+            {shownUser ? `是否确定删除用户「${shownLabel}」？删除后不可恢复` : '是否确定删除该用户？删除后不可恢复'}
+          </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isDeleting}>取消</AlertDialogCancel>
