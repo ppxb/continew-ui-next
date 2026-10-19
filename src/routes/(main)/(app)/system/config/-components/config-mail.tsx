@@ -1,6 +1,7 @@
 import * as React from 'react'
 
 import { Check, Eye, EyeOff, Pencil, RefreshCw, RotateCcw, Undo2 } from 'lucide-react'
+import { z } from 'zod'
 
 import {
   AlertDialog,
@@ -13,38 +14,57 @@ import {
   AlertDialogTitle
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
-import { Field, FieldContent, FieldDescription, FieldLabel } from '@/components/ui/field'
+import { Field, FieldContent, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { InputGroupButton } from '@/components/ui/input-group'
 import { Spinner } from '@/components/ui/spinner'
 import { Switch } from '@/components/ui/switch'
-import { toast } from '@/components/ui/toast'
 import { usePermission } from '@/hooks/use-permission'
 
 import { ConfigPanelError, ConfigPanelSkeleton } from './config-panel-states'
+import { RequiredMark } from './required-mark'
+import { TextField } from './text-field'
 import { type OptionMap, useOptionForm } from './use-option-form'
 
-interface MailFormState {
-  MAIL_PROTOCOL: string
-  MAIL_HOST: string
-  MAIL_PORT: number
-  MAIL_USERNAME: string
-  MAIL_PASSWORD: string
-  MAIL_SSL_ENABLED: number
-  MAIL_SSL_PORT: number
-}
+const nonBlank = (message: string) => z.string().trim().min(1, message)
 
-/** Maps the MAIL options to the form state; each fallback doubles as the initial value. */
+const port = (emptyMessage: string, invalidMessage: string) =>
+  z.string().superRefine((value, ctx) => {
+    const text = value.trim()
+    if (!text) {
+      ctx.addIssue({ code: 'custom', message: emptyMessage })
+      return
+    }
+    if (!/^\d+$/.test(text)) {
+      ctx.addIssue({ code: 'custom', message: invalidMessage })
+    }
+  })
+
+const schema = z.object({
+  MAIL_PROTOCOL: z.string(),
+  MAIL_HOST: nonBlank('请输入邮件服务器地址'),
+  MAIL_PORT: port('请输入服务器端口', '服务器端口只能包含数字'),
+  MAIL_USERNAME: nonBlank('请输入发件人邮箱地址'),
+  MAIL_PASSWORD: nonBlank('请输入邮箱服务密码或授权码'),
+  MAIL_SSL_ENABLED: z.number().int().min(0).max(1),
+  MAIL_SSL_PORT: port('请输入 SSL 端口', 'SSL 端口只能包含数字')
+})
+
+type MailFormState = z.infer<typeof schema>
+
 function toForm(optionMap: OptionMap): MailFormState {
   return {
     MAIL_PROTOCOL: optionMap.MAIL_PROTOCOL?.value || 'smtp',
     MAIL_HOST: optionMap.MAIL_HOST?.value || '',
-    MAIL_PORT: Number.parseInt(optionMap.MAIL_PORT?.value || '465', 10),
+    MAIL_PORT: optionMap.MAIL_PORT?.value || '465',
     MAIL_USERNAME: optionMap.MAIL_USERNAME?.value || '',
     MAIL_PASSWORD: optionMap.MAIL_PASSWORD?.value || '',
     MAIL_SSL_ENABLED: Number.parseInt(optionMap.MAIL_SSL_ENABLED?.value || '1', 10),
-    MAIL_SSL_PORT: Number.parseInt(optionMap.MAIL_SSL_PORT?.value || '465', 10)
+    MAIL_SSL_PORT: optionMap.MAIL_SSL_PORT?.value || '465'
   }
 }
+
+const isRequired = (field: keyof MailFormState) => !schema.shape[field].safeParse('').success
 
 export function ConfigMail() {
   const { hasPermission } = usePermission()
@@ -54,7 +74,6 @@ export function ConfigMail() {
 
   const {
     form,
-    setForm,
     optionMap,
     isLoading,
     isError,
@@ -63,29 +82,11 @@ export function ConfigMail() {
     setIsEdit,
     cancelEdit,
     resetForm,
-    save,
-    isSaving,
     resetToDefault,
     isResetting,
     resetDialogOpen,
     setResetDialogOpen
-  } = useOptionForm({ category: 'MAIL', toForm })
-
-  const handleSave = () => {
-    if (!form.MAIL_HOST.trim()) {
-      toast.add({ title: '请输入邮件服务器地址', type: 'error' })
-      return
-    }
-    if (!form.MAIL_USERNAME.trim()) {
-      toast.add({ title: '请输入发件人邮箱地址', type: 'error' })
-      return
-    }
-    if (!form.MAIL_PASSWORD.trim()) {
-      toast.add({ title: '请输入邮箱服务密码或授权码', type: 'error' })
-      return
-    }
-    save()
-  }
+  } = useOptionForm({ category: 'MAIL', toForm, schema })
 
   if (isLoading) {
     return <ConfigPanelSkeleton fields={4} />
@@ -96,190 +97,176 @@ export function ConfigMail() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <form
+      noValidate
+      className="flex flex-col gap-6"
+      onSubmit={event => {
+        event.preventDefault()
+        void form.handleSubmit()
+      }}
+    >
       <div className="flex flex-wrap items-center justify-between gap-4 border-b pb-4">
         <div>
           <h2 className="font-heading text-base font-semibold tracking-tight">邮件服务配置</h2>
-          <p className="mt-0.5 text-sm text-muted-foreground">配置系统用于发送通知、验证码及报警邮件的 SMTP 邮箱服务</p>
+          <p className="text-sm text-muted-foreground">配置系统用于发送通知、验证码及报警邮件的 SMTP 邮箱服务</p>
         </div>
         <div className="flex items-center gap-2">
           {!isEdit ? (
             <>
               {canUpdate && (
-                <Button size="sm" onClick={() => setIsEdit(true)}>
-                  <Pencil className="size-4" />
+                <Button type="button" size="sm" onClick={() => setIsEdit(true)}>
+                  <Pencil />
                   修改
                 </Button>
               )}
               {canUpdate && (
-                <Button size="sm" variant="outline" onClick={() => setResetDialogOpen(true)}>
-                  <RotateCcw className="size-4" />
+                <Button type="button" size="sm" variant="outline" onClick={() => setResetDialogOpen(true)}>
+                  <RotateCcw />
                   恢复默认
                 </Button>
               )}
             </>
           ) : (
-            <>
-              <Button size="sm" onClick={handleSave} disabled={isSaving}>
-                {isSaving ? <Spinner className="size-4" /> : <Check className="size-4" />}
-                保存
-              </Button>
-              <Button size="sm" variant="outline" onClick={resetForm} disabled={isSaving}>
-                <RefreshCw className="size-4" />
-                重置
-              </Button>
-              <Button size="sm" variant="ghost" onClick={cancelEdit} disabled={isSaving}>
-                <Undo2 className="size-4" />
-                取消
-              </Button>
-            </>
+            <form.Subscribe selector={state => state.isSubmitting}>
+              {isSubmitting => (
+                <>
+                  <Button type="submit" size="sm" disabled={isSubmitting}>
+                    {isSubmitting ? <Spinner /> : <Check />}
+                    保存
+                  </Button>
+                  <Button type="button" size="sm" variant="outline" onClick={resetForm} disabled={isSubmitting}>
+                    <RefreshCw />
+                    重置
+                  </Button>
+                  <Button type="button" size="sm" variant="ghost" onClick={cancelEdit} disabled={isSubmitting}>
+                    <Undo2 />
+                    取消
+                  </Button>
+                </>
+              )}
+            </form.Subscribe>
           )}
         </div>
       </div>
 
       <div className="flex flex-col gap-6">
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-          {/* Protocol */}
-          <Field>
-            <FieldContent>
-              <FieldLabel className="text-left">
-                {optionMap.MAIL_PROTOCOL?.name || '邮件协议'}
-                <span className="text-destructive">*</span>
-              </FieldLabel>
-              <FieldDescription>{optionMap.MAIL_PROTOCOL?.description || '邮件发送协议类型'}</FieldDescription>
-            </FieldContent>
-            <Input value={form.MAIL_PROTOCOL.toUpperCase()} disabled />
-          </Field>
+        <div className="grid grid-cols-1 items-start gap-6 sm:grid-cols-2">
+          <form.Field name="MAIL_PROTOCOL">
+            {field => (
+              <Field>
+                <FieldContent>
+                  <FieldLabel className="text-left">
+                    {optionMap.MAIL_PROTOCOL?.name || '邮件协议'}
+                    {isRequired('MAIL_PROTOCOL') && <RequiredMark />}
+                  </FieldLabel>
+                  <FieldDescription>{optionMap.MAIL_PROTOCOL?.description}</FieldDescription>
+                </FieldContent>
+                <Input value={field.state.value.toUpperCase()} disabled />
+              </Field>
+            )}
+          </form.Field>
 
-          {/* Host */}
-          <Field>
-            <FieldContent>
-              <FieldLabel className="text-left">
-                {optionMap.MAIL_HOST?.name || '服务器地址'}
-                <span className="text-destructive">*</span>
-              </FieldLabel>
-              <FieldDescription>{optionMap.MAIL_HOST?.description || 'SMTP 邮件服务器地址'}</FieldDescription>
-            </FieldContent>
-            <Input
-              value={form.MAIL_HOST}
-              onChange={e => setForm(prev => ({ ...prev, MAIL_HOST: e.target.value }))}
-              placeholder="例如：smtp.126.com"
-              disabled={!isEdit}
-            />
-          </Field>
-
-          {/* Port */}
-          <Field>
-            <FieldContent>
-              <FieldLabel className="text-left">
-                {optionMap.MAIL_PORT?.name || '服务器端口'}
-                <span className="text-destructive">*</span>
-              </FieldLabel>
-              <FieldDescription>{optionMap.MAIL_PORT?.description || '邮件服务器连接端口'}</FieldDescription>
-            </FieldContent>
-            <Input
-              type="number"
-              min={0}
-              value={form.MAIL_PORT}
-              onChange={e => setForm(prev => ({ ...prev, MAIL_PORT: Number.parseInt(e.target.value, 10) || 0 }))}
-              placeholder="465"
-              disabled={!isEdit}
-            />
-          </Field>
-
-          {/* Username */}
-          <Field>
-            <FieldContent>
-              <FieldLabel className="text-left">
-                {optionMap.MAIL_USERNAME?.name || '发件人邮箱'}
-                <span className="text-destructive">*</span>
-              </FieldLabel>
-              <FieldDescription>{optionMap.MAIL_USERNAME?.description || '系统发信人邮箱地址'}</FieldDescription>
-            </FieldContent>
-            <Input
-              value={form.MAIL_USERNAME}
-              onChange={e => setForm(prev => ({ ...prev, MAIL_USERNAME: e.target.value }))}
-              placeholder="例如：charles7c@126.com"
-              disabled={!isEdit}
-            />
-          </Field>
-
-          {/* Password */}
-          <Field>
-            <FieldContent>
-              <FieldLabel className="text-left">
-                {optionMap.MAIL_PASSWORD?.name || '邮箱密码/授权码'}
-                <span className="text-destructive">*</span>
-              </FieldLabel>
-              <FieldDescription>
-                {optionMap.MAIL_PASSWORD?.description || '邮箱客户端专用密码或 SMTP 授权码'}
-              </FieldDescription>
-            </FieldContent>
-            <div className="relative">
-              <Input
-                type={showPassword ? 'text' : 'password'}
-                value={form.MAIL_PASSWORD}
-                onChange={e => setForm(prev => ({ ...prev, MAIL_PASSWORD: e.target.value }))}
-                placeholder="请输入邮箱授权码"
+          <form.Field name="MAIL_HOST">
+            {field => (
+              <TextField
+                field={field}
+                label={optionMap.MAIL_HOST?.name}
+                description={optionMap.MAIL_HOST?.description}
+                placeholder="请输入邮件服务器地址"
+                required={isRequired('MAIL_HOST')}
                 disabled={!isEdit}
-                className="pr-10"
               />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="absolute inset-y-0 right-0 size-9 text-muted-foreground hover:text-foreground"
-                onClick={() => setShowPassword(prev => !prev)}
-                tabIndex={-1}
-              >
-                {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-              </Button>
-            </div>
-          </Field>
+            )}
+          </form.Field>
 
-          {/* SSL Port */}
-          {form.MAIL_SSL_ENABLED === 1 && (
-            <Field>
-              <FieldContent>
-                <FieldLabel className="text-left">
-                  {optionMap.MAIL_SSL_PORT?.name || 'SSL端口号'}
-                  <span className="text-destructive">*</span>
-                </FieldLabel>
-                <FieldDescription>
-                  {optionMap.MAIL_SSL_PORT?.description || 'SSL加密连接的专用端口（通常为 465 或 994）'}
-                </FieldDescription>
-              </FieldContent>
-              <Input
+          <form.Field name="MAIL_PORT">
+            {field => (
+              <TextField
+                field={field}
+                label={optionMap.MAIL_PORT?.name}
+                description={optionMap.MAIL_PORT?.description}
+                placeholder="请输入服务器端口"
                 type="number"
                 min={0}
-                value={form.MAIL_SSL_PORT}
-                onChange={e => setForm(prev => ({ ...prev, MAIL_SSL_PORT: Number.parseInt(e.target.value, 10) || 0 }))}
-                placeholder="465"
+                required={isRequired('MAIL_PORT')}
+                disabled={!isEdit}
+              />
+            )}
+          </form.Field>
+
+          <form.Field name="MAIL_USERNAME">
+            {field => (
+              <TextField
+                field={field}
+                label={optionMap.MAIL_USERNAME?.name}
+                description={optionMap.MAIL_USERNAME?.description}
+                placeholder="请输入发件人邮箱地址"
+                required={isRequired('MAIL_USERNAME')}
+                disabled={!isEdit}
+              />
+            )}
+          </form.Field>
+
+          <form.Field name="MAIL_PASSWORD">
+            {field => (
+              <TextField
+                field={field}
+                label={optionMap.MAIL_PASSWORD?.name}
+                description={optionMap.MAIL_PASSWORD?.description}
+                placeholder="请输入邮箱授权码"
+                type={showPassword ? 'text' : 'password'}
+                required={isRequired('MAIL_PASSWORD')}
+                disabled={!isEdit}
+                addonEnd={
+                  <InputGroupButton size="icon-xs" onClick={() => setShowPassword(prev => !prev)} tabIndex={-1}>
+                    {showPassword ? <EyeOff /> : <Eye />}
+                  </InputGroupButton>
+                }
+              />
+            )}
+          </form.Field>
+
+          <form.Subscribe selector={state => state.values.MAIL_SSL_ENABLED === 1}>
+            {sslEnabled =>
+              sslEnabled && (
+                <form.Field name="MAIL_SSL_PORT">
+                  {field => (
+                    <TextField
+                      field={field}
+                      label={optionMap.MAIL_SSL_PORT?.name}
+                      description={optionMap.MAIL_SSL_PORT?.description}
+                      placeholder="请输入 SSL 服务器端口"
+                      type="number"
+                      min={0}
+                      required={isRequired('MAIL_SSL_PORT')}
+                      disabled={!isEdit}
+                    />
+                  )}
+                </form.Field>
+              )
+            }
+          </form.Subscribe>
+        </div>
+
+        <form.Field name="MAIL_SSL_ENABLED">
+          {field => (
+            <Field orientation="horizontal" className="items-center justify-between">
+              <FieldContent>
+                <FieldLabel className="text-left font-medium">{optionMap.MAIL_SSL_ENABLED?.name}</FieldLabel>
+                <FieldDescription>{optionMap.MAIL_SSL_ENABLED?.description}</FieldDescription>
+                <FieldError errors={field.state.meta.errors} />
+              </FieldContent>
+              <Switch
+                checked={field.state.value === 1}
+                onCheckedChange={checked => field.handleChange(checked ? 1 : 0)}
+                onBlur={field.handleBlur}
                 disabled={!isEdit}
               />
             </Field>
           )}
-        </div>
-
-        {/* SSL Enabled */}
-        <Field orientation="horizontal" className="items-center justify-between">
-          <FieldContent>
-            <FieldLabel className="text-left font-medium">
-              {optionMap.MAIL_SSL_ENABLED?.name || '启用SSL加密'}
-            </FieldLabel>
-            <FieldDescription>
-              {optionMap.MAIL_SSL_ENABLED?.description || '是否启用 SSL/TLS 安全加密连接'}
-            </FieldDescription>
-          </FieldContent>
-          <Switch
-            checked={form.MAIL_SSL_ENABLED === 1}
-            onCheckedChange={checked => setForm(prev => ({ ...prev, MAIL_SSL_ENABLED: checked ? 1 : 0 }))}
-            disabled={!isEdit}
-          />
-        </Field>
+        </form.Field>
       </div>
 
-      {/* Reset Confirmation Dialog */}
       <AlertDialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -289,12 +276,12 @@ export function ConfigMail() {
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isResetting}>取消</AlertDialogCancel>
             <AlertDialogAction onClick={resetToDefault} disabled={isResetting}>
-              {isResetting ? <Spinner className="size-4" /> : null}
+              {isResetting ? <Spinner /> : null}
               确认恢复
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </form>
   )
 }
