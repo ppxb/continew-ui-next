@@ -76,7 +76,6 @@ export function UserDeleteDialog({ user, open, onClose }: UserDeleteDialogProps)
           <AlertDialogTitle>删除用户</AlertDialogTitle>
           <AlertDialogDescription>是否确定删除该用户？删除后不可恢复</AlertDialogDescription>
         </AlertDialogHeader>
-
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isDeleting}>取消</AlertDialogCancel>
           <AlertDialogAction variant="destructive" disabled={isDeleting} onClick={() => void handleDelete()}>

@@ -50,11 +50,9 @@ function RowActions({ user, onAction }: { user: UserResp; onAction: (action: Use
       <DropdownMenu>
         <Tooltip>
           <TooltipTrigger render={<DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />} />}>
-            <MoreHorizontal className="size-4" />
+            <MoreHorizontal />
           </TooltipTrigger>
-          <TooltipContent side="top" sideOffset={8}>
-            更多操作
-          </TooltipContent>
+          <TooltipContent side="top">更多操作</TooltipContent>
         </Tooltip>
         <DropdownMenuContent align="end">
           <DropdownMenuGroup>
