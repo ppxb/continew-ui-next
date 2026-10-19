@@ -22,7 +22,6 @@ import { UserResetPasswordDialog } from './user-reset-password-dialog'
 import { UserTable } from './user-table'
 import { UserToolbar } from './user-toolbar'
 
-/** Columns the user screen keeps out of the default view; the toolbar can show them. */
 const HIDDEN_BY_DEFAULT: ColumnVisibilityState = {
   isSystem: false,
   createUserString: false,
@@ -33,7 +32,6 @@ const HIDDEN_BY_DEFAULT: ColumnVisibilityState = {
 /** The user query sorts on its own `t1` table alias. */
 const DEFAULT_SORT = 't1.id,desc'
 
-/** Stable empty array, so an empty page does not rebuild the table's row model. */
 const EMPTY_ROWS: UserResp[] = []
 
 const STATUS_OPTIONS = [
@@ -51,11 +49,8 @@ export function UserList() {
   const [isExporting, setIsExporting] = React.useState(false)
   const [detailUserId, setDetailUserId] = React.useState<string | number | null>(null)
   const [isDetailOpen, setIsDetailOpen] = React.useState(false)
-  // The form drawer covers both 新增 and 修改, so a null id means "create" rather than "nothing
-  // picked yet"; the open flag is what says whether the drawer is showing at all.
   const [formUserId, setFormUserId] = React.useState<string | number | null>(null)
   const [isFormOpen, setIsFormOpen] = React.useState(false)
-  // Both dialogs use the row's id and display name; role assignment fetches the current roles on open.
   const [resetUser, setResetUser] = React.useState<UserResp | null>(null)
   const [isResetOpen, setIsResetOpen] = React.useState(false)
   const [roleUser, setRoleUser] = React.useState<UserResp | null>(null)
@@ -64,7 +59,6 @@ export function UserList() {
   const [isDeleteOpen, setIsDeleteOpen] = React.useState(false)
   const { isFullscreen, reservedHeight, fullscreenRef, spacerRef, toggleFullscreen } = useFullscreenTransition()
 
-  // `TableSearch` debounces; a new keyword always goes back to the first page.
   const handleSearch = React.useCallback((next: string) => {
     setKeyword(next)
     setPagination(current => (current.pageIndex === 0 ? current : { ...current, pageIndex: 0 }))
@@ -88,11 +82,9 @@ export function UserList() {
         description: keyword || undefined,
         sort: DEFAULT_SORT
       }),
-    // Keep the current page on screen while the next one loads; the table dims it.
     placeholderData: previous => previous
   })
 
-  // Warm the metadata lookups so drawers and pickers open instantly without popover spinners.
   useQuery({
     queryKey: deptKeys.trees(),
     queryFn: getDeptTree,
@@ -108,7 +100,6 @@ export function UserList() {
   const total = query.data?.total ?? 0
   const rowOffset = pagination.pageIndex * pagination.pageSize
 
-  // When records are deleted or filter results shrink, auto-fallback to the last valid page if out of bounds.
   React.useEffect(() => {
     if (total > 0 && pagination.pageIndex * pagination.pageSize >= total) {
       const maxPageIndex = Math.max(0, Math.ceil(total / pagination.pageSize) - 1)
@@ -160,7 +151,6 @@ export function UserList() {
     state: { columnVisibility, pagination },
     manualPagination: true,
     rowCount: total,
-    // Bounds `setPageIndex`; without it the last page can be stepped past.
     pageCount: Math.max(Math.ceil(total / pagination.pageSize), 1),
     autoResetPageIndex: false,
     onColumnVisibilityChange: setColumnVisibility,
