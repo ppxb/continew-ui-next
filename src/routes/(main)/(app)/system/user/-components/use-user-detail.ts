@@ -4,10 +4,7 @@ import { getUser, userKeys } from '@/lib/api/user'
 
 interface UserDetailOptions {
   /**
-   * Keep the query inactive until the caller needs the record, instead of as soon as it has an id.
-   *
-   * Switching this back on is what makes the query refetch. `refetchOnMount` cannot do that job
-   * here, because every drawer stays mounted for the whole page, so it would only fire once.
+   * Whether the caller is showing the record. Every open refetches it; nothing else does.
    */
   readonly enabled?: boolean
 }
@@ -15,10 +12,10 @@ interface UserDetailOptions {
 /**
  * One user's record, shared by the detail, edit and role dialogs through a single query key.
  *
- * Callers pass `enabled: open`, and the `staleTime: 0` below is what turns that into a refetch: the
- * shared client turns off `refetchOnMount`, `refetchOnWindowFocus` and `refetchOnReconnect`, and
- * every drawer stays mounted for the whole page, so a plain `useQuery` would keep serving whatever
- * it fetched the first time.
+ * `enabled: open` plus `staleTime: 0` is what makes each open fetch again: the drawers stay mounted
+ * for the whole page, so flipping `enabled` goes through `shouldFetchOptionally`, which only checks
+ * staleness. `refetchOnMount` cannot stand in for it, and the client keeps the mount, focus and
+ * reconnect refetches off on purpose, so switching pages or windows never issues a request.
  *
  * A null id means no record is selected yet, which covers a create and a closed dialog. `skipToken`
  * keeps the query idle, so the fetch function never has to guard against a null id.
@@ -28,9 +25,8 @@ export function useUserDetail(userId: string | number | null, { enabled = true }
     queryKey: userKeys.detail(userId),
     queryFn: userId === null ? skipToken : () => getUser(userId),
     enabled,
-    // Stale straight away, so switching `enabled` on always refetches. This deliberately overrides
-    // the client's one-minute default: a drawer about to edit the record needs the current one, not
-    // whatever the cache happens to hold.
+    // Stale straight away, so every open refetches. Deliberately overrides the client's one-minute
+    // default: a drawer about to edit the record needs the current one, not a cached one.
     staleTime: 0
   })
 }
