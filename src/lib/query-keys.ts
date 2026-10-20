@@ -1,5 +1,6 @@
 import type { AppPageQuery } from '@/lib/api/app'
 import type { ClientQuery } from '@/lib/api/client'
+import type { OnlineUserPageQuery } from '@/lib/api/online'
 import type { RolePageQuery, RoleUserPageQuery } from '@/lib/api/role'
 import type { SmsConfigQuery } from '@/lib/api/sms'
 import type { StorageQuery } from '@/lib/api/storage'
@@ -96,4 +97,10 @@ export const clientKeys = {
 export const dictKeys = {
   all: ['system', 'dict'] as const,
   code: (code: string) => [...dictKeys.all, code] as const
+}
+
+export const onlineUserKeys = {
+  all: ['monitor', 'online'] as const,
+  lists: () => [...onlineUserKeys.all, 'list'] as const,
+  list: (query?: OnlineUserPageQuery) => [...onlineUserKeys.lists(), query] as const
 }

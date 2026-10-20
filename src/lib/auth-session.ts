@@ -59,6 +59,32 @@ export function getTenantId(): string | null {
   return tenantId
 }
 
+/**
+ * The login session id of the current access token, read from its `sid` claim.
+ *
+ * The backend puts the session id into the JWT payload when it signs in. The online-user
+ * screen compares it with each row's `sessionId`, because the backend rejects kicking out
+ * the session that sent the request.
+ */
+export function getSessionId(): string | null {
+  if (!accessToken) {
+    return null
+  }
+
+  const payload = accessToken.split('.')[1]
+
+  if (!payload) {
+    return null
+  }
+
+  try {
+    const claims = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/'))) as { sid?: unknown }
+    return typeof claims.sid === 'string' ? claims.sid : null
+  } catch {
+    return null
+  }
+}
+
 /** Increments whenever the session is replaced or cleared. */
 export function getAuthGeneration(): number {
   return authGeneration
