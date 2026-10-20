@@ -1,26 +1,30 @@
 import { createFileRoute, Outlet } from '@tanstack/react-router'
 
-import { Command } from 'lucide-react'
-
 import { Separator } from '@/components/ui/separator'
 import { StripedPattern } from '@/components/ui/striped-pattern'
-import { APP_CONFIG } from '@/config/app-config'
+import { useSiteOptions } from '@/hooks/use-site-options'
 
 export const Route = createFileRoute('/(main)/auth')({
   component: AuthLayout
 })
 
 function AuthLayout() {
+  const { title, description, logo } = useSiteOptions()
+
   return (
     <main>
       <div className="grid h-dvh justify-center p-2 lg:grid-cols-2">
         <div className="relative order-2 hidden h-full overflow-hidden rounded-3xl bg-primary lg:flex">
           <StripedPattern className="text-primary-foreground/20" />
 
-          <div className="absolute top-10 z-20 space-y-1 px-10 text-primary-foreground">
-            <Command className="size-10" />
-            <h1 className="text-2xl font-medium">{APP_CONFIG.name}</h1>
-            <p className="text-sm">简单、高效、可扩展的中后台管理系统</p>
+          <div className="absolute top-10 z-20 space-y-3 px-10 text-primary-foreground">
+            <div className="flex items-center gap-3">
+              <div className="flex size-12 shrink-0 items-center justify-center rounded-2xl">
+                <img src={logo} alt={title} className="size-full object-contain" />
+              </div>
+              <h1 className="text-2xl font-medium">{title}</h1>
+            </div>
+            <p className="text-sm">{description}</p>
           </div>
 
           <div className="absolute bottom-10 z-20 flex w-full justify-between px-10">

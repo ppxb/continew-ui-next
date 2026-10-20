@@ -131,6 +131,10 @@ export const noticeKeys = {
   detail: (id: string | number | null) => [...noticeKeys.details(), id] as const
 }
 
+export const siteOptionKeys = {
+  all: ['system', 'site-option'] as const
+}
+
 export const onlineUserKeys = {
   all: ['monitor', 'online'] as const,
   lists: () => [...onlineUserKeys.all, 'list'] as const,

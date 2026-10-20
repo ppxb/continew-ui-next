@@ -43,7 +43,7 @@ export function LoginForm({ redirectTo }: { readonly redirectTo?: string }) {
 
   const onSubmit = async (values: LoginFormValues) => {
     if (isCaptchaEnabled && !values.captcha) {
-      form.setError('captcha', { message: 'Please enter the captcha.' })
+      form.setError('captcha', { message: '请输入验证码' })
       return
     }
 
@@ -77,7 +77,7 @@ export function LoginForm({ redirectTo }: { readonly redirectTo?: string }) {
           name="username"
           render={({ field, fieldState }) => (
             <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="login-username">Username</FieldLabel>
+              <FieldLabel htmlFor="login-username">用户名</FieldLabel>
               <Input
                 {...field}
                 id="login-username"
@@ -95,7 +95,7 @@ export function LoginForm({ redirectTo }: { readonly redirectTo?: string }) {
           name="password"
           render={({ field, fieldState }) => (
             <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="login-password">Password</FieldLabel>
+              <FieldLabel htmlFor="login-password">密码</FieldLabel>
               <Input
                 {...field}
                 id="login-password"
@@ -114,13 +114,13 @@ export function LoginForm({ redirectTo }: { readonly redirectTo?: string }) {
             name="captcha"
             render={({ field, fieldState }) => (
               <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="login-captcha">Captcha</FieldLabel>
+                <FieldLabel htmlFor="login-captcha">验证码</FieldLabel>
                 <div className="flex items-center gap-2">
                   <Input
                     {...field}
                     id="login-captcha"
                     type="text"
-                    placeholder="Enter the code"
+                    placeholder="请输入验证码"
                     autoComplete="off"
                     aria-invalid={fieldState.invalid}
                   />
@@ -150,7 +150,7 @@ export function LoginForm({ redirectTo }: { readonly redirectTo?: string }) {
               />
               <FieldContent>
                 <FieldLabel htmlFor="login-remember" className="font-normal">
-                  Remember me
+                  记住我
                 </FieldLabel>
                 {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
               </FieldContent>
@@ -162,10 +162,10 @@ export function LoginForm({ redirectTo }: { readonly redirectTo?: string }) {
         {form.formState.isSubmitting ? (
           <>
             <Spinner />
-            Logging in
+            登陆中
           </>
         ) : (
-          'Login'
+          '登录'
         )}
       </Button>
     </form>

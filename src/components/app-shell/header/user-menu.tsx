@@ -58,13 +58,13 @@ export function UserMenu() {
         <DropdownMenuGroup>
           <DropdownMenuItem render={<Link to="/dashboard/profile" />}>
             <CircleUser />
-            Account
+            个人信息
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => void logout()}>
           <LogOut />
-          Log out
+          登出系统
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
