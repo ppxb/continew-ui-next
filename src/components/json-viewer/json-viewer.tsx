@@ -159,7 +159,7 @@ function JsonNode({ keyName, value, path, depth, searchQuery, collapsedPaths, on
   const hoverBg = theme ? `${theme.fg}10` : undefined
 
   const rowClass = cn(
-    'group flex items-center gap-0 py-px',
+    'group flex items-start gap-0 py-px',
     !theme && 'hover:bg-muted/40',
     !theme && nodeMatches && 'bg-amber-100/40 dark:bg-amber-900/20'
   )
@@ -247,7 +247,7 @@ function JsonNode({ keyName, value, path, depth, searchQuery, collapsedPaths, on
         }
       >
         <span className="w-4 shrink-0" />
-        <span className="text-xs">
+        <span className="min-w-0 text-xs wrap-break-word">
           {renderKey()}
           <TokenSpan token="punctuation">: </TokenSpan>
           {renderValue()}
@@ -320,7 +320,7 @@ function JsonNode({ keyName, value, path, depth, searchQuery, collapsedPaths, on
             className={cn('size-3 transition-transform', isExpanded && 'rotate-90', !theme && 'text-muted-foreground')}
           />
         </Button>
-        <span className="text-xs">
+        <span className="min-w-0 text-xs wrap-break-word">
           {renderKey()}
           <TokenSpan token="punctuation">: </TokenSpan>
           <TokenSpan token="punctuation">{openBracket}</TokenSpan>
@@ -652,7 +652,7 @@ function JsonViewer({
               isLast
             />
           ) : (
-            <div className="px-4 py-2 text-xs">
+            <div className="px-4 py-2 text-xs wrap-break-word">
               <TokenSpan token="key">{rootName}</TokenSpan>
               <TokenSpan token="punctuation">: </TokenSpan>
               {typeof data === 'string' ? (
