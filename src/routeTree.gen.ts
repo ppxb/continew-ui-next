@@ -53,6 +53,7 @@ import { Route as mainDashboardlegacyAnalyticsV1RouteRouteImport } from './route
 import { Route as mainDashboardlegacyCrmV1RouteRouteImport } from './routes/(main)/dashboard/(legacy)/crm-v1/route'
 import { Route as mainDashboardlegacyDefaultV1RouteRouteImport } from './routes/(main)/dashboard/(legacy)/default-v1/route'
 import { Route as mainDashboardlegacyFinanceV1RouteRouteImport } from './routes/(main)/dashboard/(legacy)/finance-v1/route'
+import { Route as mainappSystemSmsLogRouteRouteImport } from './routes/(main)/(app)/system/sms/log/route'
 
 const externalIndexRoute = externalIndexRouteImport.update({
   id: '/(external)/',
@@ -294,6 +295,12 @@ const mainDashboardlegacyFinanceV1RouteRoute =
     path: '/finance-v1',
     getParentRoute: () => mainDashboardRouteRoute,
   } as any)
+const mainappSystemSmsLogRouteRoute =
+  mainappSystemSmsLogRouteRouteImport.update({
+    id: '/system/sms/log',
+    path: '/system/sms/log',
+    getParentRoute: () => mainappRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/auth': typeof mainAuthRouteRouteWithChildren
@@ -339,6 +346,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/crm-v1': typeof mainDashboardlegacyCrmV1RouteRoute
   '/dashboard/default-v1': typeof mainDashboardlegacyDefaultV1RouteRoute
   '/dashboard/finance-v1': typeof mainDashboardlegacyFinanceV1RouteRoute
+  '/system/sms/log': typeof mainappSystemSmsLogRouteRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof mainAuthRouteRouteWithChildren
@@ -383,6 +391,7 @@ export interface FileRoutesByTo {
   '/dashboard/crm-v1': typeof mainDashboardlegacyCrmV1RouteRoute
   '/dashboard/default-v1': typeof mainDashboardlegacyDefaultV1RouteRoute
   '/dashboard/finance-v1': typeof mainDashboardlegacyFinanceV1RouteRoute
+  '/system/sms/log': typeof mainappSystemSmsLogRouteRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -430,6 +439,7 @@ export interface FileRoutesById {
   '/(main)/dashboard/(legacy)/crm-v1': typeof mainDashboardlegacyCrmV1RouteRoute
   '/(main)/dashboard/(legacy)/default-v1': typeof mainDashboardlegacyDefaultV1RouteRoute
   '/(main)/dashboard/(legacy)/finance-v1': typeof mainDashboardlegacyFinanceV1RouteRoute
+  '/(main)/(app)/system/sms/log': typeof mainappSystemSmsLogRouteRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -477,6 +487,7 @@ export interface FileRouteTypes {
     | '/dashboard/crm-v1'
     | '/dashboard/default-v1'
     | '/dashboard/finance-v1'
+    | '/system/sms/log'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
@@ -521,6 +532,7 @@ export interface FileRouteTypes {
     | '/dashboard/crm-v1'
     | '/dashboard/default-v1'
     | '/dashboard/finance-v1'
+    | '/system/sms/log'
   id:
     | '__root__'
     | '/(main)/(app)'
@@ -567,6 +579,7 @@ export interface FileRouteTypes {
     | '/(main)/dashboard/(legacy)/crm-v1'
     | '/(main)/dashboard/(legacy)/default-v1'
     | '/(main)/dashboard/(legacy)/finance-v1'
+    | '/(main)/(app)/system/sms/log'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -889,6 +902,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof mainDashboardlegacyFinanceV1RouteRouteImport
       parentRoute: typeof mainDashboardRouteRoute
     }
+    '/(main)/(app)/system/sms/log': {
+      id: '/(main)/(app)/system/sms/log'
+      path: '/system/sms/log'
+      fullPath: '/system/sms/log'
+      preLoaderRoute: typeof mainappSystemSmsLogRouteRouteImport
+      parentRoute: typeof mainappRouteRoute
+    }
   }
 }
 
@@ -902,6 +922,7 @@ interface mainappRouteRouteChildren {
   mainappSystemMenuRouteRoute: typeof mainappSystemMenuRouteRoute
   mainappSystemRoleRouteRoute: typeof mainappSystemRoleRouteRoute
   mainappSystemUserRouteRoute: typeof mainappSystemUserRouteRoute
+  mainappSystemSmsLogRouteRoute: typeof mainappSystemSmsLogRouteRoute
 }
 
 const mainappRouteRouteChildren: mainappRouteRouteChildren = {
@@ -914,6 +935,7 @@ const mainappRouteRouteChildren: mainappRouteRouteChildren = {
   mainappSystemMenuRouteRoute: mainappSystemMenuRouteRoute,
   mainappSystemRoleRouteRoute: mainappSystemRoleRouteRoute,
   mainappSystemUserRouteRoute: mainappSystemUserRouteRoute,
+  mainappSystemSmsLogRouteRoute: mainappSystemSmsLogRouteRoute,
 }
 
 const mainappRouteRouteWithChildren = mainappRouteRoute._addFileChildren(

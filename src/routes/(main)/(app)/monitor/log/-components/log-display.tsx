@@ -1,5 +1,6 @@
 import { Info } from 'lucide-react'
 
+import { SuccessFailureCell } from '@/components/status-cell'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
@@ -23,10 +24,7 @@ export function LogStatusCell({ status, errorMsg }: { status: LogStatus; errorMs
 
   return (
     <div className="flex items-center gap-1">
-      <Badge variant={isSuccess ? 'secondary' : 'destructive'}>
-        <span className={isSuccess ? 'size-1.5 rounded-full bg-green-600' : 'size-1.5 rounded-full bg-destructive'} />
-        {isSuccess ? '成功' : '失败'}
-      </Badge>
+      <SuccessFailureCell status={status} />
       {!isSuccess && errorMsg ? (
         <Tooltip>
           <TooltipTrigger render={<Button variant="ghost" size="icon-xs" />}>

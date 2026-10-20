@@ -4,6 +4,7 @@ import type { LogPageQuery } from '@/lib/api/log'
 import type { OnlineUserPageQuery } from '@/lib/api/online'
 import type { RolePageQuery, RoleUserPageQuery } from '@/lib/api/role'
 import type { SmsConfigQuery } from '@/lib/api/sms'
+import type { SmsLogPageQuery } from '@/lib/api/sms-log'
 import type { StorageQuery } from '@/lib/api/storage'
 import type { UserPageQuery } from '@/lib/api/user'
 
@@ -77,6 +78,12 @@ export const smsKeys = {
   list: (query?: SmsConfigQuery) => [...smsKeys.lists(), query] as const,
   details: () => [...smsKeys.all, 'detail'] as const,
   detail: (id: string | number | null) => [...smsKeys.details(), id] as const
+}
+
+export const smsLogKeys = {
+  all: ['system', 'sms-log'] as const,
+  lists: () => [...smsLogKeys.all, 'list'] as const,
+  list: (query?: SmsLogPageQuery) => [...smsLogKeys.lists(), query] as const
 }
 
 export const storageKeys = {

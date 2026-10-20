@@ -16,3 +16,15 @@ export function StatusCell({ status }: { status?: number | null }) {
     </Badge>
   )
 }
+
+/** The 成功/失败 badge shared by the log screens. */
+export function SuccessFailureCell({ status }: { status?: number | null }) {
+  const isSuccess = status === 1
+
+  return (
+    <Badge variant={isSuccess ? 'secondary' : 'destructive'}>
+      <span className={isSuccess ? 'size-1.5 rounded-full bg-green-600' : 'size-1.5 rounded-full bg-destructive'} />
+      {isSuccess ? '成功' : '失败'}
+    </Badge>
+  )
+}
