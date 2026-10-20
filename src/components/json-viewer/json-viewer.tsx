@@ -137,6 +137,7 @@ function JsonNode({ keyName, value, path, depth, searchQuery, collapsedPaths, on
   }, [isExpandable, onToggle, path])
 
   const [pathCopied, setPathCopied] = React.useState(false)
+  const [valueCopied, setValueCopied] = React.useState(false)
 
   const handleCopyPath = React.useCallback(() => {
     navigator.clipboard.writeText(path).then(() => {
@@ -144,6 +145,16 @@ function JsonNode({ keyName, value, path, depth, searchQuery, collapsedPaths, on
       setTimeout(() => setPathCopied(false), 1500)
     })
   }, [path])
+
+  const handleCopyValue = React.useCallback(() => {
+    // A string copies as its raw text, which is what a header or body usually needs; every
+    // other value copies as the JSON subtree it stands for.
+    const text = typeof value === 'string' ? value : (JSON.stringify(value, null, 2) ?? '')
+    navigator.clipboard.writeText(text).then(() => {
+      setValueCopied(true)
+      setTimeout(() => setValueCopied(false), 1500)
+    })
+  }, [value])
 
   const hoverBg = theme ? `${theme.fg}10` : undefined
 
@@ -160,9 +171,9 @@ function JsonNode({ keyName, value, path, depth, searchQuery, collapsedPaths, on
 
   const copyIconClass = cn(
     'ml-1 size-4 shrink-0 hover:bg-transparent',
-    theme
-      ? 'opacity-0 group-hover:opacity-60 hover:!opacity-100'
-      : 'text-muted-foreground/0 group-hover:text-muted-foreground hover:!text-foreground'
+    theme ? 'opacity-0 group-hover:opacity-60 hover:!opacity-100 focus-visible:opacity-100' : undefined,
+    !theme && 'text-muted-foreground/0 group-hover:text-muted-foreground focus-visible:text-muted-foreground',
+    !theme && 'hover:!text-foreground'
   )
 
   function renderKey() {
@@ -253,6 +264,17 @@ function JsonNode({ keyName, value, path, depth, searchQuery, collapsedPaths, on
         >
           {pathCopied ? <CopyPlus className="size-3 text-emerald-500" /> : <CopyPlus className="size-3" />}
         </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-xs"
+          onClick={handleCopyValue}
+          aria-label={`Copy value: ${path}`}
+          className={copyIconClass}
+          style={theme ? { color: theme.fg } : undefined}
+        >
+          {valueCopied ? <Check className="size-3 text-emerald-500" /> : <Copy className="size-3" />}
+        </Button>
       </div>
     )
   }
@@ -327,6 +349,17 @@ function JsonNode({ keyName, value, path, depth, searchQuery, collapsedPaths, on
           style={theme ? { color: theme.fg } : undefined}
         >
           {pathCopied ? <CopyPlus className="size-3 text-emerald-500" /> : <CopyPlus className="size-3" />}
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-xs"
+          onClick={handleCopyValue}
+          aria-label={`Copy value: ${path}`}
+          className={copyIconClass}
+          style={theme ? { color: theme.fg } : undefined}
+        >
+          {valueCopied ? <Check className="size-3 text-emerald-500" /> : <Copy className="size-3" />}
         </Button>
       </div>
 
