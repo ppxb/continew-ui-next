@@ -32,7 +32,7 @@ function toTreeNodes(nodes: PackageMenuNode[]): TreeNodeData[] {
   return nodes.map(node => ({
     id: String(node.id),
     parentId: node.parentId === null || node.parentId === undefined ? null : String(node.parentId),
-    label: node.name,
+    label: node.title,
     children: node.children?.length ? toTreeNodes(node.children) : undefined
   }))
 }

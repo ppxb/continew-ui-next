@@ -41,9 +41,13 @@ function toCheckablePermissionNodes(nodes: RolePermissionResp[]): CheckableTreeN
       parentId: node.parentId ? String(node.parentId) : null,
       label: node.title,
       searchTerms: node.permission ?? '',
-      tag: typeLabel ? <Badge variant="secondary">{typeLabel}</Badge> : null,
+      tag: typeLabel ? (
+        <Badge variant="secondary" className="font-normal">
+          {typeLabel}
+        </Badge>
+      ) : null,
       subtitle: node.permission ? (
-        <Badge variant="secondary" className="text-[11px]">
+        <Badge variant="secondary" className="text-[11px] font-normal">
           {node.permission}
         </Badge>
       ) : null,
