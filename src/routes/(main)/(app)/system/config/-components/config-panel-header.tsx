@@ -49,13 +49,30 @@ export function ConfigPanelHeader({
         {!isEdit ? (
           <>
             {canUpdate && (
-              <Button size="sm" onClick={onEdit}>
+              <Button
+                type="button"
+                size="sm"
+                onClick={event => {
+                  // React turns this same DOM button into the submit button on the next render;
+                  // without this the browser can still submit the form after the click handler.
+                  event.preventDefault()
+                  onEdit()
+                }}
+              >
                 <Pencil />
                 修改
               </Button>
             )}
             {canUpdate && (
-              <Button size="sm" variant="outline" onClick={onResetDefault}>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={event => {
+                  event.preventDefault()
+                  onResetDefault()
+                }}
+              >
                 <RotateCcw />
                 恢复默认
               </Button>
