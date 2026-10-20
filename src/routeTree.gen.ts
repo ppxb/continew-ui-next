@@ -51,6 +51,7 @@ import { Route as mainappSystemDeptRouteRouteImport } from './routes/(main)/(app
 import { Route as mainappSystemDictRouteRouteImport } from './routes/(main)/(app)/system/dict/route'
 import { Route as mainappSystemFileRouteRouteImport } from './routes/(main)/(app)/system/file/route'
 import { Route as mainappSystemMenuRouteRouteImport } from './routes/(main)/(app)/system/menu/route'
+import { Route as mainappSystemNoticeRouteRouteImport } from './routes/(main)/(app)/system/notice/route'
 import { Route as mainappSystemRoleRouteRouteImport } from './routes/(main)/(app)/system/role/route'
 import { Route as mainappSystemUserRouteRouteImport } from './routes/(main)/(app)/system/user/route'
 import { Route as mainappTenantManagementRouteRouteImport } from './routes/(main)/(app)/tenant/management/route'
@@ -287,6 +288,12 @@ const mainappSystemMenuRouteRoute = mainappSystemMenuRouteRouteImport.update({
   path: '/system/menu',
   getParentRoute: () => mainappRouteRoute,
 } as any)
+const mainappSystemNoticeRouteRoute =
+  mainappSystemNoticeRouteRouteImport.update({
+    id: '/system/notice',
+    path: '/system/notice',
+    getParentRoute: () => mainappRouteRoute,
+  } as any)
 const mainappSystemRoleRouteRoute = mainappSystemRoleRouteRouteImport.update({
   id: '/system/role',
   path: '/system/role',
@@ -382,6 +389,7 @@ export interface FileRoutesByFullPath {
   '/system/dict': typeof mainappSystemDictRouteRoute
   '/system/file': typeof mainappSystemFileRouteRoute
   '/system/menu': typeof mainappSystemMenuRouteRoute
+  '/system/notice': typeof mainappSystemNoticeRouteRoute
   '/system/role': typeof mainappSystemRoleRouteRoute
   '/system/user': typeof mainappSystemUserRouteRoute
   '/tenant/management': typeof mainappTenantManagementRouteRoute
@@ -433,6 +441,7 @@ export interface FileRoutesByTo {
   '/system/dict': typeof mainappSystemDictRouteRoute
   '/system/file': typeof mainappSystemFileRouteRoute
   '/system/menu': typeof mainappSystemMenuRouteRoute
+  '/system/notice': typeof mainappSystemNoticeRouteRoute
   '/system/role': typeof mainappSystemRoleRouteRoute
   '/system/user': typeof mainappSystemUserRouteRoute
   '/tenant/management': typeof mainappTenantManagementRouteRoute
@@ -487,6 +496,7 @@ export interface FileRoutesById {
   '/(main)/(app)/system/dict': typeof mainappSystemDictRouteRoute
   '/(main)/(app)/system/file': typeof mainappSystemFileRouteRoute
   '/(main)/(app)/system/menu': typeof mainappSystemMenuRouteRoute
+  '/(main)/(app)/system/notice': typeof mainappSystemNoticeRouteRoute
   '/(main)/(app)/system/role': typeof mainappSystemRoleRouteRoute
   '/(main)/(app)/system/user': typeof mainappSystemUserRouteRoute
   '/(main)/(app)/tenant/management': typeof mainappTenantManagementRouteRoute
@@ -541,6 +551,7 @@ export interface FileRouteTypes {
     | '/system/dict'
     | '/system/file'
     | '/system/menu'
+    | '/system/notice'
     | '/system/role'
     | '/system/user'
     | '/tenant/management'
@@ -592,6 +603,7 @@ export interface FileRouteTypes {
     | '/system/dict'
     | '/system/file'
     | '/system/menu'
+    | '/system/notice'
     | '/system/role'
     | '/system/user'
     | '/tenant/management'
@@ -645,6 +657,7 @@ export interface FileRouteTypes {
     | '/(main)/(app)/system/dict'
     | '/(main)/(app)/system/file'
     | '/(main)/(app)/system/menu'
+    | '/(main)/(app)/system/notice'
     | '/(main)/(app)/system/role'
     | '/(main)/(app)/system/user'
     | '/(main)/(app)/tenant/management'
@@ -962,6 +975,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof mainappSystemMenuRouteRouteImport
       parentRoute: typeof mainappRouteRoute
     }
+    '/(main)/(app)/system/notice': {
+      id: '/(main)/(app)/system/notice'
+      path: '/system/notice'
+      fullPath: '/system/notice'
+      preLoaderRoute: typeof mainappSystemNoticeRouteRouteImport
+      parentRoute: typeof mainappRouteRoute
+    }
     '/(main)/(app)/system/role': {
       id: '/(main)/(app)/system/role'
       path: '/system/role'
@@ -1040,6 +1060,7 @@ interface mainappRouteRouteChildren {
   mainappSystemDictRouteRoute: typeof mainappSystemDictRouteRoute
   mainappSystemFileRouteRoute: typeof mainappSystemFileRouteRoute
   mainappSystemMenuRouteRoute: typeof mainappSystemMenuRouteRoute
+  mainappSystemNoticeRouteRoute: typeof mainappSystemNoticeRouteRoute
   mainappSystemRoleRouteRoute: typeof mainappSystemRoleRouteRoute
   mainappSystemUserRouteRoute: typeof mainappSystemUserRouteRoute
   mainappTenantManagementRouteRoute: typeof mainappTenantManagementRouteRoute
@@ -1059,6 +1080,7 @@ const mainappRouteRouteChildren: mainappRouteRouteChildren = {
   mainappSystemDictRouteRoute: mainappSystemDictRouteRoute,
   mainappSystemFileRouteRoute: mainappSystemFileRouteRoute,
   mainappSystemMenuRouteRoute: mainappSystemMenuRouteRoute,
+  mainappSystemNoticeRouteRoute: mainappSystemNoticeRouteRoute,
   mainappSystemRoleRouteRoute: mainappSystemRoleRouteRoute,
   mainappSystemUserRouteRoute: mainappSystemUserRouteRoute,
   mainappTenantManagementRouteRoute: mainappTenantManagementRouteRoute,

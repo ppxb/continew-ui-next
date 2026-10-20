@@ -5,6 +5,7 @@ import type { FilePageQuery } from '@/lib/api/file'
 import type { JobQuery } from '@/lib/api/job'
 import type { JobLogQuery } from '@/lib/api/job-log'
 import type { LogPageQuery } from '@/lib/api/log'
+import type { NoticePageQuery } from '@/lib/api/notice'
 import type { OnlineUserPageQuery } from '@/lib/api/online'
 import type { PackagePageQuery } from '@/lib/api/package'
 import type { RolePageQuery, RoleUserPageQuery } from '@/lib/api/role'
@@ -120,6 +121,14 @@ export const dictKeys = {
   itemList: (query?: DictItemQuery) => [...dictKeys.itemLists(), query] as const,
   itemDetails: () => [...dictKeys.items(), 'detail'] as const,
   itemDetail: (id: string | number | null) => [...dictKeys.itemDetails(), id] as const
+}
+
+export const noticeKeys = {
+  all: ['system', 'notice'] as const,
+  lists: () => [...noticeKeys.all, 'list'] as const,
+  list: (query?: NoticePageQuery) => [...noticeKeys.lists(), query] as const,
+  details: () => [...noticeKeys.all, 'detail'] as const,
+  detail: (id: string | number | null) => [...noticeKeys.details(), id] as const
 }
 
 export const onlineUserKeys = {
