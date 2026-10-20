@@ -48,6 +48,7 @@ import { Route as mainappScheduleJobRouteRouteImport } from './routes/(main)/(ap
 import { Route as mainappScheduleLogRouteRouteImport } from './routes/(main)/(app)/schedule/log/route'
 import { Route as mainappSystemConfigRouteRouteImport } from './routes/(main)/(app)/system/config/route'
 import { Route as mainappSystemDeptRouteRouteImport } from './routes/(main)/(app)/system/dept/route'
+import { Route as mainappSystemDictRouteRouteImport } from './routes/(main)/(app)/system/dict/route'
 import { Route as mainappSystemFileRouteRouteImport } from './routes/(main)/(app)/system/file/route'
 import { Route as mainappSystemMenuRouteRouteImport } from './routes/(main)/(app)/system/menu/route'
 import { Route as mainappSystemRoleRouteRouteImport } from './routes/(main)/(app)/system/role/route'
@@ -271,6 +272,11 @@ const mainappSystemDeptRouteRoute = mainappSystemDeptRouteRouteImport.update({
   path: '/system/dept',
   getParentRoute: () => mainappRouteRoute,
 } as any)
+const mainappSystemDictRouteRoute = mainappSystemDictRouteRouteImport.update({
+  id: '/system/dict',
+  path: '/system/dict',
+  getParentRoute: () => mainappRouteRoute,
+} as any)
 const mainappSystemFileRouteRoute = mainappSystemFileRouteRouteImport.update({
   id: '/system/file',
   path: '/system/file',
@@ -373,6 +379,7 @@ export interface FileRoutesByFullPath {
   '/schedule/log': typeof mainappScheduleLogRouteRoute
   '/system/config': typeof mainappSystemConfigRouteRoute
   '/system/dept': typeof mainappSystemDeptRouteRoute
+  '/system/dict': typeof mainappSystemDictRouteRoute
   '/system/file': typeof mainappSystemFileRouteRoute
   '/system/menu': typeof mainappSystemMenuRouteRoute
   '/system/role': typeof mainappSystemRoleRouteRoute
@@ -423,6 +430,7 @@ export interface FileRoutesByTo {
   '/schedule/log': typeof mainappScheduleLogRouteRoute
   '/system/config': typeof mainappSystemConfigRouteRoute
   '/system/dept': typeof mainappSystemDeptRouteRoute
+  '/system/dict': typeof mainappSystemDictRouteRoute
   '/system/file': typeof mainappSystemFileRouteRoute
   '/system/menu': typeof mainappSystemMenuRouteRoute
   '/system/role': typeof mainappSystemRoleRouteRoute
@@ -476,6 +484,7 @@ export interface FileRoutesById {
   '/(main)/(app)/schedule/log': typeof mainappScheduleLogRouteRoute
   '/(main)/(app)/system/config': typeof mainappSystemConfigRouteRoute
   '/(main)/(app)/system/dept': typeof mainappSystemDeptRouteRoute
+  '/(main)/(app)/system/dict': typeof mainappSystemDictRouteRoute
   '/(main)/(app)/system/file': typeof mainappSystemFileRouteRoute
   '/(main)/(app)/system/menu': typeof mainappSystemMenuRouteRoute
   '/(main)/(app)/system/role': typeof mainappSystemRoleRouteRoute
@@ -529,6 +538,7 @@ export interface FileRouteTypes {
     | '/schedule/log'
     | '/system/config'
     | '/system/dept'
+    | '/system/dict'
     | '/system/file'
     | '/system/menu'
     | '/system/role'
@@ -579,6 +589,7 @@ export interface FileRouteTypes {
     | '/schedule/log'
     | '/system/config'
     | '/system/dept'
+    | '/system/dict'
     | '/system/file'
     | '/system/menu'
     | '/system/role'
@@ -631,6 +642,7 @@ export interface FileRouteTypes {
     | '/(main)/(app)/schedule/log'
     | '/(main)/(app)/system/config'
     | '/(main)/(app)/system/dept'
+    | '/(main)/(app)/system/dict'
     | '/(main)/(app)/system/file'
     | '/(main)/(app)/system/menu'
     | '/(main)/(app)/system/role'
@@ -929,6 +941,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof mainappSystemDeptRouteRouteImport
       parentRoute: typeof mainappRouteRoute
     }
+    '/(main)/(app)/system/dict': {
+      id: '/(main)/(app)/system/dict'
+      path: '/system/dict'
+      fullPath: '/system/dict'
+      preLoaderRoute: typeof mainappSystemDictRouteRouteImport
+      parentRoute: typeof mainappRouteRoute
+    }
     '/(main)/(app)/system/file': {
       id: '/(main)/(app)/system/file'
       path: '/system/file'
@@ -1018,6 +1037,7 @@ interface mainappRouteRouteChildren {
   mainappScheduleLogRouteRoute: typeof mainappScheduleLogRouteRoute
   mainappSystemConfigRouteRoute: typeof mainappSystemConfigRouteRoute
   mainappSystemDeptRouteRoute: typeof mainappSystemDeptRouteRoute
+  mainappSystemDictRouteRoute: typeof mainappSystemDictRouteRoute
   mainappSystemFileRouteRoute: typeof mainappSystemFileRouteRoute
   mainappSystemMenuRouteRoute: typeof mainappSystemMenuRouteRoute
   mainappSystemRoleRouteRoute: typeof mainappSystemRoleRouteRoute
@@ -1036,6 +1056,7 @@ const mainappRouteRouteChildren: mainappRouteRouteChildren = {
   mainappScheduleLogRouteRoute: mainappScheduleLogRouteRoute,
   mainappSystemConfigRouteRoute: mainappSystemConfigRouteRoute,
   mainappSystemDeptRouteRoute: mainappSystemDeptRouteRoute,
+  mainappSystemDictRouteRoute: mainappSystemDictRouteRoute,
   mainappSystemFileRouteRoute: mainappSystemFileRouteRoute,
   mainappSystemMenuRouteRoute: mainappSystemMenuRouteRoute,
   mainappSystemRoleRouteRoute: mainappSystemRoleRouteRoute,

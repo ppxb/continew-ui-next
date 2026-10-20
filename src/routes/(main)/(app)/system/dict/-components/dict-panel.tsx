@@ -1,0 +1,173 @@
+import * as React from 'react'
+
+import { useQuery } from '@tanstack/react-query'
+
+import { ChevronDown, MoreHorizontal, Pencil, Plus, Trash2 } from 'lucide-react'
+
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { dictKeys, listDictItems, type DictItemResp, type DictResp } from '@/lib/api/dict'
+
+import { createDictItemColumns, type DictItemAction } from './dict-columns'
+import { DictTable } from './dict-table'
+
+interface DictGroupProps {
+  readonly dict: DictResp
+  readonly defaultOpen: boolean
+  readonly canCreateItem: boolean
+  readonly canUpdateItem: boolean
+  readonly canDeleteItem: boolean
+  readonly canUpdateDict: boolean
+  readonly canDeleteDict: boolean
+  readonly onCreateItem: (dict: DictResp) => void
+  readonly onEditItem: (dict: DictResp, item: DictItemResp) => void
+  readonly onDeleteItem: (item: DictItemResp) => void
+  readonly onEditDict: (dict: DictResp) => void
+  readonly onDeleteDict: (dict: DictResp) => void
+}
+
+/** One dictionary as a collapsible group panel holding its items, like the infrastructure projects. */
+export function DictGroup({
+  dict,
+  defaultOpen,
+  canCreateItem,
+  canUpdateItem,
+  canDeleteItem,
+  canUpdateDict,
+  canDeleteDict,
+  onCreateItem,
+  onEditItem,
+  onDeleteItem,
+  onEditDict,
+  onDeleteDict
+}: DictGroupProps) {
+  const [open, setOpen] = React.useState(defaultOpen)
+
+  const query = useQuery({
+    queryKey: dictKeys.itemList({ dictId: dict.id, page: 1, size: 100, sort: 'sort,asc' }),
+    queryFn: () => listDictItems({ dictId: dict.id, page: 1, size: 100, sort: 'sort,asc' }),
+    enabled: open
+  })
+
+  const handleAction = React.useCallback(
+    (action: DictItemAction, item: DictItemResp) => {
+      if (action === 'update') {
+        onEditItem(dict, item)
+        return
+      }
+
+      onDeleteItem(item)
+    },
+    [dict, onEditItem, onDeleteItem]
+  )
+
+  const columns = React.useMemo(
+    () =>
+      createDictItemColumns({
+        canUpdate: canUpdateItem,
+        canDelete: canDeleteItem,
+        onAction: handleAction
+      }),
+    [canUpdateItem, canDeleteItem, handleAction]
+  )
+
+  const hasMenu = canCreateItem || canUpdateDict || (canDeleteDict && !dict.isSystem)
+  const items = query.data?.list ?? []
+
+  return (
+    <Collapsible
+      open={open}
+      onOpenChange={setOpen}
+      className="flex flex-col overflow-hidden rounded-xl border bg-card py-3 text-card-foreground data-open:gap-3 data-open:pb-0"
+    >
+      <div className="flex flex-col gap-2 px-4 sm:flex-row sm:items-center">
+        <CollapsibleTrigger
+          render={
+            <Button
+              variant="ghost"
+              className="group -ml-2 h-auto w-full justify-start gap-2 px-2 py-1 hover:bg-transparent aria-expanded:bg-transparent sm:flex-1"
+            />
+          }
+        >
+          <ChevronDown className="group-data-panel-open:rotate-180" />
+          <span className="flex min-w-0 items-center gap-1.5 text-left">
+            <span className="min-w-0 truncate text-sm font-medium">{dict.name}</span>
+            <span className="max-w-40 shrink-0 truncate text-sm text-muted-foreground">({dict.code})</span>
+            {dict.isSystem ? (
+              <Badge variant="outline" className="shrink-0 px-1 py-0 text-[10px] font-normal">
+                内置
+              </Badge>
+            ) : null}
+            {dict.description ? (
+              <span className="hidden min-w-0 flex-1 truncate text-xs text-muted-foreground sm:block">
+                {dict.description}
+              </span>
+            ) : null}
+          </span>
+        </CollapsibleTrigger>
+
+        <div className="flex w-full items-center justify-end gap-2 sm:ml-auto sm:w-auto">
+          {hasMenu ? (
+            <DropdownMenu>
+              <Tooltip>
+                <TooltipTrigger render={<DropdownMenuTrigger render={<Button variant="outline" size="icon-sm" />} />}>
+                  <MoreHorizontal className="size-4" />
+                </TooltipTrigger>
+                <TooltipContent side="top" sideOffset={8}>
+                  更多操作
+                </TooltipContent>
+              </Tooltip>
+              <DropdownMenuContent align="end" className="w-40">
+                <DropdownMenuGroup>
+                  {canCreateItem ? (
+                    <DropdownMenuItem onClick={() => onCreateItem(dict)}>
+                      <Plus />
+                      新增字典项
+                    </DropdownMenuItem>
+                  ) : null}
+                  {canUpdateDict ? (
+                    <DropdownMenuItem onClick={() => onEditDict(dict)}>
+                      <Pencil />
+                      修改字典
+                    </DropdownMenuItem>
+                  ) : null}
+                </DropdownMenuGroup>
+                {canDeleteDict && !dict.isSystem ? (
+                  <>
+                    {canCreateItem || canUpdateDict ? <DropdownMenuSeparator /> : null}
+                    <DropdownMenuGroup>
+                      <DropdownMenuItem variant="destructive" onClick={() => onDeleteDict(dict)}>
+                        <Trash2 />
+                        删除字典
+                      </DropdownMenuItem>
+                    </DropdownMenuGroup>
+                  </>
+                ) : null}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : null}
+        </div>
+      </div>
+
+      <CollapsibleContent>
+        <DictTable
+          items={items}
+          columns={columns}
+          isLoading={query.isPending}
+          isError={query.isError}
+          onRetry={() => void query.refetch()}
+        />
+      </CollapsibleContent>
+    </Collapsible>
+  )
+}

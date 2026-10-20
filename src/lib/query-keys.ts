@@ -1,5 +1,6 @@
 import type { AppPageQuery } from '@/lib/api/app'
 import type { ClientQuery } from '@/lib/api/client'
+import type { DictItemQuery, DictQuery } from '@/lib/api/dict'
 import type { FilePageQuery } from '@/lib/api/file'
 import type { JobQuery } from '@/lib/api/job'
 import type { JobLogQuery } from '@/lib/api/job-log'
@@ -109,7 +110,16 @@ export const clientKeys = {
 
 export const dictKeys = {
   all: ['system', 'dict'] as const,
-  code: (code: string) => [...dictKeys.all, code] as const
+  code: (code: string) => [...dictKeys.all, code] as const,
+  lists: () => [...dictKeys.all, 'list'] as const,
+  list: (query?: DictQuery) => [...dictKeys.lists(), query] as const,
+  details: () => [...dictKeys.all, 'detail'] as const,
+  detail: (id: string | number | null) => [...dictKeys.details(), id] as const,
+  items: () => [...dictKeys.all, 'items'] as const,
+  itemLists: () => [...dictKeys.items(), 'list'] as const,
+  itemList: (query?: DictItemQuery) => [...dictKeys.itemLists(), query] as const,
+  itemDetails: () => [...dictKeys.items(), 'detail'] as const,
+  itemDetail: (id: string | number | null) => [...dictKeys.itemDetails(), id] as const
 }
 
 export const onlineUserKeys = {

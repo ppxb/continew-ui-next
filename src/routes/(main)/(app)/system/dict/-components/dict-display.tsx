@@ -1,0 +1,62 @@
+import { cn } from 'cn'
+
+import { Badge } from '@/components/ui/badge'
+import { EMPTY_PLACEHOLDER } from '@/lib/constants'
+
+export const DICT_COLOR_OPTIONS = [
+  { value: 'none', label: '无颜色' },
+  { value: 'primary', label: '主要' },
+  { value: 'success', label: '成功' },
+  { value: 'warning', label: '警告' },
+  { value: 'error', label: '错误' },
+  { value: 'default', label: '默认' }
+] as const
+
+export const DICT_COLOR_BADGE_CLASSES: Record<string, string> = {
+  primary: 'bg-primary/10 text-primary',
+  success: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+  warning: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
+  error: 'bg-destructive/10 text-destructive',
+  default: 'bg-muted text-muted-foreground'
+}
+
+export const DICT_COLOR_DOT_CLASSES: Record<string, string> = {
+  primary: 'bg-primary',
+  success: 'bg-emerald-500',
+  warning: 'bg-amber-500',
+  error: 'bg-destructive',
+  default: 'bg-muted-foreground'
+}
+
+export const DICT_STATUS_OPTIONS = [
+  { value: '1', label: '启用' },
+  { value: '2', label: '禁用' }
+] as const
+
+/** A label rendered with the color saved on the dictionary item, if any. */
+export function DictLabelBadge({ label, color }: { label: string; color?: string | null }) {
+  const colorClass = color ? DICT_COLOR_BADGE_CLASSES[color] : undefined
+
+  if (!colorClass) {
+    return <span className="text-sm">{label}</span>
+  }
+
+  return (
+    <Badge variant="secondary" className={cn('font-normal', colorClass)}>
+      {label}
+    </Badge>
+  )
+}
+
+/** A compact, truncating text cell with the value exposed through the native title. */
+export function TextCell({ value, className }: { value?: string | number | null; className?: string }) {
+  if (value === null || value === undefined || value === '') {
+    return <span className="text-sm text-muted-foreground">{EMPTY_PLACEHOLDER}</span>
+  }
+
+  return (
+    <span className={cn('block max-w-56 truncate text-sm', className)} title={String(value)}>
+      {value}
+    </span>
+  )
+}
