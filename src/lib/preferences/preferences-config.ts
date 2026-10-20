@@ -66,7 +66,7 @@ export const PREFERENCE_REGISTRY = {
 
   content_layout: definePreference({
     values: CONTENT_LAYOUT_VALUES,
-    defaultValue: 'centered',
+    defaultValue: 'full-width',
     persistence: 'client-cookie',
     attribute: 'data-content-layout'
   }),
@@ -80,7 +80,7 @@ export const PREFERENCE_REGISTRY = {
 
   sidebar_variant: defineBootPreference({
     values: SIDEBAR_VARIANT_VALUES,
-    defaultValue: 'sidebar',
+    defaultValue: 'inset',
     persistence: 'client-cookie',
     attribute: 'data-sidebar-variant'
   }),
