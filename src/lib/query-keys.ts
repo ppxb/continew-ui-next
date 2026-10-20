@@ -1,5 +1,6 @@
 import type { AppPageQuery } from '@/lib/api/app'
 import type { ClientQuery } from '@/lib/api/client'
+import type { FilePageQuery } from '@/lib/api/file'
 import type { JobQuery } from '@/lib/api/job'
 import type { JobLogQuery } from '@/lib/api/job-log'
 import type { LogPageQuery } from '@/lib/api/log'
@@ -154,4 +155,13 @@ export const packageKeys = {
   detail: (id: string | number | null) => [...packageKeys.details(), id] as const,
   dicts: () => [...packageKeys.all, 'dict'] as const,
   menus: () => [...packageKeys.all, 'menu-tree'] as const
+}
+
+export const fileKeys = {
+  all: ['system', 'file'] as const,
+  lists: () => [...fileKeys.all, 'list'] as const,
+  list: (query?: FilePageQuery) => [...fileKeys.lists(), query] as const,
+  statistics: () => [...fileKeys.all, 'statistics'] as const,
+  recycleRoot: () => [...fileKeys.all, 'recycle'] as const,
+  recycle: (query?: FilePageQuery) => [...fileKeys.recycleRoot(), query] as const
 }
