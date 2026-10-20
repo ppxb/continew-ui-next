@@ -37,9 +37,7 @@ export function SitePreview<TSource extends { values: SitePreviewValues }>({ sto
             onClick={() => setPreviewMode('admin')}
             className={cn(
               'flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors',
-              previewMode === 'admin'
-                ? 'bg-background text-foreground'
-                : 'text-muted-foreground hover:text-foreground'
+              previewMode === 'admin' ? 'bg-background text-foreground' : 'text-muted-foreground hover:text-foreground'
             )}
           >
             <LayoutDashboard className="size-3.5" />
@@ -50,9 +48,7 @@ export function SitePreview<TSource extends { values: SitePreviewValues }>({ sto
             onClick={() => setPreviewMode('login')}
             className={cn(
               'flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors',
-              previewMode === 'login'
-                ? 'bg-background text-foreground'
-                : 'text-muted-foreground hover:text-foreground'
+              previewMode === 'login' ? 'bg-background text-foreground' : 'text-muted-foreground hover:text-foreground'
             )}
           >
             <LogIn className="size-3.5" />
@@ -128,9 +124,7 @@ export function SitePreview<TSource extends { values: SitePreviewValues }>({ sto
 
                     <div className="rounded-lg border bg-gradient-to-br from-primary/5 via-card to-background p-2.5">
                       <h3 className="truncate font-semibold">{values.SITE_TITLE}</h3>
-                      <p className="line-clamp-2 leading-relaxed text-muted-foreground">
-                        {values.SITE_DESCRIPTION}
-                      </p>
+                      <p className="line-clamp-2 leading-relaxed text-muted-foreground">{values.SITE_DESCRIPTION}</p>
                     </div>
 
                     <div className="grid grid-cols-2 gap-2">
@@ -154,9 +148,7 @@ export function SitePreview<TSource extends { values: SitePreviewValues }>({ sto
                   <div className="mt-2.5 space-y-0.5 border-t pt-2 text-center text-[10px] text-muted-foreground">
                     <div className="truncate">{values.SITE_COPYRIGHT}</div>
                     {values.SITE_BEIAN && (
-                      <div className="cursor-pointer truncate text-primary/80 hover:underline">
-                        {values.SITE_BEIAN}
-                      </div>
+                      <div className="cursor-pointer truncate text-primary/80 hover:underline">{values.SITE_BEIAN}</div>
                     )}
                   </div>
                 </div>

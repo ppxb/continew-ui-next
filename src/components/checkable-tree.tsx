@@ -2,15 +2,16 @@ import * as React from 'react'
 
 import { ChevronsDownUp, ChevronsUpDown, Search, Square, SquareCheck, X } from 'lucide-react'
 
+import { cn } from 'cn'
+
 import { Button } from '@/components/ui/button'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { buildTreeIndex, Tree, type TreeKey, type TreeNodeData, TreeSkeleton } from '@/components/ui/tree'
-import { cn } from 'cn'
 
 export type CheckableTreeNode<T = Record<string, unknown>> = TreeNodeData<T>
 
-export interface RoleCheckableTreeProps<T = Record<string, unknown>> {
+export interface CheckableTreeProps<T = Record<string, unknown>> {
   readonly data: CheckableTreeNode<T>[]
   readonly checkedKeys: Array<string | number>
   readonly onCheckedChange: (keys: Array<string | number>) => void
@@ -26,7 +27,7 @@ export interface RoleCheckableTreeProps<T = Record<string, unknown>> {
   readonly emptyText?: string
 }
 
-export function RoleCheckableTree<T = Record<string, unknown>>({
+export function CheckableTree<T = Record<string, unknown>>({
   data,
   checkedKeys,
   onCheckedChange,
@@ -40,7 +41,7 @@ export function RoleCheckableTree<T = Record<string, unknown>>({
   className,
   treeContainerClassName,
   emptyText = '暂无匹配节点'
-}: RoleCheckableTreeProps<T>) {
+}: CheckableTreeProps<T>) {
   const [search, setSearch] = React.useState('')
   const [expandedKeys, setExpandedKeys] = React.useState<TreeKey[]>([])
 

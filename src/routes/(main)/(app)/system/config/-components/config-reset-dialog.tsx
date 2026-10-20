@@ -19,13 +19,7 @@ interface ConfigResetDialogProps {
   description: string
 }
 
-export function ConfigResetDialog({
-  open,
-  onOpenChange,
-  onConfirm,
-  isResetting,
-  description
-}: ConfigResetDialogProps) {
+export function ConfigResetDialog({ open, onOpenChange, onConfirm, isResetting, description }: ConfigResetDialogProps) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>

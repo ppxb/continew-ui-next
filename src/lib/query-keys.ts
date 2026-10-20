@@ -2,10 +2,12 @@ import type { AppPageQuery } from '@/lib/api/app'
 import type { ClientQuery } from '@/lib/api/client'
 import type { LogPageQuery } from '@/lib/api/log'
 import type { OnlineUserPageQuery } from '@/lib/api/online'
+import type { PackagePageQuery } from '@/lib/api/package'
 import type { RolePageQuery, RoleUserPageQuery } from '@/lib/api/role'
 import type { SmsConfigQuery } from '@/lib/api/sms'
 import type { SmsLogPageQuery } from '@/lib/api/sms-log'
 import type { StorageQuery } from '@/lib/api/storage'
+import type { TenantPageQuery } from '@/lib/api/tenant'
 import type { UserPageQuery } from '@/lib/api/user'
 
 /**
@@ -119,4 +121,22 @@ export const logKeys = {
   list: (query?: LogPageQuery) => [...logKeys.lists(), query] as const,
   details: () => [...logKeys.all, 'detail'] as const,
   detail: (id: string | number | null) => [...logKeys.details(), id] as const
+}
+
+export const tenantKeys = {
+  all: ['tenant', 'management'] as const,
+  lists: () => [...tenantKeys.all, 'list'] as const,
+  list: (query?: TenantPageQuery) => [...tenantKeys.lists(), query] as const,
+  details: () => [...tenantKeys.all, 'detail'] as const,
+  detail: (id: string | number | null) => [...tenantKeys.details(), id] as const
+}
+
+export const packageKeys = {
+  all: ['tenant', 'package'] as const,
+  lists: () => [...packageKeys.all, 'list'] as const,
+  list: (query?: PackagePageQuery) => [...packageKeys.lists(), query] as const,
+  details: () => [...packageKeys.all, 'detail'] as const,
+  detail: (id: string | number | null) => [...packageKeys.details(), id] as const,
+  dicts: () => [...packageKeys.all, 'dict'] as const,
+  menus: () => [...packageKeys.all, 'menu-tree'] as const
 }

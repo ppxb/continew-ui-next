@@ -20,12 +20,7 @@ import { createClient, getClient, updateClient, type ClientReq } from '@/lib/api
 import { clientKeys } from '@/lib/query-keys'
 
 import { ClientAuthTypeSelect } from './auth-type-select'
-import {
-  AUTH_TYPE_OPTIONS,
-  LOGOUT_MODE_PRESETS,
-  REFRESH_TOKEN_MODE_OPTIONS,
-  REPLACED_RANGE_PRESETS
-} from './columns'
+import { AUTH_TYPE_OPTIONS, LOGOUT_MODE_PRESETS, REFRESH_TOKEN_MODE_OPTIONS, REPLACED_RANGE_PRESETS } from './columns'
 
 const clientFormSchema = z
   .object({

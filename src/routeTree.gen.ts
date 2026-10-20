@@ -49,6 +49,8 @@ import { Route as mainappSystemDeptRouteRouteImport } from './routes/(main)/(app
 import { Route as mainappSystemMenuRouteRouteImport } from './routes/(main)/(app)/system/menu/route'
 import { Route as mainappSystemRoleRouteRouteImport } from './routes/(main)/(app)/system/role/route'
 import { Route as mainappSystemUserRouteRouteImport } from './routes/(main)/(app)/system/user/route'
+import { Route as mainappTenantManagementRouteRouteImport } from './routes/(main)/(app)/tenant/management/route'
+import { Route as mainappTenantPackageRouteRouteImport } from './routes/(main)/(app)/tenant/package/route'
 import { Route as mainDashboardlegacyAnalyticsV1RouteRouteImport } from './routes/(main)/dashboard/(legacy)/analytics-v1/route'
 import { Route as mainDashboardlegacyCrmV1RouteRouteImport } from './routes/(main)/dashboard/(legacy)/crm-v1/route'
 import { Route as mainDashboardlegacyDefaultV1RouteRouteImport } from './routes/(main)/dashboard/(legacy)/default-v1/route'
@@ -271,6 +273,18 @@ const mainappSystemUserRouteRoute = mainappSystemUserRouteRouteImport.update({
   path: '/system/user',
   getParentRoute: () => mainappRouteRoute,
 } as any)
+const mainappTenantManagementRouteRoute =
+  mainappTenantManagementRouteRouteImport.update({
+    id: '/tenant/management',
+    path: '/tenant/management',
+    getParentRoute: () => mainappRouteRoute,
+  } as any)
+const mainappTenantPackageRouteRoute =
+  mainappTenantPackageRouteRouteImport.update({
+    id: '/tenant/package',
+    path: '/tenant/package',
+    getParentRoute: () => mainappRouteRoute,
+  } as any)
 const mainDashboardlegacyAnalyticsV1RouteRoute =
   mainDashboardlegacyAnalyticsV1RouteRouteImport.update({
     id: '/(legacy)/analytics-v1',
@@ -342,6 +356,8 @@ export interface FileRoutesByFullPath {
   '/system/menu': typeof mainappSystemMenuRouteRoute
   '/system/role': typeof mainappSystemRoleRouteRoute
   '/system/user': typeof mainappSystemUserRouteRoute
+  '/tenant/management': typeof mainappTenantManagementRouteRoute
+  '/tenant/package': typeof mainappTenantPackageRouteRoute
   '/dashboard/analytics-v1': typeof mainDashboardlegacyAnalyticsV1RouteRoute
   '/dashboard/crm-v1': typeof mainDashboardlegacyCrmV1RouteRoute
   '/dashboard/default-v1': typeof mainDashboardlegacyDefaultV1RouteRoute
@@ -387,6 +403,8 @@ export interface FileRoutesByTo {
   '/system/menu': typeof mainappSystemMenuRouteRoute
   '/system/role': typeof mainappSystemRoleRouteRoute
   '/system/user': typeof mainappSystemUserRouteRoute
+  '/tenant/management': typeof mainappTenantManagementRouteRoute
+  '/tenant/package': typeof mainappTenantPackageRouteRoute
   '/dashboard/analytics-v1': typeof mainDashboardlegacyAnalyticsV1RouteRoute
   '/dashboard/crm-v1': typeof mainDashboardlegacyCrmV1RouteRoute
   '/dashboard/default-v1': typeof mainDashboardlegacyDefaultV1RouteRoute
@@ -435,6 +453,8 @@ export interface FileRoutesById {
   '/(main)/(app)/system/menu': typeof mainappSystemMenuRouteRoute
   '/(main)/(app)/system/role': typeof mainappSystemRoleRouteRoute
   '/(main)/(app)/system/user': typeof mainappSystemUserRouteRoute
+  '/(main)/(app)/tenant/management': typeof mainappTenantManagementRouteRoute
+  '/(main)/(app)/tenant/package': typeof mainappTenantPackageRouteRoute
   '/(main)/dashboard/(legacy)/analytics-v1': typeof mainDashboardlegacyAnalyticsV1RouteRoute
   '/(main)/dashboard/(legacy)/crm-v1': typeof mainDashboardlegacyCrmV1RouteRoute
   '/(main)/dashboard/(legacy)/default-v1': typeof mainDashboardlegacyDefaultV1RouteRoute
@@ -483,6 +503,8 @@ export interface FileRouteTypes {
     | '/system/menu'
     | '/system/role'
     | '/system/user'
+    | '/tenant/management'
+    | '/tenant/package'
     | '/dashboard/analytics-v1'
     | '/dashboard/crm-v1'
     | '/dashboard/default-v1'
@@ -528,6 +550,8 @@ export interface FileRouteTypes {
     | '/system/menu'
     | '/system/role'
     | '/system/user'
+    | '/tenant/management'
+    | '/tenant/package'
     | '/dashboard/analytics-v1'
     | '/dashboard/crm-v1'
     | '/dashboard/default-v1'
@@ -575,6 +599,8 @@ export interface FileRouteTypes {
     | '/(main)/(app)/system/menu'
     | '/(main)/(app)/system/role'
     | '/(main)/(app)/system/user'
+    | '/(main)/(app)/tenant/management'
+    | '/(main)/(app)/tenant/package'
     | '/(main)/dashboard/(legacy)/analytics-v1'
     | '/(main)/dashboard/(legacy)/crm-v1'
     | '/(main)/dashboard/(legacy)/default-v1'
@@ -874,6 +900,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof mainappSystemUserRouteRouteImport
       parentRoute: typeof mainappRouteRoute
     }
+    '/(main)/(app)/tenant/management': {
+      id: '/(main)/(app)/tenant/management'
+      path: '/tenant/management'
+      fullPath: '/tenant/management'
+      preLoaderRoute: typeof mainappTenantManagementRouteRouteImport
+      parentRoute: typeof mainappRouteRoute
+    }
+    '/(main)/(app)/tenant/package': {
+      id: '/(main)/(app)/tenant/package'
+      path: '/tenant/package'
+      fullPath: '/tenant/package'
+      preLoaderRoute: typeof mainappTenantPackageRouteRouteImport
+      parentRoute: typeof mainappRouteRoute
+    }
     '/(main)/dashboard/(legacy)/analytics-v1': {
       id: '/(main)/dashboard/(legacy)/analytics-v1'
       path: '/analytics-v1'
@@ -922,6 +962,8 @@ interface mainappRouteRouteChildren {
   mainappSystemMenuRouteRoute: typeof mainappSystemMenuRouteRoute
   mainappSystemRoleRouteRoute: typeof mainappSystemRoleRouteRoute
   mainappSystemUserRouteRoute: typeof mainappSystemUserRouteRoute
+  mainappTenantManagementRouteRoute: typeof mainappTenantManagementRouteRoute
+  mainappTenantPackageRouteRoute: typeof mainappTenantPackageRouteRoute
   mainappSystemSmsLogRouteRoute: typeof mainappSystemSmsLogRouteRoute
 }
 
@@ -935,6 +977,8 @@ const mainappRouteRouteChildren: mainappRouteRouteChildren = {
   mainappSystemMenuRouteRoute: mainappSystemMenuRouteRoute,
   mainappSystemRoleRouteRoute: mainappSystemRoleRouteRoute,
   mainappSystemUserRouteRoute: mainappSystemUserRouteRoute,
+  mainappTenantManagementRouteRoute: mainappTenantManagementRouteRoute,
+  mainappTenantPackageRouteRoute: mainappTenantPackageRouteRoute,
   mainappSystemSmsLogRouteRoute: mainappSystemSmsLogRouteRoute,
 }
 

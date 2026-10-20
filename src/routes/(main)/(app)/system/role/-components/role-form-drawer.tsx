@@ -7,6 +7,7 @@ import { z } from 'zod'
 
 import { Shield, X } from 'lucide-react'
 
+import { type CheckableTreeNode, CheckableTree } from '@/components/checkable-tree'
 import { Button } from '@/components/ui/button'
 import { Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
@@ -20,8 +21,6 @@ import { toast } from '@/components/ui/toast'
 import { deptKeys, getDeptTree, type DeptTreeNode } from '@/lib/api/dept'
 import { createRole, DATA_SCOPE_OPTIONS, type DataScope, roleKeys, type RoleReq, updateRole } from '@/lib/api/role'
 
-import type { CheckableTreeNode } from './role-checkable-tree'
-import { RoleCheckableTree } from './role-checkable-tree'
 import { useRoleDetail } from './use-role-detail'
 
 const NAME_PATTERN = /^[\u4e00-\u9fa5a-zA-Z0-9_-]{2,30}$/
@@ -301,7 +300,7 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
                       render={({ field, fieldState }) => (
                         <Field className="gap-1.5" data-invalid={fieldState.invalid}>
                           <FieldLabel className="text-xs">选择权限部门</FieldLabel>
-                          <RoleCheckableTree
+                          <CheckableTree
                             data={deptTreeData}
                             checkedKeys={field.value}
                             onCheckedChange={field.onChange}

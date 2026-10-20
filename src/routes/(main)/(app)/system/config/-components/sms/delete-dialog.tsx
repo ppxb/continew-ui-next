@@ -70,11 +70,7 @@ export function SmsDeleteDialog({ sms, open, onClose }: SmsDeleteDialogProps) {
 
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isDeleting}>取消</AlertDialogCancel>
-          <AlertDialogAction
-            variant="destructive"
-            disabled={isDeleting || !sms}
-            onClick={() => void handleDelete()}
-          >
+          <AlertDialogAction variant="destructive" disabled={isDeleting || !sms} onClick={() => void handleDelete()}>
             {isDeleting ? (
               <>
                 <Spinner />

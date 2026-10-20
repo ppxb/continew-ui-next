@@ -63,7 +63,10 @@ export function TablePagination<TRow extends RowData>({ table }: TablePagination
       <div className="flex items-center gap-4 text-sm text-muted-foreground">
         <div className="flex items-center gap-2">
           <span>每页</span>
-          <Select value={`${table.state.pagination.pageSize}`} onValueChange={value => table.setPageSize(Number(value))}>
+          <Select
+            value={`${table.state.pagination.pageSize}`}
+            onValueChange={value => table.setPageSize(Number(value))}
+          >
             <SelectTrigger size="sm" className="w-20">
               <SelectValue />
             </SelectTrigger>

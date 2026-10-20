@@ -181,7 +181,6 @@ export function ConfigSite() {
         </div>
 
         <SitePreview store={form.store} />
-
       </form>
 
       <ConfigResetDialog

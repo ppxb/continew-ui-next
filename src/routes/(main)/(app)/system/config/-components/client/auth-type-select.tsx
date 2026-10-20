@@ -23,9 +23,7 @@ export function ClientAuthTypeSelect({
   disabled = false,
   invalid = false
 }: ClientAuthTypeSelectProps) {
-  const selectedLabels = options
-    .filter(opt => value.includes(opt.value))
-    .map(opt => opt.label)
+  const selectedLabels = options.filter(opt => value.includes(opt.value)).map(opt => opt.label)
 
   return (
     <Popover>
@@ -62,7 +60,10 @@ export function ClientAuthTypeSelect({
                     onChange(next ? [...value, opt.value] : value.filter(item => item !== opt.value))
                   }
                 />
-                <Label htmlFor={`auth-type-${opt.value}`} className="flex-1 cursor-pointer text-sm font-normal whitespace-nowrap">
+                <Label
+                  htmlFor={`auth-type-${opt.value}`}
+                  className="flex-1 cursor-pointer text-sm font-normal whitespace-nowrap"
+                >
                   {opt.label}
                 </Label>
               </div>

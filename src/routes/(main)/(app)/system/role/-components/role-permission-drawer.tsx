@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { KeyRound, X } from 'lucide-react'
 
+import { type CheckableTreeNode, CheckableTree } from '@/components/checkable-tree'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
@@ -20,7 +21,6 @@ import {
   updateRolePermission
 } from '@/lib/api/role'
 
-import { type CheckableTreeNode, RoleCheckableTree } from './role-checkable-tree'
 import { useRoleDetail } from './use-role-detail'
 
 interface RolePermissionDrawerProps {
@@ -147,7 +147,7 @@ export function RolePermissionDrawer({ role, open, onClose }: RolePermissionDraw
               </div>
 
               {/* Checkable Tree */}
-              <RoleCheckableTree
+              <CheckableTree
                 data={treeNodes}
                 checkedKeys={selectedMenuIds}
                 onCheckedChange={setSelectedMenuIds}
