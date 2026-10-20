@@ -3,6 +3,7 @@ import type { DateRange } from 'react-day-picker'
 
 import { Maximize, Minimize, RefreshCw, RotateCcw, SlidersHorizontal } from 'lucide-react'
 
+import { DateRangeFilter } from '@/components/date-range-filter'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -17,8 +18,6 @@ import {
 import { Spinner } from '@/components/ui/spinner'
 import type { OnlineUserResp } from '@/lib/api/online'
 import type { DataTableFeatures } from '@/lib/data-table-features'
-
-import { LoginTimeFilter } from './login-time-filter'
 
 interface OnlineUserToolbarProps {
   readonly table: ReactTable<DataTableFeatures, OnlineUserResp>
@@ -49,7 +48,7 @@ export function OnlineUserToolbar({
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 px-4">
       <div className="flex flex-wrap items-center gap-2">
-        <LoginTimeFilter value={loginTime} onChange={onLoginTimeChange} />
+        <DateRangeFilter value={loginTime} onChange={onLoginTimeChange} placeholder="登录时间" />
         <Button size="sm" variant="outline" onClick={onReset}>
           <RotateCcw />
           重置

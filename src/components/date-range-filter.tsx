@@ -8,21 +8,22 @@ import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
-interface LoginTimeFilterProps {
+interface DateRangeFilterProps {
   readonly value: DateRange | undefined
   readonly onChange: (value: DateRange | undefined) => void
+  /** Shown while no range is picked. */
+  readonly placeholder?: string
 }
 
 /**
- * The login-time range filter.
+ * A controlled day-range filter.
  *
- * The range is picked by whole days; the caller widens it to the first and last second of
- * the chosen days, because a day-granular range ending at midnight would drop that day's
- * sessions.
+ * Unlike `DateRangePicker`, it starts empty when the caller passes no value, so a screen
+ * can decide whether a range applies by default.
  */
-export function LoginTimeFilter({ value, onChange }: LoginTimeFilterProps) {
+export function DateRangeFilter({ value, onChange, placeholder = '选择日期' }: DateRangeFilterProps) {
   const [open, setOpen] = React.useState(false)
-  let label = '登录时间'
+  let label = placeholder
 
   if (value?.from) {
     const from = format(value.from, 'yyyy-MM-dd')

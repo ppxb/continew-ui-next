@@ -41,6 +41,7 @@ import { Route as mainDashboardProfileRouteRouteImport } from './routes/(main)/d
 import { Route as mainDashboardRolesRouteRouteImport } from './routes/(main)/dashboard/roles/route'
 import { Route as mainDashboardTasksRouteRouteImport } from './routes/(main)/dashboard/tasks/route'
 import { Route as mainDashboardUsersRouteRouteImport } from './routes/(main)/dashboard/users/route'
+import { Route as mainappMonitorLogRouteRouteImport } from './routes/(main)/(app)/monitor/log/route'
 import { Route as mainappMonitorOnlineRouteRouteImport } from './routes/(main)/(app)/monitor/online/route'
 import { Route as mainappOpenAppRouteRouteImport } from './routes/(main)/(app)/open/app/route'
 import { Route as mainappSystemConfigRouteRouteImport } from './routes/(main)/(app)/system/config/route'
@@ -227,6 +228,11 @@ const mainDashboardUsersRouteRoute = mainDashboardUsersRouteRouteImport.update({
   path: '/users',
   getParentRoute: () => mainDashboardRouteRoute,
 } as any)
+const mainappMonitorLogRouteRoute = mainappMonitorLogRouteRouteImport.update({
+  id: '/monitor/log',
+  path: '/monitor/log',
+  getParentRoute: () => mainappRouteRoute,
+} as any)
 const mainappMonitorOnlineRouteRoute =
   mainappMonitorOnlineRouteRouteImport.update({
     id: '/monitor/online',
@@ -321,6 +327,7 @@ export interface FileRoutesByFullPath {
   '/$': typeof mainappSplatRoute
   '/dashboard/$': typeof mainDashboardSplatRoute
   '/dashboard/': typeof mainDashboardIndexRoute
+  '/monitor/log': typeof mainappMonitorLogRouteRoute
   '/monitor/online': typeof mainappMonitorOnlineRouteRoute
   '/open/app': typeof mainappOpenAppRouteRoute
   '/system/config': typeof mainappSystemConfigRouteRoute
@@ -364,6 +371,7 @@ export interface FileRoutesByTo {
   '/$': typeof mainappSplatRoute
   '/dashboard/$': typeof mainDashboardSplatRoute
   '/dashboard': typeof mainDashboardIndexRoute
+  '/monitor/log': typeof mainappMonitorLogRouteRoute
   '/monitor/online': typeof mainappMonitorOnlineRouteRoute
   '/open/app': typeof mainappOpenAppRouteRoute
   '/system/config': typeof mainappSystemConfigRouteRoute
@@ -410,6 +418,7 @@ export interface FileRoutesById {
   '/(main)/(app)/$': typeof mainappSplatRoute
   '/(main)/dashboard/$': typeof mainDashboardSplatRoute
   '/(main)/dashboard/': typeof mainDashboardIndexRoute
+  '/(main)/(app)/monitor/log': typeof mainappMonitorLogRouteRoute
   '/(main)/(app)/monitor/online': typeof mainappMonitorOnlineRouteRoute
   '/(main)/(app)/open/app': typeof mainappOpenAppRouteRoute
   '/(main)/(app)/system/config': typeof mainappSystemConfigRouteRoute
@@ -456,6 +465,7 @@ export interface FileRouteTypes {
     | '/$'
     | '/dashboard/$'
     | '/dashboard/'
+    | '/monitor/log'
     | '/monitor/online'
     | '/open/app'
     | '/system/config'
@@ -499,6 +509,7 @@ export interface FileRouteTypes {
     | '/$'
     | '/dashboard/$'
     | '/dashboard'
+    | '/monitor/log'
     | '/monitor/online'
     | '/open/app'
     | '/system/config'
@@ -544,6 +555,7 @@ export interface FileRouteTypes {
     | '/(main)/(app)/$'
     | '/(main)/dashboard/$'
     | '/(main)/dashboard/'
+    | '/(main)/(app)/monitor/log'
     | '/(main)/(app)/monitor/online'
     | '/(main)/(app)/open/app'
     | '/(main)/(app)/system/config'
@@ -793,6 +805,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof mainDashboardUsersRouteRouteImport
       parentRoute: typeof mainDashboardRouteRoute
     }
+    '/(main)/(app)/monitor/log': {
+      id: '/(main)/(app)/monitor/log'
+      path: '/monitor/log'
+      fullPath: '/monitor/log'
+      preLoaderRoute: typeof mainappMonitorLogRouteRouteImport
+      parentRoute: typeof mainappRouteRoute
+    }
     '/(main)/(app)/monitor/online': {
       id: '/(main)/(app)/monitor/online'
       path: '/monitor/online'
@@ -875,6 +894,7 @@ declare module '@tanstack/react-router' {
 
 interface mainappRouteRouteChildren {
   mainappSplatRoute: typeof mainappSplatRoute
+  mainappMonitorLogRouteRoute: typeof mainappMonitorLogRouteRoute
   mainappMonitorOnlineRouteRoute: typeof mainappMonitorOnlineRouteRoute
   mainappOpenAppRouteRoute: typeof mainappOpenAppRouteRoute
   mainappSystemConfigRouteRoute: typeof mainappSystemConfigRouteRoute
@@ -886,6 +906,7 @@ interface mainappRouteRouteChildren {
 
 const mainappRouteRouteChildren: mainappRouteRouteChildren = {
   mainappSplatRoute: mainappSplatRoute,
+  mainappMonitorLogRouteRoute: mainappMonitorLogRouteRoute,
   mainappMonitorOnlineRouteRoute: mainappMonitorOnlineRouteRoute,
   mainappOpenAppRouteRoute: mainappOpenAppRouteRoute,
   mainappSystemConfigRouteRoute: mainappSystemConfigRouteRoute,
