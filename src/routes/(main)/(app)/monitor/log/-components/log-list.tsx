@@ -2,7 +2,6 @@ import * as React from 'react'
 
 import { useQuery } from '@tanstack/react-query'
 import { type ColumnVisibilityState, type PaginationState, useTable } from '@tanstack/react-table'
-import { endOfDay, format, startOfDay, subDays } from 'date-fns'
 import type { DateRange } from 'react-day-picker'
 
 import { cn } from 'cn'
@@ -22,6 +21,7 @@ import {
   type LogStatus
 } from '@/lib/api/log'
 import { dataTableFeatures } from '@/lib/data-table-features'
+import { createRecentDateRange, toDateTimeRangeQuery } from '@/lib/date-range'
 
 import { createLoginLogColumns, createOperationLogColumns } from './log-columns'
 import { LogDetailDrawer } from './log-detail-drawer'
@@ -34,23 +34,6 @@ const EMPTY_ROWS: LogResp[] = []
 
 /** The log query sorts on its own `t1` table alias, by the SQL column the mapper selects. */
 const DEFAULT_SORT = 't1.create_time,desc'
-
-/** The seven days the Vue client starts both tabs with. */
-function createDefaultRange(): DateRange {
-  const to = new Date()
-  return { from: subDays(to, 6), to }
-}
-
-/** The backend compares with SQL `BETWEEN`, so whole days are enough. */
-function toCreateTimeQuery(range: DateRange | undefined) {
-  if (!range?.from) {
-    return undefined
-  }
-
-  const from = format(startOfDay(range.from), 'yyyy-MM-dd HH:mm:ss')
-  const to = format(endOfDay(range.to ?? range.from), 'yyyy-MM-dd HH:mm:ss')
-  return `${from},${to}`
-}
 
 interface LogListProps {
   readonly mode: LogMode
@@ -74,7 +57,7 @@ export function LogList({ mode }: LogListProps) {
   const [operator, setOperator] = React.useState('')
   const [ip, setIp] = React.useState('')
   const [status, setStatus] = React.useState<LogStatus | undefined>(undefined)
-  const [createTime, setCreateTime] = React.useState<DateRange | undefined>(createDefaultRange)
+  const [createTime, setCreateTime] = React.useState<DateRange | undefined>(createRecentDateRange)
   // The search boxes own their text, so resetting the filters remounts them.
   const [searchVersion, setSearchVersion] = React.useState(0)
   const [isExporting, setIsExporting] = React.useState(false)
@@ -121,7 +104,7 @@ export function LogList({ mode }: LogListProps) {
     setOperator('')
     setIp('')
     setStatus(undefined)
-    setCreateTime(createDefaultRange())
+    setCreateTime(createRecentDateRange())
     setSearchVersion(current => current + 1)
     goToFirstPage()
   }, [goToFirstPage])
@@ -136,7 +119,7 @@ export function LogList({ mode }: LogListProps) {
     module: isLogin ? '登录' : undefined,
     createUserString: operator || undefined,
     ip: ip || undefined,
-    createTime: toCreateTimeQuery(createTime),
+    createTime: toDateTimeRangeQuery(createTime),
     status
   }
   const params: LogPageQuery = { page: pagination.pageIndex + 1, size: pagination.pageSize, ...filters }

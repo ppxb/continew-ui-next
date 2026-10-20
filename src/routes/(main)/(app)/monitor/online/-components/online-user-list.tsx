@@ -2,7 +2,6 @@ import * as React from 'react'
 
 import { useQuery } from '@tanstack/react-query'
 import { type ColumnVisibilityState, type PaginationState, useTable } from '@tanstack/react-table'
-import { addDays, format, startOfDay } from 'date-fns'
 import type { DateRange } from 'react-day-picker'
 
 import { cn } from 'cn'
@@ -14,6 +13,7 @@ import { usePermission } from '@/hooks/use-permission'
 import { listOnlineUsers, onlineUserKeys, type OnlineUserPageQuery, type OnlineUserResp } from '@/lib/api/online'
 import { getSessionId } from '@/lib/auth-session'
 import { dataTableFeatures } from '@/lib/data-table-features'
+import { createRecentDateRange, toDateTimeRangeQuery } from '@/lib/date-range'
 
 import { createOnlineUserColumns } from './online-user-columns'
 import { OnlineUserKickoutDialog } from './online-user-kickout-dialog'
@@ -22,26 +22,11 @@ import { OnlineUserToolbar } from './online-user-toolbar'
 
 const EMPTY_ROWS: OnlineUserResp[] = []
 
-/**
- * The range the picker hands over covers whole days, while the backend compares login times
- * with strict inequalities. Ending at the midnight after the last picked day therefore covers
- * that whole day without spilling into the next one.
- */
-function toLoginTimeQuery(range: DateRange | undefined) {
-  if (!range?.from) {
-    return undefined
-  }
-
-  const from = format(startOfDay(range.from), 'yyyy-MM-dd HH:mm:ss')
-  const to = format(addDays(startOfDay(range.to ?? range.from), 1), 'yyyy-MM-dd HH:mm:ss')
-  return `${from},${to}`
-}
-
 export function OnlineUserList() {
   const [pagination, setPagination] = React.useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
   const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>({})
   const [keyword, setKeyword] = React.useState('')
-  const [loginTime, setLoginTime] = React.useState<DateRange | undefined>(undefined)
+  const [loginTime, setLoginTime] = React.useState<DateRange | undefined>(createRecentDateRange)
   const [kickingUser, setKickingUser] = React.useState<OnlineUserResp | null>(null)
   // The search box owns its text, so resetting the filters remounts it.
   const [searchVersion, setSearchVersion] = React.useState(0)
@@ -69,7 +54,7 @@ export function OnlineUserList() {
 
   const handleReset = React.useCallback(() => {
     setKeyword('')
-    setLoginTime(undefined)
+    setLoginTime(createRecentDateRange())
     setSearchVersion(current => current + 1)
     setPagination(current => (current.pageIndex === 0 ? current : { ...current, pageIndex: 0 }))
   }, [])
@@ -78,7 +63,7 @@ export function OnlineUserList() {
     page: pagination.pageIndex + 1,
     size: pagination.pageSize,
     nickname: keyword || undefined,
-    loginTime: toLoginTimeQuery(loginTime)
+    loginTime: toDateTimeRangeQuery(loginTime)
   }
 
   const query = useQuery({
