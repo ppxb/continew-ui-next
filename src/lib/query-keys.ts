@@ -1,5 +1,7 @@
 import type { AppPageQuery } from '@/lib/api/app'
 import type { ClientQuery } from '@/lib/api/client'
+import type { JobQuery } from '@/lib/api/job'
+import type { JobLogQuery } from '@/lib/api/job-log'
 import type { LogPageQuery } from '@/lib/api/log'
 import type { OnlineUserPageQuery } from '@/lib/api/online'
 import type { PackagePageQuery } from '@/lib/api/package'
@@ -121,6 +123,19 @@ export const logKeys = {
   list: (query?: LogPageQuery) => [...logKeys.lists(), query] as const,
   details: () => [...logKeys.all, 'detail'] as const,
   detail: (id: string | number | null) => [...logKeys.details(), id] as const
+}
+
+export const jobKeys = {
+  all: ['schedule', 'job'] as const,
+  lists: () => [...jobKeys.all, 'list'] as const,
+  list: (query?: JobQuery) => [...jobKeys.lists(), query] as const,
+  groups: () => [...jobKeys.all, 'groups'] as const
+}
+
+export const jobLogKeys = {
+  all: ['schedule', 'log'] as const,
+  lists: () => [...jobLogKeys.all, 'list'] as const,
+  list: (query?: JobLogQuery) => [...jobLogKeys.lists(), query] as const
 }
 
 export const tenantKeys = {

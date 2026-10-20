@@ -44,6 +44,8 @@ import { Route as mainDashboardUsersRouteRouteImport } from './routes/(main)/das
 import { Route as mainappMonitorLogRouteRouteImport } from './routes/(main)/(app)/monitor/log/route'
 import { Route as mainappMonitorOnlineRouteRouteImport } from './routes/(main)/(app)/monitor/online/route'
 import { Route as mainappOpenAppRouteRouteImport } from './routes/(main)/(app)/open/app/route'
+import { Route as mainappScheduleJobRouteRouteImport } from './routes/(main)/(app)/schedule/job/route'
+import { Route as mainappScheduleLogRouteRouteImport } from './routes/(main)/(app)/schedule/log/route'
 import { Route as mainappSystemConfigRouteRouteImport } from './routes/(main)/(app)/system/config/route'
 import { Route as mainappSystemDeptRouteRouteImport } from './routes/(main)/(app)/system/dept/route'
 import { Route as mainappSystemMenuRouteRouteImport } from './routes/(main)/(app)/system/menu/route'
@@ -247,6 +249,16 @@ const mainappOpenAppRouteRoute = mainappOpenAppRouteRouteImport.update({
   path: '/open/app',
   getParentRoute: () => mainappRouteRoute,
 } as any)
+const mainappScheduleJobRouteRoute = mainappScheduleJobRouteRouteImport.update({
+  id: '/schedule/job',
+  path: '/schedule/job',
+  getParentRoute: () => mainappRouteRoute,
+} as any)
+const mainappScheduleLogRouteRoute = mainappScheduleLogRouteRouteImport.update({
+  id: '/schedule/log',
+  path: '/schedule/log',
+  getParentRoute: () => mainappRouteRoute,
+} as any)
 const mainappSystemConfigRouteRoute =
   mainappSystemConfigRouteRouteImport.update({
     id: '/system/config',
@@ -351,6 +363,8 @@ export interface FileRoutesByFullPath {
   '/monitor/log': typeof mainappMonitorLogRouteRoute
   '/monitor/online': typeof mainappMonitorOnlineRouteRoute
   '/open/app': typeof mainappOpenAppRouteRoute
+  '/schedule/job': typeof mainappScheduleJobRouteRoute
+  '/schedule/log': typeof mainappScheduleLogRouteRoute
   '/system/config': typeof mainappSystemConfigRouteRoute
   '/system/dept': typeof mainappSystemDeptRouteRoute
   '/system/menu': typeof mainappSystemMenuRouteRoute
@@ -398,6 +412,8 @@ export interface FileRoutesByTo {
   '/monitor/log': typeof mainappMonitorLogRouteRoute
   '/monitor/online': typeof mainappMonitorOnlineRouteRoute
   '/open/app': typeof mainappOpenAppRouteRoute
+  '/schedule/job': typeof mainappScheduleJobRouteRoute
+  '/schedule/log': typeof mainappScheduleLogRouteRoute
   '/system/config': typeof mainappSystemConfigRouteRoute
   '/system/dept': typeof mainappSystemDeptRouteRoute
   '/system/menu': typeof mainappSystemMenuRouteRoute
@@ -448,6 +464,8 @@ export interface FileRoutesById {
   '/(main)/(app)/monitor/log': typeof mainappMonitorLogRouteRoute
   '/(main)/(app)/monitor/online': typeof mainappMonitorOnlineRouteRoute
   '/(main)/(app)/open/app': typeof mainappOpenAppRouteRoute
+  '/(main)/(app)/schedule/job': typeof mainappScheduleJobRouteRoute
+  '/(main)/(app)/schedule/log': typeof mainappScheduleLogRouteRoute
   '/(main)/(app)/system/config': typeof mainappSystemConfigRouteRoute
   '/(main)/(app)/system/dept': typeof mainappSystemDeptRouteRoute
   '/(main)/(app)/system/menu': typeof mainappSystemMenuRouteRoute
@@ -498,6 +516,8 @@ export interface FileRouteTypes {
     | '/monitor/log'
     | '/monitor/online'
     | '/open/app'
+    | '/schedule/job'
+    | '/schedule/log'
     | '/system/config'
     | '/system/dept'
     | '/system/menu'
@@ -545,6 +565,8 @@ export interface FileRouteTypes {
     | '/monitor/log'
     | '/monitor/online'
     | '/open/app'
+    | '/schedule/job'
+    | '/schedule/log'
     | '/system/config'
     | '/system/dept'
     | '/system/menu'
@@ -594,6 +616,8 @@ export interface FileRouteTypes {
     | '/(main)/(app)/monitor/log'
     | '/(main)/(app)/monitor/online'
     | '/(main)/(app)/open/app'
+    | '/(main)/(app)/schedule/job'
+    | '/(main)/(app)/schedule/log'
     | '/(main)/(app)/system/config'
     | '/(main)/(app)/system/dept'
     | '/(main)/(app)/system/menu'
@@ -865,6 +889,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof mainappOpenAppRouteRouteImport
       parentRoute: typeof mainappRouteRoute
     }
+    '/(main)/(app)/schedule/job': {
+      id: '/(main)/(app)/schedule/job'
+      path: '/schedule/job'
+      fullPath: '/schedule/job'
+      preLoaderRoute: typeof mainappScheduleJobRouteRouteImport
+      parentRoute: typeof mainappRouteRoute
+    }
+    '/(main)/(app)/schedule/log': {
+      id: '/(main)/(app)/schedule/log'
+      path: '/schedule/log'
+      fullPath: '/schedule/log'
+      preLoaderRoute: typeof mainappScheduleLogRouteRouteImport
+      parentRoute: typeof mainappRouteRoute
+    }
     '/(main)/(app)/system/config': {
       id: '/(main)/(app)/system/config'
       path: '/system/config'
@@ -957,6 +995,8 @@ interface mainappRouteRouteChildren {
   mainappMonitorLogRouteRoute: typeof mainappMonitorLogRouteRoute
   mainappMonitorOnlineRouteRoute: typeof mainappMonitorOnlineRouteRoute
   mainappOpenAppRouteRoute: typeof mainappOpenAppRouteRoute
+  mainappScheduleJobRouteRoute: typeof mainappScheduleJobRouteRoute
+  mainappScheduleLogRouteRoute: typeof mainappScheduleLogRouteRoute
   mainappSystemConfigRouteRoute: typeof mainappSystemConfigRouteRoute
   mainappSystemDeptRouteRoute: typeof mainappSystemDeptRouteRoute
   mainappSystemMenuRouteRoute: typeof mainappSystemMenuRouteRoute
@@ -972,6 +1012,8 @@ const mainappRouteRouteChildren: mainappRouteRouteChildren = {
   mainappMonitorLogRouteRoute: mainappMonitorLogRouteRoute,
   mainappMonitorOnlineRouteRoute: mainappMonitorOnlineRouteRoute,
   mainappOpenAppRouteRoute: mainappOpenAppRouteRoute,
+  mainappScheduleJobRouteRoute: mainappScheduleJobRouteRoute,
+  mainappScheduleLogRouteRoute: mainappScheduleLogRouteRoute,
   mainappSystemConfigRouteRoute: mainappSystemConfigRouteRoute,
   mainappSystemDeptRouteRoute: mainappSystemDeptRouteRoute,
   mainappSystemMenuRouteRoute: mainappSystemMenuRouteRoute,

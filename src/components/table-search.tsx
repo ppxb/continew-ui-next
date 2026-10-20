@@ -14,6 +14,9 @@ interface TableSearchProps {
   delay?: number
   clearable?: boolean
   className?: string
+  /** Controlled text. Omit it and the box keeps its own text, as most screens do. */
+  value?: string
+  onValueChange?: (value: string) => void
 }
 
 export function TableSearch({
@@ -21,29 +24,39 @@ export function TableSearch({
   placeholder = '搜索',
   delay = DEFAULT_DELAY_MS,
   clearable = false,
-  className
+  className,
+  value: controlledValue,
+  onValueChange
 }: TableSearchProps) {
-  const [value, setValue] = React.useState('')
-  const reportedRef = React.useRef('')
+  const [uncontrolledValue, setUncontrolledValue] = React.useState('')
+  const text = controlledValue ?? uncontrolledValue
+  const reportedRef = React.useRef(text.trim())
   const onSearchRef = React.useRef(onSearch)
 
   React.useEffect(() => {
     onSearchRef.current = onSearch
   })
 
+  const handleTextChange = (next: string) => {
+    if (controlledValue === undefined) {
+      setUncontrolledValue(next)
+    }
+    onValueChange?.(next)
+  }
+
   React.useEffect(() => {
     const timer = setTimeout(() => {
-      const next = value.trim()
+      const next = text.trim()
       if (next === reportedRef.current) return
       reportedRef.current = next
       onSearchRef.current(next)
     }, delay)
 
     return () => clearTimeout(timer)
-  }, [value, delay])
+  }, [text, delay])
 
   const clear = () => {
-    setValue('')
+    handleTextChange('')
     reportedRef.current = ''
     onSearchRef.current('')
   }
@@ -56,10 +69,10 @@ export function TableSearch({
       <InputGroupInput
         className="h-full"
         placeholder={placeholder}
-        value={value}
-        onChange={event => setValue(event.target.value)}
+        value={text}
+        onChange={event => handleTextChange(event.target.value)}
       />
-      {clearable && value ? (
+      {clearable && text ? (
         <InputGroupAddon align="inline-end">
           <InputGroupButton size="icon-xs" onClick={clear}>
             <X />
