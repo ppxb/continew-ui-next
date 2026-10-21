@@ -15,6 +15,7 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog'
+import { Field, FieldLabel } from '@/components/ui/field'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useDebouncedValue } from '@/hooks/use-debounced-value'
@@ -117,32 +118,35 @@ export function NoticeUserPicker({ open, selected, onClose, onConfirm }: NoticeU
                   const name = user.nickname || user.username
 
                   return (
-                    <div
+                    <Field
                       key={id}
-                      className={`flex items-center justify-between rounded-md px-2 py-1.5 transition-colors ${
-                        isSelected ? 'bg-accent text-accent-foreground' : 'cursor-pointer hover:bg-muted/60'
+                      orientation="horizontal"
+                      className={`gap-2.5 rounded-md px-2 py-1.5 transition-colors ${
+                        isSelected ? 'bg-accent text-accent-foreground' : 'hover:bg-muted/60'
                       }`}
-                      onClick={() => toggleSelect(id)}
                     >
-                      <div className="flex items-center gap-2.5">
-                        <Checkbox
-                          checked={isSelected}
-                          onCheckedChange={() => toggleSelect(id)}
-                          onClick={event => event.stopPropagation()}
-                          className="size-4"
-                        />
+                      <Checkbox
+                        id={`notice-user-${id}`}
+                        checked={isSelected}
+                        onCheckedChange={() => toggleSelect(id)}
+                        className="size-4"
+                      />
+                      <FieldLabel
+                        htmlFor={`notice-user-${id}`}
+                        className="flex flex-1 cursor-pointer items-center gap-2.5"
+                      >
                         <Avatar className="size-7">
                           <AvatarImage src={user.avatar ?? undefined} alt="" />
                           <AvatarFallback className="text-xs">{getInitials(name)}</AvatarFallback>
                         </Avatar>
-                        <div className="flex flex-col leading-tight">
+                        <span className="flex flex-col leading-tight">
                           <span className="text-xs font-medium">{name}</span>
-                          <span className="text-[11px] text-muted-foreground">
+                          <span className="text-[11px] font-normal text-muted-foreground">
                             {user.username} {user.deptName ? `· ${user.deptName}` : ''}
                           </span>
-                        </div>
-                      </div>
-                    </div>
+                        </span>
+                      </FieldLabel>
+                    </Field>
                   )
                 })}
               </div>
