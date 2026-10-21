@@ -2,7 +2,7 @@ import { createStore } from 'zustand/vanilla'
 
 import { getUserInfo, login as loginRequest, logout as logoutRequest } from '@/lib/api/auth'
 import type { UserInfoResp } from '@/lib/api/types'
-import { clearSession, getAccessToken, setSession } from '@/lib/auth-session'
+import { clearSession, getAccessToken, getAuthGeneration, setSession } from '@/lib/auth-session'
 import { encryptPassword } from '@/lib/crypto'
 
 export type AuthStatus = 'anonymous' | 'authenticated'
@@ -12,7 +12,6 @@ export type LoginParams = {
   password: string
   captcha?: string
   uuid?: string
-  /** Keep the access token across browser restarts. */
   persist?: boolean
 }
 
@@ -24,16 +23,25 @@ export type AuthState = {
   isLoadingUser: boolean
   login: (params: LoginParams) => Promise<void>
   logout: () => Promise<void>
-  /** Drops the local session without calling the backend. */
   clearLocalSession: () => void
   loadUser: () => Promise<void>
 }
 
+type LoadState = {
+  generation: number
+  promise: Promise<void>
+}
+
+const anonymousState = (): Pick<AuthState, 'status' | 'user' | 'permissions' | 'roles'> => ({
+  status: 'anonymous',
+  user: null,
+  permissions: [],
+  roles: []
+})
+
 export const createAuthStore = () => {
-  // While a fetch is already in flight, later callers share that promise instead of firing a second
-  // request. React's StrictMode runs the bootstrap effect twice in development, and an action that
-  // is safe to call twice is the right place to absorb that.
-  let loadPromise: Promise<void> | null = null
+  let loadState: LoadState | null = null
+  let loadToken = 0
 
   return createStore<AuthState>()((set, get) => ({
     status: getAccessToken() ? 'authenticated' : 'anonymous',
@@ -47,57 +55,68 @@ export const createAuthStore = () => {
         clientId: import.meta.env.VITE_CLIENT_ID,
         authType: 'ACCOUNT',
         username,
-        // The backend decrypts this with its RSA private key.
         password: encryptPassword(password),
         captcha,
         uuid
       })
 
       setSession({ accessToken: response.accessToken, tenantId: response.tenantId, persist })
-      set({ status: 'authenticated' })
+      set({ status: 'authenticated', user: null, permissions: [], roles: [] })
       await get().loadUser()
     },
 
     loadUser: () => {
       if (!getAccessToken()) {
-        set({ status: 'anonymous', user: null, permissions: [], roles: [] })
+        loadToken += 1
+        loadState = null
+        set({ ...anonymousState(), isLoadingUser: false })
         return Promise.resolve()
       }
 
-      if (!loadPromise) {
-        set({ isLoadingUser: true })
+      const generation = getAuthGeneration()
 
-        loadPromise = getUserInfo()
-          .then(user => {
-            set({
-              user,
-              permissions: user.permissions ?? [],
-              roles: user.roles ?? [],
-              status: 'authenticated'
-            })
-          })
-          .finally(() => {
-            loadPromise = null
-            set({ isLoadingUser: false })
-          })
+      if (loadState?.generation === generation) {
+        return loadState.promise
       }
 
-      return loadPromise
+      const requestToken = ++loadToken
+      set({ isLoadingUser: true })
+
+      const promise = getUserInfo()
+        .then(user => {
+          if (generation !== getAuthGeneration()) {
+            return
+          }
+
+          set({
+            user,
+            permissions: user.permissions ?? [],
+            roles: user.roles ?? [],
+            status: 'authenticated'
+          })
+        })
+        .finally(() => {
+          if (requestToken !== loadToken) {
+            return
+          }
+
+          loadState = null
+          set({ isLoadingUser: false })
+        })
+
+      loadState = { generation, promise }
+      return promise
     },
 
     clearLocalSession: () => {
       clearSession()
-      set({ status: 'anonymous', user: null, permissions: [], roles: [] })
+      loadToken += 1
+      loadState = null
+      set({ ...anonymousState(), isLoadingUser: false })
     },
 
     logout: async () => {
-      try {
-        // Runs before the local session is cleared so the backend can find it.
-        await logoutRequest()
-      } catch {
-        // The local session is cleared either way.
-      }
-
+      await logoutRequest().catch(() => undefined)
       get().clearLocalSession()
     }
   }))

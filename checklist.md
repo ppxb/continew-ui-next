@@ -3,15 +3,15 @@
 > 最后同步：2026-10-21。原始 35 条全部保留；新增 12 条（36–47）。另有 11、13、27、28、31 按复查结果扩面，不另计条目。  
 > 状态：`[x]` 已修复；`[ ]` 待处理。04、05 为部分修复，仍未关闭。
 
-共 **47 条**：P1 3 条（01 已修复，02、03 待处理）、P2 21 条、P3 23 条。当前待处理 46 条（含 2 条部分修复）。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
+共 **47 条**：P1 3 条（01、02 已修复，03 待处理）、P2 21 条、P3 23 条。当前待处理 45 条（含 2 条部分修复）。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
 
 本次为静态审计，覆盖业务管理页、共享组件、请求与状态层，以及部分仪表盘页面；未进行运行时性能测试。原生 HTML、必要的异常处理和合理的 `className` 扩展本身不算问题。文件行号对应当前代码。
 
 - [x] **01 · P1｜旧会话的刷新结果可能覆盖新会话。［已修复 2026-10-21］** 刷新写回前校验 auth generation；单飞刷新按 generation 隔离；重试携带原世代；登录换号时 `setSession` 推进世代。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/lib/http.ts:143](<E:/ppxb/continew-next/continew-ui-next/src/lib/http.ts:143>)；[E:/ppxb/continew-next/continew-ui-next/src/lib/auth-session.ts:104](<E:/ppxb/continew-next/continew-ui-next/src/lib/auth-session.ts:104>)
 
-- [ ] **02 · P1｜用户信息请求可能在退出后恢复旧用户状态。** `loadUser()` 返回后无条件写入用户、权限和 `authenticated` 状态；旧 Promise 也可能被新登录复用。应隔离不同会话的请求与写回。  
-  文件：[E:/ppxb/continew-next/continew-ui-next/src/stores/auth/auth-store.ts:70](<E:/ppxb/continew-next/continew-ui-next/src/stores/auth/auth-store.ts:70>)
+- [x] **02 · P1｜用户信息请求可能在退出后恢复旧用户状态。［已修复 2026-10-21］** `loadUser()` 现在按 generation 分组单飞，响应写回前校验 generation；`clearLocalSession` 和无 token 分支会使旧请求失效；登录新会话先清空旧身份。旧请求即使返回 200 也不会覆盖新会话，也不会被新登录复用。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/stores/auth/auth-store.ts:68](<E:/ppxb/continew-next/continew-ui-next/src/stores/auth/auth-store.ts:68>)；[E:/ppxb/continew-next/continew-ui-next/src/stores/auth/auth-store.ts:111](<E:/ppxb/continew-next/continew-ui-next/src/stores/auth/auth-store.ts:111>)；[E:/ppxb/continew-next/continew-ui-next/src/lib/auth-session.ts:104](<E:/ppxb/continew-next/continew-ui-next/src/lib/auth-session.ts:104>)
 
 - [ ] **03 · P1｜会话过期退出遗漏查询缓存清理。** 过期回调只清 Auth Store 并跳转，与手动退出流程不一致；新账号可能复用旧账号的菜单及业务缓存。应复用统一的会话清理流程。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/stores/auth/auth-provider.tsx:43](<E:/ppxb/continew-next/continew-ui-next/src/stores/auth/auth-provider.tsx:43>)；[E:/ppxb/continew-next/continew-ui-next/src/hooks/use-logout.ts:23](<E:/ppxb/continew-next/continew-ui-next/src/hooks/use-logout.ts:23>)
@@ -142,7 +142,7 @@
 - [ ] **45 · P3｜地图加载失败没有界面反馈。** `catch` 只 `console.error`，失败后地图只剩背景色，没有错误态或重试；同时 div/svg/rect 三层使用同一背景色，属于冗余。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/dashboard/logistics/-components/shipment-route-map.tsx:156](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/dashboard/logistics/-components/shipment-route-map.tsx:156>)；[三层背景:171](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/dashboard/logistics/-components/shipment-route-map.tsx:171>)
 
-- [ ] **46 · P3｜登录成功后 `getUserInfo` 失败会留下半登录状态。** 登录先写 token 并置为 `authenticated`，再 `await loadUser()`；用户信息请求失败时只提示错误，token 仍保留，刷新后会带着 token 进入应用但权限为空。建议在 `loadUser()` 成功后再切换状态，失败时清 token。  
+- [ ] **46 · P3｜登录成功后 `getUserInfo` 失败会留下半登录状态。** 登录先写 token 并置为 `authenticated`，再 `await loadUser()`；失败时只提示错误，token 与 `authenticated` 仍保留（旧用户资料已在登录时清空），刷新后会带着 token 进入应用但权限为空。建议在 `loadUser()` 成功后再切换状态，失败时清 token。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/stores/auth/auth-store.ts:56](<E:/ppxb/continew-next/continew-ui-next/src/stores/auth/auth-store.ts:56>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/auth/-components/login-form.tsx:61](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/auth/-components/login-form.tsx:61>)
 
 - [ ] **47 · P3｜原生控件与 shadcn 控件混用。** 重试链接用原生下划线 button（user-role-select、user-form、user-assign-roles），短信复制用原生 button，checkable-tree 清空用原生 button，树展开按钮也是自定义 20px 控件。部分原生控件（图标格、卡片、文件名）是合理的，需逐项判断，不要机械替换。  
