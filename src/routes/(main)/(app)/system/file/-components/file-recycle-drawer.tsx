@@ -18,6 +18,13 @@ import {
 import { Button } from '@/components/ui/button'
 import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious
+} from '@/components/ui/pagination'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
@@ -35,6 +42,8 @@ import { FileTypeIcon, fileTypeLabel, formatFileSize } from './file-display'
 
 type RecycleAction = { type: 'restore'; file: FileResp } | { type: 'delete'; file: FileResp } | { type: 'clean' }
 
+const RECYCLE_PAGE_SIZE = 10
+
 interface FileRecycleDrawerProps {
   readonly open: boolean
   readonly onClose: () => void
@@ -50,17 +59,34 @@ export function FileRecycleDrawer({ open, onClose }: FileRecycleDrawerProps) {
 
   const [action, setAction] = React.useState<RecycleAction | null>(null)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const [page, setPage] = React.useState(1)
 
   const query = useQuery({
-    queryKey: fileKeys.recycle({ page: 1, size: 100 }),
-    queryFn: () => listRecycleFiles({ page: 1, size: 100 }),
+    queryKey: fileKeys.recycle({ page, size: RECYCLE_PAGE_SIZE }),
+    queryFn: () => listRecycleFiles({ page, size: RECYCLE_PAGE_SIZE }),
+    placeholderData: previous => previous,
     enabled: open
   })
 
   const items = query.data?.list ?? []
   const total = query.data?.total ?? 0
+  const pageCount = Math.max(Math.ceil(total / RECYCLE_PAGE_SIZE), 1)
   const isRestore = action?.type === 'restore'
   const isClean = action?.type === 'clean'
+
+  // Reopening starts from the first page instead of the one left behind last time.
+  React.useEffect(() => {
+    if (!open) {
+      setPage(1)
+    }
+  }, [open])
+
+  // Restoring, deleting or cleaning can empty the page that is being viewed.
+  React.useEffect(() => {
+    if (query.isSuccess && page > pageCount) {
+      setPage(pageCount)
+    }
+  }, [page, pageCount, query.isSuccess])
 
   const handleConfirm = async () => {
     if (!action) {
@@ -158,7 +184,7 @@ export function FileRecycleDrawer({ open, onClose }: FileRecycleDrawerProps) {
                   重新加载
                 </Button>
               </div>
-            ) : items.length === 0 ? (
+            ) : items.length === 0 && total === 0 ? (
               <Empty className="min-h-48">
                 <EmptyHeader>
                   <EmptyMedia variant="icon">
@@ -169,7 +195,11 @@ export function FileRecycleDrawer({ open, onClose }: FileRecycleDrawerProps) {
                 </EmptyHeader>
               </Empty>
             ) : (
-              <ul className="flex flex-col gap-2">
+              <ul
+                className={`flex flex-col gap-2 ${
+                  query.isPlaceholderData ? 'opacity-60 transition-opacity' : ''
+                }`}
+              >
                 {items.map(file => (
                   <li key={String(file.id)} className="flex flex-col gap-2 rounded-lg border p-3">
                     <div className="flex min-w-0 items-start gap-2">
@@ -212,6 +242,40 @@ export function FileRecycleDrawer({ open, onClose }: FileRecycleDrawerProps) {
               </ul>
             )}
           </div>
+
+          {total > 0 ? (
+            <div className="flex items-center justify-between gap-3 border-t px-4 py-3">
+              <span className="text-xs text-muted-foreground tabular-nums">
+                第 {page} / {pageCount} 页
+              </span>
+              <Pagination className="mx-0 w-auto">
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      href="#"
+                      text="上一页"
+                      className={page <= 1 ? 'pointer-events-none opacity-50' : undefined}
+                      onClick={event => {
+                        event.preventDefault()
+                        setPage(previous => Math.max(previous - 1, 1))
+                      }}
+                    />
+                  </PaginationItem>
+                  <PaginationItem>
+                    <PaginationNext
+                      href="#"
+                      text="下一页"
+                      className={page >= pageCount ? 'pointer-events-none opacity-50' : undefined}
+                      onClick={event => {
+                        event.preventDefault()
+                        setPage(previous => Math.min(previous + 1, pageCount))
+                      }}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          ) : null}
         </DrawerContent>
       </Drawer>
 

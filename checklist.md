@@ -3,7 +3,7 @@
 > 最后同步：2026-10-21。原始 35 条全部保留；新增 12 条（36–47）。另有 11、13、27、28、31 按复查结果扩面，不另计条目。  
 > 状态：`[x]` 已修复；`[ ]` 待处理。
 
-共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 29 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
+共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 28 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
 
 本次为静态审计，覆盖业务管理页、共享组件、请求与状态层，以及部分仪表盘页面；未进行运行时性能测试。原生 HTML、必要的异常处理和合理的 `className` 扩展本身不算问题。文件行号对应当前代码。
 
@@ -53,8 +53,8 @@
 - [x] **15 · P2｜通知用户复选框没有关联用户姓名。［已修复 2026-10-21］** 行改为 `Field` + `FieldLabel`，`htmlFor` 指向复选框 id：姓名与部门信息成为复选框的可访问名称，整行点击由原生 label 转发；移除了外层 `div` 的 `onClick`、复选框的 `stopPropagation`，以及只在未选中时出现的手型光标，选中态也保持整行可点。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/notice/-components/notice-user-picker.tsx:121](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/notice/-components/notice-user-picker.tsx:121>)
 
-- [ ] **16 · P2｜回收站固定只加载前 100 条，没有后续分页入口。** 超过 100 条时，界面显示完整总数，但无法访问后续记录进行还原或单项删除。  
-  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/file/-components/file-recycle-drawer.tsx:54](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/file/-components/file-recycle-drawer.tsx:54>)
+- [x] **16 · P2｜回收站固定只加载前 100 条，没有后续分页入口。［已修复 2026-10-21］** 改为每页 10 条的服务端分页：`page` 进入 queryKey，抽屉底部新增「第 x / y 页」与上一页/下一页（复用 shadcn `Pagination`，与角色成员抽屉一致）；切页时用 `placeholderData` 保留上一页内容并降低不透明度，关闭抽屉重置页码，还原/删除/清空导致当前页越界时自动回退到最后一页。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/file/-components/file-recycle-drawer.tsx:64](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/file/-components/file-recycle-drawer.tsx:64>)
 
 - [ ] **17 · P2｜部分文件上传成功后再失败，不会刷新列表与统计。** `onUploaded()` 只在全部上传成功后执行；中途失败再关闭弹窗，已上传文件仍不会出现在当前缓存中。应在有成功上传时更新相关查询。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/file/-components/file-upload-dialog.tsx:71](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/file/-components/file-upload-dialog.tsx:71>)
