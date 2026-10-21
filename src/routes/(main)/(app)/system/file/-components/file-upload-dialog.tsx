@@ -67,22 +67,30 @@ export function FileUploadDialog({ open, parentPath, onClose, onUploaded }: File
 
     // Keep the files that did not upload so a retry does not upload the successful ones twice.
     let remaining = [...files]
+    let uploaded = 0
 
     try {
       while (remaining.length > 0) {
         const next = remaining[0]
         await uploadFile(next, parentPath)
         remaining = remaining.slice(1)
+        uploaded += 1
         setFiles(remaining)
       }
 
-      toast.add({ title: `已上传 ${files.length} 个文件`, type: 'success' })
+      toast.add({ title: `已上传 ${uploaded} 个文件`, type: 'success' })
       onUploaded()
       onClose()
     } catch {
       // The HTTP layer already reported the failure.
       setFiles(remaining)
-      setError('上传失败，请检查文件大小或类型后重试')
+      if (uploaded > 0) {
+        // Files that did reach the server must show up without a manual refresh.
+        onUploaded()
+        setError(`已上传 ${uploaded} 个文件，${remaining.length} 个未完成，请重试`)
+      } else {
+        setError('上传失败，请检查文件大小或类型后重试')
+      }
     } finally {
       setIsUploading(false)
     }

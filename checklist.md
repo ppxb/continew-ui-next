@@ -3,7 +3,7 @@
 > 最后同步：2026-10-21。原始 35 条全部保留；新增 12 条（36–47）。另有 11、13、27、28、31 按复查结果扩面，不另计条目。  
 > 状态：`[x]` 已修复；`[ ]` 待处理。
 
-共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 28 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
+共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 27 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
 
 本次为静态审计，覆盖业务管理页、共享组件、请求与状态层，以及部分仪表盘页面；未进行运行时性能测试。原生 HTML、必要的异常处理和合理的 `className` 扩展本身不算问题。文件行号对应当前代码。
 
@@ -56,8 +56,8 @@
 - [x] **16 · P2｜回收站固定只加载前 100 条，没有后续分页入口。［已修复 2026-10-21］** 改为每页 10 条的服务端分页：`page` 进入 queryKey，抽屉底部新增「第 x / y 页」与上一页/下一页（复用 shadcn `Pagination`，与角色成员抽屉一致）；切页时用 `placeholderData` 保留上一页内容并降低不透明度，关闭抽屉重置页码，还原/删除/清空导致当前页越界时自动回退到最后一页。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/file/-components/file-recycle-drawer.tsx:64](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/file/-components/file-recycle-drawer.tsx:64>)
 
-- [ ] **17 · P2｜部分文件上传成功后再失败，不会刷新列表与统计。** `onUploaded()` 只在全部上传成功后执行；中途失败再关闭弹窗，已上传文件仍不会出现在当前缓存中。应在有成功上传时更新相关查询。  
-  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/file/-components/file-upload-dialog.tsx:71](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/file/-components/file-upload-dialog.tsx:71>)
+- [x] **17 · P2｜部分文件上传成功后再失败，不会刷新列表与统计。［已修复 2026-10-21］** `upload()` 记录本次成功数；失败时只要有文件落库就立即调用 `onUploaded()`（`refreshFiles` 失效 `fileKeys.all`，列表、统计、回收站缓存一起刷新），错误文案改为「已上传 x 个，y 个未完成，请重试」；成功提示也改用实际成功数。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/file/-components/file-upload-dialog.tsx:84](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/file/-components/file-upload-dialog.tsx:84>)
 
 - [ ] **18 · P2｜富文本工具栏没有订阅选区状态。** 当前 Tiptap 版本默认不会随事务重新渲染 React；仅移动光标或切换选区时，`editor.isActive()` 对应的按钮状态可能滞后。应通过 `useEditorState` 订阅必要状态。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/components/rich-text-editor.tsx:79](<E:/ppxb/continew-next/continew-ui-next/src/components/rich-text-editor.tsx:79>)
