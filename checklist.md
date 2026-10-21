@@ -3,7 +3,7 @@
 > 最后同步：2026-10-21。原始 35 条全部保留；新增 12 条（36–47）。另有 11、13、27、28、31 按复查结果扩面，不另计条目。  
 > 状态：`[x]` 已修复；`[ ]` 待处理。
 
-共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 34 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
+共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 33 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
 
 本次为静态审计，覆盖业务管理页、共享组件、请求与状态层，以及部分仪表盘页面；未进行运行时性能测试。原生 HTML、必要的异常处理和合理的 `className` 扩展本身不算问题。文件行号对应当前代码。
 
@@ -37,8 +37,8 @@
 - [x] **10 · P2｜清空有效期输入框会被自动转换成“不限制”。［已修复 2026-10-21］** `activeTimeout`、`timeout`、`refreshTokenTimeout`、`maxLoginCount` 改为以文本保存（`integerText`），清空后保持为空而不是被写成 `-1`/`0`；提交时再 `Number()` 转换。`-1` 仍是合法业务值，空值由字段校验报「请输入有效整数」。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:369](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:369>)；[activeTimeout:334](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:334>)；[maxLoginCount:531](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:531>)
 
-- [ ] **11 · P2｜保存失败会重复弹出错误提示。［复查扩面］** HTTP 层已经 toast；至少 10 个 mutation 的 `onError` 再次 toast，`useOptionForm` 的保存/恢复也会重复。应统一错误提示的负责层，或显式使用 `silent`。  
-  本次迁移已去掉 client/sms/storage/app/menu/dept/role 七个表单里与 HTTP 层重复的 toast；但 `login`、`updatePassword` 等接口本身是 `silent: true`，必须由调用方提示，属例外，迁移时已原样保留。`useOptionForm` 与 menu-list 尚未处理。  
+- [x] **11 · P2｜保存失败会重复弹出错误提示。［已修复 2026-10-21］** `ApiError` 增加 `notified` 标记，`fail()` 在非 `silent` 时置位；新增 `reportError(err, fallback)`：已提示过的错误不再重复，本地失败与 `silent` 接口（`login`、`updatePassword`）仍由调用方提示。  
+  迁移涉及的表单与菜单/部门/客户端/短信/Option 的重复 `onError` toast 已全部改为 `reportError`。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:221](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:221>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/use-option-form.ts:70](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/use-option-form.ts:70>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/menu-list.tsx:184](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/menu-list.tsx:184>)
 
 - [ ] **12 · P2｜过度兜底把查询失败伪装成成功空数据。［复查扩面］** 当前共 10 处 `.catch(() => [])`：`useNoticeDicts` 4 处、`useSiteOptions` 1 处、`config-client` 4 处、`config-sms` 1 处。失败会被缓存为“成功空数据”，TanStack Query 无法重试。展示层可以使用默认值，请求层应保留失败语义。  

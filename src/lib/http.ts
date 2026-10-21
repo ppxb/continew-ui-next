@@ -44,6 +44,7 @@ type ForbiddenHandler = () => void
 export class ApiError extends Error {
   readonly code?: string
   readonly status?: number
+  notified = false
 
   constructor(message: string, options: ErrorDetails = {}) {
     super(message)
@@ -80,11 +81,22 @@ function messageOf(payload: MessagePayload | null | undefined, fallback: string)
 }
 
 function fail(message: string, options: ErrorDetails = {}, silent = false) {
+  const error = new ApiError(message, options)
+  error.notified = !silent
+
   if (!silent) {
     toast.add({ title: message, type: 'error' })
   }
 
-  return new ApiError(message, options)
+  return error
+}
+
+export function reportError(error: unknown, fallback = '操作失败，请重试') {
+  if (error instanceof ApiError && error.notified) {
+    return
+  }
+
+  toast.add({ title: error instanceof Error ? error.message : fallback, type: 'error' })
 }
 
 function sessionChangedError() {

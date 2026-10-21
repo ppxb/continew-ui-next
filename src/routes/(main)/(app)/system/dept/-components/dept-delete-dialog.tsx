@@ -13,6 +13,7 @@ import {
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
 import { deleteDept, deptKeys, type DeptResp } from '@/lib/api/dept'
+import { reportError } from '@/lib/http'
 
 interface DeptDeleteDialogProps {
   readonly dept: DeptResp | null
@@ -35,12 +36,7 @@ export function DeptDeleteDialog({ dept, open, onClose, onSuccess }: DeptDeleteD
       onSuccess?.()
       onClose()
     },
-    onError: error => {
-      toast.add({
-        title: error instanceof Error ? error.message : '删除失败，请重试',
-        type: 'error'
-      })
-    }
+    onError: error => reportError(error, '删除失败，请重试')
   })
 
   const handleDelete = () => {

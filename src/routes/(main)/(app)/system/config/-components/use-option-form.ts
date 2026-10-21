@@ -5,6 +5,7 @@ import { type StandardSchemaV1, useForm, useSelector } from '@tanstack/react-for
 
 import { toast } from '@/components/ui/toast'
 import { listOption, type OptionReq, type OptionResp, resetOptionValue, updateOption } from '@/lib/api/option'
+import { reportError } from '@/lib/http'
 import { optionKeys } from '@/lib/query-keys'
 
 export type OptionMap = Record<string, OptionResp>
@@ -68,7 +69,7 @@ export function useOptionForm<TForm extends object>({ category, toForm, schema }
         setIsEdit(false)
         void queryClient.invalidateQueries({ queryKey: optionKeys.list(category) })
       } catch (err) {
-        toast.add({ title: err instanceof Error ? err.message : '保存失败', type: 'error' })
+        reportError(err, '保存失败')
       }
     }
   })
@@ -90,9 +91,7 @@ export function useOptionForm<TForm extends object>({ category, toForm, schema }
       setIsEdit(false)
       void queryClient.invalidateQueries({ queryKey: optionKeys.list(category) })
     },
-    onError: (err: Error) => {
-      toast.add({ title: err.message || '恢复失败', type: 'error' })
-    }
+    onError: err => reportError(err, '恢复失败')
   })
 
   const resetForm = () => form.reset(toForm(optionMap), { keepDefaultValues: true })

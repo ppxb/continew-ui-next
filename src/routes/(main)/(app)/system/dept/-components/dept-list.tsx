@@ -12,6 +12,7 @@ import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
 import { usePermission } from '@/hooks/use-permission'
 import { deptKeys, exportDept, getDeptTree, type DeptResp } from '@/lib/api/dept'
 import { dataTableFeatures } from '@/lib/data-table-features'
+import { reportError } from '@/lib/http'
 import { cn } from 'cn'
 
 import { createDeptColumns, type DeptAction } from './dept-columns'
@@ -182,12 +183,7 @@ export function DeptList() {
     onSuccess: () => {
       toast.add({ title: '部门数据导出成功', type: 'success' })
     },
-    onError: error => {
-      toast.add({
-        title: error instanceof Error ? error.message : '导出失败，请重试',
-        type: 'error'
-      })
-    }
+    onError: error => reportError(error, '导出失败，请重试')
   })
 
   const handleCreateNew = () => {

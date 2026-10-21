@@ -13,6 +13,7 @@ import {
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
 import { deleteClients, type ClientResp } from '@/lib/api/client'
+import { reportError } from '@/lib/http'
 import { clientKeys } from '@/lib/query-keys'
 
 interface ClientDeleteDialogProps {
@@ -31,9 +32,7 @@ export function ClientDeleteDialog({ client, open, onClose }: ClientDeleteDialog
       queryClient.invalidateQueries({ queryKey: clientKeys.all })
       onClose()
     },
-    onError: (err: Error) => {
-      toast.add({ title: err.message || '删除失败', type: 'error' })
-    }
+    onError: err => reportError(err, '删除失败')
   })
 
   return (

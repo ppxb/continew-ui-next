@@ -13,6 +13,7 @@ import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
 import { usePermission } from '@/hooks/use-permission'
 import { clearMenuCache, getMenuTree, menuKeys, type MenuResp } from '@/lib/api/menu'
 import { dataTableFeatures } from '@/lib/data-table-features'
+import { reportError } from '@/lib/http'
 import { cn } from 'cn'
 
 import { createMenuColumns, type MenuAction } from './menu-columns'
@@ -181,12 +182,7 @@ export function MenuList() {
       toast.add({ title: '菜单缓存已成功清除', type: 'success' })
       void queryClient.invalidateQueries({ queryKey: menuKeys.trees() })
     },
-    onError: error => {
-      toast.add({
-        title: error instanceof Error ? error.message : '清除缓存失败，请重试',
-        type: 'error'
-      })
-    }
+    onError: error => reportError(error, '清除缓存失败，请重试')
   })
 
   const handleCreateNew = () => {

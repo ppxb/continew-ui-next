@@ -15,6 +15,7 @@ import { usePermission } from '@/hooks/use-permission'
 import { listDict } from '@/lib/api/common'
 import { listSmsConfig, setDefaultSmsConfig, type SmsConfigResp } from '@/lib/api/sms'
 import { dataTableFeatures } from '@/lib/data-table-features'
+import { reportError } from '@/lib/http'
 import { dictKeys, smsKeys } from '@/lib/query-keys'
 
 import { createSmsColumns, type SmsAction } from './columns'
@@ -137,9 +138,7 @@ export function ConfigSms() {
       toast.add({ title: '设置默认成功', type: 'success' })
       queryClient.invalidateQueries({ queryKey: smsKeys.all })
     },
-    onError: (err: Error) => {
-      toast.add({ title: err.message || '设置失败', type: 'error' })
-    }
+    onError: err => reportError(err, '设置失败')
   })
 
   // Action dispatcher for table rows
