@@ -1,12 +1,13 @@
 import * as React from 'react'
 
-import { zodResolver } from '@hookform/resolvers/zod'
+import { revalidateLogic, useForm, useSelector } from '@tanstack/react-form'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Controller, useForm } from 'react-hook-form'
-import { MessageSquare, X } from 'lucide-react'
 import { z } from 'zod'
 
+import { MessageSquare, X } from 'lucide-react'
+
 import { PasswordInput } from '@/components/password-input'
+import { RequiredMark } from '@/components/required-mark'
 import { Button } from '@/components/ui/button'
 import { Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
@@ -59,6 +60,12 @@ const DEFAULT_FORM: FormValues = {
   supplierConfig: '',
   status: 1
 }
+
+/**
+ * A create has to carry a secret, but an edit leaves the field empty to mean "keep the stored one".
+ * The object schema cannot express that, so the rule only sits on the field for a create.
+ */
+const createSecretKeyRule = z.string().trim().min(1, '请输入 Secret Key')
 
 function SmsFormSkeleton({ onClose }: { onClose: () => void }) {
   return (
@@ -127,6 +134,7 @@ interface SmsFormDrawerProps {
 export function SmsFormDrawer({ smsId, open, supplierOptions, onClose }: SmsFormDrawerProps) {
   const queryClient = useQueryClient()
   const isEdit = smsId !== null
+  const formRef = React.useRef<HTMLFormElement>(null)
 
   const detailQuery = useQuery({
     queryKey: smsKeys.detail(smsId ?? ''),
@@ -134,73 +142,108 @@ export function SmsFormDrawer({ smsId, open, supplierOptions, onClose }: SmsForm
     enabled: open && isEdit
   })
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(smsFormSchema),
-    defaultValues: DEFAULT_FORM
-  })
-
-  React.useEffect(() => {
-    if (open) {
-      if (isEdit && detailQuery.data) {
-        const detail = detailQuery.data
-        form.reset({
-          name: detail.name ?? '',
-          supplier: detail.supplier ?? (supplierOptions[0]?.value || 'alibaba'),
-          accessKey: detail.accessKey ?? '',
-          secretKey: '',
-          signature: detail.signature ?? '',
-          templateId: detail.templateId ?? '',
-          weight: detail.weight ?? 1,
-          retryInterval: detail.retryInterval ?? 5,
-          maxRetries: detail.maxRetries ?? 0,
-          maximum: detail.maximum ?? 100,
-          supplierConfig: detail.supplierConfig ?? '',
-          status: detail.status ?? 1
-        })
-      } else if (!isEdit) {
-        form.reset({
-          ...DEFAULT_FORM,
-          supplier: supplierOptions[0]?.value || 'alibaba'
-        })
-      }
-    }
-  }, [open, isEdit, detailQuery.data, form, supplierOptions])
-
-  const onSubmit = async (values: FormValues) => {
-    if (!isEdit && !values.secretKey.trim()) {
-      form.setError('secretKey', { message: '请输入 Secret Key' })
-      return
-    }
-
-    try {
+  const form = useForm({
+    defaultValues: DEFAULT_FORM,
+    validationLogic: revalidateLogic(),
+    validators: { onDynamic: smsFormSchema },
+    onSubmit: async ({ value }) => {
       const payload: SmsConfigReq = {
-        name: values.name.trim(),
-        supplier: values.supplier,
-        accessKey: values.accessKey.trim(),
-        secretKey: values.secretKey.trim() || undefined!,
-        signature: values.signature.trim() || undefined,
-        templateId: values.templateId.trim(),
-        weight: values.weight,
-        retryInterval: values.retryInterval,
-        maxRetries: values.maxRetries,
-        maximum: values.maximum,
-        supplierConfig: values.supplierConfig.trim() || undefined,
-        status: values.status as 1 | 2
+        name: value.name.trim(),
+        supplier: value.supplier,
+        accessKey: value.accessKey.trim(),
+        secretKey: value.secretKey.trim() || undefined!,
+        signature: value.signature.trim() || undefined,
+        templateId: value.templateId.trim(),
+        weight: value.weight,
+        retryInterval: value.retryInterval,
+        maxRetries: value.maxRetries,
+        maximum: value.maximum,
+        supplierConfig: value.supplierConfig.trim() || undefined,
+        status: value.status as 1 | 2
       }
 
-      if (isEdit) {
-        await updateSmsConfig(smsId!, payload)
-        toast.add({ title: '修改短信配置成功', type: 'success' })
-      } else {
-        await createSmsConfig(payload)
-        toast.add({ title: '新增短信配置成功', type: 'success' })
+      try {
+        if (smsId === null) {
+          await createSmsConfig(payload)
+          toast.add({ title: '新增短信配置成功', type: 'success' })
+        } else {
+          await updateSmsConfig(smsId, payload)
+          toast.add({ title: '修改短信配置成功', type: 'success' })
+        }
+      } catch {
+        // The HTTP layer already reported the failure.
+        return
       }
 
       void queryClient.invalidateQueries({ queryKey: smsKeys.all })
       onClose()
-    } catch {
-      // The HTTP layer handles and displays the error message
     }
+  })
+
+  // `form.state` is a render-time snapshot, so the "saving" flag that gates closing and disables the
+  // fields comes from a subscription, not from a `mutate()` call that returns before the response.
+  const isSubmitting = useSelector(form.store, state => state.isSubmitting)
+
+  // Fill the form once per opened config. `supplierOptions` is deliberately not a reset trigger: the
+  // dictionary loading used to wipe whatever the user had already typed.
+  const filledForRef = React.useRef<string | null>(null)
+  React.useEffect(() => {
+    if (!open) {
+      form.reset({ ...DEFAULT_FORM }, { keepDefaultValues: true })
+      filledForRef.current = null
+      return
+    }
+
+    if (!isEdit) {
+      if (filledForRef.current === 'create') return
+      filledForRef.current = 'create'
+      form.reset(
+        { ...DEFAULT_FORM, supplier: supplierOptions[0]?.value || 'alibaba' },
+        { keepDefaultValues: true }
+      )
+      return
+    }
+
+    if (!detailQuery.data) return
+
+    const key = String(smsId)
+    if (filledForRef.current === key) return
+    filledForRef.current = key
+
+    const detail = detailQuery.data
+    form.reset(
+      {
+        name: detail.name ?? '',
+        supplier: detail.supplier ?? (supplierOptions[0]?.value || 'alibaba'),
+        accessKey: detail.accessKey ?? '',
+        // The backend never returns a stored secret, so it stays empty and never reaches the body.
+        secretKey: '',
+        signature: detail.signature ?? '',
+        templateId: detail.templateId ?? '',
+        weight: detail.weight ?? 1,
+        retryInterval: detail.retryInterval ?? 5,
+        maxRetries: detail.maxRetries ?? 0,
+        maximum: detail.maximum ?? 100,
+        supplierConfig: detail.supplierConfig ?? '',
+        status: detail.status ?? 1
+      },
+      { keepDefaultValues: true }
+    )
+  }, [open, isEdit, smsId, detailQuery.data, supplierOptions, form])
+
+  /**
+   * Validates the whole object before submitting: `handleSubmit` returns as soon as the field
+   * validators report an invalid form, so the JSON rule above would otherwise stay hidden until the
+   * other errors were fixed.
+   */
+  const submit = async () => {
+    await form.validate('submit')
+    await form.handleSubmit()
+
+    // TanStack Form does not move focus to the first invalid control, so the drawer does it here.
+    requestAnimationFrame(() => {
+      formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
+    })
   }
 
   const isLoading = isEdit && detailQuery.isLoading
@@ -209,7 +252,8 @@ export function SmsFormDrawer({ smsId, open, supplierOptions, onClose }: SmsForm
     <Drawer
       open={open}
       onOpenChange={nextOpen => {
-        if (!nextOpen && !form.formState.isSubmitting) {
+        // Closing mid-save would leave the request in flight with no way to report it.
+        if (!nextOpen && !isSubmitting) {
           onClose()
         }
       }}
@@ -221,7 +265,7 @@ export function SmsFormDrawer({ smsId, open, supplierOptions, onClose }: SmsForm
             <MessageSquare className="size-4" />
             <DrawerTitle>{isEdit ? '修改短信配置' : '新增短信配置'}</DrawerTitle>
           </div>
-          <DrawerClose render={<Button variant="ghost" size="icon-sm" disabled={form.formState.isSubmitting} />}>
+          <DrawerClose render={<Button variant="ghost" size="icon-sm" disabled={isSubmitting} />}>
             <X className="size-4" />
             <span className="sr-only">关闭</span>
           </DrawerClose>
@@ -229,278 +273,368 @@ export function SmsFormDrawer({ smsId, open, supplierOptions, onClose }: SmsForm
 
         {isLoading ? (
           <SmsFormSkeleton onClose={onClose} />
+        ) : isEdit && detailQuery.isError ? (
+          // Without the record the form would post its defaults over an existing config.
+          <p className="p-4 text-sm text-foreground">加载失败，请稍后重试</p>
         ) : (
-          <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="flex min-h-0 flex-1 flex-col">
+          <form
+            ref={formRef}
+            noValidate
+            className="flex min-h-0 flex-1 flex-col"
+            onSubmit={event => {
+              event.preventDefault()
+              void submit()
+            }}
+          >
             <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
               <FieldGroup className="gap-4">
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <Controller
-                    control={form.control}
-                    name="name"
-                    render={({ field, fieldState }) => (
-                      <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-                        <FieldLabel>
-                          配置名称<span className="text-destructive">*</span>
-                        </FieldLabel>
-                        <Input
-                          {...field}
-                          maxLength={100}
-                          placeholder="请输入配置名称"
-                          aria-invalid={fieldState.invalid}
-                        />
-                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                      </Field>
-                    )}
-                  />
+                  <form.Field name="name" validators={{ onDynamic: smsFormSchema.shape.name }}>
+                    {field => {
+                      const invalid = field.state.meta.errors.length > 0
 
-                  <Controller
-                    control={form.control}
-                    name="supplier"
-                    render={({ field, fieldState }) => (
-                      <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-                        <FieldLabel>
-                          服务厂商<span className="text-destructive">*</span>
-                        </FieldLabel>
-                        <Select
-                          items={supplierOptions}
-                          value={field.value}
-                          onValueChange={val => {
-                            if (!val) return
-                            field.onChange(val)
-                          }}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="请选择服务厂商" />
-                          </SelectTrigger>
-                          <SelectContent align="start" alignItemWithTrigger={false}>
-                            <SelectGroup>
-                              {supplierOptions.map(s => (
-                                <SelectItem key={s.value} value={s.value}>
-                                  {s.label}
-                                </SelectItem>
-                              ))}
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>
-                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                      </Field>
-                    )}
-                  />
-                </div>
-
-                <Controller
-                  control={form.control}
-                  name="accessKey"
-                  render={({ field, fieldState }) => (
-                    <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-                      <FieldLabel>
-                        Access Key<span className="text-destructive">*</span>
-                      </FieldLabel>
-                      <Input
-                        {...field}
-                        maxLength={255}
-                        placeholder="请输入 Access Key"
-                        aria-invalid={fieldState.invalid}
-                      />
-                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                    </Field>
-                  )}
-                />
-
-                <Controller
-                  control={form.control}
-                  name="secretKey"
-                  render={({ field, fieldState }) => (
-                    <Field>
-                      <FieldLabel>Secret Key{!isEdit && <span className="text-destructive">*</span>}</FieldLabel>
-                      <PasswordInput
-                        {...field}
-                        maxLength={255}
-                        placeholder={isEdit ? '留空表示不修改' : '请输入 Secret Key'}
-                      />
-                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                    </Field>
-                  )}
-                />
-
-                <div className="grid grid-cols-2 gap-4">
-                  <Controller
-                    control={form.control}
-                    name="signature"
-                    render={({ field, fieldState }) => (
-                      <Field>
-                        <FieldLabel>短信签名</FieldLabel>
-                        <Input
-                          {...field}
-                          maxLength={100}
-                          placeholder="请输入短信签名"
-                          aria-invalid={fieldState.invalid}
-                        />
-                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                      </Field>
-                    )}
-                  />
-
-                  <Controller
-                    control={form.control}
-                    name="templateId"
-                    render={({ field, fieldState }) => (
-                      <Field>
-                        <FieldLabel>
-                          模板 ID<span className="text-destructive">*</span>
-                        </FieldLabel>
-                        <Input
-                          {...field}
-                          maxLength={50}
-                          placeholder="请输入模板 ID"
-                          aria-invalid={fieldState.invalid}
-                        />
-                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                      </Field>
-                    )}
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <Controller
-                    control={form.control}
-                    name="weight"
-                    render={({ field, fieldState }) => (
-                      <Field>
-                        <FieldLabel>负载均衡权重</FieldLabel>
-                        <Input
-                          type="number"
-                          min={1}
-                          max={100}
-                          value={field.value}
-                          onChange={e =>
-                            field.onChange(Number.isNaN(e.target.valueAsNumber) ? 1 : e.target.valueAsNumber)
-                          }
-                        />
-                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                      </Field>
-                    )}
-                  />
-
-                  <Controller
-                    control={form.control}
-                    name="retryInterval"
-                    render={({ field, fieldState }) => (
-                      <Field>
-                        <FieldLabel>重试间隔</FieldLabel>
-                        <div className="relative">
+                      return (
+                        <Field className="gap-1.5" data-invalid={invalid}>
+                          <FieldLabel>
+                            配置名称
+                            <RequiredMark />
+                          </FieldLabel>
                           <Input
+                            name="name"
+                            value={field.state.value}
+                            onChange={event => field.handleChange(event.target.value)}
+                            onBlur={field.handleBlur}
+                            maxLength={100}
+                            placeholder="请输入配置名称"
+                            disabled={isSubmitting}
+                            aria-invalid={invalid}
+                          />
+                          <FieldError errors={field.state.meta.errors} />
+                        </Field>
+                      )
+                    }}
+                  </form.Field>
+
+                  <form.Field name="supplier" validators={{ onDynamic: smsFormSchema.shape.supplier }}>
+                    {field => {
+                      const invalid = field.state.meta.errors.length > 0
+
+                      return (
+                        <Field className="gap-1.5" data-invalid={invalid}>
+                          <FieldLabel>
+                            服务厂商
+                            <RequiredMark />
+                          </FieldLabel>
+                          <Select
+                            items={supplierOptions}
+                            value={field.state.value}
+                            disabled={isSubmitting}
+                            onValueChange={val => {
+                              if (!val) return
+                              field.handleChange(val)
+                            }}
+                          >
+                            <SelectTrigger aria-invalid={invalid}>
+                              <SelectValue placeholder="请选择服务厂商" />
+                            </SelectTrigger>
+                            <SelectContent align="start" alignItemWithTrigger={false}>
+                              <SelectGroup>
+                                {supplierOptions.map(s => (
+                                  <SelectItem key={s.value} value={s.value}>
+                                    {s.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectGroup>
+                            </SelectContent>
+                          </Select>
+                          <FieldError errors={field.state.meta.errors} />
+                        </Field>
+                      )
+                    }}
+                  </form.Field>
+                </div>
+
+                <form.Field name="accessKey" validators={{ onDynamic: smsFormSchema.shape.accessKey }}>
+                  {field => {
+                    const invalid = field.state.meta.errors.length > 0
+
+                    return (
+                      <Field className="gap-1.5" data-invalid={invalid}>
+                        <FieldLabel>
+                          Access Key
+                          <RequiredMark />
+                        </FieldLabel>
+                        <Input
+                          name="accessKey"
+                          value={field.state.value}
+                          onChange={event => field.handleChange(event.target.value)}
+                          onBlur={field.handleBlur}
+                          maxLength={255}
+                          placeholder="请输入 Access Key"
+                          disabled={isSubmitting}
+                          aria-invalid={invalid}
+                        />
+                        <FieldError errors={field.state.meta.errors} />
+                      </Field>
+                    )
+                  }}
+                </form.Field>
+
+                <form.Field
+                  name="secretKey"
+                  validators={isEdit ? undefined : { onDynamic: createSecretKeyRule }}
+                >
+                  {field => {
+                    const invalid = field.state.meta.errors.length > 0
+
+                    return (
+                      <Field data-invalid={invalid}>
+                        <FieldLabel>
+                          Secret Key
+                          {!isEdit && <RequiredMark />}
+                        </FieldLabel>
+                        <PasswordInput
+                          name="secretKey"
+                          value={field.state.value}
+                          onChange={event => field.handleChange(event.target.value)}
+                          onBlur={field.handleBlur}
+                          maxLength={255}
+                          placeholder={isEdit ? '留空表示不修改' : '请输入 Secret Key'}
+                          disabled={isSubmitting}
+                          aria-invalid={invalid}
+                        />
+                        <FieldError errors={field.state.meta.errors} />
+                      </Field>
+                    )
+                  }}
+                </form.Field>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <form.Field name="signature" validators={{ onDynamic: smsFormSchema.shape.signature }}>
+                    {field => {
+                      const invalid = field.state.meta.errors.length > 0
+
+                      return (
+                        <Field data-invalid={invalid}>
+                          <FieldLabel>短信签名</FieldLabel>
+                          <Input
+                            name="signature"
+                            value={field.state.value}
+                            onChange={event => field.handleChange(event.target.value)}
+                            onBlur={field.handleBlur}
+                            maxLength={100}
+                            placeholder="请输入短信签名"
+                            disabled={isSubmitting}
+                            aria-invalid={invalid}
+                          />
+                          <FieldError errors={field.state.meta.errors} />
+                        </Field>
+                      )
+                    }}
+                  </form.Field>
+
+                  <form.Field name="templateId" validators={{ onDynamic: smsFormSchema.shape.templateId }}>
+                    {field => {
+                      const invalid = field.state.meta.errors.length > 0
+
+                      return (
+                        <Field data-invalid={invalid}>
+                          <FieldLabel>
+                            模板 ID
+                            <RequiredMark />
+                          </FieldLabel>
+                          <Input
+                            name="templateId"
+                            value={field.state.value}
+                            onChange={event => field.handleChange(event.target.value)}
+                            onBlur={field.handleBlur}
+                            maxLength={50}
+                            placeholder="请输入模板 ID"
+                            disabled={isSubmitting}
+                            aria-invalid={invalid}
+                          />
+                          <FieldError errors={field.state.meta.errors} />
+                        </Field>
+                      )
+                    }}
+                  </form.Field>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <form.Field name="weight" validators={{ onDynamic: smsFormSchema.shape.weight }}>
+                    {field => {
+                      const invalid = field.state.meta.errors.length > 0
+
+                      return (
+                        <Field data-invalid={invalid}>
+                          <FieldLabel>负载均衡权重</FieldLabel>
+                          <Input
+                            name="weight"
                             type="number"
                             min={1}
-                            value={field.value}
-                            onChange={e =>
-                              field.onChange(Number.isNaN(e.target.valueAsNumber) ? 1 : e.target.valueAsNumber)
+                            max={100}
+                            value={field.state.value}
+                            onChange={event =>
+                              field.handleChange(
+                                Number.isNaN(event.target.valueAsNumber) ? 1 : event.target.valueAsNumber
+                              )
                             }
-                            className="pr-10"
+                            onBlur={field.handleBlur}
+                            disabled={isSubmitting}
+                            aria-invalid={invalid}
                           />
-                          <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-muted-foreground">
-                            秒
-                          </span>
-                        </div>
-                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                      </Field>
-                    )}
-                  />
+                          <FieldError errors={field.state.meta.errors} />
+                        </Field>
+                      )
+                    }}
+                  </form.Field>
+
+                  <form.Field name="retryInterval" validators={{ onDynamic: smsFormSchema.shape.retryInterval }}>
+                    {field => {
+                      const invalid = field.state.meta.errors.length > 0
+
+                      return (
+                        <Field data-invalid={invalid}>
+                          <FieldLabel>重试间隔</FieldLabel>
+                          <div className="relative">
+                            <Input
+                              name="retryInterval"
+                              type="number"
+                              min={1}
+                              value={field.state.value}
+                              onChange={event =>
+                                field.handleChange(
+                                  Number.isNaN(event.target.valueAsNumber) ? 1 : event.target.valueAsNumber
+                                )
+                              }
+                              onBlur={field.handleBlur}
+                              disabled={isSubmitting}
+                              className="pr-10"
+                              aria-invalid={invalid}
+                            />
+                            <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-muted-foreground">
+                              秒
+                            </span>
+                          </div>
+                          <FieldError errors={field.state.meta.errors} />
+                        </Field>
+                      )
+                    }}
+                  </form.Field>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <Controller
-                    control={form.control}
-                    name="maxRetries"
-                    render={({ field, fieldState }) => (
-                      <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-                        <FieldLabel>重试次数</FieldLabel>
-                        <Input
-                          type="number"
-                          min={0}
-                          value={field.value}
-                          onChange={e =>
-                            field.onChange(Number.isNaN(e.target.valueAsNumber) ? 0 : e.target.valueAsNumber)
-                          }
-                          aria-invalid={fieldState.invalid}
-                        />
-                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                      </Field>
-                    )}
-                  />
+                  <form.Field name="maxRetries" validators={{ onDynamic: smsFormSchema.shape.maxRetries }}>
+                    {field => {
+                      const invalid = field.state.meta.errors.length > 0
 
-                  <Controller
-                    control={form.control}
-                    name="maximum"
-                    render={({ field, fieldState }) => (
-                      <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-                        <FieldLabel>发送上限</FieldLabel>
-                        <Input
-                          type="number"
-                          min={1}
-                          value={field.value}
-                          onChange={e =>
-                            field.onChange(Number.isNaN(e.target.valueAsNumber) ? 1 : e.target.valueAsNumber)
-                          }
-                          aria-invalid={fieldState.invalid}
-                        />
-                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                      </Field>
-                    )}
-                  />
+                      return (
+                        <Field className="gap-1.5" data-invalid={invalid}>
+                          <FieldLabel>重试次数</FieldLabel>
+                          <Input
+                            name="maxRetries"
+                            type="number"
+                            min={0}
+                            value={field.state.value}
+                            onChange={event =>
+                              field.handleChange(
+                                Number.isNaN(event.target.valueAsNumber) ? 0 : event.target.valueAsNumber
+                              )
+                            }
+                            onBlur={field.handleBlur}
+                            disabled={isSubmitting}
+                            aria-invalid={invalid}
+                          />
+                          <FieldError errors={field.state.meta.errors} />
+                        </Field>
+                      )
+                    }}
+                  </form.Field>
+
+                  <form.Field name="maximum" validators={{ onDynamic: smsFormSchema.shape.maximum }}>
+                    {field => {
+                      const invalid = field.state.meta.errors.length > 0
+
+                      return (
+                        <Field className="gap-1.5" data-invalid={invalid}>
+                          <FieldLabel>发送上限</FieldLabel>
+                          <Input
+                            name="maximum"
+                            type="number"
+                            min={1}
+                            value={field.state.value}
+                            onChange={event =>
+                              field.handleChange(
+                                Number.isNaN(event.target.valueAsNumber) ? 1 : event.target.valueAsNumber
+                              )
+                            }
+                            onBlur={field.handleBlur}
+                            disabled={isSubmitting}
+                            aria-invalid={invalid}
+                          />
+                          <FieldError errors={field.state.meta.errors} />
+                        </Field>
+                      )
+                    }}
+                  </form.Field>
                 </div>
 
-                <Controller
-                  control={form.control}
-                  name="supplierConfig"
-                  render={({ field, fieldState }) => (
-                    <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-                      <FieldContent>
-                        <FieldLabel>厂商独立扩展配置</FieldLabel>
-                        <FieldDescription>针对特定供应商（如腾讯云 sdkAppId）的专有扩展参数</FieldDescription>
-                      </FieldContent>
-                      <Textarea
-                        {...field}
-                        rows={2}
-                        maxLength={500}
-                        placeholder="请输入厂商的（JSON 格式）扩展配置"
-                        aria-invalid={fieldState.invalid}
-                      />
-                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                    </Field>
-                  )}
-                />
+                <form.Field name="supplierConfig" validators={{ onDynamic: smsFormSchema.shape.supplierConfig }}>
+                  {field => {
+                    const invalid = field.state.meta.errors.length > 0
 
-                <Controller
-                  control={form.control}
-                  name="status"
-                  render={({ field, fieldState }) => (
+                    return (
+                      <Field className="gap-1.5" data-invalid={invalid}>
+                        <FieldContent>
+                          <FieldLabel>厂商独立扩展配置</FieldLabel>
+                          <FieldDescription>针对特定供应商（如腾讯云 sdkAppId）的专有扩展参数</FieldDescription>
+                        </FieldContent>
+                        <Textarea
+                          name="supplierConfig"
+                          value={field.state.value}
+                          onChange={event => field.handleChange(event.target.value)}
+                          onBlur={field.handleBlur}
+                          rows={2}
+                          maxLength={500}
+                          placeholder="请输入厂商的（JSON 格式）扩展配置"
+                          disabled={isSubmitting}
+                          aria-invalid={invalid}
+                        />
+                        <FieldError errors={field.state.meta.errors} />
+                      </Field>
+                    )
+                  }}
+                </form.Field>
+
+                <form.Field name="status">
+                  {field => (
                     <Field
                       orientation="horizontal"
                       className="items-center justify-between py-1"
-                      data-invalid={fieldState.invalid}
+                      data-invalid={field.state.meta.errors.length > 0}
                     >
                       <FieldContent>
                         <FieldLabel className="cursor-pointer">状态</FieldLabel>
                         <FieldDescription>禁用后该通道将不再参与短信发送</FieldDescription>
                       </FieldContent>
                       <Switch
-                        checked={field.value === 1}
-                        onCheckedChange={checked => field.onChange(checked ? 1 : 2)}
-                        aria-invalid={fieldState.invalid}
+                        checked={field.state.value === 1}
+                        onCheckedChange={checked => field.handleChange(checked ? 1 : 2)}
+                        disabled={isSubmitting}
+                        aria-invalid={field.state.meta.errors.length > 0}
                       />
                     </Field>
                   )}
-                />
+                </form.Field>
               </FieldGroup>
             </div>
 
             <DrawerFooter className="flex-row justify-end gap-2 border-t p-4">
-              <Button type="button" variant="outline" disabled={form.formState.isSubmitting} onClick={onClose}>
+              <Button type="button" variant="outline" disabled={isSubmitting} onClick={onClose}>
                 取消
               </Button>
-              <Button type="submit" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? (
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? (
                   <>
                     <Spinner />
                     保存中
