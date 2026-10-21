@@ -4,7 +4,7 @@ import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { z } from 'zod'
 
-import { User2, X } from 'lucide-react'
+import { Pen, User2, X } from 'lucide-react'
 
 import { PasswordInput } from '@/components/password-input'
 import { RequiredMark } from '@/components/required-mark'
@@ -352,7 +352,7 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
       <DrawerContent className="data-[swipe-axis=x]:sm:[--drawer-content-width:32rem]">
         <DrawerHeader className="flex-row items-center justify-between gap-2 border-b p-4 md:gap-2">
           <div className="flex items-center gap-2">
-            <User2 className="size-4" />
+            {isCreate ? <User2 className="size-4" /> : <Pen className="size-4" />}
             <DrawerTitle>{isCreate ? '新增用户' : '修改用户'}</DrawerTitle>
           </div>
           <DrawerClose render={<Button variant="ghost" size="icon-sm" />}>

@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 import { cn } from 'cn'
-import { Check, Copy, User2, X } from 'lucide-react'
+import { Check, Copy, Eye, X } from 'lucide-react'
 
 import { StatusCell } from '@/components/status-cell'
 import { Button } from '@/components/ui/button'
@@ -162,7 +162,7 @@ export function UserDetailDrawer({ userId, open, onClose }: UserDetailDrawerProp
       <DrawerContent className="data-[swipe-axis=x]:sm:[--drawer-content-width:32rem]">
         <DrawerHeader className="flex-row items-center justify-between gap-2 border-b p-4 md:gap-2">
           <div className="flex items-center gap-2">
-            <User2 className="size-4" />
+            <Eye className="size-4" />
             <DrawerTitle>用户详情</DrawerTitle>
           </div>
           <DrawerClose render={<Button variant="ghost" size="icon-sm" />}>
