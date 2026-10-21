@@ -1,0 +1,149 @@
+# 前端代码审计 Checklist
+
+> 最后同步：2026-10-21。原始 35 条全部保留；新增 12 条（36–47）。另有 11、13、27、28、31 按复查结果扩面，不另计条目。  
+> 状态：`[x]` 已修复；`[ ]` 待处理。04、05 为部分修复，仍未关闭。
+
+共 **47 条**：P1 3 条（01 已修复，02、03 待处理）、P2 21 条、P3 23 条。当前待处理 46 条（含 2 条部分修复）。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
+
+本次为静态审计，覆盖业务管理页、共享组件、请求与状态层，以及部分仪表盘页面；未进行运行时性能测试。原生 HTML、必要的异常处理和合理的 `className` 扩展本身不算问题。文件行号对应当前代码。
+
+- [x] **01 · P1｜旧会话的刷新结果可能覆盖新会话。［已修复 2026-10-21］** 刷新写回前校验 auth generation；单飞刷新按 generation 隔离；重试携带原世代；登录换号时 `setSession` 推进世代。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/lib/http.ts:143](<E:/ppxb/continew-next/continew-ui-next/src/lib/http.ts:143>)；[E:/ppxb/continew-next/continew-ui-next/src/lib/auth-session.ts:104](<E:/ppxb/continew-next/continew-ui-next/src/lib/auth-session.ts:104>)
+
+- [ ] **02 · P1｜用户信息请求可能在退出后恢复旧用户状态。** `loadUser()` 返回后无条件写入用户、权限和 `authenticated` 状态；旧 Promise 也可能被新登录复用。应隔离不同会话的请求与写回。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/stores/auth/auth-store.ts:70](<E:/ppxb/continew-next/continew-ui-next/src/stores/auth/auth-store.ts:70>)
+
+- [ ] **03 · P1｜会话过期退出遗漏查询缓存清理。** 过期回调只清 Auth Store 并跳转，与手动退出流程不一致；新账号可能复用旧账号的菜单及业务缓存。应复用统一的会话清理流程。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/stores/auth/auth-provider.tsx:43](<E:/ppxb/continew-next/continew-ui-next/src/stores/auth/auth-provider.tsx:43>)；[E:/ppxb/continew-next/continew-ui-next/src/hooks/use-logout.ts:23](<E:/ppxb/continew-next/continew-ui-next/src/hooks/use-logout.ts:23>)
+
+- [ ] **04 · P2｜会话失效清理请求仍会阻塞登录页跳转。［部分修复］** 已为会话失效路径的 `/auth/logout` 增加 30 秒超时，并在期间出现新会话时跳过导航；但 `handleSessionExpired` 仍要等待该请求结束后才回调，手动退出也仍在等待服务端。应把本地清理/跳转与后端撤销解耦。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/lib/http.ts:186](<E:/ppxb/continew-next/continew-ui-next/src/lib/http.ts:186>)；[E:/ppxb/continew-next/continew-ui-next/src/stores/auth/auth-store.ts:93](<E:/ppxb/continew-next/continew-ui-next/src/stores/auth/auth-store.ts:93>)
+
+- [ ] **05 · P2｜下载请求二次 401 仍不复用会话失效流程。［部分修复］** 普通请求与下载请求已共享 `renewSession` 的刷新逻辑；但下载刷新后再次 401 仍只 `fail()`，不会清会话。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/lib/http.ts:213](<E:/ppxb/continew-next/continew-ui-next/src/lib/http.ts:213>)；[E:/ppxb/continew-next/continew-ui-next/src/lib/http.ts:321](<E:/ppxb/continew-next/continew-ui-next/src/lib/http.ts:321>)
+
+- [ ] **06 · P2｜菜单图标解析 eager 引入 Lucide 全量图标。** 导入 `icons` 并动态访问属性，使未使用图标难以被打包裁剪；该模块又被侧栏和顶部页签依赖。`icon-picker` 也全量导入并模块级预计算；picker 路由已由 `autoCodeSplitting` 懒加载，重点是 header-tabs/sidebar 依赖的 eager resolver。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/navigation/sidebar/menu-icons.ts:327](<E:/ppxb/continew-next/continew-ui-next/src/navigation/sidebar/menu-icons.ts:327>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/icon-picker.tsx:3](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/icon-picker.tsx:3>)
+
+- [ ] **07 · P3｜图标列表滚动时持续累积 DOM。** `visibleLimit` 每次增加 120，滚动到底后会挂载整个筛选结果；同时还保留了“加载更多”按钮。建议采用固定分页或虚拟列表。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/icon-picker.tsx:443](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/icon-picker.tsx:443>)
+
+- [ ] **08 · P2｜客户端保存中仍可关闭抽屉。** `mutate()` 返回后，表单的 `isSubmitting` 提前恢复；右上关闭按钮和关闭回调检查该状态，底部按钮却检查 `saveMutation.isPending`。应统一使用实际请求状态。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:234](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:234>)；关闭按钮 [:246](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:246>)；底部按钮 [:610](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:610>)
+
+- [ ] **09 · P2｜客户端详情加载失败后仍显示可提交的默认表单。** 查询只处理 loading，没有 error 分支；失败且无缓存时，用户可能把默认值提交到现有客户端。应提供错误与重试状态，并阻止无详情数据的编辑提交。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:142](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:142>)
+
+- [ ] **10 · P2｜清空有效期输入框会被自动转换成“不限制”。** `valueAsNumber` 为 `NaN` 时直接写入 `-1`，而 `-1` 表示永不过期等业务含义。同类转换还在 `activeTimeout`、`maxLoginCount`；`refreshTokenTimeout` 则转成 `0`，由最小 60 校验拦截。应保留空值并校验。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:369](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:369>)；[activeTimeout:334](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:334>)；[maxLoginCount:531](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:531>)
+
+- [ ] **11 · P2｜保存失败会重复弹出错误提示。［复查扩面］** HTTP 层已经 toast；至少 10 个 mutation 的 `onError` 再次 toast，`useOptionForm` 的保存/恢复也会重复。应统一错误提示的负责层，或显式使用 `silent`。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:221](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:221>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/use-option-form.ts:70](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/use-option-form.ts:70>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/menu-list.tsx:184](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/menu-list.tsx:184>)
+
+- [ ] **12 · P2｜过度兜底把查询失败伪装成成功空数据。［复查扩面］** 当前共 10 处 `.catch(() => [])`：`useNoticeDicts` 4 处、`useSiteOptions` 1 处、`config-client` 4 处、`config-sms` 1 处。失败会被缓存为“成功空数据”，TanStack Query 无法重试。展示层可以使用默认值，请求层应保留失败语义。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/notice/-components/use-notice-dicts.ts:35](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/notice/-components/use-notice-dicts.ts:35>)；[E:/ppxb/continew-next/continew-ui-next/src/hooks/use-site-options.ts:13](<E:/ppxb/continew-next/continew-ui-next/src/hooks/use-site-options.ts:13>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/config-client.tsx:84](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/config-client.tsx:84>)；[config-sms.tsx:86](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/sms/config-sms.tsx:86>)
+
+- [ ] **13 · P3｜搜索防抖不一致。［复查扩面］** 通知用户选择器每键一请求；`TableSearch` 已有 300ms 防抖；menu/dept 是本地过滤却也防抖；app-list、role-list、role-user-drawer、config-sms、config-storage 等也各自手写 `setTimeout`，合计 7 处（250/300ms 不一致）。建议服务端搜索统一 `TableSearch` 或 `useDebouncedValue`，本地过滤保持实时。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/notice/-components/notice-user-picker.tsx:38](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/notice/-components/notice-user-picker.tsx:38>)；[E:/ppxb/continew-next/continew-ui-next/src/components/table-search.tsx:47](<E:/ppxb/continew-next/continew-ui-next/src/components/table-search.tsx:47>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/menu-list.tsx:98](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/menu-list.tsx:98>)；[dept-list.tsx:98](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/dept/-components/dept-list.tsx:98>)
+
+- [ ] **14 · P2｜通知用户查询失败被显示为“未找到用户”。** 渲染只判断 pending 和数组长度，没有处理 `isError`，混淆了网络失败与搜索无结果。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/notice/-components/notice-user-picker.tsx:89](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/notice/-components/notice-user-picker.tsx:89>)
+
+- [ ] **15 · P2｜通知用户复选框没有关联用户姓名。** 姓名只是相邻 `span`，可点击的外层 `div` 不会为 Checkbox 提供可访问名称。应使用关联的 Label，并统一整行选择行为。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/notice/-components/notice-user-picker.tsx:111](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/notice/-components/notice-user-picker.tsx:111>)
+
+- [ ] **16 · P2｜回收站固定只加载前 100 条，没有后续分页入口。** 超过 100 条时，界面显示完整总数，但无法访问后续记录进行还原或单项删除。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/file/-components/file-recycle-drawer.tsx:54](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/file/-components/file-recycle-drawer.tsx:54>)
+
+- [ ] **17 · P2｜部分文件上传成功后再失败，不会刷新列表与统计。** `onUploaded()` 只在全部上传成功后执行；中途失败再关闭弹窗，已上传文件仍不会出现在当前缓存中。应在有成功上传时更新相关查询。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/file/-components/file-upload-dialog.tsx:71](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/file/-components/file-upload-dialog.tsx:71>)
+
+- [ ] **18 · P2｜富文本工具栏没有订阅选区状态。** 当前 Tiptap 版本默认不会随事务重新渲染 React；仅移动光标或切换选区时，`editor.isActive()` 对应的按钮状态可能滞后。应通过 `useEditorState` 订阅必要状态。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/components/rich-text-editor.tsx:79](<E:/ppxb/continew-next/continew-ui-next/src/components/rich-text-editor.tsx:79>)
+
+- [ ] **19 · P2｜富文本撤销和重做按钮没有遵守外部禁用状态。** 两个按钮只检查 `editor.can()`，未包含 `disabled`；存在历史记录时，禁用期间仍可能执行修改命令。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/components/rich-text-editor.tsx:109](<E:/ppxb/continew-next/continew-ui-next/src/components/rich-text-editor.tsx:109>)
+
+- [ ] **20 · P2｜短信配置复制操作未完成就提示成功。** `clipboard.writeText()` 没有等待结果，也没有处理 Promise 拒绝，复制失败仍可能显示“已复制”。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/sms/columns.tsx:56](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/sms/columns.tsx:56>)
+
+- [ ] **21 · P2｜菜单类型用三个原生按钮手写单选控件。** 选中状态仅通过颜色表达，缺少单选组语义及对应键盘行为，同时复制了三套条件样式。适合使用现有 RadioGroup 或单选 ToggleGroup。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/menu-form-drawer.tsx:226](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/menu-form-drawer.tsx:226>)
+
+- [ ] **22 · P2｜图标清除控件嵌套在另一个按钮内。** DialogTrigger 的 Button 内部又放置可聚焦的 `span role="button"`；只处理 Enter，没有 Space，还把键盘事件强转为鼠标事件。应拆成独立清除按钮。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/icon-picker.tsx:492](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/icon-picker.tsx:492>)
+
+- [ ] **23 · P2｜分页的禁用状态只改变透明度。** 到达首尾页后，上一页/下一页仍是可聚焦、可触发的链接，没有表达真实禁用状态。4 个复制表格改用 `pointer-events-none`，但键盘仍可触发。应统一禁用语义、事件处理和视觉状态。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/components/table-pagination.tsx:92](<E:/ppxb/continew-next/continew-ui-next/src/components/table-pagination.tsx:92>)
+
+- [ ] **24 · P2｜树组件的“全选”忽略节点禁用状态。** 单节点操作支持 `disabled`，但全选直接提交 `index.allKeys`。这是共享组件契约不一致，应明确禁用节点在批量选择中的处理规则。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/components/checkable-tree.tsx:65](<E:/ppxb/continew-next/continew-ui-next/src/components/checkable-tree.tsx:65>)
+
+- [ ] **25 · P3｜通过解析 class 字符串推断组件布局。** `className.includes('flex-1')` 将布局行为绑定到字符串，`md:flex-1` 也会触发所有断点的伸展布局。应通过明确属性或容器样式表达布局。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/components/checkable-tree.tsx:77](<E:/ppxb/continew-next/continew-ui-next/src/components/checkable-tree.tsx:77>)
+
+- [ ] **26 · P3｜树数据更新会重置用户的展开状态。** 注释写“首次加载展开全部”，但 effect 随索引变化重复执行。应只初始化一次，或在数据更新时保留仍然有效的展开键。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/components/checkable-tree.tsx:50](<E:/ppxb/continew-next/continew-ui-next/src/components/checkable-tree.tsx:50>)
+
+- [ ] **27 · P3｜业务表格实现分裂为四套。［复查扩面］** 15 张 TanStack 表中，9 张使用共享分页，4 张（app/client/sms/role，224–226 行）各自复制整套分页和骨架，menu/dept 又复制骨架；dict/file 另有两套自定义表。建议抽 `DataTableShell` 和共享分页，先迁移 4 张大表。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/user/-components/user-table.tsx:22](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/user/-components/user-table.tsx:22>)；[open/app/-components/app-table.tsx:31](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/open/app/-components/app-table.tsx:31>)；[client/table.tsx:32](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/table.tsx:32>)；[dict-table.tsx:13](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/dict/-components/dict-table.tsx:13>)
+
+- [ ] **28 · P3｜详情字段与复制逻辑大量重复。［复查扩面］** `DetailField` 至少 8 处重复；复制逻辑分布在 9 个文件，`COPIED_FEEDBACK_MS` 出现 6 次；已有 `CopyableText` 只被 4 个详情页使用。成功反馈也不一致。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/user/-components/user-detail-drawer.tsx:20](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/user/-components/user-detail-drawer.tsx:20>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/detail-drawer.tsx:19](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/detail-drawer.tsx:19>)；[E:/ppxb/continew-next/continew-ui-next/src/components/copyable-text.tsx:12](<E:/ppxb/continew-next/continew-ui-next/src/components/copyable-text.tsx:12>)
+
+- [ ] **29 · P3｜业务表格重复添加底层已有的 class。** 例如 `TableRow` 的 `hover:bg-muted/50`、`TableCell` 的 `align-middle`、`TableHead` 的 `whitespace-nowrap` 均已有默认实现，可删除调用处的重复声明。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/user/-components/user-table.tsx:37](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/user/-components/user-table.tsx:37>)；[E:/ppxb/continew-next/continew-ui-next/src/components/ui/table.tsx:30](<E:/ppxb/continew-next/continew-ui-next/src/components/ui/table.tsx:30>)
+
+- [ ] **30 · P3｜通过额外样式重新定义 shadcn Button 尺寸。** “清空”按钮使用 `size="sm"`，又覆盖 `h-6 px-2 text-xs`；本地已有接近该规格的 `size="xs"`。应优先使用已有尺寸变体，减少样式覆盖。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/notice/-components/notice-user-picker.tsx:150](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/notice/-components/notice-user-picker.tsx:150>)
+
+- [ ] **31 · P3｜聊天页单独覆盖共享滚动条宽度。［复查扩面］** 通过深层选择器将滚动条改为 `w-1.5`，与共享 ScrollArea 的 `w-2.5` 规格不同；dict/storage/kanban 又使用 4px/h-1。建议统一滚动条规格，或在 `globals.css` 定义紧凑工具类。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/chat/-components/chat-conversation-list.tsx:82](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/chat/-components/chat-conversation-list.tsx:82>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/dict/-components/dict-table.tsx:14](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/dict/-components/dict-table.tsx:14>)
+
+- [ ] **32 · P3｜地图配色使用多组硬编码十六进制颜色。** `bg-[#d4dadc]`、`fill-[#fafaf8]` 等绕过主题 token，主题预设变化时仍保持固定配色。应优先采用语义颜色或明确的共享地图色板。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/dashboard/logistics/-components/shipment-route-map.tsx:171](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/dashboard/logistics/-components/shipment-route-map.tsx:171>)
+
+- [ ] **33 · P3｜邮件页面保留挂载后才能显示内容的门禁。** `isMounted + useEffect` 无条件先显示一次 Loading，再渲染实际布局。项目是纯 SPA，可直接初始化所需浏览器状态，减少额外首屏渲染。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/mail/-components/mail.tsx:21](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/mail/-components/mail.tsx:21>)
+
+- [ ] **34 · P3｜完成回调被设计为必填，但调用方只传空函数。** 公告表单和删除弹窗传入 `onCompleted={() => undefined}`，增加了没有实际职责的接口和样板代码。可移除无用回调，或仅在确有扩展需求时设为可选。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/notice/-components/notice-list.tsx:237](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/notice/-components/notice-list.tsx:237>)
+
+- [ ] **35 · P3｜同类管理表单使用两套实现体系。［复查扩面］** 不是两个文件：TanStack Form 有 user/notice/tenant/package/job/dict×2 共 7 个；React Hook Form 有 client/sms/storage/role/menu/dept/app/login/profile 等 11+ 个。建议以 TanStack Form 为方向逐步收敛。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/user/-components/user-form-drawer.tsx:3](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/user/-components/user-form-drawer.tsx:3>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:6](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:6>)
+
+- [ ] **36 · P2｜字典项和通知用户被固定截断在前 100 条。** `dict-panel` 只取 100 个字典项且没有分页；通知表单只用前 100 个用户解析姓名，选择器搜索也最多 100 条。超过后字典项不可见，通知用户只能显示“用户 {id}”。与 16 同类。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/dict/-components/dict-panel.tsx:57](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/dict/-components/dict-panel.tsx:57>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/notice/-components/notice-form-drawer.tsx:119](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/notice/-components/notice-form-drawer.tsx:119>)；[notice-user-picker.tsx:39](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/notice/-components/notice-user-picker.tsx:39>)
+
+- [ ] **37 · P2｜HeaderTabs 将关闭按钮嵌套在 Link 内。** `<Link>` 内又渲染 `<button>`，属于嵌套交互元素，键盘和读屏语义会混淆；`preventDefault/stopPropagation` 只掩盖了行为，没有修正结构。应把关闭按钮移到 Link 外。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/components/app-shell/header/header-tabs.tsx:197](<E:/ppxb/continew-next/continew-ui-next/src/components/app-shell/header/header-tabs.tsx:197>)
+
+- [ ] **38 · P3｜表单回填策略不统一，部分表单会覆盖正在编辑的内容。** 6 个表单每次 `detail` 或依赖变化都直接 `form.reset`：client、sms、storage、role、dept、menu；user/notice/dict 使用一次性守卫。SMS 还把 `supplierOptions` 放进依赖，字典加载完成会重置表单。建议统一“每次打开回填一次”的 `filledForRef` 模式。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:149](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:149>)；[sms/form-drawer.tsx:142](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/sms/form-drawer.tsx:142>)；[user-form-drawer.tsx:320](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/user/-components/user-form-drawer.tsx:320>)
+
+- [ ] **39 · P3｜必填星号有 29 处绕过 `RequiredMark`。** 已有 [required-mark.tsx](<E:/ppxb/continew-next/continew-ui-next/src/components/required-mark.tsx:1>)，但 client（8）、storage（9）、sms（5）、menu（3）、dept（3）、app-form（1）仍手写 `<span className="text-destructive">*</span>`。建议全部替换，避免样式调整时漏改。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:265](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:265>)；[storage/form-drawer.tsx:367](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/storage/form-drawer.tsx:367>)；[sms/form-drawer.tsx:243](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/sms/form-drawer.tsx:243>)
+
+- [ ] **40 · P3｜抽屉头与列表页脚手架大量重复。** 26 个抽屉复制同一段 `DrawerHeader` + 关闭按钮 + 宽度变量；17 个列表页复制全屏 spacer + `CardHeader/CardAction`。建议抽 `EntityDrawer` 和 `ListPageCard`，减少宽度、图标、关闭按钮的重复维护。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/file/-components/file-recycle-drawer.tsx:106](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/file/-components/file-recycle-drawer.tsx:106>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/user/-components/user-form-drawer.tsx:353](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/user/-components/user-form-drawer.tsx:353>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/menu-list.tsx:272](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/menu-list.tsx:272>)
+
+- [ ] **41 · P3｜空态、错态、加载态与重试入口不统一。** 6 个文件使用 `Empty`，15 张表使用纯 `span` 文案，`DictTable` 又有自定义空态；重试入口有 `Button variant="outline"`、`RetryHint` 的 link、原生下划线 button 三种；mail 还保留英文 `Loading mail...`。建议抽 `QueryState`/`EmptyState`，统一文案和重试规格。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/user/-components/user-table.tsx:66](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/user/-components/user-table.tsx:66>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/file/-components/file-recycle-drawer.tsx:162](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/file/-components/file-recycle-drawer.tsx:162>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/dict/-components/dict-table.tsx:29](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/dict/-components/dict-table.tsx:29>)；[retry-hint.tsx:8](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/retry-hint.tsx:8>)
+
+- [ ] **42 · P3｜查询函数普遍丢弃 TanStack Query 的 `AbortSignal`。** `http.ts` 支持 `RequestOptions.signal`，但 API 包装和 `queryFn` 都未使用；切换筛选、分页或关闭页面时旧请求仍会跑完，搜索类请求尤其明显。建议 API 层增加可选 `signal`，`queryFn: ({ signal }) => listX({ ..., signal })`。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/lib/http.ts:56](<E:/ppxb/continew-next/continew-ui-next/src/lib/http.ts:56>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/user/-components/user-list.tsx:65](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/user/-components/user-list.tsx:65>)；[notice-user-picker.tsx:38](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/notice/-components/notice-user-picker.tsx:38>)
+
+- [ ] **43 · P3｜发票预览滚动定位未节流。** 每次 `scroll` 都调用 `getBoundingClientRect()` 并 `setLayout`，DEV 下还在滚动回调里 `console.log`。建议用 rAF 合并，或改用 `ResizeObserver` 与滚动结束回调。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/dashboard/invoice/-components/use-visible-center-position.ts:19](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/dashboard/invoice/-components/use-visible-center-position.ts:19>)
+
+- [ ] **44 · P3｜部分抽屉关闭按钮没有可访问名称。** file-recycle、user-form、notice-form 的 `DrawerClose` 只有 `<X />`；menu-form、client form 则有 `sr-only` 文本。建议在共享抽屉头里统一处理。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/file/-components/file-recycle-drawer.tsx:111](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/file/-components/file-recycle-drawer.tsx:111>)；[user-form-drawer.tsx:358](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/user/-components/user-form-drawer.tsx:358>)；[notice-form-drawer.tsx:221](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/notice/-components/notice-form-drawer.tsx:221>)
+
+- [ ] **45 · P3｜地图加载失败没有界面反馈。** `catch` 只 `console.error`，失败后地图只剩背景色，没有错误态或重试；同时 div/svg/rect 三层使用同一背景色，属于冗余。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/dashboard/logistics/-components/shipment-route-map.tsx:156](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/dashboard/logistics/-components/shipment-route-map.tsx:156>)；[三层背景:171](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/dashboard/logistics/-components/shipment-route-map.tsx:171>)
+
+- [ ] **46 · P3｜登录成功后 `getUserInfo` 失败会留下半登录状态。** 登录先写 token 并置为 `authenticated`，再 `await loadUser()`；用户信息请求失败时只提示错误，token 仍保留，刷新后会带着 token 进入应用但权限为空。建议在 `loadUser()` 成功后再切换状态，失败时清 token。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/stores/auth/auth-store.ts:56](<E:/ppxb/continew-next/continew-ui-next/src/stores/auth/auth-store.ts:56>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/auth/-components/login-form.tsx:61](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/auth/-components/login-form.tsx:61>)
+
+- [ ] **47 · P3｜原生控件与 shadcn 控件混用。** 重试链接用原生下划线 button（user-role-select、user-form、user-assign-roles），短信复制用原生 button，checkable-tree 清空用原生 button，树展开按钮也是自定义 20px 控件。部分原生控件（图标格、卡片、文件名）是合理的，需逐项判断，不要机械替换。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/user/-components/user-role-select.tsx:77](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/user/-components/user-role-select.tsx:77>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/sms/columns.tsx:56](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/sms/columns.tsx:56>)；[E:/ppxb/continew-next/continew-ui-next/src/components/checkable-tree.tsx:96](<E:/ppxb/continew-next/continew-ui-next/src/components/checkable-tree.tsx:96>)
