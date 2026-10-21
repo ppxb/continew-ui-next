@@ -1,9 +1,9 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import { Eye, KeyRound, MoreHorizontal, Pen, ShieldCheck, Trash2 } from 'lucide-react'
 
+import { FlagBadge } from '@/components/data-badge'
 import { StatusCell } from '@/components/status-cell'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -138,7 +138,7 @@ export function createUserColumns(onAction: (action: UserAction, user: UserResp)
     {
       accessorKey: 'roleNames',
       header: '角色',
-      cell: ({ row }) => <RoleCell roleNames={row.original.roleNames ?? []} collapsed />
+      cell: ({ row }) => <RoleCell roleNames={row.original.roleNames ?? []} max={2} />
     },
     {
       accessorKey: 'phone',
@@ -155,9 +155,7 @@ export function createUserColumns(onAction: (action: UserAction, user: UserResp)
       header: '系统内置',
       cell: ({ row }) => (
         <div className="text-center">
-          <Badge variant={row.original.isSystem ? 'destructive' : 'secondary'} className="font-normal">
-            {row.original.isSystem ? '是' : '否'}
-          </Badge>
+          <FlagBadge active={row.original.isSystem} activeLabel="内置" inactiveLabel="自定义" />
         </div>
       )
     },

@@ -1,7 +1,18 @@
 import type { ColumnDef } from '@tanstack/react-table'
 
-import { ChevronRight, Folder, MoreHorizontal, PenLine, Plus, Trash2 } from 'lucide-react'
+import {
+  ChevronRight,
+  Database,
+  ExternalLink,
+  EyeOff,
+  Folder,
+  MoreHorizontal,
+  PenLine,
+  Plus,
+  Trash2
+} from 'lucide-react'
 
+import { BooleanCell, TypeBadge, type TypeTone } from '@/components/data-badge'
 import { StatusCell } from '@/components/status-cell'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -14,33 +25,21 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import type { MenuResp, MenuType } from '@/lib/api/menu'
+import { MENU_TYPE_MAP, type MenuResp, type MenuType } from '@/lib/api/menu'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 import { resolveMenuIcon } from '@/navigation/sidebar/menu-icons'
 import { cn } from 'cn'
 
 export type MenuAction = 'edit' | 'add-child' | 'delete'
 
-function MenuTypeBadge({ type }: { type: MenuType }) {
-  if (type === 1) {
-    return <Badge className="bg-sky-500/10 font-normal text-sky-700 dark:text-sky-300">目录</Badge>
-  }
-
-  if (type === 2) {
-    return <Badge className="bg-emerald-500/10 font-normal text-emerald-700 dark:text-emerald-300">菜单</Badge>
-  }
-
-  return <Badge className="bg-purple-500/10 font-normal text-purple-700 dark:text-purple-300">按钮</Badge>
+const MENU_TYPE_TONES: Record<MenuType, TypeTone> = {
+  1: 'blue',
+  2: 'teal',
+  3: 'violet'
 }
 
-function BooleanBadge({ value }: { value?: boolean }) {
-  const isTrue = Boolean(value)
-
-  if (isTrue) {
-    return <Badge className="bg-emerald-500/10 font-normal text-emerald-600 dark:text-emerald-400">是</Badge>
-  }
-
-  return <Badge className="bg-destructive/10 font-normal text-destructive dark:text-destructive">否</Badge>
+function MenuTypeBadge({ type }: { type: MenuType }) {
+  return <TypeBadge tone={MENU_TYPE_TONES[type]} label={MENU_TYPE_MAP[type]} />
 }
 
 function RowActions({
@@ -207,17 +206,17 @@ export function createMenuColumns({
     {
       accessorKey: 'isHidden',
       header: '隐藏',
-      cell: ({ row }) => <BooleanBadge value={row.original.isHidden} />
+      cell: ({ row }) => <BooleanCell active={row.original.isHidden} label="隐藏" icon={<EyeOff />} />
     },
     {
       accessorKey: 'isExternal',
       header: '外链',
-      cell: ({ row }) => <BooleanBadge value={row.original.isExternal} />
+      cell: ({ row }) => <BooleanCell active={row.original.isExternal} label="外链" icon={<ExternalLink />} />
     },
     {
       accessorKey: 'isCache',
       header: '缓存',
-      cell: ({ row }) => <BooleanBadge value={row.original.isCache} />
+      cell: ({ row }) => <BooleanCell active={row.original.isCache} label="缓存" icon={<Database />} />
     },
     {
       id: 'actions',

@@ -3,6 +3,7 @@ import * as React from 'react'
 import type { ColumnDef } from '@tanstack/react-table'
 import { Check, Copy, Eye, MoreHorizontal, PenLine, Trash2 } from 'lucide-react'
 
+import { FlagBadge, TypeBadge, type TypeTone } from '@/components/data-badge'
 import { StatusCell } from '@/components/status-cell'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -64,6 +65,13 @@ export const LOGOUT_MODE_MAP: Record<string, string> = {
   LOGOUT: '注销下线',
   KICKOUT: '踢人下线',
   REPLACED: '顶人下线'
+}
+
+const CLIENT_TYPE_TONES: Record<string, TypeTone> = {
+  PC: 'blue',
+  APP: 'teal',
+  MINI: 'amber',
+  WEB: 'violet'
 }
 
 export type ClientAction = 'detail' | 'edit' | 'delete'
@@ -221,7 +229,10 @@ export function createClientColumns(
       accessorKey: 'clientType',
       header: '客户端类型',
       cell: ({ row }) => (
-        <Badge variant="outline">{clientTypeMap[row.original.clientType] || row.original.clientType}</Badge>
+        <TypeBadge
+          tone={CLIENT_TYPE_TONES[row.original.clientType] ?? 'neutral'}
+          label={clientTypeMap[row.original.clientType] || row.original.clientType}
+        />
       )
     },
     {
@@ -276,9 +287,7 @@ export function createClientColumns(
       header: '多地登录',
       cell: ({ row }) => (
         <div className="text-center">
-          <Badge variant={row.original.isConcurrent ? 'default' : 'secondary'} className="font-normal">
-            {row.original.isConcurrent ? '允许' : '互斥'}
-          </Badge>
+          <FlagBadge active={row.original.isConcurrent} activeLabel="允许" inactiveLabel="互斥" />
         </div>
       )
     },

@@ -2,6 +2,7 @@ import type { ColumnDef } from '@tanstack/react-table'
 
 import { KeyRound, MoreHorizontal, PenLine, ShieldCheck, Trash2, Users } from 'lucide-react'
 
+import { FlagBadge, TypeBadge, type TypeTone } from '@/components/data-badge'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -13,27 +14,21 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { DATA_SCOPE_MAP, type RoleResp } from '@/lib/api/role'
+import { DATA_SCOPE_MAP, type DataScope, type RoleResp } from '@/lib/api/role'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 
 export type RoleAction = 'edit' | 'permission' | 'members' | 'delete'
 
+const DATA_SCOPE_TONES: Record<DataScope, TypeTone> = {
+  1: 'blue',
+  2: 'teal',
+  3: 'teal',
+  4: 'neutral',
+  5: 'violet'
+}
+
 function DataScopeBadge({ scope }: { scope: RoleResp['dataScope'] }) {
-  const label = DATA_SCOPE_MAP[scope] ?? '未知'
-
-  if (scope === 1) {
-    return <Badge className="bg-emerald-500/10 font-normal text-emerald-600 dark:text-emerald-400">{label}</Badge>
-  }
-
-  if (scope === 5) {
-    return <Badge className="bg-purple-500/10 font-normal text-purple-600 dark:text-purple-400">{label}</Badge>
-  }
-
-  return (
-    <Badge variant="secondary" className="font-normal">
-      {label}
-    </Badge>
-  )
+  return <TypeBadge tone={DATA_SCOPE_TONES[scope] ?? 'neutral'} label={DATA_SCOPE_MAP[scope] ?? '未知'} />
 }
 
 function RowActions({ role, onAction }: { role: RoleResp; onAction: (action: RoleAction, role: RoleResp) => void }) {
@@ -97,12 +92,7 @@ export function createRoleColumns(
         return (
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-foreground">{row.original.name}</span>
-            {isSystem && (
-              <Badge variant="outline">
-                <ShieldCheck />
-                内置
-              </Badge>
-            )}
+            <FlagBadge active={isSystem} activeLabel="内置" icon={<ShieldCheck />} />
           </div>
         )
       }

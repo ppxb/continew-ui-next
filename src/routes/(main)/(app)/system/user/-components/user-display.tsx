@@ -1,6 +1,5 @@
-import { Badge } from '@/components/ui/badge'
+import { TagList } from '@/components/data-badge'
 import type { UserResp } from '@/lib/api/user'
-import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 
 /** `GenderEnum` arrives as its numeric value. */
 const GENDER_LABELS: Record<number, string> = {
@@ -13,38 +12,6 @@ export function genderLabel(gender: UserResp['gender']) {
   return GENDER_LABELS[gender] ?? '未知'
 }
 
-interface RoleCellProps {
-  readonly roleNames: string[]
-  /**
-   * Collapse the list into one badge, as in `系统管理员 +3`.
-   *
-   * The table column turns this on: a user can carry many roles, and rendering every one of them
-   * wrapped the cell onto several lines. The detail drawer leaves it off, because showing the
-   * whole record is the point of that view.
-   */
-  readonly collapsed?: boolean
-}
-
-/** The role column, one badge per role unless it is asked to collapse. */
-export function RoleCell({ roleNames, collapsed = false }: RoleCellProps) {
-  if (!roleNames.length) {
-    return <span className="text-sm">{EMPTY_PLACEHOLDER}</span>
-  }
-
-  if (!collapsed) {
-    return (
-      <div className="flex flex-wrap gap-1">
-        {roleNames.map(roleName => (
-          <Badge key={roleName} variant="secondary">
-            {roleName}
-          </Badge>
-        ))}
-      </div>
-    )
-  }
-
-  const [firstRoleName, ...hiddenRoleNames] = roleNames
-  const label = hiddenRoleNames.length ? `${firstRoleName} +${hiddenRoleNames.length}` : firstRoleName
-
-  return <Badge variant="secondary">{label}</Badge>
+export function RoleCell({ roleNames, max }: { roleNames: string[]; max?: number }) {
+  return <TagList items={roleNames} max={max} />
 }

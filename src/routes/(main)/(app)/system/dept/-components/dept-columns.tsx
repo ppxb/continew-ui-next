@@ -2,8 +2,8 @@ import type { ColumnDef } from '@tanstack/react-table'
 
 import { Building2, ChevronRight, MoreHorizontal, PenLine, Plus, Trash2 } from 'lucide-react'
 
+import { FlagBadge } from '@/components/data-badge'
 import { StatusCell } from '@/components/status-cell'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -19,16 +19,6 @@ import type { DataTableFeatures } from '@/lib/data-table-features'
 import { cn } from 'cn'
 
 export type DeptAction = 'edit' | 'add-child' | 'delete'
-
-function SystemBadge({ value }: { value?: boolean }) {
-  const isSystem = Boolean(value)
-
-  if (isSystem) {
-    return <Badge className="bg-destructive/10 font-normal text-destructive dark:text-destructive">是</Badge>
-  }
-
-  return <Badge className="bg-muted font-normal text-muted-foreground">否</Badge>
-}
 
 function RowActions({
   dept,
@@ -156,7 +146,7 @@ export function createDeptColumns({
     {
       accessorKey: 'isSystem',
       header: '系统内置',
-      cell: ({ row }) => <SystemBadge value={row.original.isSystem} />
+      cell: ({ row }) => <FlagBadge active={row.original.isSystem} activeLabel="内置" inactiveLabel="自定义" />
     },
     {
       accessorKey: 'description',
