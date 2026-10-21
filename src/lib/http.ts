@@ -10,26 +10,21 @@ import {
   setTenantId
 } from './auth-session'
 
-/**
- * HTTP layer for the continew-admin API.
- *
- * Mirrors the official Vue client: the access token travels in the Authorization
- * header, the refresh token stays in the backend's HttpOnly cookie (so every
- * request is sent with credentials), a business failure arrives as HTTP 200 with
- * `success: false`, and an expired access token arrives as HTTP 401.
- */
-const API_PREFIX = import.meta.env.VITE_API_PREFIX
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ''
-const BASE_URL = (API_PREFIX || API_BASE_URL).replace(/\/+$/, '')
+const BASE_URL = (import.meta.env.VITE_API_PREFIX || import.meta.env.VITE_API_BASE_URL || '').replace(/\/+$/, '')
 const REQUEST_TIMEOUT_MS = 30_000
 
 const LOGIN_PATH = '/auth/login'
 const REFRESH_PATH = '/auth/refresh'
 const LOGOUT_PATH = '/auth/logout'
+const TENANT_FREE_PATHS = new Set([LOGIN_PATH, REFRESH_PATH, LOGOUT_PATH])
 
-const STATUS_MESSAGE: Record<number, string> = {
+const SESSION_EXPIRED_MESSAGE = '登录状态已失效，请重新登录'
+const SESSION_CHANGED_MESSAGE = '登录状态已变更，请重试'
+const NETWORK_ERROR_MESSAGE = '网络连接失败，请检查您的网络'
+
+const STATUS_MESSAGE: Partial<Record<number, string>> = {
   400: '请求错误（400）',
-  401: '登录状态已失效，请重新登录',
+  401: SESSION_EXPIRED_MESSAGE,
   403: '拒绝访问（403）',
   404: '请求出错（404）',
   408: '请求超时（408）',
@@ -39,11 +34,18 @@ const STATUS_MESSAGE: Record<number, string> = {
   504: '网络超时（504）'
 }
 
+type Query = Record<string, string | number | boolean | null | undefined>
+type ErrorDetails = { code?: string; status?: number }
+type MessagePayload = { msg?: string; message?: string }
+type RefreshState = { generation: number; promise: Promise<string> }
+type SessionExpiredHandler = (message: string) => void
+type ForbiddenHandler = () => void
+
 export class ApiError extends Error {
   readonly code?: string
   readonly status?: number
 
-  constructor(message: string, options: { code?: string; status?: number } = {}) {
+  constructor(message: string, options: ErrorDetails = {}) {
     super(message)
     this.name = 'ApiError'
     this.code = options.code
@@ -52,52 +54,50 @@ export class ApiError extends Error {
 }
 
 export interface RequestOptions extends Omit<RequestInit, 'body' | 'method'> {
-  /** JSON body, serialized automatically. */
   body?: unknown
-  /** Query parameters; null and undefined values are skipped. */
-  query?: Record<string, string | number | boolean | null | undefined>
-  /** Skip the refresh-and-retry flow when the request answers 401. */
+  query?: Query
   skipAuthRefresh?: boolean
-  /** Let the caller handle the failure instead of showing a toast. */
   silent?: boolean
 }
-
-type SessionExpiredHandler = (message: string) => void
-type ForbiddenHandler = () => void
 
 let sessionExpiredHandler: SessionExpiredHandler | null = null
 let forbiddenHandler: ForbiddenHandler | null = null
 let sessionExpiredNotified = false
-let refreshPromise: Promise<string> | null = null
+let refreshState: RefreshState | null = null
 
-/** Registers the callback used once the session can no longer be recovered. */
+const timeoutSignal = () => AbortSignal.timeout(REQUEST_TIMEOUT_MS)
+
 export function setSessionExpiredHandler(handler: SessionExpiredHandler | null) {
   sessionExpiredHandler = handler
 }
 
-/** Registers the callback used when the backend rejects a request with 403. */
 export function setForbiddenHandler(handler: ForbiddenHandler | null) {
   forbiddenHandler = handler
 }
 
-function notifyError(message: string) {
-  toast.add({ title: message, type: 'error' })
+function messageOf(payload: MessagePayload | null | undefined, fallback: string) {
+  return payload?.msg || payload?.message || fallback
 }
 
-function fail(message: string, options: { code?: string; status?: number } = {}, silent = false) {
+function fail(message: string, options: ErrorDetails = {}, silent = false) {
   if (!silent) {
-    notifyError(message)
+    toast.add({ title: message, type: 'error' })
   }
 
   return new ApiError(message, options)
 }
 
-/** Auth endpoints must not carry the tenant header. */
-function isTenantIndependentPath(path: string) {
-  return path === LOGIN_PATH || path === REFRESH_PATH || path === LOGOUT_PATH
+function sessionChangedError() {
+  return new ApiError(SESSION_CHANGED_MESSAGE, { code: 'SESSION_CHANGED', status: 401 })
 }
 
-function buildUrl(path: string, query?: RequestOptions['query']) {
+function assertGeneration(generation: number) {
+  if (generation !== getAuthGeneration()) {
+    throw sessionChangedError()
+  }
+}
+
+function buildUrl(path: string, query?: Query) {
   const url = `${BASE_URL}${path}`
 
   if (!query) {
@@ -105,11 +105,11 @@ function buildUrl(path: string, query?: RequestOptions['query']) {
   }
 
   const search = new URLSearchParams()
+
   for (const [key, value] of Object.entries(query)) {
-    if (value === null || value === undefined) {
-      continue
+    if (value !== null && value !== undefined) {
+      search.set(key, String(value))
     }
-    search.set(key, String(value))
   }
 
   const queryString = search.toString()
@@ -119,7 +119,7 @@ function buildUrl(path: string, query?: RequestOptions['query']) {
 function buildHeaders(path: string, hasBody: boolean, extra?: HeadersInit, isFormData = false) {
   const headers = new Headers(extra)
 
-  if (hasBody && !headers.has('Content-Type') && !isFormData) {
+  if (hasBody && !isFormData && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json')
   }
 
@@ -129,74 +129,113 @@ function buildHeaders(path: string, hasBody: boolean, extra?: HeadersInit, isFor
   }
 
   const tenantId = getTenantId()
-  if (tenantId && !isTenantIndependentPath(path)) {
+  if (tenantId && !TENANT_FREE_PATHS.has(path)) {
     headers.set('X-Tenant-Id', tenantId)
   }
 
   return headers
 }
 
-async function readPayload<T>(response: Response): Promise<ApiResponse<T> | null> {
+async function readPayload<T>(response: Response) {
   return (await response.json().catch(() => null)) as ApiResponse<T> | null
 }
 
-async function performRefresh(): Promise<string> {
+async function performRefresh(generation: number): Promise<string> {
   const response = await fetch(buildUrl(REFRESH_PATH), {
     method: 'POST',
     credentials: 'include',
     headers: buildHeaders(REFRESH_PATH, false),
-    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS)
+    signal: timeoutSignal()
   })
   const payload = await readPayload<LoginResp>(response)
   const accessToken = payload?.data?.accessToken
 
   if (!response.ok || !payload?.success || !accessToken) {
-    throw new ApiError(payload?.msg || (payload as { message?: string })?.message || '登录状态已失效，请重新登录', {
-      status: response.status
-    })
+    throw new ApiError(messageOf(payload, SESSION_EXPIRED_MESSAGE), { status: response.status })
   }
 
+  assertGeneration(generation)
   setAccessToken(accessToken)
   setTenantId(payload.data.tenantId ?? null)
   return accessToken
 }
 
-/** Single-flight refresh so concurrent 401s cannot rotate the token twice. */
-function refreshAccessToken(): Promise<string> {
-  if (!refreshPromise) {
-    refreshPromise = performRefresh().finally(() => {
-      refreshPromise = null
-    })
+function refreshAccessToken(generation: number): Promise<string> {
+  if (generation !== getAuthGeneration()) {
+    return Promise.reject(sessionChangedError())
   }
 
-  return refreshPromise
+  if (refreshState?.generation === generation) {
+    return refreshState.promise
+  }
+
+  const state: RefreshState = {
+    generation,
+    promise: performRefresh(generation)
+  }
+
+  state.promise = state.promise.finally(() => {
+    if (refreshState === state) {
+      refreshState = null
+    }
+  })
+  refreshState = state
+  return state.promise
 }
 
-async function handleSessionExpired(failedGeneration: number, message: string) {
-  if (failedGeneration !== getAuthGeneration() || sessionExpiredNotified) {
+async function handleSessionExpired(generation: number, message: string) {
+  if (generation !== getAuthGeneration()) {
+    throw sessionChangedError()
+  }
+
+  if (sessionExpiredNotified) {
     return
   }
 
   sessionExpiredNotified = true
   clearSession()
+  const clearedGeneration = getAuthGeneration()
 
-  // Ask the backend to drop the HttpOnly refresh cookie; a failure is not fatal.
-  try {
-    await fetch(buildUrl(LOGOUT_PATH), {
-      method: 'POST',
-      credentials: 'include',
-      headers: buildHeaders(LOGOUT_PATH, false)
-    })
-  } catch {
-    // Ignore: the local session is already cleared.
+  await fetch(buildUrl(LOGOUT_PATH), {
+    method: 'POST',
+    credentials: 'include',
+    headers: buildHeaders(LOGOUT_PATH, false),
+    signal: timeoutSignal()
+  }).catch(() => undefined)
+
+  if (getAuthGeneration() !== clearedGeneration) {
+    throw sessionChangedError()
   }
 
   sessionExpiredHandler?.(message)
 }
 
-async function send<T>(method: string, path: string, options: RequestOptions, isRetry: boolean): Promise<T> {
+async function renewSession(generation: number) {
+  assertGeneration(generation)
+
+  try {
+    await refreshAccessToken(generation)
+  } catch (error) {
+    assertGeneration(generation)
+
+    const message = error instanceof ApiError ? error.message : SESSION_EXPIRED_MESSAGE
+    await handleSessionExpired(generation, message)
+    throw error
+  }
+
+  assertGeneration(generation)
+}
+
+async function send<T>(
+  method: string,
+  path: string,
+  options: RequestOptions = {},
+  isRetry = false,
+  generation = getAuthGeneration()
+): Promise<T> {
+  assertGeneration(generation)
+
   const { body, query, skipAuthRefresh, silent, headers, ...init } = options
-  const generation = getAuthGeneration()
   const isFormData = typeof FormData !== 'undefined' && body instanceof FormData
 
   let response: Response
@@ -207,42 +246,32 @@ async function send<T>(method: string, path: string, options: RequestOptions, is
       credentials: 'include',
       headers: buildHeaders(path, body !== undefined, headers, isFormData),
       body: body === undefined ? undefined : isFormData ? body : JSON.stringify(body),
-      signal: init.signal ?? AbortSignal.timeout(REQUEST_TIMEOUT_MS)
+      signal: init.signal ?? timeoutSignal()
     })
   } catch {
-    throw fail('网络连接失败，请检查您的网络', {}, silent)
+    throw fail(NETWORK_ERROR_MESSAGE, {}, silent)
   }
 
   if (response.status === 401) {
     if (skipAuthRefresh || path === REFRESH_PATH || isRetry || !getAccessToken()) {
+      assertGeneration(generation)
       const payload = await readPayload<T>(response)
-      const message = payload?.msg || (payload as { message?: string })?.message || '登录状态已失效，请重新登录'
+      const message = messageOf(payload, SESSION_EXPIRED_MESSAGE)
+
       await handleSessionExpired(generation, message)
       throw fail(message, { status: 401 }, silent)
     }
 
-    try {
-      await refreshAccessToken()
-    } catch (error) {
-      const message = error instanceof ApiError ? error.message : '登录状态已失效，请重新登录'
-      await handleSessionExpired(generation, message)
-      throw error
-    }
-
-    return send<T>(method, path, options, true)
+    await renewSession(generation)
+    return send<T>(method, path, options, true, generation)
   }
 
   if (response.status === 403) {
-    // The backend rejected the permission; the toast below explains why.
     forbiddenHandler?.()
   }
 
   const payload = await readPayload<T>(response)
-  const message =
-    payload?.msg ||
-    (payload as { message?: string } | null)?.message ||
-    STATUS_MESSAGE[response.status] ||
-    `请求失败（${response.status}）`
+  const message = messageOf(payload, STATUS_MESSAGE[response.status] ?? `请求失败（${response.status}）`)
 
   if (!payload) {
     throw fail(message, { status: response.status }, silent)
@@ -259,16 +288,6 @@ async function send<T>(method: string, path: string, options: RequestOptions, is
   return payload.data
 }
 
-export function request<T>(method: string, path: string, options: RequestOptions = {}): Promise<T> {
-  return send<T>(method, path, options, false)
-}
-
-/**
- * Reads the filename from a `Content-Disposition` header.
- *
- * The backend percent-encodes the name into the plain, unquoted `filename` parameter and
- * never sends `filename*`, so the value has to be decoded before it can be used.
- */
 function readDownloadFilename(header: string | null) {
   if (!header) {
     return null
@@ -283,45 +302,28 @@ function readDownloadFilename(header: string | null) {
   try {
     return decodeURIComponent(raw)
   } catch {
-    // A name that is not percent-encoded, or is malformed, is used as-is.
     return raw
   }
 }
 
-/** One authenticated request for a file endpoint. */
-async function fetchDownload(path: string, query?: RequestOptions['query']) {
+async function fetchDownload(path: string, query?: Query) {
   try {
     return await fetch(buildUrl(path, query), {
       credentials: 'include',
       headers: buildHeaders(path, false),
-      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS)
+      signal: timeoutSignal()
     })
   } catch {
-    throw fail('网络连接失败，请检查您的网络')
+    throw fail(NETWORK_ERROR_MESSAGE)
   }
 }
 
-/**
- * Downloads an endpoint's file response.
- *
- * File endpoints answer outside the JSON envelope, so this cannot go through `request()`;
- * it only reuses the URL and header builders. The backend names the file in
- * `Content-Disposition`.
- */
-export async function downloadFile(path: string, query?: RequestOptions['query']) {
+export async function downloadFile(path: string, query?: Query) {
   const generation = getAuthGeneration()
   let response = await fetchDownload(path, query)
 
-  // File endpoints need the same expired-token recovery as JSON ones.
   if (response.status === 401) {
-    try {
-      await refreshAccessToken()
-    } catch (error) {
-      const message = error instanceof ApiError ? error.message : '登录状态已失效，请重新登录'
-      await handleSessionExpired(generation, message)
-      throw error
-    }
-
+    await renewSession(generation)
     response = await fetchDownload(path, query)
   }
 
@@ -330,17 +332,12 @@ export async function downloadFile(path: string, query?: RequestOptions['query']
   }
 
   if (!response.ok) {
-    throw fail(STATUS_MESSAGE[response.status] || `下载失败（${response.status}）`, { status: response.status })
+    throw fail(STATUS_MESSAGE[response.status] ?? `下载失败（${response.status}）`, { status: response.status })
   }
 
-  // A failed export resets the response and answers with the JSON envelope instead of a
-  // file, so a JSON content type means there is an error message to surface.
   if (response.headers.get('Content-Type')?.includes('application/json')) {
     const payload = await readPayload<unknown>(response)
-    throw fail(payload?.msg || (payload as { message?: string })?.message || '导出失败', {
-      code: payload?.code,
-      status: response.status
-    })
+    throw fail(messageOf(payload, '导出失败'), { code: payload?.code, status: response.status })
   }
 
   const url = URL.createObjectURL(await response.blob())
@@ -350,14 +347,13 @@ export async function downloadFile(path: string, query?: RequestOptions['query']
   document.body.append(anchor)
   anchor.click()
   anchor.remove()
-  // Revoking in the same tick can cancel the download in some browsers.
   setTimeout(() => URL.revokeObjectURL(url), 0)
 }
 
 export const http = {
-  get: <T>(path: string, options?: RequestOptions) => request<T>('GET', path, options),
-  post: <T>(path: string, body?: unknown, options?: RequestOptions) => request<T>('POST', path, { ...options, body }),
-  put: <T>(path: string, body?: unknown, options?: RequestOptions) => request<T>('PUT', path, { ...options, body }),
-  patch: <T>(path: string, body?: unknown, options?: RequestOptions) => request<T>('PATCH', path, { ...options, body }),
-  del: <T>(path: string, options?: RequestOptions) => request<T>('DELETE', path, options)
+  get: <T>(path: string, options?: RequestOptions) => send<T>('GET', path, options),
+  post: <T>(path: string, body?: unknown, options?: RequestOptions) => send<T>('POST', path, { ...options, body }),
+  put: <T>(path: string, body?: unknown, options?: RequestOptions) => send<T>('PUT', path, { ...options, body }),
+  patch: <T>(path: string, body?: unknown, options?: RequestOptions) => send<T>('PATCH', path, { ...options, body }),
+  del: <T>(path: string, options?: RequestOptions) => send<T>('DELETE', path, options)
 }

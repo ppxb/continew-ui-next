@@ -103,6 +103,7 @@ export function setTenantId(value: string | number | null) {
 /** Stores a freshly created session. `persist` keeps it across browser restarts. */
 export function setSession(next: { accessToken: string; tenantId?: string | number | null; persist?: boolean }) {
   const persist = next.persist ?? true
+  authGeneration += 1
   accessToken = next.accessToken
   tenantId = next.tenantId === null || next.tenantId === undefined ? null : String(next.tenantId)
   writeStored(ACCESS_TOKEN_KEY, accessToken, persist)
