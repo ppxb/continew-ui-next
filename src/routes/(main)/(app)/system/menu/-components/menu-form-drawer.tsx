@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button'
 import { Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
 import { Switch } from '@/components/ui/switch'
@@ -20,9 +22,7 @@ import { cn } from 'cn'
 
 import { MenuParentSelect } from './menu-parent-select'
 
-const IconPicker = React.lazy(() =>
-  import('./icon-picker').then(mod => ({ default: mod.IconPicker }))
-)
+const IconPicker = React.lazy(() => import('./icon-picker').then(mod => ({ default: mod.IconPicker })))
 
 const formSchema = z
   .object({
@@ -80,6 +80,37 @@ const DEFAULT_FORM_VALUES: FormValues = {
   isCache: false,
   isHidden: false
 }
+
+/** Menu types keep their accent colour, while the radio dot carries the checked state on its own. */
+const MENU_TYPE_OPTIONS = [
+  {
+    value: 1,
+    label: '目录',
+    icon: Folder,
+    selectedClass: cn(
+      'has-data-checked:border-sky-500/50 has-data-checked:bg-sky-500/10 has-data-checked:shadow-2xs',
+      'has-data-checked:text-sky-700 dark:has-data-checked:text-sky-300'
+    )
+  },
+  {
+    value: 2,
+    label: '菜单',
+    icon: FileText,
+    selectedClass: cn(
+      'has-data-checked:border-emerald-500/50 has-data-checked:bg-emerald-500/10 has-data-checked:shadow-2xs',
+      'has-data-checked:text-emerald-700 dark:has-data-checked:text-emerald-300'
+    )
+  },
+  {
+    value: 3,
+    label: '按钮',
+    icon: MousePointerClick,
+    selectedClass: cn(
+      'has-data-checked:border-purple-500/50 has-data-checked:bg-purple-500/10 has-data-checked:shadow-2xs',
+      'has-data-checked:text-purple-700 dark:has-data-checked:text-purple-300'
+    )
+  }
+] as const
 
 interface MenuFormDrawerProps {
   readonly menuId: string | number | null
@@ -255,70 +286,31 @@ export function MenuFormDrawer({ menuId, defaultParentId, open, onClose, menuTre
                     return (
                       <Field className="gap-1.5">
                         <FieldLabel>菜单类型</FieldLabel>
-                        <div className="grid grid-cols-3 gap-2">
-                          <button
-                            type="button"
-                            disabled={isTypeDisabled}
-                            onClick={() => !isTypeDisabled && field.handleChange(1)}
-                            className={cn(
-                              'flex items-center justify-center gap-2 rounded-lg border p-2.5 text-xs font-medium transition-colors',
-                              field.state.value === 1
-                                ? cn(
-                                    'border-sky-500/50 bg-sky-500/10 text-sky-700 shadow-2xs dark:text-sky-300',
-                                    isTypeDisabled && 'opacity-60'
-                                  )
-                                : isTypeDisabled
-                                  ? 'border-border/40 bg-muted/20 text-muted-foreground/40 opacity-50'
-                                  : 'border-border/60 bg-muted/30 text-muted-foreground hover:bg-muted/60 hover:text-foreground',
-                              isTypeDisabled && 'pointer-events-none'
-                            )}
-                          >
-                            <Folder className="size-4 shrink-0" />
-                            <span>目录</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            disabled={isTypeDisabled}
-                            onClick={() => !isTypeDisabled && field.handleChange(2)}
-                            className={cn(
-                              'flex items-center justify-center gap-2 rounded-lg border p-2.5 text-xs font-medium transition-colors',
-                              field.state.value === 2
-                                ? cn(
-                                    'border-emerald-500/50 bg-emerald-500/10 text-emerald-700 shadow-2xs dark:text-emerald-300',
-                                    isTypeDisabled && 'opacity-60'
-                                  )
-                                : isTypeDisabled
-                                  ? 'border-border/40 bg-muted/20 text-muted-foreground/40 opacity-50'
-                                  : 'border-border/60 bg-muted/30 text-muted-foreground hover:bg-muted/60 hover:text-foreground',
-                              isTypeDisabled && 'pointer-events-none'
-                            )}
-                          >
-                            <FileText className="size-4 shrink-0" />
-                            <span>菜单</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            disabled={isTypeDisabled}
-                            onClick={() => !isTypeDisabled && field.handleChange(3)}
-                            className={cn(
-                              'flex items-center justify-center gap-2 rounded-lg border p-2.5 text-xs font-medium transition-colors',
-                              field.state.value === 3
-                                ? cn(
-                                    'border-purple-500/50 bg-purple-500/10 text-purple-700 shadow-2xs dark:text-purple-300',
-                                    isTypeDisabled && 'opacity-60'
-                                  )
-                                : isTypeDisabled
-                                  ? 'border-border/40 bg-muted/20 text-muted-foreground/40 opacity-50'
-                                  : 'border-border/60 bg-muted/30 text-muted-foreground hover:bg-muted/60 hover:text-foreground',
-                              isTypeDisabled && 'pointer-events-none'
-                            )}
-                          >
-                            <MousePointerClick className="size-4 shrink-0" />
-                            <span>按钮</span>
-                          </button>
-                        </div>
+                        <RadioGroup
+                          value={String(field.state.value)}
+                          onValueChange={value => field.handleChange(Number(value) as FormValues['type'])}
+                          disabled={isTypeDisabled}
+                          className="grid grid-cols-3 gap-2"
+                        >
+                          {MENU_TYPE_OPTIONS.map(option => (
+                            <Label
+                              key={option.value}
+                              className={cn(
+                                'flex w-full items-center justify-center gap-2 rounded-lg border p-2.5 text-xs font-medium transition-colors',
+                                'border-border/60 bg-muted/30 text-muted-foreground',
+                                'has-[:focus-visible]:border-ring has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ring/50',
+                                isTypeDisabled
+                                  ? 'cursor-not-allowed opacity-50'
+                                  : 'cursor-pointer hover:bg-muted/60 hover:text-foreground',
+                                option.selectedClass
+                              )}
+                            >
+                              <RadioGroupItem value={String(option.value)} className="absolute size-0 opacity-0" />
+                              <option.icon className="size-4 shrink-0" />
+                              <span>{option.label}</span>
+                            </Label>
+                          ))}
+                        </RadioGroup>
                         {isEdit && (
                           <FieldDescription className="text-muted-foreground">
                             编辑菜单时不支持修改菜单类型
@@ -432,7 +424,9 @@ export function MenuFormDrawer({ menuId, defaultParentId, open, onClose, menuTre
                               aria-invalid={invalid}
                             />
                             <FieldDescription>
-                              {isExternal ? '外部网页完整链接，以 http:// 或 https:// 开头' : '访问的前端路由路径，以 / 开头'}
+                              {isExternal
+                                ? '外部网页完整链接，以 http:// 或 https:// 开头'
+                                : '访问的前端路由路径，以 / 开头'}
                             </FieldDescription>
                             <FieldError errors={field.state.meta.errors} />
                           </Field>
@@ -583,7 +577,9 @@ export function MenuFormDrawer({ menuId, defaultParentId, open, onClose, menuTre
                       <FieldContent>
                         <FieldLabel>菜单状态</FieldLabel>
                         <FieldDescription>
-                          {field.state.value === 1 ? '启用状态，正常在系统导航与权限中生效' : '禁用状态，该菜单及按钮将不可用'}
+                          {field.state.value === 1
+                            ? '启用状态，正常在系统导航与权限中生效'
+                            : '禁用状态，该菜单及按钮将不可用'}
                         </FieldDescription>
                       </FieldContent>
                       <Switch

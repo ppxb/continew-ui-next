@@ -3,7 +3,7 @@
 > 最后同步：2026-10-21。原始 35 条全部保留；新增 12 条（36–47）。另有 11、13、27、28、31 按复查结果扩面，不另计条目。  
 > 状态：`[x]` 已修复；`[ ]` 待处理。
 
-共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 24 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
+共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 23 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
 
 本次为静态审计，覆盖业务管理页、共享组件、请求与状态层，以及部分仪表盘页面；未进行运行时性能测试。原生 HTML、必要的异常处理和合理的 `className` 扩展本身不算问题。文件行号对应当前代码。
 
@@ -68,8 +68,8 @@
 - [x] **20 · P2｜短信配置复制操作未完成就提示成功。［已修复 2026-10-21］** Access Key 单元格改为复用 `CopyableText`：`await navigator.clipboard.writeText()` + `try/catch`，成功显示打勾反馈，失败提示「复制失败，请手动选择」，不再提前弹成功 toast；原生 `<button>` 一并换成 `Button` + `Tooltip`。为保留单元格的截断样式，`CopyableText` 增加可选 `className`（仅作用于值文本）。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/sms/columns.tsx:52](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/sms/columns.tsx:52>)；[E:/ppxb/continew-next/continew-ui-next/src/components/copyable-text.tsx:14](<E:/ppxb/continew-next/continew-ui-next/src/components/copyable-text.tsx:14>)
 
-- [ ] **21 · P2｜菜单类型用三个原生按钮手写单选控件。** 选中状态仅通过颜色表达，缺少单选组语义及对应键盘行为，同时复制了三套条件样式。适合使用现有 RadioGroup 或单选 ToggleGroup。  
-  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/menu-form-drawer.tsx:226](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/menu-form-drawer.tsx:226>)
+- [x] **21 · P2｜菜单类型用三个原生按钮手写单选控件。［已修复 2026-10-21］** 改为 shadcn `RadioGroup` + 每项 `Label`（整块可点）：radiogroup/radio 语义、`aria-checked`、方向键切换与单一 Tab 停靠点由 Base UI 提供；单选控件本体 `absolute size-0 opacity-0`（不显示也不占位），键盘聚焦时整块卡片显示 focus ring；三项收进 `MENU_TYPE_OPTIONS` 常量映射，重复的三套条件样式只剩各自色板；编辑态整组 `disabled`，不再用 `pointer-events-none` 伪造禁用。选中态视觉上仍以配色区分。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/menu-form-drawer.tsx:291](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/menu-form-drawer.tsx:291>)
 
 - [ ] **22 · P2｜图标清除控件嵌套在另一个按钮内。** DialogTrigger 的 Button 内部又放置可聚焦的 `span role="button"`；只处理 Enter，没有 Space，还把键盘事件强转为鼠标事件。应拆成独立清除按钮。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/icon-picker.tsx:492](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/icon-picker.tsx:492>)
