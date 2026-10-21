@@ -3,7 +3,7 @@
 > 最后同步：2026-10-21。原始 35 条全部保留；新增 12 条（36–47）。另有 11、13、27、28、31 按复查结果扩面，不另计条目。  
 > 状态：`[x]` 已修复；`[ ]` 待处理。
 
-共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 35 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
+共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 34 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
 
 本次为静态审计，覆盖业务管理页、共享组件、请求与状态层，以及部分仪表盘页面；未进行运行时性能测试。原生 HTML、必要的异常处理和合理的 `className` 扩展本身不算问题。文件行号对应当前代码。
 
@@ -34,7 +34,7 @@
 - [x] **09 · P2｜客户端详情加载失败后仍显示可提交的默认表单。［已修复 2026-10-21］** 增加详情错误分支：失败时只渲染「加载失败，请稍后重试」，表单不再出现，默认值无法提交到现有记录。client 与 sms 抽屉已统一。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:142](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:142>)
 
-- [ ] **10 · P2｜清空有效期输入框会被自动转换成“不限制”。** `valueAsNumber` 为 `NaN` 时直接写入 `-1`，而 `-1` 表示永不过期等业务含义。同类转换还在 `activeTimeout`、`maxLoginCount`；`refreshTokenTimeout` 则转成 `0`，由最小 60 校验拦截。应保留空值并校验。  
+- [x] **10 · P2｜清空有效期输入框会被自动转换成“不限制”。［已修复 2026-10-21］** `activeTimeout`、`timeout`、`refreshTokenTimeout`、`maxLoginCount` 改为以文本保存（`integerText`），清空后保持为空而不是被写成 `-1`/`0`；提交时再 `Number()` 转换。`-1` 仍是合法业务值，空值由字段校验报「请输入有效整数」。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:369](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:369>)；[activeTimeout:334](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:334>)；[maxLoginCount:531](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:531>)
 
 - [ ] **11 · P2｜保存失败会重复弹出错误提示。［复查扩面］** HTTP 层已经 toast；至少 10 个 mutation 的 `onError` 再次 toast，`useOptionForm` 的保存/恢复也会重复。应统一错误提示的负责层，或显式使用 `silent`。  

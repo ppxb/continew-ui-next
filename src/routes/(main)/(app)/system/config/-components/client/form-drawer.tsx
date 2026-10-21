@@ -23,25 +23,37 @@ import { clientKeys } from '@/lib/query-keys'
 import { ClientAuthTypeSelect } from './auth-type-select'
 import { AUTH_TYPE_OPTIONS, LOGOUT_MODE_PRESETS, REFRESH_TOKEN_MODE_OPTIONS, REPLACED_RANGE_PRESETS } from './columns'
 
+const INTEGER_TEXT_PATTERN = /^-?\d+$/
+
+/**
+ * These four numbers are edited as text so that emptying a box leaves it empty. Storing a number
+ * made `valueAsNumber` return `NaN`, which the previous code replaced with `-1` — a real business
+ * value ("unlimited" / "never expires"), so clearing a field silently changed what would be saved.
+ */
+const integerText = z.string().trim().regex(INTEGER_TEXT_PATTERN, '请输入有效整数')
+
+/** `null` when the text is not an integer yet; `-1` stays a real, valid value. */
+const toNumber = (text: string) => (INTEGER_TEXT_PATTERN.test(text.trim()) ? Number(text) : null)
+
 const clientFormSchema = z
   .object({
     clientType: z.string().min(1, '请选择客户端类型'),
     authType: z.array(z.string()).min(1, '请至少选择一种认证类型'),
-    activeTimeout: z.number().int({ message: '请输入有效整数' }),
-    timeout: z.number().int({ message: '请输入有效整数' }),
-    refreshTokenTimeout: z
-      .number()
-      .int({ message: '请输入有效整数' })
-      .min(60, 'Refresh Token 有效期不能少于 60 秒')
-      .max(315360000, 'Refresh Token 有效期不能超过 10 年'),
+    activeTimeout: integerText,
+    timeout: integerText,
+    refreshTokenTimeout: integerText
+      .refine(value => Number(value) >= 60, 'Refresh Token 有效期不能少于 60 秒')
+      .refine(value => Number(value) <= 315360000, 'Refresh Token 有效期不能超过 10 年'),
     refreshTokenMode: z.string().min(1, '请选择 Refresh Token 传输模式'),
     isConcurrent: z.boolean(),
     replacedRange: z.string().optional(),
-    maxLoginCount: z.number().int({ message: '请输入有效整数' }),
+    maxLoginCount: integerText,
     overflowLogoutMode: z.string().optional(),
     status: z.number().int().min(1).max(2)
   })
   .superRefine((data, ctx) => {
+    const maxLoginCount = toNumber(data.maxLoginCount)
+
     if (!data.isConcurrent && !data.replacedRange) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -49,14 +61,14 @@ const clientFormSchema = z
         message: '不允许并发登录时必须选择顶人下线的范围'
       })
     }
-    if (data.isConcurrent && data.maxLoginCount !== -1 && !data.overflowLogoutMode) {
+    if (data.isConcurrent && maxLoginCount !== null && maxLoginCount !== -1 && !data.overflowLogoutMode) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['overflowLogoutMode'],
         message: '设置最大登录数量时必须选择溢出人数的下线方式'
       })
     }
-    if (data.isConcurrent && data.maxLoginCount <= 0 && data.maxLoginCount !== -1) {
+    if (data.isConcurrent && maxLoginCount !== null && maxLoginCount <= 0 && maxLoginCount !== -1) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['maxLoginCount'],
@@ -70,13 +82,13 @@ type ClientFormValues = z.infer<typeof clientFormSchema>
 const DEFAULT_FORM_VALUES: ClientFormValues = {
   clientType: 'PC',
   authType: ['ACCOUNT'],
-  activeTimeout: 1800,
-  timeout: 86400,
-  refreshTokenTimeout: 2592000,
+  activeTimeout: '1800',
+  timeout: '86400',
+  refreshTokenTimeout: '2592000',
   refreshTokenMode: 'COOKIE',
   isConcurrent: true,
   replacedRange: undefined,
-  maxLoginCount: -1,
+  maxLoginCount: '-1',
   overflowLogoutMode: undefined,
   status: 1
 }
@@ -140,14 +152,15 @@ export function ClientFormDrawer({
       const payload: ClientReq = {
         clientType: value.clientType,
         authType: value.authType,
-        activeTimeout: value.activeTimeout,
-        timeout: value.timeout,
-        refreshTokenTimeout: value.refreshTokenTimeout,
+        activeTimeout: Number(value.activeTimeout),
+        timeout: Number(value.timeout),
+        refreshTokenTimeout: Number(value.refreshTokenTimeout),
         refreshTokenMode: value.refreshTokenMode,
         isConcurrent: value.isConcurrent,
         replacedRange: value.isConcurrent ? undefined : value.replacedRange,
-        maxLoginCount: value.isConcurrent ? value.maxLoginCount : -1,
-        overflowLogoutMode: value.isConcurrent && value.maxLoginCount !== -1 ? value.overflowLogoutMode : undefined,
+        maxLoginCount: value.isConcurrent ? Number(value.maxLoginCount) : -1,
+        overflowLogoutMode:
+          value.isConcurrent && Number(value.maxLoginCount) !== -1 ? value.overflowLogoutMode : undefined,
         status: value.status as 1 | 2
       }
 
@@ -208,13 +221,13 @@ export function ClientFormDrawer({
       {
         clientType: clientDetail.clientType,
         authType: clientDetail.authType || ['ACCOUNT'],
-        activeTimeout: clientDetail.activeTimeout ?? 1800,
-        timeout: clientDetail.timeout ?? 86400,
-        refreshTokenTimeout: clientDetail.refreshTokenTimeout ?? 2592000,
+        activeTimeout: String(clientDetail.activeTimeout ?? 1800),
+        timeout: String(clientDetail.timeout ?? 86400),
+        refreshTokenTimeout: String(clientDetail.refreshTokenTimeout ?? 2592000),
         refreshTokenMode: clientDetail.refreshTokenMode ?? 'COOKIE',
         isConcurrent: clientDetail.isConcurrent ?? true,
         replacedRange: clientDetail.replacedRange || undefined,
-        maxLoginCount: clientDetail.maxLoginCount ?? -1,
+        maxLoginCount: String(clientDetail.maxLoginCount ?? -1),
         overflowLogoutMode: clientDetail.overflowLogoutMode || undefined,
         status: clientDetail.status ?? 1
       },
@@ -229,12 +242,14 @@ export function ClientFormDrawer({
       return
     }
 
-    form.setFieldValue('maxLoginCount', -1)
+    form.setFieldValue('maxLoginCount', '-1')
     form.setFieldValue('overflowLogoutMode', undefined)
   }, [isConcurrent, form])
 
   React.useEffect(() => {
-    if (maxLoginCount === -1 || maxLoginCount === 0) {
+    const count = Number(maxLoginCount)
+
+    if (count === -1 || count === 0) {
       form.setFieldValue('overflowLogoutMode', undefined)
     }
   }, [maxLoginCount, form])
@@ -380,9 +395,7 @@ export function ClientFormDrawer({
                             name="activeTimeout"
                             type="number"
                             value={field.state.value}
-                            onChange={e =>
-                              field.handleChange(Number.isNaN(e.target.valueAsNumber) ? -1 : e.target.valueAsNumber)
-                            }
+                            onChange={event => field.handleChange(event.target.value)}
                             onBlur={field.handleBlur}
                             disabled={isSubmitting}
                             className="pr-10"
@@ -420,9 +433,7 @@ export function ClientFormDrawer({
                             name="timeout"
                             type="number"
                             value={field.state.value}
-                            onChange={e =>
-                              field.handleChange(Number.isNaN(e.target.valueAsNumber) ? -1 : e.target.valueAsNumber)
-                            }
+                            onChange={event => field.handleChange(event.target.value)}
                             onBlur={field.handleBlur}
                             disabled={isSubmitting}
                             className="pr-10"
@@ -462,10 +473,8 @@ export function ClientFormDrawer({
                           <Input
                             name="refreshTokenTimeout"
                             type="number"
-                            value={field.state.value ?? 2592000}
-                            onChange={e =>
-                              field.handleChange(Number.isNaN(e.target.valueAsNumber) ? 0 : e.target.valueAsNumber)
-                            }
+                            value={field.state.value}
+                            onChange={event => field.handleChange(event.target.value)}
                             onBlur={field.handleBlur}
                             disabled={isSubmitting}
                             className="pr-10"
@@ -603,9 +612,7 @@ export function ClientFormDrawer({
                             type="number"
                             value={field.state.value}
                             disabled={!isConcurrent || isSubmitting}
-                            onChange={e =>
-                              field.handleChange(Number.isNaN(e.target.valueAsNumber) ? -1 : e.target.valueAsNumber)
-                            }
+                            onChange={event => field.handleChange(event.target.value)}
                             onBlur={field.handleBlur}
                             className="pr-10"
                             aria-invalid={invalid}
@@ -627,7 +634,8 @@ export function ClientFormDrawer({
                 >
                   {field => {
                     const invalid = field.state.meta.errors.length > 0
-                    const disabled = !isConcurrent || maxLoginCount === -1 || maxLoginCount === 0
+                    const count = Number(maxLoginCount)
+                    const disabled = !isConcurrent || count === -1 || count === 0
 
                     return (
                       <Field className="gap-1.5 sm:col-span-2" data-invalid={invalid}>
