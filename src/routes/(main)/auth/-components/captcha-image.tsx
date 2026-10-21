@@ -21,7 +21,7 @@ export function CaptchaImage({ img, isEnabled, isLoading, onRefresh }: CaptchaIm
       title="Click to refresh"
       aria-label="Refresh captcha"
       className={cn(
-        'relative flex h-9 w-28 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-muted/40 transition-colors hover:bg-muted',
+        'relative flex h-8 w-28 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-muted/40 transition-colors hover:bg-muted',
         isLoading && 'opacity-60'
       )}
     >
