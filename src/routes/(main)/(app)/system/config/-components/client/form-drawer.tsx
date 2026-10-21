@@ -1,11 +1,12 @@
 import * as React from 'react'
 
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { HelpCircle, Smartphone, X } from 'lucide-react'
-import { Controller, useForm, useWatch } from 'react-hook-form'
+import { revalidateLogic, useForm, useSelector } from '@tanstack/react-form'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { z } from 'zod'
 
+import { HelpCircle, Smartphone, X } from 'lucide-react'
+
+import { RequiredMark } from '@/components/required-mark'
 import { Button } from '@/components/ui/button'
 import { Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
@@ -129,31 +130,82 @@ export function ClientFormDrawer({
 }: ClientFormDrawerProps) {
   const queryClient = useQueryClient()
   const isEdit = Boolean(clientId)
+  const formRef = React.useRef<HTMLFormElement>(null)
 
-  const form = useForm<ClientFormValues>({
-    resolver: zodResolver(clientFormSchema),
-    defaultValues: DEFAULT_FORM_VALUES
+  const form = useForm({
+    defaultValues: DEFAULT_FORM_VALUES,
+    validationLogic: revalidateLogic(),
+    validators: { onDynamic: clientFormSchema },
+    onSubmit: async ({ value }) => {
+      const payload: ClientReq = {
+        clientType: value.clientType,
+        authType: value.authType,
+        activeTimeout: value.activeTimeout,
+        timeout: value.timeout,
+        refreshTokenTimeout: value.refreshTokenTimeout,
+        refreshTokenMode: value.refreshTokenMode,
+        isConcurrent: value.isConcurrent,
+        replacedRange: value.isConcurrent ? undefined : value.replacedRange,
+        maxLoginCount: value.isConcurrent ? value.maxLoginCount : -1,
+        overflowLogoutMode: value.isConcurrent && value.maxLoginCount !== -1 ? value.overflowLogoutMode : undefined,
+        status: value.status as 1 | 2
+      }
+
+      try {
+        if (clientId === null) {
+          await createClient(payload)
+        } else {
+          await updateClient(clientId, payload)
+        }
+      } catch {
+        // The HTTP layer already reported the failure.
+        return
+      }
+
+      toast.add({ title: isEdit ? '修改客户端成功' : '新增客户端成功', type: 'success' })
+      void queryClient.invalidateQueries({ queryKey: clientKeys.all })
+      onClose()
+    }
   })
 
-  const isConcurrent = useWatch({ control: form.control, name: 'isConcurrent', defaultValue: true })
-  const maxLoginCount = useWatch({ control: form.control, name: 'maxLoginCount', defaultValue: -1 })
+  // `form.state` is a render-time snapshot, so the values that gate each field and the "saving" flag
+  // that disables them all come from subscriptions.
+  const isConcurrent = useSelector(form.store, state => state.values.isConcurrent)
+  const maxLoginCount = useSelector(form.store, state => state.values.maxLoginCount)
+  const isSubmitting = useSelector(form.store, state => state.isSubmitting)
 
   // Fetch client details when editing
-  const { data: clientDetail, isLoading } = useQuery({
+  const { data: clientDetail, isLoading, isError: isDetailError } = useQuery({
     queryKey: clientKeys.detail(clientId ?? ''),
     queryFn: () => getClient(clientId!),
     enabled: open && isEdit
   })
 
-  // Synchronize form values on open/fetch
+  // Fill the form once per opened client. `keepDefaultValues` is load-bearing: `reset(values)`
+  // otherwise rewrites the form's own defaults, and the next render's `update(opts)` reads that as
+  // "defaults changed" and puts `DEFAULT_FORM_VALUES` back into the fields.
+  const filledForRef = React.useRef<string | null>(null)
   React.useEffect(() => {
     if (!open) {
-      form.reset(DEFAULT_FORM_VALUES)
+      form.reset({ ...DEFAULT_FORM_VALUES }, { keepDefaultValues: true })
+      filledForRef.current = null
       return
     }
 
-    if (isEdit && clientDetail) {
-      form.reset({
+    if (!isEdit) {
+      if (filledForRef.current === 'create') return
+      filledForRef.current = 'create'
+      form.reset({ ...DEFAULT_FORM_VALUES }, { keepDefaultValues: true })
+      return
+    }
+
+    if (!clientDetail) return
+
+    const key = String(clientId)
+    if (filledForRef.current === key) return
+    filledForRef.current = key
+    form.reset(
+      {
         clientType: clientDetail.clientType,
         authType: clientDetail.authType || ['ACCOUNT'],
         activeTimeout: clientDetail.activeTimeout ?? 1800,
@@ -165,73 +217,50 @@ export function ClientFormDrawer({
         maxLoginCount: clientDetail.maxLoginCount ?? -1,
         overflowLogoutMode: clientDetail.overflowLogoutMode || undefined,
         status: clientDetail.status ?? 1
-      })
-    } else if (!isEdit) {
-      form.reset(DEFAULT_FORM_VALUES)
-    }
-  }, [open, isEdit, clientDetail, form])
+      },
+      { keepDefaultValues: true }
+    )
+  }, [open, isEdit, clientId, clientDetail, form])
 
-  // Handle field inter-dependencies
+  // Keep the fields that no longer apply out of the payload and out of the error list.
   React.useEffect(() => {
     if (isConcurrent) {
-      form.setValue('replacedRange', undefined)
-      form.clearErrors('replacedRange')
-    } else {
-      form.setValue('maxLoginCount', -1)
-      form.setValue('overflowLogoutMode', undefined)
-      form.clearErrors(['maxLoginCount', 'overflowLogoutMode'])
+      form.setFieldValue('replacedRange', undefined)
+      return
     }
+
+    form.setFieldValue('maxLoginCount', -1)
+    form.setFieldValue('overflowLogoutMode', undefined)
   }, [isConcurrent, form])
 
   React.useEffect(() => {
     if (maxLoginCount === -1 || maxLoginCount === 0) {
-      form.setValue('overflowLogoutMode', undefined)
-      form.clearErrors('overflowLogoutMode')
+      form.setFieldValue('overflowLogoutMode', undefined)
     }
   }, [maxLoginCount, form])
 
-  // Save mutation
-  const saveMutation = useMutation({
-    mutationFn: async (values: ClientFormValues) => {
-      const payload: ClientReq = {
-        clientType: values.clientType,
-        authType: values.authType,
-        activeTimeout: values.activeTimeout,
-        timeout: values.timeout,
-        refreshTokenTimeout: values.refreshTokenTimeout,
-        refreshTokenMode: values.refreshTokenMode,
-        isConcurrent: values.isConcurrent,
-        replacedRange: values.isConcurrent ? undefined : values.replacedRange,
-        maxLoginCount: values.isConcurrent ? values.maxLoginCount : -1,
-        overflowLogoutMode: values.isConcurrent && values.maxLoginCount !== -1 ? values.overflowLogoutMode : undefined,
-        status: values.status as 1 | 2
-      }
+  /**
+   * Validates the whole object before submitting: `handleSubmit` returns as soon as the field
+   * validators report an invalid form, so the cross-field rules above would otherwise stay hidden
+   * until the other errors were fixed.
+   */
+  const submit = async () => {
+    await form.validate('submit')
+    await form.handleSubmit()
 
-      if (isEdit && clientId) {
-        await updateClient(clientId, payload)
-      } else {
-        await createClient(payload)
-      }
-    },
-    onSuccess: () => {
-      toast.add({ title: isEdit ? '修改客户端成功' : '新增客户端成功', type: 'success' })
-      queryClient.invalidateQueries({ queryKey: clientKeys.all })
-      onClose()
-    },
-    onError: (err: Error) => {
-      toast.add({ title: err.message || (isEdit ? '修改失败' : '新增失败'), type: 'error' })
-    }
-  })
-
-  const onSubmit = (values: ClientFormValues) => {
-    saveMutation.mutate(values)
+    // TanStack Form does not move focus to the first invalid control, so the drawer does it here.
+    requestAnimationFrame(() => {
+      formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
+    })
   }
 
   return (
     <Drawer
       open={open}
       onOpenChange={nextOpen => {
-        if (!nextOpen && !form.formState.isSubmitting) {
+        // Closing mid-save would leave the request in flight with no way to report it. The footer
+        // buttons read the same flag, so "cancel" and the X cannot disagree about it.
+        if (!nextOpen && !isSubmitting) {
           onClose()
         }
       }}
@@ -243,7 +272,7 @@ export function ClientFormDrawer({
             <Smartphone className="size-4" />
             <DrawerTitle>{isEdit ? '修改客户端' : '新增客户端'}</DrawerTitle>
           </div>
-          <DrawerClose render={<Button variant="ghost" size="icon-sm" disabled={form.formState.isSubmitting} />}>
+          <DrawerClose render={<Button variant="ghost" size="icon-sm" disabled={isSubmitting} />}>
             <X className="size-4" />
             <span className="sr-only">关闭</span>
           </DrawerClose>
@@ -251,316 +280,368 @@ export function ClientFormDrawer({
 
         {isEdit && isLoading ? (
           <ClientFormSkeleton onClose={onClose} />
+        ) : isDetailError ? (
+          // Without the record the form would post its defaults over an existing client.
+          <p className="p-4 text-sm text-foreground">加载失败，请稍后重试</p>
         ) : (
-          <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="flex min-h-0 flex-1 flex-col">
+          <form
+            ref={formRef}
+            noValidate
+            onSubmit={event => {
+              event.preventDefault()
+              void submit()
+            }}
+            className="flex min-h-0 flex-1 flex-col"
+          >
             <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
               <FieldGroup className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {/* 客户端类型 */}
-                <Controller
-                  control={form.control}
-                  name="clientType"
-                  render={({ field, fieldState }) => (
-                    <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-                      <FieldLabel>
-                        客户端类型<span className="text-destructive">*</span>
-                      </FieldLabel>
-                      <Select
-                        items={clientTypeOptions}
-                        value={field.value}
-                        onValueChange={val => {
-                          if (!val) return
-                          field.onChange(val)
-                        }}
-                      >
-                        <SelectTrigger className="w-full" aria-invalid={fieldState.invalid}>
-                          <SelectValue placeholder="请选择客户端类型" />
-                        </SelectTrigger>
-                        <SelectContent align="start" alignItemWithTrigger={false}>
-                          <SelectGroup>
-                            {clientTypeOptions.map(c => (
-                              <SelectItem key={c.value} value={c.value}>
-                                {c.label}
-                              </SelectItem>
-                            ))}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                    </Field>
-                  )}
-                />
+                <form.Field name="clientType" validators={{ onDynamic: clientFormSchema.shape.clientType }}>
+                  {field => {
+                    const invalid = field.state.meta.errors.length > 0
+
+                    return (
+                      <Field className="gap-1.5" data-invalid={invalid}>
+                        <FieldLabel>
+                          客户端类型
+                          <RequiredMark />
+                        </FieldLabel>
+                        <Select
+                          items={clientTypeOptions}
+                          value={field.state.value}
+                          disabled={isSubmitting}
+                          onValueChange={val => {
+                            if (!val) return
+                            field.handleChange(val)
+                          }}
+                        >
+                          <SelectTrigger className="w-full" aria-invalid={invalid}>
+                            <SelectValue placeholder="请选择客户端类型" />
+                          </SelectTrigger>
+                          <SelectContent align="start" alignItemWithTrigger={false}>
+                            <SelectGroup>
+                              {clientTypeOptions.map(c => (
+                                <SelectItem key={c.value} value={c.value}>
+                                  {c.label}
+                                </SelectItem>
+                              ))}
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                        <FieldError errors={field.state.meta.errors} />
+                      </Field>
+                    )
+                  }}
+                </form.Field>
 
                 {/* 认证类型 - Select 多选 */}
-                <Controller
-                  control={form.control}
-                  name="authType"
-                  render={({ field, fieldState }) => (
-                    <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-                      <FieldLabel>
-                        认证类型<span className="text-destructive">*</span>
-                      </FieldLabel>
-                      <ClientAuthTypeSelect
-                        value={field.value}
-                        onChange={field.onChange}
-                        options={authTypeOptions}
-                        invalid={fieldState.invalid}
-                      />
-                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                    </Field>
-                  )}
-                />
+                <form.Field name="authType" validators={{ onDynamic: clientFormSchema.shape.authType }}>
+                  {field => {
+                    const invalid = field.state.meta.errors.length > 0
+
+                    return (
+                      <Field className="gap-1.5" data-invalid={invalid}>
+                        <FieldLabel>
+                          认证类型
+                          <RequiredMark />
+                        </FieldLabel>
+                        <ClientAuthTypeSelect
+                          value={field.state.value}
+                          onChange={field.handleChange}
+                          options={authTypeOptions}
+                          disabled={isSubmitting}
+                          invalid={invalid}
+                        />
+                        <FieldError errors={field.state.meta.errors} />
+                      </Field>
+                    )
+                  }}
+                </form.Field>
 
                 {/* Token 最低活跃频率 */}
-                <Controller
-                  control={form.control}
-                  name="activeTimeout"
-                  render={({ field, fieldState }) => (
-                    <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-                      <FieldLabel className="flex items-center gap-1">
-                        <span>Token 最低活跃频率</span>
-                        <span className="text-destructive">*</span>
-                        <Tooltip>
-                          <TooltipTrigger render={<span className="inline-flex cursor-help text-muted-foreground" />}>
-                            <HelpCircle className="size-3.5" />
-                          </TooltipTrigger>
-                          <TooltipContent side="top">-1：不限制，永不冻结</TooltipContent>
-                        </Tooltip>
-                      </FieldLabel>
-                      <div className="relative">
-                        <Input
-                          type="number"
-                          value={field.value}
-                          onChange={e =>
-                            field.onChange(Number.isNaN(e.target.valueAsNumber) ? -1 : e.target.valueAsNumber)
-                          }
-                          className="pr-10"
-                          aria-invalid={fieldState.invalid}
-                        />
-                        <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-muted-foreground">
-                          秒
-                        </span>
-                      </div>
-                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                    </Field>
-                  )}
-                />
+                <form.Field name="activeTimeout" validators={{ onDynamic: clientFormSchema.shape.activeTimeout }}>
+                  {field => {
+                    const invalid = field.state.meta.errors.length > 0
+
+                    return (
+                      <Field className="gap-1.5" data-invalid={invalid}>
+                        <FieldLabel className="flex items-center gap-1">
+                          <span>Token 最低活跃频率</span>
+                          <RequiredMark />
+                          <Tooltip>
+                            <TooltipTrigger render={<span className="inline-flex cursor-help text-muted-foreground" />}>
+                              <HelpCircle className="size-3.5" />
+                            </TooltipTrigger>
+                            <TooltipContent side="top">-1：不限制，永不冻结</TooltipContent>
+                          </Tooltip>
+                        </FieldLabel>
+                        <div className="relative">
+                          <Input
+                            name="activeTimeout"
+                            type="number"
+                            value={field.state.value}
+                            onChange={e =>
+                              field.handleChange(Number.isNaN(e.target.valueAsNumber) ? -1 : e.target.valueAsNumber)
+                            }
+                            onBlur={field.handleBlur}
+                            disabled={isSubmitting}
+                            className="pr-10"
+                            aria-invalid={invalid}
+                          />
+                          <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-muted-foreground">
+                            秒
+                          </span>
+                        </div>
+                        <FieldError errors={field.state.meta.errors} />
+                      </Field>
+                    )
+                  }}
+                </form.Field>
 
                 {/* Token 有效期 */}
-                <Controller
-                  control={form.control}
-                  name="timeout"
-                  render={({ field, fieldState }) => (
-                    <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-                      <FieldLabel className="flex items-center gap-1">
-                        <span>Token 有效期</span>
-                        <span className="text-destructive">*</span>
-                        <Tooltip>
-                          <TooltipTrigger render={<span className="inline-flex cursor-help text-muted-foreground" />}>
-                            <HelpCircle className="size-3.5" />
-                          </TooltipTrigger>
-                          <TooltipContent side="top">-1：永不过期</TooltipContent>
-                        </Tooltip>
-                      </FieldLabel>
-                      <div className="relative">
-                        <Input
-                          type="number"
-                          value={field.value}
-                          onChange={e =>
-                            field.onChange(Number.isNaN(e.target.valueAsNumber) ? -1 : e.target.valueAsNumber)
-                          }
-                          className="pr-10"
-                          aria-invalid={fieldState.invalid}
-                        />
-                        <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-muted-foreground">
-                          秒
-                        </span>
-                      </div>
-                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                    </Field>
-                  )}
-                />
+                <form.Field name="timeout" validators={{ onDynamic: clientFormSchema.shape.timeout }}>
+                  {field => {
+                    const invalid = field.state.meta.errors.length > 0
+
+                    return (
+                      <Field className="gap-1.5" data-invalid={invalid}>
+                        <FieldLabel className="flex items-center gap-1">
+                          <span>Token 有效期</span>
+                          <RequiredMark />
+                          <Tooltip>
+                            <TooltipTrigger render={<span className="inline-flex cursor-help text-muted-foreground" />}>
+                              <HelpCircle className="size-3.5" />
+                            </TooltipTrigger>
+                            <TooltipContent side="top">-1：永不过期</TooltipContent>
+                          </Tooltip>
+                        </FieldLabel>
+                        <div className="relative">
+                          <Input
+                            name="timeout"
+                            type="number"
+                            value={field.state.value}
+                            onChange={e =>
+                              field.handleChange(Number.isNaN(e.target.valueAsNumber) ? -1 : e.target.valueAsNumber)
+                            }
+                            onBlur={field.handleBlur}
+                            disabled={isSubmitting}
+                            className="pr-10"
+                            aria-invalid={invalid}
+                          />
+                          <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-muted-foreground">
+                            秒
+                          </span>
+                        </div>
+                        <FieldError errors={field.state.meta.errors} />
+                      </Field>
+                    )
+                  }}
+                </form.Field>
 
                 {/* Refresh Token 有效期 */}
-                <Controller
-                  control={form.control}
+                <form.Field
                   name="refreshTokenTimeout"
-                  render={({ field, fieldState }) => (
-                    <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-                      <FieldLabel className="flex items-center gap-1">
-                        <span>Refresh Token 有效期</span>
-                        <span className="text-destructive">*</span>
-                        <Tooltip>
-                          <TooltipTrigger render={<span className="inline-flex cursor-help text-muted-foreground" />}>
-                            <HelpCircle className="size-3.5" />
-                          </TooltipTrigger>
-                          <TooltipContent side="top">轮换不会延长该绝对有效期；单位：秒</TooltipContent>
-                        </Tooltip>
-                      </FieldLabel>
-                      <div className="relative">
-                        <Input
-                          type="number"
-                          value={field.value ?? 2592000}
-                          onChange={e =>
-                            field.onChange(Number.isNaN(e.target.valueAsNumber) ? 0 : e.target.valueAsNumber)
-                          }
-                          className="pr-10"
-                          aria-invalid={fieldState.invalid}
-                        />
-                        <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-muted-foreground">
-                          秒
-                        </span>
-                      </div>
-                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                    </Field>
-                  )}
-                />
+                  validators={{ onDynamic: clientFormSchema.shape.refreshTokenTimeout }}
+                >
+                  {field => {
+                    const invalid = field.state.meta.errors.length > 0
+
+                    return (
+                      <Field className="gap-1.5" data-invalid={invalid}>
+                        <FieldLabel className="flex items-center gap-1">
+                          <span>Refresh Token 有效期</span>
+                          <RequiredMark />
+                          <Tooltip>
+                            <TooltipTrigger render={<span className="inline-flex cursor-help text-muted-foreground" />}>
+                              <HelpCircle className="size-3.5" />
+                            </TooltipTrigger>
+                            <TooltipContent side="top">轮换不会延长该绝对有效期；单位：秒</TooltipContent>
+                          </Tooltip>
+                        </FieldLabel>
+                        <div className="relative">
+                          <Input
+                            name="refreshTokenTimeout"
+                            type="number"
+                            value={field.state.value ?? 2592000}
+                            onChange={e =>
+                              field.handleChange(Number.isNaN(e.target.valueAsNumber) ? 0 : e.target.valueAsNumber)
+                            }
+                            onBlur={field.handleBlur}
+                            disabled={isSubmitting}
+                            className="pr-10"
+                            aria-invalid={invalid}
+                          />
+                          <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-muted-foreground">
+                            秒
+                          </span>
+                        </div>
+                        <FieldError errors={field.state.meta.errors} />
+                      </Field>
+                    )
+                  }}
+                </form.Field>
 
                 {/* Refresh Token 传输模式 */}
-                <Controller
-                  control={form.control}
+                <form.Field
                   name="refreshTokenMode"
-                  render={({ field, fieldState }) => (
-                    <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-                      <FieldLabel>
-                        Refresh Token 传输模式<span className="text-destructive">*</span>
-                      </FieldLabel>
-                      <Select
-                        items={REFRESH_TOKEN_MODE_OPTIONS}
-                        value={field.value}
-                        onValueChange={val => {
-                          if (!val) return
-                          field.onChange(val)
-                        }}
-                      >
-                        <SelectTrigger className="w-full" aria-invalid={fieldState.invalid}>
-                          <SelectValue placeholder="请选择 Refresh Token 传输模式" />
-                        </SelectTrigger>
-                        <SelectContent align="start" alignItemWithTrigger={false}>
-                          <SelectGroup>
-                            {REFRESH_TOKEN_MODE_OPTIONS.map(opt => (
-                              <SelectItem key={opt.value} value={opt.value}>
-                                {opt.label}
-                              </SelectItem>
-                            ))}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                    </Field>
-                  )}
-                />
+                  validators={{ onDynamic: clientFormSchema.shape.refreshTokenMode }}
+                >
+                  {field => {
+                    const invalid = field.state.meta.errors.length > 0
+
+                    return (
+                      <Field className="gap-1.5" data-invalid={invalid}>
+                        <FieldLabel>
+                          Refresh Token 传输模式
+                          <RequiredMark />
+                        </FieldLabel>
+                        <Select
+                          items={REFRESH_TOKEN_MODE_OPTIONS}
+                          value={field.state.value}
+                          disabled={isSubmitting}
+                          onValueChange={val => {
+                            if (!val) return
+                            field.handleChange(val)
+                          }}
+                        >
+                          <SelectTrigger className="w-full" aria-invalid={invalid}>
+                            <SelectValue placeholder="请选择 Refresh Token 传输模式" />
+                          </SelectTrigger>
+                          <SelectContent align="start" alignItemWithTrigger={false}>
+                            <SelectGroup>
+                              {REFRESH_TOKEN_MODE_OPTIONS.map(opt => (
+                                <SelectItem key={opt.value} value={opt.value}>
+                                  {opt.label}
+                                </SelectItem>
+                              ))}
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                        <FieldError errors={field.state.meta.errors} />
+                      </Field>
+                    )
+                  }}
+                </form.Field>
 
                 {/* 是否允许同一账号多地同时登录 */}
-                <Controller
-                  control={form.control}
-                  name="isConcurrent"
-                  render={({ field, fieldState }) => (
+                <form.Field name="isConcurrent">
+                  {field => (
                     <Field
                       orientation="horizontal"
                       className="items-center justify-between py-1 sm:col-span-2"
-                      data-invalid={fieldState.invalid}
+                      data-invalid={field.state.meta.errors.length > 0}
                     >
                       <FieldContent>
                         <FieldLabel>是否允许同一账号多地同时登录</FieldLabel>
                         <FieldDescription>新登录是否允许与旧登录共存</FieldDescription>
                       </FieldContent>
                       <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        aria-invalid={fieldState.invalid}
+                        checked={field.state.value}
+                        onCheckedChange={field.handleChange}
+                        disabled={isSubmitting}
+                        aria-invalid={field.state.meta.errors.length > 0}
                       />
                     </Field>
                   )}
-                />
+                </form.Field>
 
                 {/* 顶人下线的范围（isConcurrent=false 时生效且必选） */}
-                <Controller
-                  control={form.control}
-                  name="replacedRange"
-                  render={({ field, fieldState }) => (
-                    <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-                      <FieldLabel>
-                        顶人下线的范围
-                        {!isConcurrent && <span className="text-destructive">*</span>}
-                      </FieldLabel>
-                      <Select
-                        items={replacedRangeOptions}
-                        value={field.value || ''}
-                        disabled={isConcurrent}
-                        onValueChange={val => field.onChange(val || undefined)}
-                      >
-                        <SelectTrigger className="w-full" aria-invalid={fieldState.invalid}>
-                          <SelectValue placeholder={isConcurrent ? '允许并发登录时不适用' : '请选择顶人下线的范围'} />
-                        </SelectTrigger>
-                        <SelectContent align="start" alignItemWithTrigger={false}>
-                          <SelectGroup>
-                            {replacedRangeOptions.map(opt => (
-                              <SelectItem key={opt.value} value={opt.value}>
-                                {opt.label}
-                              </SelectItem>
-                            ))}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                    </Field>
-                  )}
-                />
+                <form.Field name="replacedRange" validators={{ onDynamic: clientFormSchema.shape.replacedRange }}>
+                  {field => {
+                    const invalid = field.state.meta.errors.length > 0
+
+                    return (
+                      <Field className="gap-1.5" data-invalid={invalid}>
+                        <FieldLabel>
+                          顶人下线的范围
+                          {!isConcurrent && <RequiredMark />}
+                        </FieldLabel>
+                        <Select
+                          items={replacedRangeOptions}
+                          value={field.state.value || ''}
+                          disabled={isConcurrent || isSubmitting}
+                          onValueChange={val => field.handleChange(val || undefined)}
+                        >
+                          <SelectTrigger className="w-full" aria-invalid={invalid}>
+                            <SelectValue placeholder={isConcurrent ? '允许并发登录时不适用' : '请选择顶人下线的范围'} />
+                          </SelectTrigger>
+                          <SelectContent align="start" alignItemWithTrigger={false}>
+                            <SelectGroup>
+                              {replacedRangeOptions.map(opt => (
+                                <SelectItem key={opt.value} value={opt.value}>
+                                  {opt.label}
+                                </SelectItem>
+                              ))}
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                        <FieldError errors={field.state.meta.errors} />
+                      </Field>
+                    )
+                  }}
+                </form.Field>
 
                 {/* 同一账号最大登录数量（isConcurrent=true 时有效） */}
-                <Controller
-                  control={form.control}
-                  name="maxLoginCount"
-                  render={({ field, fieldState }) => (
-                    <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-                      <FieldLabel className="flex items-center gap-1">
-                        <span>同一账号最大登录数量</span>
-                        <Tooltip>
-                          <TooltipTrigger render={<span className="inline-flex cursor-help text-muted-foreground" />}>
-                            <HelpCircle className="size-3.5" />
-                          </TooltipTrigger>
-                          <TooltipContent side="top">-1：不限制</TooltipContent>
-                        </Tooltip>
-                      </FieldLabel>
-                      <div className="relative">
-                        <Input
-                          type="number"
-                          value={field.value}
-                          disabled={!isConcurrent}
-                          onChange={e =>
-                            field.onChange(Number.isNaN(e.target.valueAsNumber) ? -1 : e.target.valueAsNumber)
-                          }
-                          className="pr-10"
-                          aria-invalid={fieldState.invalid}
-                        />
-                        <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-muted-foreground">
-                          个
-                        </span>
-                      </div>
-                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                    </Field>
-                  )}
-                />
+                <form.Field name="maxLoginCount" validators={{ onDynamic: clientFormSchema.shape.maxLoginCount }}>
+                  {field => {
+                    const invalid = field.state.meta.errors.length > 0
+
+                    return (
+                      <Field className="gap-1.5" data-invalid={invalid}>
+                        <FieldLabel className="flex items-center gap-1">
+                          <span>同一账号最大登录数量</span>
+                          <Tooltip>
+                            <TooltipTrigger render={<span className="inline-flex cursor-help text-muted-foreground" />}>
+                              <HelpCircle className="size-3.5" />
+                            </TooltipTrigger>
+                            <TooltipContent side="top">-1：不限制</TooltipContent>
+                          </Tooltip>
+                        </FieldLabel>
+                        <div className="relative">
+                          <Input
+                            name="maxLoginCount"
+                            type="number"
+                            value={field.state.value}
+                            disabled={!isConcurrent || isSubmitting}
+                            onChange={e =>
+                              field.handleChange(Number.isNaN(e.target.valueAsNumber) ? -1 : e.target.valueAsNumber)
+                            }
+                            onBlur={field.handleBlur}
+                            className="pr-10"
+                            aria-invalid={invalid}
+                          />
+                          <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-muted-foreground">
+                            个
+                          </span>
+                        </div>
+                        <FieldError errors={field.state.meta.errors} />
+                      </Field>
+                    )
+                  }}
+                </form.Field>
 
                 {/* 溢出人数的下线方式 */}
-                <Controller
-                  control={form.control}
+                <form.Field
                   name="overflowLogoutMode"
-                  render={({ field, fieldState }) => {
+                  validators={{ onDynamic: clientFormSchema.shape.overflowLogoutMode }}
+                >
+                  {field => {
+                    const invalid = field.state.meta.errors.length > 0
                     const disabled = !isConcurrent || maxLoginCount === -1 || maxLoginCount === 0
+
                     return (
-                      <Field className="gap-1.5 sm:col-span-2" data-invalid={fieldState.invalid}>
+                      <Field className="gap-1.5 sm:col-span-2" data-invalid={invalid}>
                         <FieldLabel>
                           溢出人数的下线方式
-                          {!disabled && <span className="text-destructive">*</span>}
+                          {!disabled && <RequiredMark />}
                         </FieldLabel>
                         <Select
                           items={logoutModeOptions}
-                          value={field.value || ''}
-                          disabled={disabled}
-                          onValueChange={val => field.onChange(val || undefined)}
+                          value={field.state.value || ''}
+                          disabled={disabled || isSubmitting}
+                          onValueChange={val => field.handleChange(val || undefined)}
                         >
-                          <SelectTrigger className="w-full" aria-invalid={fieldState.invalid}>
+                          <SelectTrigger className="w-full" aria-invalid={invalid}>
                             <SelectValue
                               placeholder={disabled ? '最大登录数量未限制时不适用' : '请选择溢出人数的下线方式'}
                             />
@@ -575,43 +656,42 @@ export function ClientFormDrawer({
                             </SelectGroup>
                           </SelectContent>
                         </Select>
-                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        <FieldError errors={field.state.meta.errors} />
                       </Field>
                     )
                   }}
-                />
+                </form.Field>
 
                 {/* 状态 */}
-                <Controller
-                  control={form.control}
-                  name="status"
-                  render={({ field, fieldState }) => (
+                <form.Field name="status">
+                  {field => (
                     <Field
                       orientation="horizontal"
                       className="items-center justify-between py-1 sm:col-span-2"
-                      data-invalid={fieldState.invalid}
+                      data-invalid={field.state.meta.errors.length > 0}
                     >
                       <FieldContent>
                         <FieldLabel>状态</FieldLabel>
                         <FieldDescription>启用或禁用该客户端通道</FieldDescription>
                       </FieldContent>
                       <Switch
-                        checked={field.value === 1}
-                        onCheckedChange={checked => field.onChange(checked ? 1 : 2)}
-                        aria-invalid={fieldState.invalid}
+                        checked={field.state.value === 1}
+                        onCheckedChange={checked => field.handleChange(checked ? 1 : 2)}
+                        disabled={isSubmitting}
+                        aria-invalid={field.state.meta.errors.length > 0}
                       />
                     </Field>
                   )}
-                />
+                </form.Field>
               </FieldGroup>
             </div>
 
             <DrawerFooter className="flex-row justify-end gap-2 border-t p-4">
-              <Button type="button" variant="outline" onClick={onClose} disabled={saveMutation.isPending}>
+              <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
                 取消
               </Button>
-              <Button type="submit" disabled={saveMutation.isPending}>
-                {saveMutation.isPending && <Spinner className="size-4" />}
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting && <Spinner className="size-4" />}
                 保存
               </Button>
             </DrawerFooter>
