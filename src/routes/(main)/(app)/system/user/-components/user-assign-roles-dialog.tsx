@@ -155,7 +155,7 @@ export function UserAssignRolesDialog({ user, open, onClose }: UserAssignRolesDi
 
   // Shares its key with the detail and edit drawers, so all three read one cached record; the hook
   // refetches it on open, so the picker never seeds from a stale list row.
-  const detail = useUserDetail(userId, { enabled: open })
+  const detail = useUserDetail(userId, { enabled: open, refreshOnOpen: true })
 
   const isDetailLoading = detail.isPending || detail.fetchStatus !== 'idle'
 

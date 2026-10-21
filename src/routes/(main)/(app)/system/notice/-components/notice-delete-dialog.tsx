@@ -28,7 +28,7 @@ export function NoticeDeleteDialog({ notice, open, onClose, onCompleted }: Notic
     mutationFn: () => deleteNotice(notice?.id ?? ''),
     onSuccess: () => {
       toast.add({ title: '删除成功', type: 'success' })
-      void queryClient.invalidateQueries({ queryKey: noticeKeys.lists() })
+      void queryClient.invalidateQueries({ queryKey: noticeKeys.all })
       onCompleted()
       onClose()
     }

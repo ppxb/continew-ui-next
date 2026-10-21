@@ -1,24 +1,19 @@
 import { useQuery } from '@tanstack/react-query'
 
 import { appKeys, getApp } from '@/lib/api/app'
+import { DETAIL_STALE_TIME_MS } from '@/lib/query-client'
 
 interface AppDetailOptions {
-  /**
-   * Keep the query inactive until the caller needs the record.
-   */
+  /** Keep the query inactive until the caller needs the record. */
   readonly enabled?: boolean
-  /**
-   * Treat the cached record as stale straight away.
-   */
-  readonly alwaysRefetch?: boolean
+  /** Force a fresh read when the edit drawer opens. */
+  readonly refreshOnOpen?: boolean
 }
 
-/**
- * One app's record, shared by the detail and edit dialogs through a single query key.
- */
+/** One app's record, shared by the detail and edit dialogs through a single query key. */
 export function useAppDetail(
   appId: string | number | null,
-  { enabled = true, alwaysRefetch = false }: AppDetailOptions = {}
+  { enabled = true, refreshOnOpen = false }: AppDetailOptions = {}
 ) {
   return useQuery({
     queryKey: appKeys.detail(appId),
@@ -30,6 +25,6 @@ export function useAppDetail(
       return getApp(appId)
     },
     enabled: enabled && appId !== null,
-    staleTime: alwaysRefetch ? 0 : undefined
+    staleTime: refreshOnOpen ? 0 : DETAIL_STALE_TIME_MS
   })
 }

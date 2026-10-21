@@ -125,7 +125,7 @@ export function TenantFormDrawer({ tenantId, open, onClose }: TenantFormDrawerPr
   const filledForRef = React.useRef<string | null>(null)
   const isCreate = tenantId === null
 
-  const detail = useTenantDetail(tenantId, { enabled: open && !isCreate })
+  const detail = useTenantDetail(tenantId, { enabled: open && !isCreate, refreshOnOpen: true })
 
   const packages = useQuery({
     queryKey: packageKeys.dicts(),
@@ -257,7 +257,7 @@ export function TenantFormDrawer({ tenantId, open, onClose }: TenantFormDrawerPr
           </DrawerClose>
         </DrawerHeader>
 
-        {isCreate || (detail.data && detail.fetchStatus === 'idle') ? (
+        {isCreate || (!detail.isError && detail.data && detail.fetchStatus === 'idle') ? (
           <form
             ref={formRef}
             noValidate

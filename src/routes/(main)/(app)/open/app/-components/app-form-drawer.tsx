@@ -93,7 +93,7 @@ export function AppFormDrawer({ appId, open, onClose }: AppFormDrawerProps) {
   const queryClient = useQueryClient()
   const [calendarOpen, setCalendarOpen] = React.useState(false)
 
-  const detailQuery = useAppDetail(appId, { enabled: open && isEdit })
+  const detailQuery = useAppDetail(appId, { enabled: open && isEdit, refreshOnOpen: isEdit })
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -173,7 +173,8 @@ export function AppFormDrawer({ appId, open, onClose }: AppFormDrawerProps) {
     setCalendarOpen(false)
   }
 
-  const isLoadingDetail = isEdit && detailQuery.isLoading
+  const isLoadingDetail = isEdit && (detailQuery.isPending || detailQuery.fetchStatus !== 'idle')
+  const isDetailError = isEdit && !isLoadingDetail && detailQuery.isError
 
   return (
     <Drawer
@@ -201,6 +202,8 @@ export function AppFormDrawer({ appId, open, onClose }: AppFormDrawerProps) {
 
         {isLoadingDetail ? (
           <AppFormSkeleton />
+        ) : isDetailError ? (
+          <p className="p-4 text-sm text-foreground">加载失败，请稍后重试</p>
         ) : (
           <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="flex min-h-0 flex-1 flex-col">
             <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">

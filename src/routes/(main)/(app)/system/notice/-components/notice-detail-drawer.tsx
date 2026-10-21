@@ -29,7 +29,7 @@ function DetailItem({ label, children }: { label: string; children: ReactNode })
 /** The Vue DetailDrawer's fields, laid out as a two-column drawer. */
 export function NoticeDetailDrawer({ noticeId, open, onClose }: NoticeDetailDrawerProps) {
   const { scopeOptions, methodOptions, statusOptions, typeOptions } = useNoticeDicts()
-  const detailQuery = useNoticeDetail(noticeId, open)
+  const detailQuery = useNoticeDetail(noticeId, { enabled: open })
   const detail = detailQuery.data
 
   return (

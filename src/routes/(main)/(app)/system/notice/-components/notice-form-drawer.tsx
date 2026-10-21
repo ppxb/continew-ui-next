@@ -112,7 +112,10 @@ export function NoticeFormDrawer({ noticeId, open, onClose, onCompleted }: Notic
   const { typeOptions, scopeOptions, methodOptions, statusOptions } = useNoticeDicts()
 
   const isEdit = noticeId !== null
-  const detailQuery = useNoticeDetail(noticeId, open && noticeId !== null)
+  const detailQuery = useNoticeDetail(noticeId, {
+    enabled: open && noticeId !== null,
+    refreshOnOpen: true
+  })
   const detail = detailQuery.data
   const isPublished = detail?.status === 3
 
@@ -223,7 +226,7 @@ export function NoticeFormDrawer({ noticeId, open, onClose, onCompleted }: Notic
           </DrawerClose>
         </DrawerHeader>
 
-        {isEdit && detailQuery.isPending ? (
+        {isEdit && (detailQuery.isPending || detailQuery.fetchStatus !== 'idle') ? (
           <NoticeFormSkeleton onClose={onClose} />
         ) : isEdit && detailQuery.isError ? (
           <div className="flex min-h-0 flex-1 flex-col">

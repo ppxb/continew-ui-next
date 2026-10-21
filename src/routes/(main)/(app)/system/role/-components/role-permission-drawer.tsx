@@ -60,7 +60,7 @@ export function RolePermissionDrawer({ role, open, onClose }: RolePermissionDraw
   const queryClient = useQueryClient()
   const roleId = role?.id ?? null
 
-  const detail = useRoleDetail(roleId, { enabled: open, alwaysRefetch: true })
+  const detail = useRoleDetail(roleId, { enabled: open, refreshOnOpen: true })
 
   const permTree = useQuery({
     queryKey: roleKeys.permissions(),
@@ -106,7 +106,8 @@ export function RolePermissionDrawer({ role, open, onClose }: RolePermissionDraw
     }
   }
 
-  const isLoading = detail.isPending || permTree.isPending
+  const isLoading = detail.isPending || detail.fetchStatus !== 'idle' || permTree.isPending
+  const isLoadError = !isLoading && (detail.isError || permTree.isError)
 
   return (
     <Drawer
@@ -134,6 +135,8 @@ export function RolePermissionDrawer({ role, open, onClose }: RolePermissionDraw
             <Skeleton className="h-10 w-full" />
             <Skeleton className="h-64 w-full" />
           </div>
+        ) : isLoadError ? (
+          <p className="p-4 text-sm text-foreground">加载失败，请稍后重试</p>
         ) : (
           <div className="flex min-h-0 flex-1 flex-col">
             <div className="flex min-h-0 flex-1 flex-col gap-3 p-4">

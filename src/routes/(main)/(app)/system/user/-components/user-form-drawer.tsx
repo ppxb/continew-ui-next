@@ -215,7 +215,7 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
   // Shares its key with the detail drawer, so opening either one warms the other. Fetching on open
   // matters more here than there: the form submits every field, so a stale base would overwrite
   // whatever another admin saved in the meantime.
-  const detail = useUserDetail(userId, { enabled: open })
+  const detail = useUserDetail(userId, { enabled: open, refreshOnOpen: !isCreate })
 
   const depts = useQuery({
     queryKey: deptKeys.trees(),
@@ -362,7 +362,7 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
 
         {/* A create has nothing to load, so its form is ready the moment the drawer opens. An edit
             waits for the record to settle, so the form never renders on a stale base. */}
-        {isCreate || (detail.data && detail.fetchStatus === 'idle') ? (
+        {isCreate || (!detail.isError && detail.data && detail.fetchStatus === 'idle') ? (
           <form
             ref={formRef}
             noValidate

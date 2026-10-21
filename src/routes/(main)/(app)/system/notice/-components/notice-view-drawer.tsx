@@ -16,7 +16,7 @@ interface NoticeViewDrawerProps {
 
 /** The reader view from the Vue page, presented in a drawer as requested. */
 export function NoticeViewDrawer({ noticeId, open, onClose }: NoticeViewDrawerProps) {
-  const detailQuery = useNoticeDetail(noticeId, open)
+  const detailQuery = useNoticeDetail(noticeId, { enabled: open })
   const detail = detailQuery.data
 
   return (

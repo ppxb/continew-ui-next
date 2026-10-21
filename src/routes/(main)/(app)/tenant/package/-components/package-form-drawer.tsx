@@ -122,7 +122,7 @@ export function PackageFormDrawer({ packageId, open, onClose }: PackageFormDrawe
   const filledForRef = React.useRef<string | null>(null)
   const isCreate = packageId === null
 
-  const detail = usePackageDetail(packageId, { enabled: open && !isCreate })
+  const detail = usePackageDetail(packageId, { enabled: open && !isCreate, refreshOnOpen: true })
 
   const menuTree = useQuery({
     queryKey: packageKeys.menus(),
@@ -254,7 +254,7 @@ export function PackageFormDrawer({ packageId, open, onClose }: PackageFormDrawe
           </DrawerClose>
         </DrawerHeader>
 
-        {isCreate || (detail.data && detail.fetchStatus === 'idle') ? (
+        {isCreate || (!detail.isError && detail.data && detail.fetchStatus === 'idle') ? (
           <form
             ref={formRef}
             noValidate

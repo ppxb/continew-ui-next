@@ -73,7 +73,7 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
   const queryClient = useQueryClient()
   const isCreate = roleId === null
 
-  const detail = useRoleDetail(roleId, { enabled: open && !isCreate, alwaysRefetch: true })
+  const detail = useRoleDetail(roleId, { enabled: open && !isCreate, refreshOnOpen: true })
 
   const depts = useQuery({
     queryKey: deptKeys.trees(),
@@ -156,7 +156,8 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
     }
   }
 
-  const isLoading = !isCreate && detail.isPending
+  const isLoading = !isCreate && (detail.isPending || detail.fetchStatus !== 'idle')
+  const isDetailError = !isCreate && !isLoading && detail.isError
 
   return (
     <Drawer
@@ -188,6 +189,8 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
             <Skeleton className="h-9 w-full" />
             <Skeleton className="h-20 w-full" />
           </div>
+        ) : isDetailError ? (
+          <p className="p-4 text-sm text-foreground">加载失败，请稍后重试</p>
         ) : (
           <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="flex min-h-0 flex-1 flex-col">
             <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
