@@ -27,7 +27,6 @@ const DEFAULT_COLUMN_VISIBILITY: ColumnVisibilityState = {
   updateTime: false
 }
 
-const SEARCH_DEBOUNCE_MS = 250
 const EMPTY_TREE: DeptResp[] = []
 
 /** Recursively filters tree nodes by name or description, preserving parent paths. */
@@ -79,7 +78,7 @@ export function DeptList() {
 
   // Search state
   const [searchInput, setSearchInput] = React.useState('')
-  const [keyword, setKeyword] = React.useState('')
+  const keyword = searchInput.trim()
 
   // Table state
   const [expanded, setExpanded] = React.useState<ExpandedState>({})
@@ -94,15 +93,6 @@ export function DeptList() {
   const [isDeleteOpen, setIsDeleteOpen] = React.useState(false)
 
   const { isFullscreen, reservedHeight, fullscreenRef, spacerRef, toggleFullscreen } = useFullscreenTransition()
-
-  // Debounce search input
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      setKeyword(searchInput.trim())
-    }, SEARCH_DEBOUNCE_MS)
-
-    return () => clearTimeout(timer)
-  }, [searchInput])
 
   // Fetch department tree
   const query = useQuery({
@@ -256,7 +246,6 @@ export function DeptList() {
                     type="button"
                     onClick={() => {
                       setSearchInput('')
-                      setKeyword('')
                     }}
                     className="cursor-pointer text-muted-foreground transition-colors hover:text-foreground"
                     title="清空搜索"

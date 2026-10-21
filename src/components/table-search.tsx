@@ -5,8 +5,7 @@ import { Search, X } from 'lucide-react'
 import { cn } from 'cn'
 
 import { InputGroup, InputGroupAddon, InputGroupButton, InputGroupInput } from '@/components/ui/input-group'
-
-const DEFAULT_DELAY_MS = 300
+import { SEARCH_DEBOUNCE_MS } from '@/hooks/use-debounced-value'
 
 interface TableSearchProps {
   onSearch: (keyword: string) => void
@@ -22,7 +21,7 @@ interface TableSearchProps {
 export function TableSearch({
   onSearch,
   placeholder = '搜索',
-  delay = DEFAULT_DELAY_MS,
+  delay = SEARCH_DEBOUNCE_MS,
   clearable = false,
   className,
   value: controlledValue,

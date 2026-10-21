@@ -3,7 +3,7 @@
 > 最后同步：2026-10-21。原始 35 条全部保留；新增 12 条（36–47）。另有 11、13、27、28、31 按复查结果扩面，不另计条目。  
 > 状态：`[x]` 已修复；`[ ]` 待处理。
 
-共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 32 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
+共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 31 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
 
 本次为静态审计，覆盖业务管理页、共享组件、请求与状态层，以及部分仪表盘页面；未进行运行时性能测试。原生 HTML、必要的异常处理和合理的 `className` 扩展本身不算问题。文件行号对应当前代码。
 
@@ -44,7 +44,7 @@
 - [x] **12 · P2｜过度兜底把查询失败伪装成成功空数据。［已修复 2026-10-21］** 10 处 `.catch(() => [])` 已移除（`useNoticeDicts` 4、`useSiteOptions` 1、`config-client` 4、`config-sms` 1），失败重新变成 reject，`isError` 与查询层重试恢复作用；展示层的默认值与 `FALLBACK_*` / `*_PRESETS` 保持不变。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/notice/-components/use-notice-dicts.ts:35](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/notice/-components/use-notice-dicts.ts:35>)；[E:/ppxb/continew-next/continew-ui-next/src/hooks/use-site-options.ts:13](<E:/ppxb/continew-next/continew-ui-next/src/hooks/use-site-options.ts:13>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/config-client.tsx:84](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/config-client.tsx:84>)；[config-sms.tsx:86](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/sms/config-sms.tsx:86>)
 
-- [ ] **13 · P3｜搜索防抖不一致。［复查扩面］** 通知用户选择器每键一请求；`TableSearch` 已有 300ms 防抖；menu/dept 是本地过滤却也防抖；app-list、role-list、role-user-drawer、config-sms、config-storage 等也各自手写 `setTimeout`，合计 7 处（250/300ms 不一致）。建议服务端搜索统一 `TableSearch` 或 `useDebouncedValue`，本地过滤保持实时。  
+- [x] **13 · P3｜搜索防抖不一致。［已修复 2026-10-21］** 新增 `useDebouncedValue` + 共享常量 `SEARCH_DEBOUNCE_MS = 300`，7 处手写 `setTimeout` 全部替换、6 份重复常量删除；menu/dept 本地过滤改为即时（`keyword = searchInput.trim()`，不再白等 250ms）；notice-user-picker 改为停手 300ms 后再请求，避免每键一次 `listUsers`。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/notice/-components/notice-user-picker.tsx:38](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/notice/-components/notice-user-picker.tsx:38>)；[E:/ppxb/continew-next/continew-ui-next/src/components/table-search.tsx:47](<E:/ppxb/continew-next/continew-ui-next/src/components/table-search.tsx:47>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/menu-list.tsx:98](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/menu-list.tsx:98>)；[dept-list.tsx:98](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/dept/-components/dept-list.tsx:98>)
 
 - [ ] **14 · P2｜通知用户查询失败被显示为“未找到用户”。** 渲染只判断 pending 和数组长度，没有处理 `isError`，混淆了网络失败与搜索无结果。  

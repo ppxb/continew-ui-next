@@ -10,6 +10,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from '@/components/ui/toast'
+import { useDebouncedValue } from '@/hooks/use-debounced-value'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
 import { usePermission } from '@/hooks/use-permission'
 import { listDict } from '@/lib/api/common'
@@ -42,7 +43,6 @@ const HIDDEN_BY_DEFAULT: ColumnVisibilityState = {
   createTime: false
 }
 
-const SEARCH_DEBOUNCE_MS = 300
 const EMPTY_ROWS: SmsConfigResp[] = []
 
 export function ConfigSms() {
@@ -60,7 +60,7 @@ export function ConfigSms() {
 
   // Filters
   const [searchInput, setSearchInput] = React.useState('')
-  const [keyword, setKeyword] = React.useState('')
+  const keyword = useDebouncedValue(searchInput).trim()
   const [filterSupplier, setFilterSupplier] = React.useState('all')
 
   // Drawer & Dialog states
@@ -71,15 +71,9 @@ export function ConfigSms() {
 
   const { isFullscreen, reservedHeight, fullscreenRef, spacerRef, toggleFullscreen } = useFullscreenTransition()
 
-  // Debounced search
   React.useEffect(() => {
-    const timer = setTimeout(() => {
-      setKeyword(searchInput.trim())
-      setPagination(current => (current.pageIndex === 0 ? current : { ...current, pageIndex: 0 }))
-    }, SEARCH_DEBOUNCE_MS)
-
-    return () => clearTimeout(timer)
-  }, [searchInput])
+    setPagination(current => (current.pageIndex === 0 ? current : { ...current, pageIndex: 0 }))
+  }, [keyword])
 
   // Dict query for supplier presets
   const { data: dictSuppliers = [] } = useQuery({
@@ -184,7 +178,6 @@ export function ConfigSms() {
 
   const handleResetFilters = () => {
     setSearchInput('')
-    setKeyword('')
     setFilterSupplier('all')
     setPagination(current => ({ ...current, pageIndex: 0 }))
   }

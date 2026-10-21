@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/dialog'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useDebouncedValue } from '@/hooks/use-debounced-value'
 import { listUsers, userKeys, type UserResp } from '@/lib/api/user'
 import { getInitials } from '@/lib/utils'
 
@@ -33,11 +34,12 @@ const EMPTY_USERS: UserResp[] = []
 export function NoticeUserPicker({ open, selected, onClose, onConfirm }: NoticeUserPickerProps) {
   const [search, setSearch] = React.useState('')
   const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set())
+  const debouncedSearch = useDebouncedValue(search)
 
   // Search runs on the server so users beyond the first page stay selectable.
   const usersQuery = useQuery({
-    queryKey: userKeys.list({ page: 1, size: 100, description: search.trim() || undefined }),
-    queryFn: () => listUsers({ page: 1, size: 100, description: search.trim() || undefined }),
+    queryKey: userKeys.list({ page: 1, size: 100, description: debouncedSearch.trim() || undefined }),
+    queryFn: () => listUsers({ page: 1, size: 100, description: debouncedSearch.trim() || undefined }),
     enabled: open
   })
 

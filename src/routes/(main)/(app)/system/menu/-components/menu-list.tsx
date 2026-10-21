@@ -24,7 +24,6 @@ import { MenuToolbar } from './menu-toolbar'
 
 const DEFAULT_COLUMN_VISIBILITY: ColumnVisibilityState = {}
 
-const SEARCH_DEBOUNCE_MS = 250
 const EMPTY_TREE: MenuResp[] = []
 
 /** Recursively filters tree nodes by title, path, or permission code, preserving parent paths. */
@@ -79,7 +78,7 @@ export function MenuList() {
 
   // Search state
   const [searchInput, setSearchInput] = React.useState('')
-  const [keyword, setKeyword] = React.useState('')
+  const keyword = searchInput.trim()
 
   // Table state
   const [expanded, setExpanded] = React.useState<ExpandedState>({})
@@ -94,15 +93,6 @@ export function MenuList() {
   const [isDeleteOpen, setIsDeleteOpen] = React.useState(false)
 
   const { isFullscreen, reservedHeight, fullscreenRef, spacerRef, toggleFullscreen } = useFullscreenTransition()
-
-  // Debounce search input
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      setKeyword(searchInput.trim())
-    }, SEARCH_DEBOUNCE_MS)
-
-    return () => clearTimeout(timer)
-  }, [searchInput])
 
   // Fetch menu tree
   const query = useQuery({

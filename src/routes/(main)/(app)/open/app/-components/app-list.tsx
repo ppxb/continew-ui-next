@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { toast } from '@/components/ui/toast'
+import { useDebouncedValue } from '@/hooks/use-debounced-value'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
 import { appKeys, type AppResp, exportApps, listApps } from '@/lib/api/app'
 import { dataTableFeatures } from '@/lib/data-table-features'
@@ -30,14 +31,13 @@ const HIDDEN_BY_DEFAULT: ColumnVisibilityState = {
 }
 
 const DEFAULT_SORT = 'id,desc'
-const SEARCH_DEBOUNCE_MS = 300
 const EMPTY_ROWS: AppResp[] = []
 
 export function AppList() {
   const [pagination, setPagination] = React.useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
   const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>(HIDDEN_BY_DEFAULT)
   const [searchInput, setSearchInput] = React.useState('')
-  const [keyword, setKeyword] = React.useState('')
+  const keyword = useDebouncedValue(searchInput).trim()
   const [isExporting, setIsExporting] = React.useState(false)
 
   // Drawer / Dialog states
@@ -54,15 +54,9 @@ export function AppList() {
 
   const { isFullscreen, reservedHeight, fullscreenRef, spacerRef, toggleFullscreen } = useFullscreenTransition()
 
-  // Debounce search
   React.useEffect(() => {
-    const timer = setTimeout(() => {
-      setKeyword(searchInput.trim())
-      setPagination(current => (current.pageIndex === 0 ? current : { ...current, pageIndex: 0 }))
-    }, SEARCH_DEBOUNCE_MS)
-
-    return () => clearTimeout(timer)
-  }, [searchInput])
+    setPagination(current => (current.pageIndex === 0 ? current : { ...current, pageIndex: 0 }))
+  }, [keyword])
 
   const query = useQuery({
     queryKey: appKeys.list({

@@ -9,6 +9,7 @@ import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle }
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from '@/components/ui/toast'
+import { useDebouncedValue } from '@/hooks/use-debounced-value'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
 import { usePermission } from '@/hooks/use-permission'
 import {
@@ -33,8 +34,6 @@ import { StorageDeleteDialog } from './delete-dialog'
 import { StorageFormDrawer } from './form-drawer'
 import { StorageGroupPanel } from './group-panel'
 import { StorageToolbar } from './toolbar'
-
-const SEARCH_DEBOUNCE_MS = 300
 
 /** The list endpoint is unpaged, so the backend orders it by the storage's own 排序 column. */
 const DEFAULT_SORT = ['sort,asc']
@@ -65,7 +64,7 @@ export function ConfigStorage() {
   const canUpdateStatus = hasPermission('system:storage:updateStatus')
 
   const [searchInput, setSearchInput] = React.useState('')
-  const [keyword, setKeyword] = React.useState('')
+  const keyword = useDebouncedValue(searchInput).trim()
   const [typeFilter, setTypeFilter] = React.useState('all')
   const [statusFilter, setStatusFilter] = React.useState('all')
 
@@ -77,15 +76,6 @@ export function ConfigStorage() {
   const [deletingStorage, setDeletingStorage] = React.useState<StorageResp | null>(null)
   const [isDeleteOpen, setIsDeleteOpen] = React.useState(false)
   const { isFullscreen, reservedHeight, fullscreenRef, spacerRef, toggleFullscreen } = useFullscreenTransition()
-
-  // Debounced so typing in the search box does not fire a request per keystroke.
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      setKeyword(searchInput.trim())
-    }, SEARCH_DEBOUNCE_MS)
-
-    return () => clearTimeout(timer)
-  }, [searchInput])
 
   const type = typeFilter === 'all' ? undefined : (Number(typeFilter) as StorageType)
   const status = statusFilter === 'all' ? undefined : (Number(statusFilter) as StorageStatus)
@@ -156,7 +146,6 @@ export function ConfigStorage() {
 
   const handleResetFilters = () => {
     setSearchInput('')
-    setKeyword('')
     setTypeFilter('all')
     setStatusFilter('all')
   }

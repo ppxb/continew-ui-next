@@ -22,6 +22,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { toast } from '@/components/ui/toast'
+import { useDebouncedValue } from '@/hooks/use-debounced-value'
 import { listRoleUsers, roleKeys, type RoleResp, type RoleUserResp, unassignRoleFromUsers } from '@/lib/api/role'
 import { dataTableFeatures, type DataTableFeatures } from '@/lib/data-table-features'
 import { getInitials } from '@/lib/utils'
@@ -43,18 +44,13 @@ export function RoleUserDrawer({ role, open, onClose }: RoleUserDrawerProps) {
   const [pagination, setPagination] = React.useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({})
   const [searchInput, setSearchInput] = React.useState('')
-  const [keyword, setKeyword] = React.useState('')
+  const keyword = useDebouncedValue(searchInput).trim()
   const [isAddOpen, setIsAddOpen] = React.useState(false)
   const [isUnassigning, setIsUnassigning] = React.useState(false)
 
-  // Debounce search input
   React.useEffect(() => {
-    const timer = setTimeout(() => {
-      setKeyword(searchInput.trim())
-      setPagination(prev => (prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }))
-    }, 300)
-    return () => clearTimeout(timer)
-  }, [searchInput])
+    setPagination(prev => (prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }))
+  }, [keyword])
 
   // Reset pagination & selection on open
   React.useEffect(() => {
@@ -62,7 +58,6 @@ export function RoleUserDrawer({ role, open, onClose }: RoleUserDrawerProps) {
       setPagination({ pageIndex: 0, pageSize: 10 })
       setRowSelection({})
       setSearchInput('')
-      setKeyword('')
     }
   }, [open, roleId])
 
