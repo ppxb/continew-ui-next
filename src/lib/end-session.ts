@@ -4,7 +4,7 @@ import type { useNavigate } from '@tanstack/react-router'
 type Navigate = ReturnType<typeof useNavigate>
 
 interface EndSessionOptions {
-  clearAuthSession: () => void | Promise<void>
+  clearAuthSession: () => void
   queryClient: QueryClient
   resetTabs: () => void
   navigate: Navigate
@@ -19,7 +19,7 @@ export async function endSession({
   redirect
 }: EndSessionOptions) {
   await queryClient.cancelQueries().catch(() => undefined)
-  await clearAuthSession()
+  clearAuthSession()
   resetTabs()
 
   try {

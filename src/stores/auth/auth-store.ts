@@ -22,7 +22,7 @@ export type AuthState = {
   roles: string[]
   isLoadingUser: boolean
   login: (params: LoginParams) => Promise<void>
-  logout: () => Promise<void>
+  logout: () => void
   clearLocalSession: () => void
   loadUser: () => Promise<void>
 }
@@ -115,8 +115,8 @@ export const createAuthStore = () => {
       set({ ...anonymousState(), isLoadingUser: false })
     },
 
-    logout: async () => {
-      await logoutRequest().catch(() => undefined)
+    logout: () => {
+      void logoutRequest().catch(() => undefined)
       get().clearLocalSession()
     }
   }))

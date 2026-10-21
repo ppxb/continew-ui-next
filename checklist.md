@@ -1,9 +1,9 @@
 # 前端代码审计 Checklist
 
 > 最后同步：2026-10-21。原始 35 条全部保留；新增 12 条（36–47）。另有 11、13、27、28、31 按复查结果扩面，不另计条目。  
-> 状态：`[x]` 已修复；`[ ]` 待处理。04、05 为部分修复，仍未关闭。
+> 状态：`[x]` 已修复；`[ ]` 待处理。05 为部分修复，仍未关闭。
 
-共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 44 条（含 2 条部分修复）。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
+共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 43 条（含 1 条部分修复）。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
 
 本次为静态审计，覆盖业务管理页、共享组件、请求与状态层，以及部分仪表盘页面；未进行运行时性能测试。原生 HTML、必要的异常处理和合理的 `className` 扩展本身不算问题。文件行号对应当前代码。
 
@@ -16,11 +16,11 @@
 - [x] **03 · P1｜会话过期退出遗漏查询缓存清理。［已修复 2026-10-21］** 过期回调与手动退出现在共用 `endSession`：取消在途查询、清 Auth Store、重置页签、跳登录页、清空 React Query 缓存；过期路径保留 `redirect`。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/stores/auth/auth-provider.tsx:43](<E:/ppxb/continew-next/continew-ui-next/src/stores/auth/auth-provider.tsx:43>)；[E:/ppxb/continew-next/continew-ui-next/src/hooks/use-logout.ts:19](<E:/ppxb/continew-next/continew-ui-next/src/hooks/use-logout.ts:19>)；[E:/ppxb/continew-next/continew-ui-next/src/lib/end-session.ts:14](<E:/ppxb/continew-next/continew-ui-next/src/lib/end-session.ts:14>)
 
-- [ ] **04 · P2｜会话失效清理请求仍会阻塞登录页跳转。［部分修复］** 已为会话失效路径的 `/auth/logout` 增加 30 秒超时，并在期间出现新会话时跳过导航；但 `handleSessionExpired` 仍要等待该请求结束后才回调，手动退出也仍在等待服务端。应把本地清理/跳转与后端撤销解耦。  
-  文件：[E:/ppxb/continew-next/continew-ui-next/src/lib/http.ts:186](<E:/ppxb/continew-next/continew-ui-next/src/lib/http.ts:186>)；[E:/ppxb/continew-next/continew-ui-next/src/stores/auth/auth-store.ts:93](<E:/ppxb/continew-next/continew-ui-next/src/stores/auth/auth-store.ts:93>)
+- [x] **04 · P2｜退出时不再等待后端撤销。［已修复 2026-10-21］** `/auth/logout` 改为发起后立即本地清理并跳转：会话失效路径用 `keepalive` 背景请求；手动退出同样先发请求、立即清 Store/页签并导航。后端撤销失败不影响本地登出，30 秒超时只作用于后台请求。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/lib/http.ts:186](<E:/ppxb/continew-next/continew-ui-next/src/lib/http.ts:186>)；[E:/ppxb/continew-next/continew-ui-next/src/stores/auth/auth-store.ts:118](<E:/ppxb/continew-next/continew-ui-next/src/stores/auth/auth-store.ts:118>)；[E:/ppxb/continew-next/continew-ui-next/src/lib/end-session.ts:14](<E:/ppxb/continew-next/continew-ui-next/src/lib/end-session.ts:14>)
 
 - [ ] **05 · P2｜下载请求二次 401 仍不复用会话失效流程。［部分修复］** 普通请求与下载请求已共享 `renewSession` 的刷新逻辑；但下载刷新后再次 401 仍只 `fail()`，不会清会话。  
-  文件：[E:/ppxb/continew-next/continew-ui-next/src/lib/http.ts:213](<E:/ppxb/continew-next/continew-ui-next/src/lib/http.ts:213>)；[E:/ppxb/continew-next/continew-ui-next/src/lib/http.ts:321](<E:/ppxb/continew-next/continew-ui-next/src/lib/http.ts:321>)
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/lib/http.ts:209](<E:/ppxb/continew-next/continew-ui-next/src/lib/http.ts:209>)；[E:/ppxb/continew-next/continew-ui-next/src/lib/http.ts:317](<E:/ppxb/continew-next/continew-ui-next/src/lib/http.ts:317>)
 
 - [ ] **06 · P2｜菜单图标解析 eager 引入 Lucide 全量图标。** 导入 `icons` 并动态访问属性，使未使用图标难以被打包裁剪；该模块又被侧栏和顶部页签依赖。`icon-picker` 也全量导入并模块级预计算；picker 路由已由 `autoCodeSplitting` 懒加载，重点是 header-tabs/sidebar 依赖的 eager resolver。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/navigation/sidebar/menu-icons.ts:327](<E:/ppxb/continew-next/continew-ui-next/src/navigation/sidebar/menu-icons.ts:327>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/icon-picker.tsx:3](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/icon-picker.tsx:3>)

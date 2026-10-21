@@ -183,7 +183,7 @@ function refreshAccessToken(generation: number): Promise<string> {
   return state.promise
 }
 
-async function handleSessionExpired(generation: number, message: string) {
+function handleSessionExpired(generation: number, message: string) {
   if (generation !== getAuthGeneration()) {
     throw sessionChangedError()
   }
@@ -194,18 +194,14 @@ async function handleSessionExpired(generation: number, message: string) {
 
   sessionExpiredNotified = true
   clearSession()
-  const clearedGeneration = getAuthGeneration()
 
-  await fetch(buildUrl(LOGOUT_PATH), {
+  void fetch(buildUrl(LOGOUT_PATH), {
     method: 'POST',
     credentials: 'include',
     headers: buildHeaders(LOGOUT_PATH, false),
-    signal: timeoutSignal()
+    signal: timeoutSignal(),
+    keepalive: true
   }).catch(() => undefined)
-
-  if (getAuthGeneration() !== clearedGeneration) {
-    throw sessionChangedError()
-  }
 
   sessionExpiredHandler?.(message)
 }
@@ -219,7 +215,7 @@ async function renewSession(generation: number) {
     assertGeneration(generation)
 
     const message = error instanceof ApiError ? error.message : SESSION_EXPIRED_MESSAGE
-    await handleSessionExpired(generation, message)
+    handleSessionExpired(generation, message)
     throw error
   }
 
@@ -258,7 +254,7 @@ async function send<T>(
       const payload = await readPayload<T>(response)
       const message = messageOf(payload, SESSION_EXPIRED_MESSAGE)
 
-      await handleSessionExpired(generation, message)
+      handleSessionExpired(generation, message)
       throw fail(message, { status: 401 }, silent)
     }
 
