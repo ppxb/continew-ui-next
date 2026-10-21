@@ -40,6 +40,18 @@ export interface LoginResp {
   tenantId?: string | number | null
 }
 
+/** Authorize target for a third-party login, returned by `GET /auth/{source}`. */
+export interface SocialAuthAuthorizeResp {
+  authorizeUrl: string
+}
+
+/** The provider redirects back with its own parameters (`code`, `state`, ...). */
+export type SocialLoginReq = {
+  source: string
+  clientId: string
+  authType: 'SOCIAL'
+} & Record<string, unknown>
+
 export interface CaptchaResp {
   uuid: string
   /** Data URI, for example `data:image/png;base64,...`. */

@@ -1,6 +1,13 @@
 import { http } from '@/lib/http'
 
-import type { AccountLoginReq, LoginResp, RouteResp, UserInfoResp } from './types'
+import type {
+  AccountLoginReq,
+  LoginResp,
+  RouteResp,
+  SocialAuthAuthorizeResp,
+  SocialLoginReq,
+  UserInfoResp
+} from './types'
 
 /**
  * Logs in with an account.
@@ -11,6 +18,22 @@ import type { AccountLoginReq, LoginResp, RouteResp, UserInfoResp } from './type
 export function login(req: AccountLoginReq, tenantCode?: string) {
   return http.post<LoginResp>('/auth/login', req, {
     headers: tenantCode ? { 'X-Tenant-Code': tenantCode } : undefined,
+    skipAuthRefresh: true,
+    silent: true
+  })
+}
+
+/** Returns the provider URL that starts a third-party login. */
+export function socialAuthorize(source: string) {
+  return http.get<SocialAuthAuthorizeResp>(`/auth/${source}`, {
+    skipAuthRefresh: true,
+    silent: true
+  })
+}
+
+/** Completes a third-party login with the query the provider redirected back with. */
+export function socialLogin(req: SocialLoginReq) {
+  return http.post<LoginResp>('/auth/login', req, {
     skipAuthRefresh: true,
     silent: true
   })

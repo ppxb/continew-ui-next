@@ -1,6 +1,11 @@
 import { createStore } from 'zustand/vanilla'
 
-import { getUserInfo, login as loginRequest, logout as logoutRequest } from '@/lib/api/auth'
+import {
+  getUserInfo,
+  login as loginRequest,
+  logout as logoutRequest,
+  socialLogin as socialLoginRequest
+} from '@/lib/api/auth'
 import type { UserInfoResp } from '@/lib/api/types'
 import { clearSession, getAccessToken, getAuthGeneration, setSession } from '@/lib/auth-session'
 import { encryptPassword } from '@/lib/crypto'
@@ -15,6 +20,9 @@ export type LoginParams = {
   persist?: boolean
 }
 
+/** The provider's callback parameters (`code`, `state`, ...) plus its source key. */
+export type SocialLoginParams = Record<string, unknown> & { source: string }
+
 export type AuthState = {
   status: AuthStatus
   user: UserInfoResp | null
@@ -22,6 +30,7 @@ export type AuthState = {
   roles: string[]
   isLoadingUser: boolean
   login: (params: LoginParams) => Promise<void>
+  socialLogin: (params: SocialLoginParams) => Promise<void>
   logout: () => void
   clearLocalSession: () => void
   loadUser: () => Promise<void>
@@ -61,6 +70,19 @@ export const createAuthStore = () => {
       })
 
       setSession({ accessToken: response.accessToken, tenantId: response.tenantId, persist })
+      set({ status: 'authenticated', user: null, permissions: [], roles: [] })
+      await get().loadUser()
+    },
+
+    socialLogin: async params => {
+      const response = await socialLoginRequest({
+        ...params,
+        clientId: import.meta.env.VITE_CLIENT_ID,
+        authType: 'SOCIAL'
+      })
+
+      // There is no "remember me" on this path, so the session always persists.
+      setSession({ accessToken: response.accessToken, tenantId: response.tenantId, persist: true })
       set({ status: 'authenticated', user: null, permissions: [], roles: [] })
       await get().loadUser()
     },
