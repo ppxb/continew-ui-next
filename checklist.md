@@ -3,7 +3,7 @@
 > 最后同步：2026-10-21。原始 35 条全部保留；新增 12 条（36–47）。另有 11、13、27、28、31 按复查结果扩面，不另计条目。  
 > 状态：`[x]` 已修复；`[ ]` 待处理。04、05 为部分修复，仍未关闭。
 
-共 **47 条**：P1 3 条（01、02 已修复，03 待处理）、P2 21 条、P3 23 条。当前待处理 45 条（含 2 条部分修复）。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
+共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 44 条（含 2 条部分修复）。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
 
 本次为静态审计，覆盖业务管理页、共享组件、请求与状态层，以及部分仪表盘页面；未进行运行时性能测试。原生 HTML、必要的异常处理和合理的 `className` 扩展本身不算问题。文件行号对应当前代码。
 
@@ -13,8 +13,8 @@
 - [x] **02 · P1｜用户信息请求可能在退出后恢复旧用户状态。［已修复 2026-10-21］** `loadUser()` 现在按 generation 分组单飞，响应写回前校验 generation；`clearLocalSession` 和无 token 分支会使旧请求失效；登录新会话先清空旧身份。旧请求即使返回 200 也不会覆盖新会话，也不会被新登录复用。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/stores/auth/auth-store.ts:68](<E:/ppxb/continew-next/continew-ui-next/src/stores/auth/auth-store.ts:68>)；[E:/ppxb/continew-next/continew-ui-next/src/stores/auth/auth-store.ts:111](<E:/ppxb/continew-next/continew-ui-next/src/stores/auth/auth-store.ts:111>)；[E:/ppxb/continew-next/continew-ui-next/src/lib/auth-session.ts:104](<E:/ppxb/continew-next/continew-ui-next/src/lib/auth-session.ts:104>)
 
-- [ ] **03 · P1｜会话过期退出遗漏查询缓存清理。** 过期回调只清 Auth Store 并跳转，与手动退出流程不一致；新账号可能复用旧账号的菜单及业务缓存。应复用统一的会话清理流程。  
-  文件：[E:/ppxb/continew-next/continew-ui-next/src/stores/auth/auth-provider.tsx:43](<E:/ppxb/continew-next/continew-ui-next/src/stores/auth/auth-provider.tsx:43>)；[E:/ppxb/continew-next/continew-ui-next/src/hooks/use-logout.ts:23](<E:/ppxb/continew-next/continew-ui-next/src/hooks/use-logout.ts:23>)
+- [x] **03 · P1｜会话过期退出遗漏查询缓存清理。［已修复 2026-10-21］** 过期回调与手动退出现在共用 `endSession`：取消在途查询、清 Auth Store、重置页签、跳登录页、清空 React Query 缓存；过期路径保留 `redirect`。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/stores/auth/auth-provider.tsx:43](<E:/ppxb/continew-next/continew-ui-next/src/stores/auth/auth-provider.tsx:43>)；[E:/ppxb/continew-next/continew-ui-next/src/hooks/use-logout.ts:19](<E:/ppxb/continew-next/continew-ui-next/src/hooks/use-logout.ts:19>)；[E:/ppxb/continew-next/continew-ui-next/src/lib/end-session.ts:14](<E:/ppxb/continew-next/continew-ui-next/src/lib/end-session.ts:14>)
 
 - [ ] **04 · P2｜会话失效清理请求仍会阻塞登录页跳转。［部分修复］** 已为会话失效路径的 `/auth/logout` 增加 30 秒超时，并在期间出现新会话时跳过导航；但 `handleSessionExpired` 仍要等待该请求结束后才回调，手动退出也仍在等待服务端。应把本地清理/跳转与后端撤销解耦。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/lib/http.ts:186](<E:/ppxb/continew-next/continew-ui-next/src/lib/http.ts:186>)；[E:/ppxb/continew-next/continew-ui-next/src/stores/auth/auth-store.ts:93](<E:/ppxb/continew-next/continew-ui-next/src/stores/auth/auth-store.ts:93>)

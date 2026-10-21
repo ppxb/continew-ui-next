@@ -15,7 +15,7 @@ function themeBootPlugin(): Plugin {
 }
 
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), 'VITE_')
+  const env = loadEnv(mode, process.cwd()) as ImportMetaEnv
   const apiPrefix = env.VITE_API_PREFIX || '/api'
   const apiTarget = env.VITE_API_BASE_URL || 'http://localhost:8000'
 

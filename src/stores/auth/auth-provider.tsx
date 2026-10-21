@@ -1,11 +1,14 @@
 import { createContext, use, useEffect, useRef, useState } from 'react'
 
+import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useRouter } from '@tanstack/react-router'
 import { type StoreApi, useStore } from 'zustand'
 
 import { toast } from '@/components/ui/toast'
 import { getAccessToken } from '@/lib/auth-session'
+import { endSession } from '@/lib/end-session'
 import { setForbiddenHandler, setSessionExpiredHandler } from '@/lib/http'
+import { useTabsStore } from '@/stores/tabs'
 
 import { createAuthStore, type AuthState } from './auth-store'
 
@@ -15,17 +18,17 @@ export function AuthStoreProvider({ children }: { children: React.ReactNode }) {
   const [store] = useState(() => createAuthStore())
   const navigate = useNavigate()
   const router = useRouter()
+  const queryClient = useQueryClient()
+  const resetTabs = useTabsStore(state => state.resetTabs)
   const passwordExpiryNotified = useRef(false)
 
   useEffect(() => {
     if (getAccessToken()) {
-      void store.getState().loadUser()
+      void store.getState().loadUser().catch(() => undefined)
     }
   }, [store])
 
   useEffect(() => {
-    // The backend rejects every request except a few while the password is expired, so
-    // the user is taken to the page where it can be changed.
     return store.subscribe(state => {
       if (!state.user?.pwdExpired || passwordExpiryNotified.current) {
         return
@@ -38,16 +41,15 @@ export function AuthStoreProvider({ children }: { children: React.ReactNode }) {
   }, [navigate, store])
 
   useEffect(() => {
-    // The HTTP layer calls this when the refresh token is gone too, so the UI has
-    // to drop the session and send the user back to the login page.
     setSessionExpiredHandler(message => {
-      store.setState({ status: 'anonymous', user: null, permissions: [], roles: [] })
       toast.add({ title: message, type: 'error' })
-      void navigate({
-        to: '/auth/login',
-        search: { redirect: router.state.location.href },
-        replace: true
-      })
+      void endSession({
+        clearAuthSession: store.getState().clearLocalSession,
+        queryClient,
+        resetTabs,
+        navigate,
+        redirect: router.state.location.href
+      }).catch(() => undefined)
     })
 
     setForbiddenHandler(() => {
@@ -62,7 +64,7 @@ export function AuthStoreProvider({ children }: { children: React.ReactNode }) {
       setSessionExpiredHandler(null)
       setForbiddenHandler(null)
     }
-  }, [navigate, router, store])
+  }, [navigate, queryClient, resetTabs, router, store])
 
   return <AuthStoreContext.Provider value={store}>{children}</AuthStoreContext.Provider>
 }
