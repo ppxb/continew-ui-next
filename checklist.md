@@ -1,9 +1,9 @@
 # 前端代码审计 Checklist
 
 > 最后同步：2026-10-21。原始 35 条全部保留；新增 12 条（36–47）。另有 11、13、27、28、31 按复查结果扩面，不另计条目。  
-> 状态：`[x]` 已修复；`[ ]` 待处理。05 为部分修复，仍未关闭。
+> 状态：`[x]` 已修复；`[ ]` 待处理。
 
-共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 43 条（含 1 条部分修复）。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
+共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 42 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
 
 本次为静态审计，覆盖业务管理页、共享组件、请求与状态层，以及部分仪表盘页面；未进行运行时性能测试。原生 HTML、必要的异常处理和合理的 `className` 扩展本身不算问题。文件行号对应当前代码。
 
@@ -19,8 +19,8 @@
 - [x] **04 · P2｜退出时不再等待后端撤销。［已修复 2026-10-21］** `/auth/logout` 改为发起后立即本地清理并跳转：会话失效路径用 `keepalive` 背景请求；手动退出同样先发请求、立即清 Store/页签并导航。后端撤销失败不影响本地登出，30 秒超时只作用于后台请求。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/lib/http.ts:186](<E:/ppxb/continew-next/continew-ui-next/src/lib/http.ts:186>)；[E:/ppxb/continew-next/continew-ui-next/src/stores/auth/auth-store.ts:118](<E:/ppxb/continew-next/continew-ui-next/src/stores/auth/auth-store.ts:118>)；[E:/ppxb/continew-next/continew-ui-next/src/lib/end-session.ts:14](<E:/ppxb/continew-next/continew-ui-next/src/lib/end-session.ts:14>)
 
-- [ ] **05 · P2｜下载请求二次 401 仍不复用会话失效流程。［部分修复］** 普通请求与下载请求已共享 `renewSession` 的刷新逻辑；但下载刷新后再次 401 仍只 `fail()`，不会清会话。  
-  文件：[E:/ppxb/continew-next/continew-ui-next/src/lib/http.ts:209](<E:/ppxb/continew-next/continew-ui-next/src/lib/http.ts:209>)；[E:/ppxb/continew-next/continew-ui-next/src/lib/http.ts:317](<E:/ppxb/continew-next/continew-ui-next/src/lib/http.ts:317>)
+- [x] **05 · P2｜下载请求二次 401 未复用会话失效流程。［已修复 2026-10-21］** 下载刷新后再次 401 现在与普通请求共用 `throwSessionExpired`：校验 generation、读取错误消息、清会话并抛错；不会保留无效会话。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/lib/http.ts:225](<E:/ppxb/continew-next/continew-ui-next/src/lib/http.ts:225>)；[E:/ppxb/continew-next/continew-ui-next/src/lib/http.ts:322](<E:/ppxb/continew-next/continew-ui-next/src/lib/http.ts:322>)
 
 - [ ] **06 · P2｜菜单图标解析 eager 引入 Lucide 全量图标。** 导入 `icons` 并动态访问属性，使未使用图标难以被打包裁剪；该模块又被侧栏和顶部页签依赖。`icon-picker` 也全量导入并模块级预计算；picker 路由已由 `autoCodeSplitting` 懒加载，重点是 header-tabs/sidebar 依赖的 eager resolver。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/navigation/sidebar/menu-icons.ts:327](<E:/ppxb/continew-next/continew-ui-next/src/navigation/sidebar/menu-icons.ts:327>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/icon-picker.tsx:3](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/icon-picker.tsx:3>)

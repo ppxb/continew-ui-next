@@ -222,6 +222,16 @@ async function renewSession(generation: number) {
   assertGeneration(generation)
 }
 
+async function throwSessionExpired(response: Response, generation: number, silent = false): Promise<never> {
+  assertGeneration(generation)
+
+  const payload = await readPayload<unknown>(response)
+  const message = messageOf(payload, SESSION_EXPIRED_MESSAGE)
+
+  handleSessionExpired(generation, message)
+  throw fail(message, { status: 401 }, silent)
+}
+
 async function send<T>(
   method: string,
   path: string,
@@ -250,12 +260,7 @@ async function send<T>(
 
   if (response.status === 401) {
     if (skipAuthRefresh || path === REFRESH_PATH || isRetry || !getAccessToken()) {
-      assertGeneration(generation)
-      const payload = await readPayload<T>(response)
-      const message = messageOf(payload, SESSION_EXPIRED_MESSAGE)
-
-      handleSessionExpired(generation, message)
-      throw fail(message, { status: 401 }, silent)
+      return throwSessionExpired(response, generation, silent)
     }
 
     await renewSession(generation)
@@ -321,6 +326,10 @@ export async function downloadFile(path: string, query?: Query) {
   if (response.status === 401) {
     await renewSession(generation)
     response = await fetchDownload(path, query)
+
+    if (response.status === 401) {
+      return throwSessionExpired(response, generation)
+    }
   }
 
   if (response.status === 403) {
