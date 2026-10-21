@@ -84,7 +84,7 @@ export function ConfigSms() {
   // Dict query for supplier presets
   const { data: dictSuppliers = [] } = useQuery({
     queryKey: dictKeys.code('sms_supplier'),
-    queryFn: () => listDict('sms_supplier').catch(() => [])
+    queryFn: () => listDict('sms_supplier')
   })
 
   const supplierOptions = dictSuppliers.length > 0 ? dictSuppliers : SUPPLIER_PRESETS

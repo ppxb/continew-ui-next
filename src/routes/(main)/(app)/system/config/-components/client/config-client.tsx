@@ -81,22 +81,22 @@ export function ConfigClient() {
   // Dict queries matching Vue version: client_type, auth_type_enum, replaced_range_enum, logout_mode_enum
   const { data: dictClientTypes = [] } = useQuery({
     queryKey: dictKeys.code('client_type'),
-    queryFn: () => listDict('client_type').catch(() => [])
+    queryFn: () => listDict('client_type')
   })
 
   const { data: dictAuthTypes = [] } = useQuery({
     queryKey: dictKeys.code('auth_type_enum'),
-    queryFn: () => listDict('auth_type_enum').catch(() => [])
+    queryFn: () => listDict('auth_type_enum')
   })
 
   const { data: dictReplacedRanges = [] } = useQuery({
     queryKey: dictKeys.code('replaced_range_enum'),
-    queryFn: () => listDict('replaced_range_enum').catch(() => [])
+    queryFn: () => listDict('replaced_range_enum')
   })
 
   const { data: dictLogoutModes = [] } = useQuery({
     queryKey: dictKeys.code('logout_mode_enum'),
-    queryFn: () => listDict('logout_mode_enum').catch(() => [])
+    queryFn: () => listDict('logout_mode_enum')
   })
 
   const clientTypeOptions = dictClientTypes.length > 0 ? dictClientTypes : CLIENT_TYPE_PRESETS

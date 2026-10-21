@@ -10,7 +10,7 @@ const FALLBACK_DESCRIPTION = '持续迭代优化的前后端分离中后台管�
 export function useSiteOptions() {
   const query = useQuery({
     queryKey: siteOptionKeys.all,
-    queryFn: () => listSiteOptionDict().catch(() => []),
+    queryFn: () => listSiteOptionDict(),
     staleTime: 5 * 60_000
   })
 
