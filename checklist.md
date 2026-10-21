@@ -3,7 +3,7 @@
 > 最后同步：2026-10-21。原始 35 条全部保留；新增 12 条（36–47）。另有 11、13、27、28、31 按复查结果扩面，不另计条目。  
 > 状态：`[x]` 已修复；`[ ]` 待处理。
 
-共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 41 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
+共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 40 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
 
 本次为静态审计，覆盖业务管理页、共享组件、请求与状态层，以及部分仪表盘页面；未进行运行时性能测试。原生 HTML、必要的异常处理和合理的 `className` 扩展本身不算问题。文件行号对应当前代码。
 
@@ -25,8 +25,8 @@
 - [x] **06 · P2｜菜单图标解析 eager 引入 Lucide 全量图标。［已修复 2026-10-21］** `menu-icons` 改为静态常用映射 + `DynamicIcon` 按名称动态加载，不再导入全量 `icons`；`icon-picker` 改为懒加载组件，完整目录只在打开菜单表单时加载。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/navigation/sidebar/menu-icons.ts:334](<E:/ppxb/continew-next/continew-ui-next/src/navigation/sidebar/menu-icons.ts:334>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/menu-form-drawer.tsx:23](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/menu-form-drawer.tsx:23>)；[icon-picker.tsx:3](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/icon-picker.tsx:3>)
 
-- [ ] **07 · P3｜图标列表滚动时持续累积 DOM。** `visibleLimit` 每次增加 120，滚动到底后会挂载整个筛选结果；同时还保留了“加载更多”按钮。建议采用固定分页或虚拟列表。  
-  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/icon-picker.tsx:443](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/icon-picker.tsx:443>)
+- [x] **07 · P3｜图标列表滚动时持续累积 DOM。［已修复 2026-10-21］** 网格改为 `@tanstack/react-virtual` 行虚拟化，只渲染视口附近行；移除 `visibleLimit` 与“加载更多”；滚动容器使用 `scroll-fade`。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/icon-picker.tsx:449](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/icon-picker.tsx:449>)；[滚动容器:471](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/icon-picker.tsx:471>)；[E:/ppxb/continew-next/continew-ui-next/package.json:35](<E:/ppxb/continew-next/continew-ui-next/package.json:35>)
 
 - [ ] **08 · P2｜客户端保存中仍可关闭抽屉。** `mutate()` 返回后，表单的 `isSubmitting` 提前恢复；右上关闭按钮和关闭回调检查该状态，底部按钮却检查 `saveMutation.isPending`。应统一使用实际请求状态。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:234](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:234>)；关闭按钮 [:246](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:246>)；底部按钮 [:610](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:610>)

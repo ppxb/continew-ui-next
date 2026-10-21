@@ -1,5 +1,6 @@
 import * as React from 'react'
 
+import { useVirtualizer } from '@tanstack/react-virtual'
 import { Check, Search, X, icons, type LucideIcon } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -401,7 +402,109 @@ const CATEGORY_ITEMS = [
   }))
 ]
 
-const PAGE_SIZE = 120
+function getGridColumns() {
+  if (window.matchMedia('(min-width: 1024px)').matches) return 10
+  if (window.matchMedia('(min-width: 768px)').matches) return 8
+  if (window.matchMedia('(min-width: 640px)').matches) return 6
+  return 4
+}
+
+interface IconGridItemProps {
+  readonly item: LucideIconMeta
+  readonly selected: boolean
+  readonly onSelect: (name: string) => void
+}
+
+const IconGridItem = React.memo(function IconGridItem({ item, selected, onSelect }: IconGridItemProps) {
+  const IconComponent = item.component
+
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(item.kebab)}
+      className={cn(
+        'group relative flex flex-col items-center justify-center gap-1.5 rounded-lg border p-2 text-xs transition-colors hover:border-foreground/30 hover:bg-muted/50',
+        selected
+          ? 'border-primary bg-primary/10 font-medium text-primary'
+          : 'border-border/60 bg-background text-muted-foreground hover:text-foreground'
+      )}
+    >
+      <IconComponent className="size-5 shrink-0 transition-transform group-hover:scale-110" />
+      <span className="w-full truncate text-center text-[11px] leading-tight text-foreground/80">{item.kebab}</span>
+      {selected && (
+        <span className="absolute top-1 right-1 flex size-3 items-center justify-center rounded-full bg-primary text-primary-foreground">
+          <Check className="size-2" />
+        </span>
+      )}
+    </button>
+  )
+})
+
+interface IconGridProps {
+  readonly items: LucideIconMeta[]
+  readonly value?: string | null
+  readonly onSelect: (name: string) => void
+}
+
+function IconGrid({ items, value, onSelect }: IconGridProps) {
+  const [columns, setColumns] = React.useState(getGridColumns)
+  const scrollRef = React.useRef<HTMLDivElement>(null)
+  const rowCount = Math.ceil(items.length / columns)
+  const rowVirtualizer = useVirtualizer({
+    count: rowCount,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () => 64,
+    overscan: 3
+  })
+
+  React.useEffect(() => {
+    const updateColumns = () => setColumns(getGridColumns())
+    window.addEventListener('resize', updateColumns)
+    return () => window.removeEventListener('resize', updateColumns)
+  }, [])
+
+  React.useEffect(() => {
+    scrollRef.current?.scrollTo({ top: 0 })
+  }, [items])
+
+  return (
+    <div ref={scrollRef} className="scroll-fade max-h-84 overflow-y-auto overscroll-contain p-2.5">
+      <div className="relative" style={{ height: rowVirtualizer.getTotalSize() }}>
+        {rowVirtualizer.getVirtualItems().map(virtualRow => {
+          const start = virtualRow.index * columns
+
+          return (
+            <div
+              key={virtualRow.key}
+              ref={rowVirtualizer.measureElement}
+              data-index={virtualRow.index}
+              className="absolute inset-x-0 top-0 grid gap-2 pb-2"
+              style={{
+                transform: `translateY(${virtualRow.start}px)`,
+                gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`
+              }}
+            >
+              {Array.from({ length: columns }, (_, columnIndex) => {
+                const item = items[start + columnIndex]
+
+                return item ? (
+                  <IconGridItem
+                    key={item.kebab}
+                    item={item}
+                    selected={value === item.kebab || value === item.pascal}
+                    onSelect={onSelect}
+                  />
+                ) : (
+                  <div key={`empty-${columnIndex}`} />
+                )
+              })}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
 
 interface IconPickerProps {
   readonly value?: string | null
@@ -413,17 +516,14 @@ export function IconPicker({ value, onChange, disabled }: IconPickerProps) {
   const [open, setOpen] = React.useState(false)
   const [search, setSearch] = React.useState('')
   const [activeCategory, setActiveCategory] = React.useState('common')
-  const [visibleLimit, setVisibleLimit] = React.useState(PAGE_SIZE)
 
-  const handleCategoryChange = (key: string) => {
+  const handleCategoryChange = React.useCallback((key: string) => {
     setActiveCategory(key)
-    setVisibleLimit(PAGE_SIZE)
-  }
+  }, [])
 
-  const handleSearchChange = (val: string) => {
+  const handleSearchChange = React.useCallback((val: string) => {
     setSearch(val)
-    setVisibleLimit(PAGE_SIZE)
-  }
+  }, [])
 
   const filteredIcons = React.useMemo(() => {
     let list = ALL_LUCIDE_ICONS
@@ -437,21 +537,13 @@ export function IconPicker({ value, onChange, disabled }: IconPickerProps) {
     return list
   }, [activeCategory, search])
 
-  const visibleIcons = React.useMemo(() => {
-    return filteredIcons.slice(0, visibleLimit)
-  }, [filteredIcons, visibleLimit])
-
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget
-    if (scrollHeight - scrollTop - clientHeight < 160) {
-      setVisibleLimit(prev => Math.min(prev + PAGE_SIZE, filteredIcons.length))
-    }
-  }
-
-  const handleSelect = (kebabName: string) => {
-    onChange(kebabName)
-    setOpen(false)
-  }
+  const handleSelect = React.useCallback(
+    (kebabName: string) => {
+      onChange(kebabName)
+      setOpen(false)
+    },
+    [onChange]
+  )
 
   const handleClear = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -554,10 +646,9 @@ export function IconPicker({ value, onChange, disabled }: IconPickerProps) {
             </Select>
           </div>
 
-          {/* 图标网格列表（无 Tooltip，快速滚动零延迟） */}
-          <div onScroll={handleScroll} className="max-h-84 overflow-y-auto rounded-lg border bg-muted/20 p-2.5">
+          <div className="overflow-hidden rounded-lg border bg-muted/20">
             {filteredIcons.length === 0 ? (
-              <div className="flex h-40 flex-col items-center justify-center gap-1.5 text-xs text-muted-foreground">
+              <div className="flex h-40 flex-col items-center justify-center gap-1.5 p-2.5 text-xs text-muted-foreground">
                 <span>未找到匹配的图标</span>
                 {activeCategory !== 'all' && (
                   <Button
@@ -572,51 +663,7 @@ export function IconPicker({ value, onChange, disabled }: IconPickerProps) {
                 )}
               </div>
             ) : (
-              <div className="space-y-3">
-                <div className="grid grid-cols-4 gap-2 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10">
-                  {visibleIcons.map(item => {
-                    const IconComponent = item.component
-                    const isSelected = value === item.kebab || value === item.pascal
-                    return (
-                      <button
-                        key={item.kebab}
-                        type="button"
-                        onClick={() => handleSelect(item.kebab)}
-                        className={cn(
-                          'group relative flex flex-col items-center justify-center gap-1.5 rounded-lg border p-2 text-xs transition-colors hover:border-foreground/30 hover:bg-muted/50',
-                          isSelected
-                            ? 'border-primary bg-primary/10 font-medium text-primary'
-                            : 'border-border/60 bg-background text-muted-foreground hover:text-foreground'
-                        )}
-                      >
-                        <IconComponent className="size-5 shrink-0 transition-transform group-hover:scale-110" />
-                        <span className="w-full truncate text-center text-[11px] leading-tight text-foreground/80">
-                          {item.kebab}
-                        </span>
-                        {isSelected && (
-                          <span className="absolute top-1 right-1 flex size-3 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                            <Check className="size-2" />
-                          </span>
-                        )}
-                      </button>
-                    )
-                  })}
-                </div>
-
-                {visibleLimit < filteredIcons.length && (
-                  <div className="flex justify-center pt-1 pb-1">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setVisibleLimit(prev => Math.min(prev + PAGE_SIZE, filteredIcons.length))}
-                      className="text-xs text-muted-foreground hover:text-foreground"
-                    >
-                      加载更多（已显示 {visibleIcons.length} / 共 {filteredIcons.length}）
-                    </Button>
-                  </div>
-                )}
-              </div>
+              <IconGrid items={filteredIcons} value={value} onSelect={handleSelect} />
             )}
           </div>
         </div>
