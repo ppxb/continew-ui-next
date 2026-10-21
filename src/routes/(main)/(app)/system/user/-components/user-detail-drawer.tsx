@@ -99,25 +99,25 @@ function UserDetailSkeleton() {
         <Skeleton className="h-3.5 w-10" />
         <Skeleton className="h-5 w-20 rounded-md" />
       </div>
-      <div className="flex flex-col gap-1">
-        <Skeleton className="h-3.5 w-14" />
-        <Skeleton className="h-5 w-28" />
-      </div>
-      <div className="flex flex-col gap-1">
-        <Skeleton className="h-3.5 w-16" />
-        <Skeleton className="h-5 w-36" />
-      </div>
-      <div className="flex flex-col gap-1">
-        <Skeleton className="h-3.5 w-14" />
-        <Skeleton className="h-5 w-28" />
-      </div>
-      <div className="flex flex-col gap-1">
-        <Skeleton className="h-3.5 w-16" />
-        <Skeleton className="h-5 w-36" />
-      </div>
       <div className="flex flex-col gap-1 sm:col-span-2">
         <Skeleton className="h-3.5 w-10" />
         <Skeleton className="h-8 w-full" />
+      </div>
+      <div className="flex flex-col gap-1">
+        <Skeleton className="h-3.5 w-14" />
+        <Skeleton className="h-5 w-28" />
+      </div>
+      <div className="flex flex-col gap-1">
+        <Skeleton className="h-3.5 w-16" />
+        <Skeleton className="h-5 w-36" />
+      </div>
+      <div className="flex flex-col gap-1">
+        <Skeleton className="h-3.5 w-14" />
+        <Skeleton className="h-5 w-28" />
+      </div>
+      <div className="flex flex-col gap-1">
+        <Skeleton className="h-3.5 w-16" />
+        <Skeleton className="h-5 w-36" />
       </div>
     </div>
   )
@@ -133,10 +133,10 @@ interface UserDetailDrawerProps {
 /**
  * Read-only detail panel for one user.
  *
- * It renders the same field set as the Vue client's `DetailDrawer.vue`, in the same order,
- * with this project's components. `open` is separate from `userId` on purpose: clearing the
- * id on close would drop the query back to `pending` and swap the panel's content for a
- * spinner while it is still sliding out.
+ * It renders the same field set as the Vue client's `DetailDrawer.vue`, with this project's
+ * components. `open` is separate from `userId` on purpose: clearing the id on close would drop
+ * the query back to `pending` and swap the panel's content for a spinner while it is still
+ * sliding out.
  */
 export function UserDetailDrawer({ userId, open, onClose }: UserDetailDrawerProps) {
   // Fetch on open rather than trust the cache: another admin may have edited the record, and the
@@ -192,13 +192,13 @@ export function UserDetailDrawer({ userId, open, onClose }: UserDetailDrawerProp
               <DetailField label="角色">
                 <RoleCell roleNames={detail.roleNames ?? []} />
               </DetailField>
-              <DetailField label="创建人">{detail.createUserString || EMPTY_PLACEHOLDER}</DetailField>
-              <DetailField label="创建时间">{detail.createTime || EMPTY_PLACEHOLDER}</DetailField>
-              <DetailField label="修改人">{detail.updateUserString || EMPTY_PLACEHOLDER}</DetailField>
-              <DetailField label="修改时间">{detail.updateTime || EMPTY_PLACEHOLDER}</DetailField>
               <DetailField label="描述" className="sm:col-span-2">
                 {detail.description || EMPTY_PLACEHOLDER}
               </DetailField>
+              <DetailField label="创建人">{detail.createUserString || EMPTY_PLACEHOLDER}</DetailField>
+              <DetailField label="修改人">{detail.updateUserString || EMPTY_PLACEHOLDER}</DetailField>
+              <DetailField label="创建时间">{detail.createTime || EMPTY_PLACEHOLDER}</DetailField>
+              <DetailField label="修改时间">{detail.updateTime || EMPTY_PLACEHOLDER}</DetailField>
             </dl>
           )}
         </div>
