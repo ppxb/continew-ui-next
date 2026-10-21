@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import { EditorContent, useEditor } from '@tiptap/react'
+import { EditorContent, useEditor, useEditorState } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 
 import {
@@ -74,6 +74,24 @@ interface RichTextEditorProps {
   readonly invalid?: boolean
 }
 
+/**
+ * The toolbar state before the editor exists, and the value reused once it is gone. Tiptap only
+ * re-renders this component on transactions we subscribe to, so the booleans must never be read
+ * straight off the editor during render.
+ */
+const EMPTY_TOOLBAR_STATE = {
+  canUndo: false,
+  canRedo: false,
+  bold: false,
+  italic: false,
+  strike: false,
+  code: false,
+  heading2: false,
+  bulletList: false,
+  orderedList: false,
+  blockquote: false
+}
+
 /** The project's tiptap editor: StarterKit commands only, no extra editor dependency. */
 export function RichTextEditor({ value, onChange, disabled = false, invalid = false }: RichTextEditorProps) {
   const editor = useEditor({
@@ -88,6 +106,30 @@ export function RichTextEditor({ value, onChange, disabled = false, invalid = fa
     },
     onUpdate: ({ editor: currentEditor }) => onChange(currentEditor.getHTML())
   })
+
+  // Selection changes do not emit `onUpdate`, so the toolbar subscribes to the derived state.
+  const toolbarState =
+    useEditorState({
+      editor,
+      selector: ({ editor: currentEditor }) => {
+        if (!currentEditor) {
+          return EMPTY_TOOLBAR_STATE
+        }
+
+        return {
+          canUndo: currentEditor.can().undo(),
+          canRedo: currentEditor.can().redo(),
+          bold: currentEditor.isActive('bold'),
+          italic: currentEditor.isActive('italic'),
+          strike: currentEditor.isActive('strike'),
+          code: currentEditor.isActive('code'),
+          heading2: currentEditor.isActive('heading', { level: 2 }),
+          bulletList: currentEditor.isActive('bulletList'),
+          orderedList: currentEditor.isActive('orderedList'),
+          blockquote: currentEditor.isActive('blockquote')
+        }
+      }
+    }) ?? EMPTY_TOOLBAR_STATE
 
   React.useEffect(() => {
     if (editor && value !== editor.getHTML()) {
@@ -106,16 +148,24 @@ export function RichTextEditor({ value, onChange, disabled = false, invalid = fa
   return (
     <div className={cn('overflow-hidden rounded-lg border bg-transparent', invalid && 'border-destructive')}>
       <div className="flex flex-wrap items-center gap-0.5 border-b p-1">
-        <ToolbarButton label="撤销" disabled={!editor.can().undo()} onClick={() => editor.chain().focus().undo().run()}>
+        <ToolbarButton
+          label="撤销"
+          disabled={disabled || !toolbarState.canUndo}
+          onClick={() => editor.chain().focus().undo().run()}
+        >
           <Undo2 />
         </ToolbarButton>
-        <ToolbarButton label="重做" disabled={!editor.can().redo()} onClick={() => editor.chain().focus().redo().run()}>
+        <ToolbarButton
+          label="重做"
+          disabled={disabled || !toolbarState.canRedo}
+          onClick={() => editor.chain().focus().redo().run()}
+        >
           <Redo2 />
         </ToolbarButton>
         <span className="mx-1 h-4 w-px bg-border" />
         <ToolbarButton
           label="加粗"
-          active={editor.isActive('bold')}
+          active={toolbarState.bold}
           disabled={disabled}
           onClick={() => editor.chain().focus().toggleBold().run()}
         >
@@ -123,7 +173,7 @@ export function RichTextEditor({ value, onChange, disabled = false, invalid = fa
         </ToolbarButton>
         <ToolbarButton
           label="斜体"
-          active={editor.isActive('italic')}
+          active={toolbarState.italic}
           disabled={disabled}
           onClick={() => editor.chain().focus().toggleItalic().run()}
         >
@@ -131,7 +181,7 @@ export function RichTextEditor({ value, onChange, disabled = false, invalid = fa
         </ToolbarButton>
         <ToolbarButton
           label="删除线"
-          active={editor.isActive('strike')}
+          active={toolbarState.strike}
           disabled={disabled}
           onClick={() => editor.chain().focus().toggleStrike().run()}
         >
@@ -139,7 +189,7 @@ export function RichTextEditor({ value, onChange, disabled = false, invalid = fa
         </ToolbarButton>
         <ToolbarButton
           label="行内代码"
-          active={editor.isActive('code')}
+          active={toolbarState.code}
           disabled={disabled}
           onClick={() => editor.chain().focus().toggleCode().run()}
         >
@@ -148,7 +198,7 @@ export function RichTextEditor({ value, onChange, disabled = false, invalid = fa
         <span className="mx-1 h-4 w-px bg-border" />
         <ToolbarButton
           label="二级标题"
-          active={editor.isActive('heading', { level: 2 })}
+          active={toolbarState.heading2}
           disabled={disabled}
           onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
         >
@@ -156,7 +206,7 @@ export function RichTextEditor({ value, onChange, disabled = false, invalid = fa
         </ToolbarButton>
         <ToolbarButton
           label="无序列表"
-          active={editor.isActive('bulletList')}
+          active={toolbarState.bulletList}
           disabled={disabled}
           onClick={() => editor.chain().focus().toggleBulletList().run()}
         >
@@ -164,7 +214,7 @@ export function RichTextEditor({ value, onChange, disabled = false, invalid = fa
         </ToolbarButton>
         <ToolbarButton
           label="有序列表"
-          active={editor.isActive('orderedList')}
+          active={toolbarState.orderedList}
           disabled={disabled}
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
         >
@@ -172,7 +222,7 @@ export function RichTextEditor({ value, onChange, disabled = false, invalid = fa
         </ToolbarButton>
         <ToolbarButton
           label="引用"
-          active={editor.isActive('blockquote')}
+          active={toolbarState.blockquote}
           disabled={disabled}
           onClick={() => editor.chain().focus().toggleBlockquote().run()}
         >

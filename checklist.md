@@ -3,7 +3,7 @@
 > 最后同步：2026-10-21。原始 35 条全部保留；新增 12 条（36–47）。另有 11、13、27、28、31 按复查结果扩面，不另计条目。  
 > 状态：`[x]` 已修复；`[ ]` 待处理。
 
-共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 27 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
+共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 25 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
 
 本次为静态审计，覆盖业务管理页、共享组件、请求与状态层，以及部分仪表盘页面；未进行运行时性能测试。原生 HTML、必要的异常处理和合理的 `className` 扩展本身不算问题。文件行号对应当前代码。
 
@@ -59,11 +59,11 @@
 - [x] **17 · P2｜部分文件上传成功后再失败，不会刷新列表与统计。［已修复 2026-10-21］** `upload()` 记录本次成功数；失败时只要有文件落库就立即调用 `onUploaded()`（`refreshFiles` 失效 `fileKeys.all`，列表、统计、回收站缓存一起刷新），错误文案改为「已上传 x 个，y 个未完成，请重试」；成功提示也改用实际成功数。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/file/-components/file-upload-dialog.tsx:84](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/file/-components/file-upload-dialog.tsx:84>)
 
-- [ ] **18 · P2｜富文本工具栏没有订阅选区状态。** 当前 Tiptap 版本默认不会随事务重新渲染 React；仅移动光标或切换选区时，`editor.isActive()` 对应的按钮状态可能滞后。应通过 `useEditorState` 订阅必要状态。  
-  文件：[E:/ppxb/continew-next/continew-ui-next/src/components/rich-text-editor.tsx:79](<E:/ppxb/continew-next/continew-ui-next/src/components/rich-text-editor.tsx:79>)
+- [x] **18 · P2｜富文本工具栏没有订阅选区状态。［已修复 2026-10-21］** 工具栏状态改为 `useEditorState` 一次性订阅（`canUndo`/`canRedo`，加粗/斜体/删除线/行内代码/二级标题/无序列表/有序列表/引用），选区变化也会触发重渲染；默认的 `circularDeepEqual` 保证字段没变时不重渲染，编辑器未创建时回退到全 false 的静态状态。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/components/rich-text-editor.tsx:111](<E:/ppxb/continew-next/continew-ui-next/src/components/rich-text-editor.tsx:111>)
 
-- [ ] **19 · P2｜富文本撤销和重做按钮没有遵守外部禁用状态。** 两个按钮只检查 `editor.can()`，未包含 `disabled`；存在历史记录时，禁用期间仍可能执行修改命令。  
-  文件：[E:/ppxb/continew-next/continew-ui-next/src/components/rich-text-editor.tsx:109](<E:/ppxb/continew-next/continew-ui-next/src/components/rich-text-editor.tsx:109>)
+- [x] **19 · P2｜富文本撤销和重做按钮没有遵守外部禁用状态。［已修复 2026-10-21］** 撤销/重做改为 `disabled || !toolbarState.canUndo` / `disabled || !toolbarState.canRedo`，与其余工具栏按钮一致；外部禁用时不再执行命令，可用态也随历史变化刷新。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/components/rich-text-editor.tsx:151](<E:/ppxb/continew-next/continew-ui-next/src/components/rich-text-editor.tsx:151>)
 
 - [ ] **20 · P2｜短信配置复制操作未完成就提示成功。** `clipboard.writeText()` 没有等待结果，也没有处理 Promise 拒绝，复制失败仍可能显示“已复制”。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/sms/columns.tsx:56](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/sms/columns.tsx:56>)
