@@ -2,7 +2,6 @@ import * as React from 'react'
 
 import { format, parseISO } from 'date-fns'
 import { CalendarIcon, Hash } from 'lucide-react'
-import { Controller, useFormContext } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
@@ -10,7 +9,7 @@ import { Field, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
-import type { InvoiceFormValues } from './data'
+import type { InvoiceFormApi } from './use-invoice-form'
 
 const dateFields: Array<{
   id: string
@@ -29,39 +28,43 @@ const dateFields: Array<{
   }
 ]
 
-export function InvoiceDetails() {
-  const { control, register } = useFormContext<InvoiceFormValues>()
-
+export function InvoiceDetails({ form }: { readonly form: InvoiceFormApi }) {
   return (
     <section className="flex flex-col gap-3">
       <FieldGroup>
-        <Field className="gap-1">
-          <FieldLabel className="text-xs" htmlFor="reference-number">
-            Reference Number
-          </FieldLabel>
-          <InputGroup>
-            <InputGroupInput id="reference-number" {...register('referenceNumber')} />
-            <InputGroupAddon align="inline-end">
-              <Hash />
-            </InputGroupAddon>
-          </InputGroup>
-        </Field>
+        <form.Field name="referenceNumber">
+          {field => (
+            <Field className="gap-1">
+              <FieldLabel className="text-xs" htmlFor="reference-number">
+                Reference Number
+              </FieldLabel>
+              <InputGroup>
+                <InputGroupInput
+                  id="reference-number"
+                  value={field.state.value}
+                  onChange={event => field.handleChange(event.target.value)}
+                  onBlur={field.handleBlur}
+                />
+                <InputGroupAddon align="inline-end">
+                  <Hash />
+                </InputGroupAddon>
+              </InputGroup>
+            </Field>
+          )}
+        </form.Field>
 
         <div className="grid gap-5 md:grid-cols-2">
           {dateFields.map(dateField => (
-            <Controller
-              key={dateField.name}
-              control={control}
-              name={dateField.name}
-              render={({ field }) => (
+            <form.Field key={dateField.name} name={dateField.name}>
+              {field => (
                 <Field className="gap-1">
                   <FieldLabel className="text-xs" htmlFor={dateField.id}>
                     {dateField.label}
                   </FieldLabel>
-                  <DatePicker id={dateField.id} value={field.value} onChange={field.onChange} />
+                  <DatePicker id={dateField.id} value={field.state.value} onChange={field.handleChange} />
                 </Field>
               )}
-            />
+            </form.Field>
           ))}
         </div>
       </FieldGroup>

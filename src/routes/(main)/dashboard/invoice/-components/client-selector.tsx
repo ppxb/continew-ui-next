@@ -1,5 +1,4 @@
 import { Plus } from 'lucide-react'
-import { Controller, useFormContext } from 'react-hook-form'
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -7,11 +6,10 @@ import { Field, FieldLabel } from '@/components/ui/field'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { getInitials } from '@/lib/utils'
 
-import { type InvoiceFormValues, invoiceClients } from './data'
+import { invoiceClients } from './data'
+import type { InvoiceFormApi } from './use-invoice-form'
 
-export function ClientSelector() {
-  const { control } = useFormContext<InvoiceFormValues>()
-
+export function ClientSelector({ form }: { readonly form: InvoiceFormApi }) {
   return (
     <section className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-3">
@@ -22,11 +20,9 @@ export function ClientSelector() {
         </Button>
       </div>
 
-      <Controller
-        control={control}
-        name="to"
-        render={({ field }) => {
-          const selectedClient = field.value
+      <form.Field name="to">
+        {field => {
+          const selectedClient = field.state.value
 
           return (
             <Field className="gap-1">
@@ -37,7 +33,7 @@ export function ClientSelector() {
                   const nextClient = invoiceClients.find(item => item.id === clientId)
 
                   if (nextClient) {
-                    field.onChange(nextClient)
+                    field.handleChange(nextClient)
                   }
                 }}
               >
@@ -70,7 +66,7 @@ export function ClientSelector() {
             </Field>
           )
         }}
-      />
+      </form.Field>
     </section>
   )
 }

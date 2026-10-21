@@ -5,8 +5,9 @@ import { ClientSelector } from './client-selector'
 import { InvoiceAdjustments } from './invoice-adjustments'
 import { InvoiceDetails } from './invoice-details'
 import { InvoiceItems } from './invoice-items'
+import type { InvoiceFormApi } from './use-invoice-form'
 
-export function InvoiceForm() {
+export function InvoiceForm({ form }: { readonly form: InvoiceFormApi }) {
   return (
     <div className="flex flex-col gap-4 rounded-xl border bg-card p-4">
       <Tabs defaultValue="invoice">
@@ -17,19 +18,19 @@ export function InvoiceForm() {
         </TabsList>
       </Tabs>
 
-      <InvoiceDetails />
+      <InvoiceDetails form={form} />
 
       <Separator />
 
-      <ClientSelector />
+      <ClientSelector form={form} />
 
       <Separator />
 
-      <InvoiceItems />
+      <InvoiceItems form={form} />
 
       <Separator />
 
-      <InvoiceAdjustments />
+      <InvoiceAdjustments form={form} />
     </div>
   )
 }

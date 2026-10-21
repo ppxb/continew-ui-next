@@ -304,7 +304,7 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
     await form.validate('submit')
     await form.handleSubmit()
 
-    // react-hook-form used to focus the first invalid control; a drawer this long still needs it.
+    // TanStack Form does not move focus to the first invalid control, so the drawer does it here.
     requestAnimationFrame(() => {
       formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
     })

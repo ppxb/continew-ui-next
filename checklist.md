@@ -3,7 +3,7 @@
 > 最后同步：2026-10-21。原始 35 条全部保留；新增 12 条（36–47）。另有 11、13、27、28、31 按复查结果扩面，不另计条目。  
 > 状态：`[x]` 已修复；`[ ]` 待处理。
 
-共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 40 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
+共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 35 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
 
 本次为静态审计，覆盖业务管理页、共享组件、请求与状态层，以及部分仪表盘页面；未进行运行时性能测试。原生 HTML、必要的异常处理和合理的 `className` 扩展本身不算问题。文件行号对应当前代码。
 
@@ -28,16 +28,17 @@
 - [x] **07 · P3｜图标列表滚动时持续累积 DOM。［已修复 2026-10-21］** 网格改为 `@tanstack/react-virtual` 行虚拟化，只渲染视口附近行；移除 `visibleLimit` 与“加载更多”；滚动容器使用 `scroll-fade`。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/icon-picker.tsx:449](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/icon-picker.tsx:449>)；[滚动容器:471](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/icon-picker.tsx:471>)；[E:/ppxb/continew-next/continew-ui-next/package.json:35](<E:/ppxb/continew-next/continew-ui-next/package.json:35>)
 
-- [ ] **08 · P2｜客户端保存中仍可关闭抽屉。** `mutate()` 返回后，表单的 `isSubmitting` 提前恢复；右上关闭按钮和关闭回调检查该状态，底部按钮却检查 `saveMutation.isPending`。应统一使用实际请求状态。  
+- [x] **08 · P2｜客户端保存中仍可关闭抽屉。［已修复 2026-10-21］** 表单迁移到 TanStack Form 后只有一个 `isSubmitting`（`useSelector(form.store, …)`）：抽屉 `onOpenChange`、右上 X、取消与保存四处共用它，不再出现 `mutate()` 同步返回后状态提前复位的分叉。同类写法已推广到其余抽屉与弹窗。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:234](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:234>)；关闭按钮 [:246](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:246>)；底部按钮 [:610](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:610>)
 
-- [ ] **09 · P2｜客户端详情加载失败后仍显示可提交的默认表单。** 查询只处理 loading，没有 error 分支；失败且无缓存时，用户可能把默认值提交到现有客户端。应提供错误与重试状态，并阻止无详情数据的编辑提交。  
+- [x] **09 · P2｜客户端详情加载失败后仍显示可提交的默认表单。［已修复 2026-10-21］** 增加详情错误分支：失败时只渲染「加载失败，请稍后重试」，表单不再出现，默认值无法提交到现有记录。client 与 sms 抽屉已统一。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:142](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:142>)
 
 - [ ] **10 · P2｜清空有效期输入框会被自动转换成“不限制”。** `valueAsNumber` 为 `NaN` 时直接写入 `-1`，而 `-1` 表示永不过期等业务含义。同类转换还在 `activeTimeout`、`maxLoginCount`；`refreshTokenTimeout` 则转成 `0`，由最小 60 校验拦截。应保留空值并校验。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:369](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:369>)；[activeTimeout:334](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:334>)；[maxLoginCount:531](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:531>)
 
 - [ ] **11 · P2｜保存失败会重复弹出错误提示。［复查扩面］** HTTP 层已经 toast；至少 10 个 mutation 的 `onError` 再次 toast，`useOptionForm` 的保存/恢复也会重复。应统一错误提示的负责层，或显式使用 `silent`。  
+  本次迁移已去掉 client/sms/storage/app/menu/dept/role 七个表单里与 HTTP 层重复的 toast；但 `login`、`updatePassword` 等接口本身是 `silent: true`，必须由调用方提示，属例外，迁移时已原样保留。`useOptionForm` 与 menu-list 尚未处理。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:221](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:221>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/use-option-form.ts:70](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/use-option-form.ts:70>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/menu-list.tsx:184](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/menu-list.tsx:184>)
 
 - [ ] **12 · P2｜过度兜底把查询失败伪装成成功空数据。［复查扩面］** 当前共 10 处 `.catch(() => [])`：`useNoticeDicts` 4 处、`useSiteOptions` 1 处、`config-client` 4 处、`config-sms` 1 处。失败会被缓存为“成功空数据”，TanStack Query 无法重试。展示层可以使用默认值，请求层应保留失败语义。  
@@ -109,7 +110,7 @@
 - [ ] **34 · P3｜完成回调被设计为必填，但调用方只传空函数。** 公告表单和删除弹窗传入 `onCompleted={() => undefined}`，增加了没有实际职责的接口和样板代码。可移除无用回调，或仅在确有扩展需求时设为可选。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/notice/-components/notice-list.tsx:237](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/notice/-components/notice-list.tsx:237>)
 
-- [ ] **35 · P3｜同类管理表单使用两套实现体系。［复查扩面］** 不是两个文件：TanStack Form 有 user/notice/tenant/package/job/dict×2 共 7 个；React Hook Form 有 client/sms/storage/role/menu/dept/app/login/profile 等 11+ 个。建议以 TanStack Form 为方向逐步收敛。  
+- [x] **35 · P3｜同类管理表单使用两套实现体系。［已修复 2026-10-21］** 业务侧 19 个表单与仪表盘 `invoice` 演示页已全部迁到 TanStack Form；`react-hook-form`、`@hookform/resolvers` 已从 `package.json` 移除，项目内不再引用。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/user/-components/user-form-drawer.tsx:3](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/user/-components/user-form-drawer.tsx:3>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:6](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:6>)
 
 - [ ] **36 · P2｜字典项和通知用户被固定截断在前 100 条。** `dict-panel` 只取 100 个字典项且没有分页；通知表单只用前 100 个用户解析姓名，选择器搜索也最多 100 条。超过后字典项不可见，通知用户只能显示“用户 {id}”。与 16 同类。  
@@ -118,10 +119,10 @@
 - [ ] **37 · P2｜HeaderTabs 将关闭按钮嵌套在 Link 内。** `<Link>` 内又渲染 `<button>`，属于嵌套交互元素，键盘和读屏语义会混淆；`preventDefault/stopPropagation` 只掩盖了行为，没有修正结构。应把关闭按钮移到 Link 外。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/components/app-shell/header/header-tabs.tsx:197](<E:/ppxb/continew-next/continew-ui-next/src/components/app-shell/header/header-tabs.tsx:197>)
 
-- [ ] **38 · P3｜表单回填策略不统一，部分表单会覆盖正在编辑的内容。** 6 个表单每次 `detail` 或依赖变化都直接 `form.reset`：client、sms、storage、role、dept、menu；user/notice/dict 使用一次性守卫。SMS 还把 `supplierOptions` 放进依赖，字典加载完成会重置表单。建议统一“每次打开回填一次”的 `filledForRef` 模式。  
+- [x] **38 · P3｜表单回填策略不统一，部分表单会覆盖正在编辑的内容。［已修复 2026-10-21］** client、sms、storage、role、dept、menu 六个表单统一为 `filledForRef` 一次性回填 + `keepDefaultValues`；SMS 的 `supplierOptions` 不再触发重置，菜单按 id 回填，重取详情不会覆盖正在编辑的内容。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:149](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:149>)；[sms/form-drawer.tsx:142](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/sms/form-drawer.tsx:142>)；[user-form-drawer.tsx:320](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/user/-components/user-form-drawer.tsx:320>)
 
-- [ ] **39 · P3｜必填星号有 29 处绕过 `RequiredMark`。** 已有 [required-mark.tsx](<E:/ppxb/continew-next/continew-ui-next/src/components/required-mark.tsx:1>)，但 client（8）、storage（9）、sms（5）、menu（3）、dept（3）、app-form（1）仍手写 `<span className="text-destructive">*</span>`。建议全部替换，避免样式调整时漏改。  
+- [x] **39 · P3｜必填星号有 29 处绕过 `RequiredMark`。［已修复 2026-10-21］** 29 处全部替换（client 8、storage 9、sms 5、menu 3、dept 3、app-form 1）；`src` 中除 `required-mark.tsx` 自身外已无手写星号。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:265](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:265>)；[storage/form-drawer.tsx:367](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/storage/form-drawer.tsx:367>)；[sms/form-drawer.tsx:243](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/sms/form-drawer.tsx:243>)
 
 - [ ] **40 · P3｜抽屉头与列表页脚手架大量重复。** 26 个抽屉复制同一段 `DrawerHeader` + 关闭按钮 + 宽度变量；17 个列表页复制全屏 spacer + `CardHeader/CardAction`。建议抽 `EntityDrawer` 和 `ListPageCard`，减少宽度、图标、关闭按钮的重复维护。  
