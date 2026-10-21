@@ -1,3 +1,5 @@
+import { createElement, forwardRef } from 'react'
+
 import {
   Activity,
   AlertCircle,
@@ -129,9 +131,11 @@ import {
   Workflow,
   Wrench,
   Zap,
-  icons,
-  type LucideIcon
+  type LucideIcon,
+  type LucideProps
 } from 'lucide-react'
+
+import { DynamicIcon, dynamicIconImports, type IconName } from 'lucide-react/dynamic'
 
 /**
  * Maps the icon names stored in `sys_menu.icon` to lucide components.
@@ -300,12 +304,27 @@ export const MENU_ICONS: Record<string, LucideIcon> = {
 }
 
 const FALLBACK_ICON = AppWindow
+const dynamicIcons = new Map<string, LucideIcon>()
 
-function toPascalCase(str: string): string {
-  return str
-    .split('-')
-    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
-    .join('')
+function toKebabCase(value: string): string {
+  return value
+    .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+    .replace(/([A-Z])([A-Z][a-z])/g, '$1-$2')
+    .toLowerCase()
+}
+
+function createDynamicIcon(name: IconName): LucideIcon {
+  const Icon = forwardRef<SVGSVGElement, LucideProps>((props, ref) =>
+    createElement(DynamicIcon, {
+      ...props,
+      ref,
+      name,
+      fallback: () => createElement(FALLBACK_ICON, props)
+    })
+  )
+
+  Icon.displayName = `MenuIcon(${name})`
+  return Icon
 }
 
 /**
@@ -317,17 +336,21 @@ export function resolveMenuIcon(name?: string | null): LucideIcon {
     return FALLBACK_ICON
   }
 
-  // Check custom admin aliases and overrides first
-  if (MENU_ICONS[name]) {
-    return MENU_ICONS[name]
+  const staticIcon = Object.hasOwn(MENU_ICONS, name) ? MENU_ICONS[name] : undefined
+  if (staticIcon) {
+    return staticIcon
   }
 
-  // Fallback to any Lucide icon by name (kebab-case or PascalCase)
-  const pascalName = toPascalCase(name)
-  const dynamicIcon = (icons as Record<string, LucideIcon | undefined>)[pascalName]
-  if (dynamicIcon) {
-    return dynamicIcon
+  const kebabName = toKebabCase(name)
+  if (!Object.hasOwn(dynamicIconImports, kebabName)) {
+    return FALLBACK_ICON
   }
 
-  return FALLBACK_ICON
+  let Icon = dynamicIcons.get(kebabName)
+  if (!Icon) {
+    Icon = createDynamicIcon(kebabName as IconName)
+    dynamicIcons.set(kebabName, Icon)
+  }
+
+  return Icon
 }

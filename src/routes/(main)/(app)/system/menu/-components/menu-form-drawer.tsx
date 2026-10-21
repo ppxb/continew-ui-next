@@ -18,8 +18,11 @@ import { toast } from '@/components/ui/toast'
 import { createMenu, getMenu, menuKeys, type MenuReq, type MenuResp, updateMenu } from '@/lib/api/menu'
 import { cn } from 'cn'
 
-import { IconPicker } from './icon-picker'
 import { MenuParentSelect } from './menu-parent-select'
+
+const IconPicker = React.lazy(() =>
+  import('./icon-picker').then(mod => ({ default: mod.IconPicker }))
+)
 
 const formSchema = z
   .object({
@@ -401,7 +404,13 @@ export function MenuFormDrawer({ menuId, defaultParentId, open, onClose, menuTre
                       render={({ field }) => (
                         <Field className="gap-1.5">
                           <FieldLabel>菜单图标</FieldLabel>
-                          <IconPicker value={field.value} onChange={field.onChange} disabled={mutation.isPending} />
+                          <React.Suspense fallback={<Skeleton className="h-9 w-full" />}>
+                            <IconPicker
+                              value={field.value}
+                              onChange={field.onChange}
+                              disabled={mutation.isPending}
+                            />
+                          </React.Suspense>
                         </Field>
                       )}
                     />

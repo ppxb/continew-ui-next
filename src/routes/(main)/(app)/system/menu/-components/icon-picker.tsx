@@ -359,38 +359,47 @@ function toKebabCase(string: string): string {
 
 interface LucideIconMeta {
   pascal: string
+  pascalLower: string
   kebab: string
   component: LucideIcon
   categories: Set<string>
 }
 
-// Precompute icon metadata once across module scope
-const ALL_LUCIDE_ICONS: LucideIconMeta[] = Object.entries(icons).map(([pascal, component]) => {
+const CATEGORY_COUNTS: Record<string, number> = { all: 0 }
+for (const category of ICON_CATEGORIES) {
+  CATEGORY_COUNTS[category.key] = 0
+}
+
+const ALL_LUCIDE_ICONS: LucideIconMeta[] = []
+
+for (const [pascal, component] of Object.entries(icons)) {
   const kebab = toKebabCase(pascal)
-  const matched = new Set<string>()
-  for (const cat of ICON_CATEGORIES) {
-    if (cat.keywords.some(kw => kebab.includes(kw))) {
-      matched.add(cat.key)
+  const categories = new Set<string>()
+
+  for (const category of ICON_CATEGORIES) {
+    if (category.keywords.some(keyword => kebab.includes(keyword))) {
+      categories.add(category.key)
+      CATEGORY_COUNTS[category.key] += 1
     }
   }
-  return {
+
+  CATEGORY_COUNTS.all += 1
+  ALL_LUCIDE_ICONS.push({
     pascal,
+    pascalLower: pascal.toLowerCase(),
     kebab,
     component,
-    categories: matched
-  }
-})
+    categories
+  })
+}
 
-const CATEGORY_COUNTS: Record<string, number> = {
-  all: ALL_LUCIDE_ICONS.length
-}
-for (const cat of ICON_CATEGORIES) {
-  let count = 0
-  for (const icon of ALL_LUCIDE_ICONS) {
-    if (icon.categories.has(cat.key)) count++
-  }
-  CATEGORY_COUNTS[cat.key] = count
-}
+const CATEGORY_ITEMS = [
+  { value: 'all', label: `全部 (${CATEGORY_COUNTS.all})` },
+  ...ICON_CATEGORIES.map(category => ({
+    value: category.key,
+    label: `${category.label} (${CATEGORY_COUNTS[category.key]})`
+  }))
+]
 
 const PAGE_SIZE = 120
 
@@ -405,18 +414,6 @@ export function IconPicker({ value, onChange, disabled }: IconPickerProps) {
   const [search, setSearch] = React.useState('')
   const [activeCategory, setActiveCategory] = React.useState('common')
   const [visibleLimit, setVisibleLimit] = React.useState(PAGE_SIZE)
-
-  const categoryItems = React.useMemo(
-    () => [
-      { value: 'all', label: `全部 (${CATEGORY_COUNTS.all})` },
-      { value: 'common', label: `常用推荐 (${CATEGORY_COUNTS.common})` },
-      ...ICON_CATEGORIES.filter(cat => cat.key !== 'common').map(cat => ({
-        value: cat.key,
-        label: `${cat.label} (${CATEGORY_COUNTS[cat.key]})`
-      }))
-    ],
-    []
-  )
 
   const handleCategoryChange = (key: string) => {
     setActiveCategory(key)
@@ -435,7 +432,7 @@ export function IconPicker({ value, onChange, disabled }: IconPickerProps) {
     }
     if (search.trim()) {
       const q = search.trim().toLowerCase()
-      list = list.filter(item => item.kebab.includes(q) || item.pascal.toLowerCase().includes(q))
+      list = list.filter(item => item.kebab.includes(q) || item.pascalLower.includes(q))
     }
     return list
   }, [activeCategory, search])
@@ -447,9 +444,7 @@ export function IconPicker({ value, onChange, disabled }: IconPickerProps) {
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const { scrollTop, scrollHeight, clientHeight } = e.currentTarget
     if (scrollHeight - scrollTop - clientHeight < 160) {
-      if (visibleLimit < filteredIcons.length) {
-        setVisibleLimit(prev => Math.min(prev + PAGE_SIZE, filteredIcons.length))
-      }
+      setVisibleLimit(prev => Math.min(prev + PAGE_SIZE, filteredIcons.length))
     }
   }
 
@@ -542,14 +537,14 @@ export function IconPicker({ value, onChange, disabled }: IconPickerProps) {
               onValueChange={val => {
                 if (val) handleCategoryChange(val)
               }}
-              items={categoryItems}
+              items={CATEGORY_ITEMS}
             >
               <SelectTrigger>
                 <SelectValue placeholder="选择分类" />
               </SelectTrigger>
               <SelectContent align="end">
                 <SelectGroup>
-                  {categoryItems.map(item => (
+                  {CATEGORY_ITEMS.map(item => (
                     <SelectItem key={item.value} value={item.value}>
                       {item.label}
                     </SelectItem>
