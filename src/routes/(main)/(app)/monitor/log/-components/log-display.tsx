@@ -48,8 +48,8 @@ export function TimeTakenCell({ timeTaken }: { timeTaken: number }) {
     timeTaken > 500
       ? 'bg-destructive/10 text-destructive'
       : timeTaken > 200
-        ? 'bg-orange-500/10 text-orange-700 dark:text-orange-400'
-        : 'bg-green-500/10 text-green-700 dark:text-green-400'
+        ? 'bg-status-caution/10 text-status-caution-foreground'
+        : 'bg-status-success/10 text-status-success-foreground'
 
   return (
     <Badge variant="secondary" className={tone}>

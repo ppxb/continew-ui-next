@@ -14,16 +14,16 @@ export const DICT_COLOR_OPTIONS = [
 
 export const DICT_COLOR_BADGE_CLASSES: Record<string, string> = {
   primary: 'bg-primary/10 text-primary',
-  success: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
-  warning: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
+  success: 'bg-status-success/10 text-status-success-foreground',
+  warning: 'bg-status-warning/10 text-status-warning-foreground',
   error: 'bg-destructive/10 text-destructive',
   default: 'bg-muted text-muted-foreground'
 }
 
 export const DICT_COLOR_DOT_CLASSES: Record<string, string> = {
   primary: 'bg-primary',
-  success: 'bg-emerald-500',
-  warning: 'bg-amber-500',
+  success: 'bg-status-success',
+  warning: 'bg-status-warning',
   error: 'bg-destructive',
   default: 'bg-muted-foreground'
 }

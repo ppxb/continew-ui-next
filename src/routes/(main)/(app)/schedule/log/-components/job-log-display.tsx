@@ -1,6 +1,4 @@
-import { cn } from 'cn'
-
-import { Badge } from '@/components/ui/badge'
+import { StatusBadge, type StatusTone } from '@/components/status-cell'
 import { JOB_EXECUTE_REASON_LABELS, JOB_EXECUTE_STATUS_LABELS, type JobExecuteStatus } from '@/lib/api/job-log'
 import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 
@@ -9,25 +7,20 @@ export function TextCell({ value }: { value: string | number | null | undefined 
   return <span className="text-sm">{value || value === 0 ? value : EMPTY_PLACEHOLDER}</span>
 }
 
-const STATUS_DOTS: Record<JobExecuteStatus, string> = {
-  1: 'bg-sky-500',
-  2: 'bg-amber-500',
-  3: 'bg-green-600',
-  4: 'bg-destructive',
-  5: 'bg-destructive',
-  6: 'bg-muted-foreground'
+const STATUS_TONES: Record<JobExecuteStatus, StatusTone> = {
+  1: 'info',
+  2: 'warning',
+  3: 'success',
+  4: 'danger',
+  5: 'danger',
+  6: 'neutral'
 }
 
-/** The execution status as a dot badge, mirroring the colors of the Vue client's tags. */
+/** The execution status as the shared status badge. */
 export function JobExecuteStatusBadge({ status }: { status: JobExecuteStatus }) {
   const label = JOB_EXECUTE_STATUS_LABELS[status] ?? EMPTY_PLACEHOLDER
 
-  return (
-    <Badge variant="outline">
-      <span className={cn('size-1.5 rounded-full', STATUS_DOTS[status] ?? 'bg-muted-foreground')} />
-      {label}
-    </Badge>
-  )
+  return <StatusBadge tone={STATUS_TONES[status] ?? 'neutral'} label={label} />
 }
 
 /** The execution note; the full label stays available through the native title. */

@@ -1,6 +1,6 @@
-import { cn } from 'cn'
 import { AlertTriangleIcon, Copy, Plane, Ship, Star, Truck } from 'lucide-react'
 
+import { StatusBadge, type StatusTone } from '@/components/status-cell'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -17,24 +17,14 @@ const modeIcons = {
   sea: Ship
 } as const
 
-const progressRingClasses: Record<Shipment['status'], string> = {
-  Scheduled: 'text-muted-foreground',
-  'In Transit': 'text-primary',
-  'Out for Delivery': 'text-primary',
-  Delivered: 'text-green-600',
-  Delayed: 'text-destructive',
-  'On Hold': 'text-amber-500',
-  'Customs Hold': 'text-amber-500'
-}
-
-const statusBadgeClasses: Record<Shipment['status'], string> = {
-  Scheduled: 'border-muted bg-muted/50 text-muted-foreground',
-  'In Transit': 'border-primary/20 bg-primary/10 text-primary',
-  'Out for Delivery': 'border-primary/20 bg-primary/10 text-primary',
-  Delivered: 'border-green-600/20 bg-green-600/10 text-green-600',
-  Delayed: 'border-destructive/20 bg-destructive/10 text-destructive',
-  'On Hold': 'border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400',
-  'Customs Hold': 'border-amber-500/20 bg-amber-500/10 text-amber-600 dark:text-amber-400'
+const SHIPMENT_STATUS_TONES: Record<Shipment['status'], StatusTone> = {
+  Scheduled: 'neutral',
+  'In Transit': 'primary',
+  'Out for Delivery': 'primary',
+  Delivered: 'success',
+  Delayed: 'danger',
+  'On Hold': 'warning',
+  'Customs Hold': 'warning'
 }
 
 type ShipmentDetailsProps = {
@@ -89,10 +79,7 @@ function ShipmentOverview({ shipment }: { shipment: Shipment }) {
         </div>
 
         <div className="flex items-center gap-2 text-xs sm:text-sm">
-          <Badge variant="outline" className={cn('gap-1.5', statusBadgeClasses[shipment.status])}>
-            <span className={cn('size-1.5 rounded-full bg-current', progressRingClasses[shipment.status])} />
-            {shipment.status}
-          </Badge>
+          <StatusBadge tone={SHIPMENT_STATUS_TONES[shipment.status]} label={shipment.status} />
           <span className="text-muted-foreground">·</span>
           <span className="text-foreground tabular-nums">{shipment.progress}% complete</span>
           <span className="text-muted-foreground">·</span>

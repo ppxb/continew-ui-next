@@ -1,5 +1,5 @@
-import { Badge } from '@/components/ui/badge'
-import type { StorageResp, StorageStatus, StorageType } from '@/lib/api/storage'
+import { DefaultBadge, StatusBadge } from '@/components/status-cell'
+import type { StorageResp, StorageType } from '@/lib/api/storage'
 import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 
 const TYPE_LABELS: Record<StorageType, string> = {
@@ -16,21 +16,6 @@ export function storageTypeDescription(type: StorageType) {
   return type === 1 ? '文件保存在服务器本地目录' : '文件保存在对象存储，走 S3 兼容协议'
 }
 
-export function StorageStatusBadge({ status }: { status?: StorageStatus | null }) {
-  const isEnabled = status === 1
-
-  return (
-    <Badge variant="secondary" className="gap-1.5">
-      <span className={isEnabled ? 'size-1.5 rounded-full bg-green-600' : 'size-1.5 rounded-full bg-destructive'} />
-      {isEnabled ? '启用' : '禁用'}
-    </Badge>
-  )
-}
-
-export function DefaultStorageBadge() {
-  return <Badge className="rounded-sm px-1.5 py-0.5">默认</Badge>
-}
-
 /** The name with its code underneath, plus the default marker the row menu keys off. */
 export function StorageNameCell({ storage }: { storage: StorageResp }) {
   return (
@@ -39,7 +24,7 @@ export function StorageNameCell({ storage }: { storage: StorageResp }) {
         <span className="truncate text-sm font-medium text-foreground" title={storage.name}>
           {storage.name}
         </span>
-        {storage.isDefault ? <DefaultStorageBadge /> : null}
+        {storage.isDefault ? <DefaultBadge /> : null}
       </span>
       <span className="truncate text-muted-foreground" title={storage.code}>
         {storage.code}
@@ -48,7 +33,7 @@ export function StorageNameCell({ storage }: { storage: StorageResp }) {
   )
 }
 
-/** A path or address, monospaced and truncated so a long value cannot widen the column. */
+/** A path or address, truncated so a long value cannot widen the column. */
 export function MonoCell({ value }: { value?: string | null }) {
   if (!value) {
     return <span className="text-sm">{EMPTY_PLACEHOLDER}</span>
@@ -63,12 +48,12 @@ export function MonoCell({ value }: { value?: string | null }) {
 
 export function RecycleBinCell({ enabled, path }: { enabled?: boolean | null; path?: string | null }) {
   if (!enabled) {
-    return <span className="text-sm text-muted-foreground">未启用</span>
+    return <StatusBadge tone="neutral" label="未启用" />
   }
 
   return (
     <span className="flex min-w-0 flex-col gap-0.5">
-      <span className="text-sm">已启用</span>
+      <StatusBadge tone="success" label="已启用" />
       <MonoCell value={path} />
     </span>
   )

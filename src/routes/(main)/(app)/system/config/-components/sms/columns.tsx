@@ -1,6 +1,7 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import { Copy, MoreHorizontal, Star, Trash2 } from 'lucide-react'
 
+import { DefaultBadge, StatusCell } from '@/components/status-cell'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -88,9 +89,7 @@ export function createSmsColumns(
       header: () => <div className="text-center">状态</div>,
       cell: ({ row }) => (
         <div className="flex justify-center">
-          <Badge variant={row.original.status === 1 ? 'default' : 'secondary'}>
-            {row.original.status === 1 ? '启用' : '禁用'}
-          </Badge>
+          <StatusCell status={row.original.status} />
         </div>
       )
     },
@@ -100,9 +99,7 @@ export function createSmsColumns(
       cell: ({ row }) => (
         <div className="flex justify-center">
           {row.original.isDefault ? (
-            <Badge variant="default" className="bg-primary/20 text-primary">
-              默认
-            </Badge>
+            <DefaultBadge />
           ) : (
             <span className="text-xs text-muted-foreground">否</span>
           )}

@@ -1,15 +1,16 @@
 import { cn } from 'cn'
 
+import { StatusBadge, type StatusTone } from '@/components/status-cell'
 import { Badge } from '@/components/ui/badge'
 import type { NoticeStatus } from '@/lib/api/notice'
 import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 
 import type { NoticeDictOption } from './use-notice-dicts'
 
-const STATUS_CLASSES: Record<NoticeStatus, string> = {
-  1: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
-  2: 'bg-sky-500/10 text-sky-600 dark:text-sky-400',
-  3: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+const NOTICE_STATUS_TONES: Record<NoticeStatus, StatusTone> = {
+  1: 'warning',
+  2: 'info',
+  3: 'success'
 }
 
 export function noticeOptionLabel(options: NoticeDictOption[], value?: string | number | null) {
@@ -21,11 +22,7 @@ export function noticeOptionLabel(options: NoticeDictOption[], value?: string | 
 }
 
 export function NoticeStatusBadge({ status, options }: { status: NoticeStatus; options: NoticeDictOption[] }) {
-  return (
-    <Badge variant="secondary" className={cn('font-normal', STATUS_CLASSES[status])}>
-      {noticeOptionLabel(options, status)}
-    </Badge>
-  )
+  return <StatusBadge tone={NOTICE_STATUS_TONES[status] ?? 'neutral'} label={noticeOptionLabel(options, status)} />
 }
 
 export function NoticeMethodTags({

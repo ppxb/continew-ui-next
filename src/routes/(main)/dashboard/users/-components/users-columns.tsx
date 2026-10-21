@@ -5,8 +5,8 @@ import { cn } from 'cn'
 import { parse } from 'date-fns'
 import { Check, Clock, MoreHorizontal, X } from 'lucide-react'
 
+import { StatusBadge, type StatusTone } from '@/components/status-cell'
 import { Avatar, AvatarBadge, AvatarFallback, AvatarGroup, AvatarGroupCount } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
@@ -20,7 +20,7 @@ import {
 import type { DataTableFeatures } from '@/lib/data-table-features'
 import { getInitials } from '@/lib/utils'
 
-import { statusMeta, type UserRow } from './data'
+import type { UserRow } from './data'
 
 function RoleCell({ role, team }: { role: string; team: string }) {
   return (
@@ -31,15 +31,16 @@ function RoleCell({ role, team }: { role: string; team: string }) {
   )
 }
 
-function StatusBadge({ status }: { status: UserRow['status'] }) {
-  const meta = statusMeta[status]
+const USER_STATUS_TONES: Record<UserRow['status'], StatusTone> = {
+  Active: 'success',
+  'Pending invite': 'warning',
+  Deactivated: 'neutral',
+  Locked: 'danger',
+  Suspended: 'caution'
+}
 
-  return (
-    <Badge className={cn('gap-1.5 border px-2 py-1 font-medium', meta.badgeClass)} variant="outline">
-      <span className={cn('size-1.5 rounded-full', meta.dotClass)} />
-      {status}
-    </Badge>
-  )
+function UserStatusBadge({ status }: { status: UserRow['status'] }) {
+  return <StatusBadge tone={USER_STATUS_TONES[status]} label={status} />
 }
 
 function getAvatarTone(name: string) {
@@ -191,7 +192,7 @@ export const usersColumns: ColumnDef<DataTableFeatures, UserRow>[] = [
     accessorKey: 'status',
     header: 'Status',
     filterFn: 'equalsString',
-    cell: ({ row }) => <StatusBadge status={row.original.status} />
+    cell: ({ row }) => <UserStatusBadge status={row.original.status} />
   },
   {
     id: 'joinedDate',

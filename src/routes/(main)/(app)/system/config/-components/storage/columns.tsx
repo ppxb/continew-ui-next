@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 
 import { CircleCheck, CircleSlash, MoreHorizontal, PenLine, Star, Trash2 } from 'lucide-react'
 
+import { StatusCell } from '@/components/status-cell'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -14,7 +15,7 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import type { StorageResp } from '@/lib/api/storage'
 
-import { MonoCell, RecycleBinCell, StorageNameCell, StorageStatusBadge } from './display'
+import { MonoCell, RecycleBinCell, StorageNameCell } from './display'
 
 /** The row actions a storage row raises. */
 export type StorageAction = 'edit' | 'setDefault' | 'toggleStatus' | 'delete'
@@ -59,7 +60,7 @@ const STATUS_COLUMN: StorageColumn = {
   id: 'status',
   header: '状态',
   width: 'w-28',
-  cell: storage => <StorageStatusBadge status={storage.status} />
+  cell: storage => <StatusCell status={storage.status} />
 }
 
 const RECYCLE_BIN_COLUMN: StorageColumn = {
