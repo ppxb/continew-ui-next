@@ -1,6 +1,7 @@
 import type { ColumnDef } from '@tanstack/react-table'
-import { Copy, MoreHorizontal, Star, Trash2 } from 'lucide-react'
+import { MoreHorizontal, Star, Trash2 } from 'lucide-react'
 
+import { CopyableText } from '@/components/copyable-text'
 import { DefaultBadge, StatusCell } from '@/components/status-cell'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -11,7 +12,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import { toast } from '@/components/ui/toast'
 import type { SmsConfigResp } from '@/lib/api/sms'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 
@@ -49,25 +49,7 @@ export function createSmsColumns(
     {
       accessorKey: 'accessKey',
       header: 'Access Key',
-      cell: ({ row }) => {
-        const val = row.original.accessKey
-        return (
-          <div className="flex items-center gap-1.5 text-xs">
-            <span className="max-w-35 truncate">{val}</span>
-            <button
-              type="button"
-              onClick={() => {
-                navigator.clipboard.writeText(val)
-                toast.add({ title: '已复制到剪贴板', type: 'success' })
-              }}
-              className="text-muted-foreground hover:text-foreground"
-              title="复制"
-            >
-              <Copy className="size-3" />
-            </button>
-          </div>
-        )
-      }
+      cell: ({ row }) => <CopyableText value={row.original.accessKey} className="max-w-35 truncate text-xs" />
     },
     {
       accessorKey: 'signature',

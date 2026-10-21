@@ -3,7 +3,7 @@
 > 最后同步：2026-10-21。原始 35 条全部保留；新增 12 条（36–47）。另有 11、13、27、28、31 按复查结果扩面，不另计条目。  
 > 状态：`[x]` 已修复；`[ ]` 待处理。
 
-共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 25 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
+共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 24 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
 
 本次为静态审计，覆盖业务管理页、共享组件、请求与状态层，以及部分仪表盘页面；未进行运行时性能测试。原生 HTML、必要的异常处理和合理的 `className` 扩展本身不算问题。文件行号对应当前代码。
 
@@ -65,8 +65,8 @@
 - [x] **19 · P2｜富文本撤销和重做按钮没有遵守外部禁用状态。［已修复 2026-10-21］** 撤销/重做改为 `disabled || !toolbarState.canUndo` / `disabled || !toolbarState.canRedo`，与其余工具栏按钮一致；外部禁用时不再执行命令，可用态也随历史变化刷新。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/components/rich-text-editor.tsx:151](<E:/ppxb/continew-next/continew-ui-next/src/components/rich-text-editor.tsx:151>)
 
-- [ ] **20 · P2｜短信配置复制操作未完成就提示成功。** `clipboard.writeText()` 没有等待结果，也没有处理 Promise 拒绝，复制失败仍可能显示“已复制”。  
-  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/sms/columns.tsx:56](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/sms/columns.tsx:56>)
+- [x] **20 · P2｜短信配置复制操作未完成就提示成功。［已修复 2026-10-21］** Access Key 单元格改为复用 `CopyableText`：`await navigator.clipboard.writeText()` + `try/catch`，成功显示打勾反馈，失败提示「复制失败，请手动选择」，不再提前弹成功 toast；原生 `<button>` 一并换成 `Button` + `Tooltip`。为保留单元格的截断样式，`CopyableText` 增加可选 `className`（仅作用于值文本）。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/sms/columns.tsx:52](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/sms/columns.tsx:52>)；[E:/ppxb/continew-next/continew-ui-next/src/components/copyable-text.tsx:14](<E:/ppxb/continew-next/continew-ui-next/src/components/copyable-text.tsx:14>)
 
 - [ ] **21 · P2｜菜单类型用三个原生按钮手写单选控件。** 选中状态仅通过颜色表达，缺少单选组语义及对应键盘行为，同时复制了三套条件样式。适合使用现有 RadioGroup 或单选 ToggleGroup。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/menu-form-drawer.tsx:226](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/menu-form-drawer.tsx:226>)

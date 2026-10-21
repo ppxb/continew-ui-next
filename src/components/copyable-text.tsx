@@ -2,6 +2,8 @@ import * as React from 'react'
 
 import { Check, Copy } from 'lucide-react'
 
+import { cn } from 'cn'
+
 import { Button } from '@/components/ui/button'
 import { toast } from '@/components/ui/toast'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
@@ -9,7 +11,13 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 const COPIED_FEEDBACK_MS = 1500
 
 /** A value that is only useful next to a copy button, such as a generated id or code. */
-export function CopyableText({ value }: { value: string | null | undefined }) {
+export function CopyableText({
+  value,
+  className
+}: {
+  value: string | null | undefined
+  className?: string
+}) {
   const [copied, setCopied] = React.useState(false)
   const timer = React.useRef<ReturnType<typeof setTimeout>>(undefined)
 
@@ -33,7 +41,7 @@ export function CopyableText({ value }: { value: string | null | undefined }) {
 
   return (
     <div className="flex items-center gap-1">
-      <span className="text-sm">{value}</span>
+      <span className={cn('text-sm', className)}>{value}</span>
       <Tooltip>
         <TooltipTrigger render={<Button type="button" variant="ghost" size="icon-xs" onClick={() => void copy()} />}>
           {copied ? <Check className="size-3.5 text-green-600" /> : <Copy className="size-3.5" />}
