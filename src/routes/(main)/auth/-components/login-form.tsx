@@ -1,6 +1,7 @@
-import { zodResolver } from '@hookform/resolvers/zod'
+import * as React from 'react'
+
+import { revalidateLogic, useForm, useSelector } from '@tanstack/react-form'
 import { useNavigate } from '@tanstack/react-router'
-import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 import { Button } from '@/components/ui/button'
@@ -26,140 +27,191 @@ const formSchema = z.object({
 
 type LoginFormValues = z.infer<typeof formSchema>
 
+const DEFAULT_FORM: LoginFormValues = {
+  username: 'admin',
+  password: 'admin123',
+  captcha: '',
+  remember: true
+}
+
+/** The captcha is optional in the schema because the backend can turn it off at any time. */
+const requiredCaptchaRule = z.string().min(1, '请输入验证码')
+
 export function LoginForm({ redirectTo }: { readonly redirectTo?: string }) {
   const navigate = useNavigate()
   const login = useAuthStore(state => state.login)
   const { captcha, isEnabled: isCaptchaEnabled, isLoading: isCaptchaLoading, refresh: refreshCaptcha } = useCaptcha()
+  const formRef = React.useRef<HTMLFormElement>(null)
 
-  const form = useForm<LoginFormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      username: 'admin',
-      password: 'admin123',
-      captcha: '',
-      remember: true
-    }
-  })
-
-  const onSubmit = async (values: LoginFormValues) => {
-    if (isCaptchaEnabled && !values.captcha) {
-      form.setError('captcha', { message: '请输入验证码' })
-      return
-    }
-
-    try {
-      await login({
-        username: values.username,
-        password: values.password,
-        captcha: values.captcha || undefined,
-        uuid: captcha?.uuid,
-        persist: values.remember
-      })
+  const form = useForm({
+    defaultValues: DEFAULT_FORM,
+    validationLogic: revalidateLogic(),
+    validators: { onDynamic: formSchema },
+    onSubmit: async ({ value }) => {
+      try {
+        await login({
+          username: value.username,
+          password: value.password,
+          captcha: value.captcha || undefined,
+          uuid: captcha?.uuid,
+          persist: value.remember
+        })
+      } catch (error) {
+        // `login` is a silent request, so this form is the only place that reports the failure.
+        // A captcha is single-use, so clear the typed one and fetch a fresh image as well.
+        toast.add({
+          title: error instanceof Error ? error.message : 'Login failed, please try again.',
+          type: 'error'
+        })
+        form.setFieldValue('captcha', '')
+        void refreshCaptcha()
+        return
+      }
 
       // `href` keeps any query string that was part of the requested URL.
       await navigate({ href: redirectTo?.startsWith('/') ? redirectTo : DEFAULT_REDIRECT, replace: true })
-    } catch (error) {
-      // The backend already localizes this message; show it as it is.
-      toast.add({
-        title: error instanceof Error ? error.message : 'Login failed, please try again.',
-        type: 'error'
-      })
-      form.setValue('captcha', '')
-      void refreshCaptcha()
     }
+  })
+
+  const isSubmitting = useSelector(form.store, state => state.isSubmitting)
+
+  const submit = async () => {
+    await form.validate('submit')
+    await form.handleSubmit()
+
+    // TanStack Form does not move focus to the first invalid control, so the form does it here.
+    requestAnimationFrame(() => {
+      formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
+    })
   }
 
   return (
-    <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
+    <form
+      ref={formRef}
+      noValidate
+      className="flex flex-col gap-4"
+      onSubmit={event => {
+        event.preventDefault()
+        void submit()
+      }}
+    >
       <FieldGroup className="gap-4">
-        <Controller
-          control={form.control}
-          name="username"
-          render={({ field, fieldState }) => (
-            <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="login-username">用户名</FieldLabel>
-              <Input
-                {...field}
-                id="login-username"
-                type="text"
-                placeholder="admin"
-                autoComplete="username"
-                aria-invalid={fieldState.invalid}
-              />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
-        <Controller
-          control={form.control}
-          name="password"
-          render={({ field, fieldState }) => (
-            <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="login-password">密码</FieldLabel>
-              <Input
-                {...field}
-                id="login-password"
-                type="password"
-                placeholder="••••••••"
-                autoComplete="current-password"
-                aria-invalid={fieldState.invalid}
-              />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
-        {isCaptchaEnabled && (
-          <Controller
-            control={form.control}
-            name="captcha"
-            render={({ field, fieldState }) => (
-              <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="login-captcha">验证码</FieldLabel>
-                <div className="flex items-center gap-2">
-                  <Input
-                    {...field}
-                    id="login-captcha"
-                    type="text"
-                    placeholder="请输入验证码"
-                    autoComplete="off"
-                    aria-invalid={fieldState.invalid}
-                  />
-                  <CaptchaImage
-                    img={captcha?.img}
-                    isEnabled={isCaptchaEnabled}
-                    isLoading={isCaptchaLoading}
-                    onRefresh={() => void refreshCaptcha()}
-                  />
-                </div>
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+        <form.Field name="username" validators={{ onDynamic: formSchema.shape.username }}>
+          {field => {
+            const invalid = field.state.meta.errors.length > 0
+
+            return (
+              <Field className="gap-1.5" data-invalid={invalid}>
+                <FieldLabel htmlFor="login-username">用户名</FieldLabel>
+                <Input
+                  id="login-username"
+                  name="username"
+                  type="text"
+                  value={field.state.value}
+                  onChange={event => field.handleChange(event.target.value)}
+                  onBlur={field.handleBlur}
+                  placeholder="admin"
+                  autoComplete="username"
+                  disabled={isSubmitting}
+                  aria-invalid={invalid}
+                />
+                <FieldError errors={field.state.meta.errors} />
               </Field>
-            )}
-          />
+            )
+          }}
+        </form.Field>
+
+        <form.Field name="password" validators={{ onDynamic: formSchema.shape.password }}>
+          {field => {
+            const invalid = field.state.meta.errors.length > 0
+
+            return (
+              <Field className="gap-1.5" data-invalid={invalid}>
+                <FieldLabel htmlFor="login-password">密码</FieldLabel>
+                <Input
+                  id="login-password"
+                  name="password"
+                  type="password"
+                  value={field.state.value}
+                  onChange={event => field.handleChange(event.target.value)}
+                  onBlur={field.handleBlur}
+                  placeholder="••••••••"
+                  autoComplete="current-password"
+                  disabled={isSubmitting}
+                  aria-invalid={invalid}
+                />
+                <FieldError errors={field.state.meta.errors} />
+              </Field>
+            )
+          }}
+        </form.Field>
+
+        {isCaptchaEnabled && (
+          <form.Field
+            name="captcha"
+            validators={isCaptchaEnabled ? { onDynamic: requiredCaptchaRule } : undefined}
+          >
+            {field => {
+              const invalid = field.state.meta.errors.length > 0
+
+              return (
+                <Field className="gap-1.5" data-invalid={invalid}>
+                  <FieldLabel htmlFor="login-captcha">验证码</FieldLabel>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="login-captcha"
+                      name="captcha"
+                      type="text"
+                      value={field.state.value}
+                      onChange={event => field.handleChange(event.target.value)}
+                      onBlur={field.handleBlur}
+                      placeholder="请输入验证码"
+                      autoComplete="off"
+                      disabled={isSubmitting}
+                      aria-invalid={invalid}
+                    />
+                    <CaptchaImage
+                      img={captcha?.img}
+                      isEnabled={isCaptchaEnabled}
+                      isLoading={isCaptchaLoading}
+                      onRefresh={() => void refreshCaptcha()}
+                    />
+                  </div>
+                  <FieldError errors={field.state.meta.errors} />
+                </Field>
+              )
+            }}
+          </form.Field>
         )}
-        <Controller
-          control={form.control}
-          name="remember"
-          render={({ field, fieldState }) => (
-            <Field orientation="horizontal" data-invalid={fieldState.invalid}>
-              <Checkbox
-                id="login-remember"
-                name={field.name}
-                checked={field.value}
-                onCheckedChange={checked => field.onChange(Boolean(checked))}
-                aria-invalid={fieldState.invalid}
-              />
-              <FieldContent>
-                <FieldLabel htmlFor="login-remember" className="font-normal">
-                  记住我
-                </FieldLabel>
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-              </FieldContent>
-            </Field>
-          )}
-        />
+
+        <form.Field name="remember">
+          {field => {
+            const invalid = field.state.meta.errors.length > 0
+
+            return (
+              <Field orientation="horizontal" data-invalid={invalid}>
+                <Checkbox
+                  id="login-remember"
+                  name="remember"
+                  checked={field.state.value}
+                  onCheckedChange={checked => field.handleChange(Boolean(checked))}
+                  disabled={isSubmitting}
+                  aria-invalid={invalid}
+                />
+                <FieldContent>
+                  <FieldLabel htmlFor="login-remember" className="font-normal">
+                    记住我
+                  </FieldLabel>
+                  <FieldError errors={field.state.meta.errors} />
+                </FieldContent>
+              </Field>
+            )
+          }}
+        </form.Field>
       </FieldGroup>
-      <Button className="w-full" type="submit" disabled={form.formState.isSubmitting}>
-        {form.formState.isSubmitting ? (
+
+      <Button className="w-full" type="submit" disabled={isSubmitting}>
+        {isSubmitting ? (
           <>
             <Spinner />
             登陆中

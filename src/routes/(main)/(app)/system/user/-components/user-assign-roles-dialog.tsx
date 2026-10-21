@@ -1,8 +1,7 @@
 import * as React from 'react'
 
-import { zodResolver } from '@hookform/resolvers/zod'
+import { revalidateLogic, useForm, useSelector } from '@tanstack/react-form'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 import { ShieldCheck } from 'lucide-react'
@@ -62,10 +61,6 @@ interface UserAssignRolesFormProps {
 
 function UserAssignRolesForm({ user, initialRoleIds, onClose }: UserAssignRolesFormProps) {
   const queryClient = useQueryClient()
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: { roleIds: initialRoleIds }
-  })
 
   const roles = useQuery({
     queryKey: roleKeys.dicts(),
@@ -79,40 +74,67 @@ function UserAssignRolesForm({ user, initialRoleIds, onClose }: UserAssignRolesF
     [roles.data]
   )
 
-  const onSubmit = async (values: FormValues) => {
-    try {
-      await assignUserRoles(user.id, {
-        roleIds: values.roleIds.map(value => roleIdByValue.get(value) ?? value)
-      })
+  const form = useForm({
+    defaultValues: { roleIds: initialRoleIds },
+    validationLogic: revalidateLogic(),
+    validators: { onDynamic: formSchema },
+    onSubmit: async ({ value }) => {
+      try {
+        await assignUserRoles(user.id, {
+          roleIds: value.roleIds.map(selected => roleIdByValue.get(selected) ?? selected)
+        })
+      } catch {
+        // The HTTP layer already reported the failure.
+        return
+      }
 
       onClose()
       void queryClient.invalidateQueries({ queryKey: userKeys.all })
       toast.add({ title: '分配角色成功', type: 'success' })
-    } catch {
-      // The HTTP layer already reported the failure.
     }
+  })
+
+  const isSubmitting = useSelector(form.store, state => state.isSubmitting)
+
+  const submit = async () => {
+    await form.validate('submit')
+    await form.handleSubmit()
   }
 
   return (
-    <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
-      <Controller
-        control={form.control}
-        name="roleIds"
-        render={({ field, fieldState }) => (
-          <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-            <FieldLabel>角色</FieldLabel>
-            <UserRoleSelect value={field.value} onChange={field.onChange} invalid={fieldState.invalid} />
-            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-          </Field>
-        )}
-      />
+    <form
+      noValidate
+      className="flex flex-col gap-4"
+      onSubmit={event => {
+        event.preventDefault()
+        void submit()
+      }}
+    >
+      <form.Field name="roleIds" validators={{ onDynamic: formSchema.shape.roleIds }}>
+        {field => {
+          const invalid = field.state.meta.errors.length > 0
+
+          return (
+            <Field className="gap-1.5" data-invalid={invalid}>
+              <FieldLabel>角色</FieldLabel>
+              <UserRoleSelect
+                value={field.state.value}
+                onChange={field.handleChange}
+                disabled={isSubmitting}
+                invalid={invalid}
+              />
+              <FieldError errors={field.state.meta.errors} />
+            </Field>
+          )
+        }}
+      </form.Field>
 
       <DialogFooter>
-        <Button type="button" variant="outline" disabled={form.formState.isSubmitting} onClick={onClose}>
+        <Button type="button" variant="outline" disabled={isSubmitting} onClick={onClose}>
           取消
         </Button>
-        <Button type="submit" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting ? (
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? (
             <>
               <Spinner />
               保存中

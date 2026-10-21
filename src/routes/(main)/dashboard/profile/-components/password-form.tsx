@@ -1,5 +1,6 @@
-import { zodResolver } from '@hookform/resolvers/zod'
-import { Controller, useForm } from 'react-hook-form'
+import * as React from 'react'
+
+import { revalidateLogic, useForm, useSelector } from '@tanstack/react-form'
 import { z } from 'zod'
 
 import { Button } from '@/components/ui/button'
@@ -34,94 +35,150 @@ const formSchema = z
 
 type PasswordFormValues = z.infer<typeof formSchema>
 
+const EMPTY_FORM: PasswordFormValues = {
+  oldPassword: '',
+  newPassword: '',
+  confirmPassword: ''
+}
+
 export function PasswordForm() {
   const endSession = useLogout()
-  const form = useForm<PasswordFormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      oldPassword: '',
-      newPassword: '',
-      confirmPassword: ''
-    }
-  })
+  const formRef = React.useRef<HTMLFormElement>(null)
 
-  const onSubmit = async (values: PasswordFormValues) => {
-    try {
-      await updatePassword({
-        oldPassword: encryptPassword(values.oldPassword),
-        newPassword: encryptPassword(values.newPassword)
-      })
+  const form = useForm({
+    defaultValues: EMPTY_FORM,
+    validationLogic: revalidateLogic(),
+    validators: { onDynamic: formSchema },
+    onSubmit: async ({ value }) => {
+      let oldPassword: string
+      let newPassword: string
 
-      form.reset()
+      try {
+        oldPassword = encryptPassword(value.oldPassword)
+        newPassword = encryptPassword(value.newPassword)
+      } catch {
+        // Encryption happens locally, so the HTTP layer is not there to report it.
+        toast.add({ title: 'Password encryption failed. Please refresh the page and try again.', type: 'error' })
+        return
+      }
+
+      try {
+        await updatePassword({ oldPassword, newPassword })
+      } catch (error) {
+        // `updatePassword` is a silent request, so this form is the only place that reports it.
+        toast.add({
+          title: error instanceof Error ? error.message : 'Could not update the password.',
+          type: 'error'
+        })
+        return
+      }
+
+      form.reset({ ...EMPTY_FORM }, { keepDefaultValues: true })
       toast.add({ title: 'Password updated. Please sign in again with the new password.', type: 'success' })
       // The backend signs the account out of every device after a password change, so
       // the local session is dropped instead of waiting for the next 401.
       await endSession({ revokeOnServer: false })
-    } catch (error) {
-      toast.add({
-        title: error instanceof Error ? error.message : 'Could not update the password.',
-        type: 'error'
-      })
     }
+  })
+
+  const isSubmitting = useSelector(form.store, state => state.isSubmitting)
+
+  const submit = async () => {
+    await form.validate('submit')
+    await form.handleSubmit()
+
+    // TanStack Form does not move focus to the first invalid control, so the form does it here.
+    requestAnimationFrame(() => {
+      formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
+    })
   }
 
   return (
-    <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
+    <form
+      ref={formRef}
+      noValidate
+      className="flex flex-col gap-4"
+      onSubmit={event => {
+        event.preventDefault()
+        void submit()
+      }}
+    >
       <FieldGroup className="gap-4">
-        <Controller
-          control={form.control}
-          name="oldPassword"
-          render={({ field, fieldState }) => (
-            <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="password-current">Current password</FieldLabel>
-              <Input
-                {...field}
-                id="password-current"
-                type="password"
-                autoComplete="current-password"
-                aria-invalid={fieldState.invalid}
-              />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
-        <Controller
-          control={form.control}
-          name="newPassword"
-          render={({ field, fieldState }) => (
-            <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="password-new">New password</FieldLabel>
-              <Input
-                {...field}
-                id="password-new"
-                type="password"
-                autoComplete="new-password"
-                aria-invalid={fieldState.invalid}
-              />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
-        <Controller
-          control={form.control}
-          name="confirmPassword"
-          render={({ field, fieldState }) => (
-            <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="password-confirm">Repeat new password</FieldLabel>
-              <Input
-                {...field}
-                id="password-confirm"
-                type="password"
-                autoComplete="new-password"
-                aria-invalid={fieldState.invalid}
-              />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
+        <form.Field name="oldPassword" validators={{ onDynamic: formSchema.shape.oldPassword }}>
+          {field => {
+            const invalid = field.state.meta.errors.length > 0
+
+            return (
+              <Field className="gap-1.5" data-invalid={invalid}>
+                <FieldLabel htmlFor="password-current">Current password</FieldLabel>
+                <Input
+                  id="password-current"
+                  name="oldPassword"
+                  type="password"
+                  value={field.state.value}
+                  onChange={event => field.handleChange(event.target.value)}
+                  onBlur={field.handleBlur}
+                  autoComplete="current-password"
+                  disabled={isSubmitting}
+                  aria-invalid={invalid}
+                />
+                <FieldError errors={field.state.meta.errors} />
+              </Field>
+            )
+          }}
+        </form.Field>
+
+        <form.Field name="newPassword" validators={{ onDynamic: formSchema.shape.newPassword }}>
+          {field => {
+            const invalid = field.state.meta.errors.length > 0
+
+            return (
+              <Field className="gap-1.5" data-invalid={invalid}>
+                <FieldLabel htmlFor="password-new">New password</FieldLabel>
+                <Input
+                  id="password-new"
+                  name="newPassword"
+                  type="password"
+                  value={field.state.value}
+                  onChange={event => field.handleChange(event.target.value)}
+                  onBlur={field.handleBlur}
+                  autoComplete="new-password"
+                  disabled={isSubmitting}
+                  aria-invalid={invalid}
+                />
+                <FieldError errors={field.state.meta.errors} />
+              </Field>
+            )
+          }}
+        </form.Field>
+
+        <form.Field name="confirmPassword" validators={{ onDynamic: formSchema.shape.confirmPassword }}>
+          {field => {
+            const invalid = field.state.meta.errors.length > 0
+
+            return (
+              <Field className="gap-1.5" data-invalid={invalid}>
+                <FieldLabel htmlFor="password-confirm">Repeat new password</FieldLabel>
+                <Input
+                  id="password-confirm"
+                  name="confirmPassword"
+                  type="password"
+                  value={field.state.value}
+                  onChange={event => field.handleChange(event.target.value)}
+                  onBlur={field.handleBlur}
+                  autoComplete="new-password"
+                  disabled={isSubmitting}
+                  aria-invalid={invalid}
+                />
+                <FieldError errors={field.state.meta.errors} />
+              </Field>
+            )
+          }}
+        </form.Field>
       </FieldGroup>
-      <Button className="self-start" type="submit" disabled={form.formState.isSubmitting}>
-        {form.formState.isSubmitting ? 'Saving…' : 'Update password'}
+
+      <Button className="self-start" type="submit" disabled={isSubmitting}>
+        {isSubmitting ? 'Saving…' : 'Update password'}
       </Button>
     </form>
   )
