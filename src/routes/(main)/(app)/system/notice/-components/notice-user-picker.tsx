@@ -100,6 +100,13 @@ export function NoticeUserPicker({ open, selected, onClose, onConfirm }: NoticeU
                   </div>
                 ))}
               </div>
+            ) : usersQuery.isError ? (
+              <div className="flex h-36 flex-col items-center justify-center gap-2">
+                <p className="text-sm text-foreground">用户列表加载失败，请稍后重试</p>
+                <Button type="button" variant="outline" size="sm" onClick={() => void usersQuery.refetch()}>
+                  重新加载
+                </Button>
+              </div>
             ) : users.length === 0 ? (
               <div className="flex h-36 items-center justify-center text-xs text-muted-foreground">未找到用户</div>
             ) : (
