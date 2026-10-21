@@ -5,6 +5,7 @@ import { type ColumnDef, type PaginationState, type RowSelectionState, useTable 
 
 import { Plus, Search, Trash2, Users, UserX, X } from 'lucide-react'
 
+import { PaginationArrow } from '@/components/pagination-arrow'
 import { StatusCell } from '@/components/status-cell'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -12,13 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationNext,
-  PaginationPrevious
-} from '@/components/ui/pagination'
+import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { toast } from '@/components/ui/toast'
@@ -325,28 +320,22 @@ export function RoleUserDrawer({ role, open, onClose }: RoleUserDrawerProps) {
                 <Pagination className="mx-0 w-auto">
                   <PaginationContent>
                     <PaginationItem>
-                      <PaginationPrevious
-                        href="#"
+                      <PaginationArrow
+                        direction="previous"
                         text="上一页"
-                        className={!table.getCanPreviousPage() ? 'pointer-events-none opacity-50' : undefined}
-                        onClick={e => {
-                          e.preventDefault()
-                          table.previousPage()
-                        }}
+                        disabled={!table.getCanPreviousPage()}
+                        onClick={() => table.previousPage()}
                       />
                     </PaginationItem>
                     <span className="px-2 text-xs tabular-nums">
                       {pagination.pageIndex + 1} / {pageCount}
                     </span>
                     <PaginationItem>
-                      <PaginationNext
-                        href="#"
+                      <PaginationArrow
+                        direction="next"
                         text="下一页"
-                        className={!table.getCanNextPage() ? 'pointer-events-none opacity-50' : undefined}
-                        onClick={e => {
-                          e.preventDefault()
-                          table.nextPage()
-                        }}
+                        disabled={!table.getCanNextPage()}
+                        onClick={() => table.nextPage()}
                       />
                     </PaginationItem>
                   </PaginationContent>

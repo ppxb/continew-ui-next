@@ -2,14 +2,13 @@ import type { MouseEvent } from 'react'
 
 import type { ReactTable, RowData } from '@tanstack/react-table'
 
+import { PaginationArrow } from '@/components/pagination-arrow'
 import {
   Pagination,
   PaginationContent,
   PaginationEllipsis,
   PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious
+  PaginationLink
 } from '@/components/ui/pagination'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import type { DataTableFeatures } from '@/lib/data-table-features'
@@ -89,14 +88,10 @@ export function TablePagination<TRow extends RowData>({ table }: TablePagination
       <Pagination className="mx-0 w-auto justify-start md:justify-end">
         <PaginationContent>
           <PaginationItem>
-            <PaginationPrevious
-              href="#"
-              text=""
-              className={!table.getCanPreviousPage() ? 'opacity-50' : undefined}
-              onClick={event => {
-                preventPaginationNavigation(event)
-                table.previousPage()
-              }}
+            <PaginationArrow
+              direction="previous"
+              disabled={!table.getCanPreviousPage()}
+              onClick={() => table.previousPage()}
             />
           </PaginationItem>
           {pageNumbers.map(item =>
@@ -120,15 +115,7 @@ export function TablePagination<TRow extends RowData>({ table }: TablePagination
             )
           )}
           <PaginationItem>
-            <PaginationNext
-              href="#"
-              text=""
-              className={!table.getCanNextPage() ? 'opacity-50' : undefined}
-              onClick={event => {
-                preventPaginationNavigation(event)
-                table.nextPage()
-              }}
-            />
+            <PaginationArrow direction="next" disabled={!table.getCanNextPage()} onClick={() => table.nextPage()} />
           </PaginationItem>
         </PaginationContent>
       </Pagination>

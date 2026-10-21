@@ -4,14 +4,13 @@ import type { ReactTable } from '@tanstack/react-table'
 
 import { cn } from 'cn'
 
+import { PaginationArrow } from '@/components/pagination-arrow'
 import {
   Pagination,
   PaginationContent,
   PaginationEllipsis,
   PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious
+  PaginationLink
 } from '@/components/ui/pagination'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -175,14 +174,10 @@ export function RoleTable({ table, isLoading, isError, isStale, onRetry }: RoleT
           <Pagination className="mx-0 w-auto justify-start md:justify-end">
             <PaginationContent>
               <PaginationItem>
-                <PaginationPrevious
-                  href="#"
-                  text=""
-                  className={!table.getCanPreviousPage() ? 'pointer-events-none opacity-50' : undefined}
-                  onClick={event => {
-                    preventPaginationNavigation(event)
-                    table.previousPage()
-                  }}
+                <PaginationArrow
+                  direction="previous"
+                  disabled={!table.getCanPreviousPage()}
+                  onClick={() => table.previousPage()}
                 />
               </PaginationItem>
               {pageNumbers.map(item =>
@@ -206,14 +201,10 @@ export function RoleTable({ table, isLoading, isError, isStale, onRetry }: RoleT
                 )
               )}
               <PaginationItem>
-                <PaginationNext
-                  href="#"
-                  text=""
-                  className={!table.getCanNextPage() ? 'pointer-events-none opacity-50' : undefined}
-                  onClick={event => {
-                    preventPaginationNavigation(event)
-                    table.nextPage()
-                  }}
+                <PaginationArrow
+                  direction="next"
+                  disabled={!table.getCanNextPage()}
+                  onClick={() => table.nextPage()}
                 />
               </PaginationItem>
             </PaginationContent>

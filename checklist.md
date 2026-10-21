@@ -3,7 +3,7 @@
 > 最后同步：2026-10-21。原始 35 条全部保留；新增 12 条（36–47）。另有 11、13、27、28、31 按复查结果扩面，不另计条目。  
 > 状态：`[x]` 已修复；`[ ]` 待处理。
 
-共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 22 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
+共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 21 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
 
 本次为静态审计，覆盖业务管理页、共享组件、请求与状态层，以及部分仪表盘页面；未进行运行时性能测试。原生 HTML、必要的异常处理和合理的 `className` 扩展本身不算问题。文件行号对应当前代码。
 
@@ -74,8 +74,8 @@
 - [x] **22 · P2｜图标清除控件嵌套在另一个按钮内。［已修复 2026-10-21］** 触发区改为 Input 外观的容器：`DialogTrigger` 只包左侧的打开按钮，清除改成独立的 `Button` + `Tooltip`（`icon-xs`），不再有按钮套按钮；清除由真按钮处理 Space/Enter，删掉了 `onKeyDown` 的事件强转和 `stopPropagation`。顺带把字号/高度/边框/内边距与相邻 `Input` 对齐（`h-8 rounded-lg border-input px-2.5 text-base md:text-sm`），聚焦环移到整块容器上。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/icon-picker.tsx:551](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/icon-picker.tsx:551>)
 
-- [ ] **23 · P2｜分页的禁用状态只改变透明度。** 到达首尾页后，上一页/下一页仍是可聚焦、可触发的链接，没有表达真实禁用状态。4 个复制表格改用 `pointer-events-none`，但键盘仍可触发。应统一禁用语义、事件处理和视觉状态。  
-  文件：[E:/ppxb/continew-next/continew-ui-next/src/components/table-pagination.tsx:92](<E:/ppxb/continew-next/continew-ui-next/src/components/table-pagination.tsx:92>)
+- [x] **23 · P2｜分页的禁用状态只改变透明度。［已修复 2026-10-21］** 新增共享 `PaginationArrow`：到达首尾页时设置 `aria-disabled`、`tabIndex={-1}`、`pointer-events-none opacity-50`，并在点击处理里拦截激活；共享 `TablePagination`、app/client/sms/role 四张复制表格，以及角色成员抽屉与回收站抽屉统一改用它，禁用语义、事件处理与视觉状态一致。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/components/pagination-arrow.tsx:16](<E:/ppxb/continew-next/continew-ui-next/src/components/pagination-arrow.tsx:16>)；[E:/ppxb/continew-next/continew-ui-next/src/components/table-pagination.tsx:91](<E:/ppxb/continew-next/continew-ui-next/src/components/table-pagination.tsx:91>)
 
 - [ ] **24 · P2｜树组件的“全选”忽略节点禁用状态。** 单节点操作支持 `disabled`，但全选直接提交 `index.allKeys`。这是共享组件契约不一致，应明确禁用节点在批量选择中的处理规则。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/components/checkable-tree.tsx:65](<E:/ppxb/continew-next/continew-ui-next/src/components/checkable-tree.tsx:65>)

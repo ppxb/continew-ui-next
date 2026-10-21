@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { RefreshCw, RotateCcw, Trash2, X } from 'lucide-react'
 
+import { PaginationArrow } from '@/components/pagination-arrow'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,13 +19,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationNext,
-  PaginationPrevious
-} from '@/components/ui/pagination'
+import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
@@ -251,25 +246,19 @@ export function FileRecycleDrawer({ open, onClose }: FileRecycleDrawerProps) {
               <Pagination className="mx-0 w-auto">
                 <PaginationContent>
                   <PaginationItem>
-                    <PaginationPrevious
-                      href="#"
+                    <PaginationArrow
+                      direction="previous"
                       text="上一页"
-                      className={page <= 1 ? 'pointer-events-none opacity-50' : undefined}
-                      onClick={event => {
-                        event.preventDefault()
-                        setPage(previous => Math.max(previous - 1, 1))
-                      }}
+                      disabled={page <= 1}
+                      onClick={() => setPage(previous => Math.max(previous - 1, 1))}
                     />
                   </PaginationItem>
                   <PaginationItem>
-                    <PaginationNext
-                      href="#"
+                    <PaginationArrow
+                      direction="next"
                       text="下一页"
-                      className={page >= pageCount ? 'pointer-events-none opacity-50' : undefined}
-                      onClick={event => {
-                        event.preventDefault()
-                        setPage(previous => Math.min(previous + 1, pageCount))
-                      }}
+                      disabled={page >= pageCount}
+                      onClick={() => setPage(previous => Math.min(previous + 1, pageCount))}
                     />
                   </PaginationItem>
                 </PaginationContent>
