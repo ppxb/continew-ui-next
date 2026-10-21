@@ -7,7 +7,7 @@ import { usePreferencesStore } from '@/stores/preferences/preferences-provider'
 
 const THEME_CYCLE = ['light', 'dark', 'system'] as const
 
-export function ThemeSwitcher() {
+export function ThemeSwitcher({ showTooltip = true }: { readonly showTooltip?: boolean }) {
   const { themeMode, setPreference } = usePreferencesStore(
     useShallow(state => ({
       themeMode: state.values.theme_mode,
@@ -22,13 +22,22 @@ export function ThemeSwitcher() {
     setPreference('theme_mode', nextTheme)
   }
 
+  const trigger = (
+    <Button variant="outline" size="icon-sm" onClick={cycleTheme}>
+      <Monitor className="hidden [html[data-theme-mode=system]_&]:block" />
+      <Sun className="hidden dark:block [html[data-theme-mode=system]_&]:hidden" />
+      <Moon className="block dark:hidden [html[data-theme-mode=system]_&]:hidden" />
+      {showTooltip ? null : <span className="sr-only">切换主题</span>}
+    </Button>
+  )
+
+  if (!showTooltip) {
+    return trigger
+  }
+
   return (
     <Tooltip>
-      <TooltipTrigger render={<Button variant="outline" size="icon-sm" onClick={cycleTheme} />}>
-        <Monitor className="hidden [html[data-theme-mode=system]_&]:block" />
-        <Sun className="hidden dark:block [html[data-theme-mode=system]_&]:hidden" />
-        <Moon className="block dark:hidden [html[data-theme-mode=system]_&]:hidden" />
-      </TooltipTrigger>
+      <TooltipTrigger render={trigger} />
       <TooltipContent side="bottom" sideOffset={8}>
         切换主题
       </TooltipContent>

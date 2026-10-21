@@ -101,16 +101,14 @@ export function LoginForm({ redirectTo }: { readonly redirectTo?: string }) {
             const invalid = field.state.meta.errors.length > 0
 
             return (
-              <Field className="gap-1.5" data-invalid={invalid}>
-                <FieldLabel htmlFor="login-username">用户名</FieldLabel>
+              <Field data-invalid={invalid}>
                 <Input
-                  id="login-username"
                   name="username"
                   type="text"
                   value={field.state.value}
                   onChange={event => field.handleChange(event.target.value)}
                   onBlur={field.handleBlur}
-                  placeholder="admin"
+                  placeholder="请输入用户名"
                   autoComplete="username"
                   disabled={isSubmitting}
                   aria-invalid={invalid}
@@ -126,16 +124,14 @@ export function LoginForm({ redirectTo }: { readonly redirectTo?: string }) {
             const invalid = field.state.meta.errors.length > 0
 
             return (
-              <Field className="gap-1.5" data-invalid={invalid}>
-                <FieldLabel htmlFor="login-password">密码</FieldLabel>
+              <Field data-invalid={invalid}>
                 <Input
-                  id="login-password"
                   name="password"
                   type="password"
                   value={field.state.value}
                   onChange={event => field.handleChange(event.target.value)}
                   onBlur={field.handleBlur}
-                  placeholder="••••••••"
+                  placeholder="请输入密码"
                   autoComplete="current-password"
                   disabled={isSubmitting}
                   aria-invalid={invalid}
@@ -155,11 +151,9 @@ export function LoginForm({ redirectTo }: { readonly redirectTo?: string }) {
               const invalid = field.state.meta.errors.length > 0
 
               return (
-                <Field className="gap-1.5" data-invalid={invalid}>
-                  <FieldLabel htmlFor="login-captcha">验证码</FieldLabel>
-                  <div className="flex items-center gap-2">
+                <Field data-invalid={invalid}>
+                  <div className="flex gap-2">
                     <Input
-                      id="login-captcha"
                       name="captcha"
                       type="text"
                       value={field.state.value}
@@ -167,6 +161,7 @@ export function LoginForm({ redirectTo }: { readonly redirectTo?: string }) {
                       onBlur={field.handleBlur}
                       placeholder="请输入验证码"
                       autoComplete="off"
+                      className="flex-1"
                       disabled={isSubmitting}
                       aria-invalid={invalid}
                     />
