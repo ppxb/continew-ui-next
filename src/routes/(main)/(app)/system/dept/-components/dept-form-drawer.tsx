@@ -1,12 +1,12 @@
 import * as React from 'react'
 
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Controller, useForm } from 'react-hook-form'
+import { revalidateLogic, useForm, useSelector } from '@tanstack/react-form'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { z } from 'zod'
 
 import { Building2, X } from 'lucide-react'
 
+import { RequiredMark } from '@/components/required-mark'
 import { Button } from '@/components/ui/button'
 import { Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
@@ -88,6 +88,7 @@ interface DeptFormDrawerProps {
 export function DeptFormDrawer({ deptId, defaultParentId, open, deptTree, onClose }: DeptFormDrawerProps) {
   const isEdit = deptId !== null
   const queryClient = useQueryClient()
+  const formRef = React.useRef<HTMLFormElement>(null)
 
   const detailQuery = useQuery({
     queryKey: deptKeys.detail(deptId),
@@ -95,71 +96,97 @@ export function DeptFormDrawer({ deptId, defaultParentId, open, deptTree, onClos
     enabled: open && isEdit
   })
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: EMPTY_FORM
+  const form = useForm({
+    defaultValues: EMPTY_FORM,
+    validationLogic: revalidateLogic(),
+    validators: { onDynamic: formSchema },
+    onSubmit: async ({ value }) => {
+      const payload: DeptReq = {
+        parentId: value.parentId,
+        name: value.name,
+        sort: value.sort,
+        status: value.status as 1 | 2,
+        description: value.description || undefined
+      }
+
+      try {
+        if (isEdit && deptId !== null) {
+          await updateDept(deptId, payload)
+        } else {
+          await createDept(payload)
+        }
+      } catch {
+        // The HTTP layer already reported the failure.
+        return
+      }
+
+      onClose()
+      void queryClient.invalidateQueries({ queryKey: deptKeys.all })
+      toast.add({ title: isEdit ? '修改部门成功' : '新增部门成功', type: 'success' })
+    }
   })
+
+  // `form.state.isSubmitting` is a render-time snapshot, so the close guard, the close button and the
+  // footer all read the subscribed value instead. It covers the whole request, unlike a `mutate()`
+  // call that returns before the response lands.
+  const isSubmitting = useSelector(form.store, state => state.isSubmitting)
 
   const isRootDept = isEdit && (detailQuery.data?.parentId === 0 || detailQuery.data?.parentId === null)
 
-  // Synchronize form values whenever the drawer opens or record changes
+  // Fill the form once per open, and only after the record has settled. `keepDefaultValues` is
+  // load-bearing: `reset(values)` otherwise rewrites the form's own defaults, and the next render's
+  // `update(opts)` reads that as "defaults changed" and puts `EMPTY_FORM` back into the fields.
+  const filledForRef = React.useRef<string | null>(null)
   React.useEffect(() => {
     if (!open) {
-      form.reset(EMPTY_FORM)
+      form.reset({ ...EMPTY_FORM }, { keepDefaultValues: true })
+      filledForRef.current = null
       return
     }
 
-    if (isEdit && detailQuery.data) {
+    if (isEdit) {
+      if (!detailQuery.data) return
+
+      const key = `${String(deptId)}:${detailQuery.dataUpdatedAt}`
+      if (filledForRef.current === key) return
+      filledForRef.current = key
+
       const data = detailQuery.data
-      form.reset({
-        parentId: data.parentId === null || data.parentId === undefined ? 0 : data.parentId,
-        name: data.name ?? '',
-        sort: data.sort ?? 999,
-        status: data.status ?? 1,
-        description: data.description ?? ''
-      })
-    } else if (!isEdit) {
-      form.reset({
-        ...EMPTY_FORM,
-        parentId: defaultParentId ?? (deptTree.length > 0 ? deptTree[0].id : '')
-      })
+      form.reset(
+        {
+          parentId: data.parentId === null || data.parentId === undefined ? 0 : data.parentId,
+          name: data.name ?? '',
+          sort: data.sort ?? 999,
+          status: data.status ?? 1,
+          description: data.description ?? ''
+        },
+        { keepDefaultValues: true }
+      )
+      return
     }
-  }, [open, isEdit, detailQuery.data, defaultParentId, deptTree, form])
 
-  const mutation = useMutation({
-    mutationFn: async (values: FormValues) => {
-      const payload: DeptReq = {
-        parentId: values.parentId,
-        name: values.name,
-        sort: values.sort,
-        status: values.status as 1 | 2,
-        description: values.description || undefined
-      }
+    // A create waits until it has a parent to default to, then fills once: a tree that arrives after
+    // the drawer opened must not overwrite what the user already typed.
+    const parentId = defaultParentId ?? (deptTree.length > 0 ? deptTree[0].id : null)
+    if (parentId === null) return
+    if (filledForRef.current === 'create') return
+    filledForRef.current = 'create'
+    form.reset({ ...EMPTY_FORM, parentId }, { keepDefaultValues: true })
+  }, [open, isEdit, deptId, detailQuery.data, detailQuery.dataUpdatedAt, defaultParentId, deptTree, form])
 
-      if (isEdit && deptId !== null) {
-        await updateDept(deptId, payload)
-      } else {
-        await createDept(payload)
-      }
-    },
-    onSuccess: () => {
-      toast.add({
-        title: isEdit ? '修改部门成功' : '新增部门成功',
-        type: 'success'
-      })
-      void queryClient.invalidateQueries({ queryKey: deptKeys.all })
-      onClose()
-    },
-    onError: error => {
-      toast.add({
-        title: error instanceof Error ? error.message : '提交失败，请重试',
-        type: 'error'
-      })
-    }
-  })
+  /**
+   * Validates the whole object before submitting: `handleSubmit` returns as soon as the field
+   * validators report an invalid form, so a rule that only sits on the form would stay hidden until
+   * the other errors were fixed.
+   */
+  const submit = async () => {
+    await form.validate('submit')
+    await form.handleSubmit()
 
-  const onSubmit = (values: FormValues) => {
-    mutation.mutate(values)
+    // TanStack Form does not move focus to the first invalid control, so the drawer does it here.
+    requestAnimationFrame(() => {
+      formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
+    })
   }
 
   const isLoadingDetail = isEdit && detailQuery.isLoading
@@ -168,7 +195,8 @@ export function DeptFormDrawer({ deptId, defaultParentId, open, deptTree, onClos
     <Drawer
       open={open}
       onOpenChange={val => {
-        if (!val && !mutation.isPending) {
+        // Closing mid-save would leave the request in flight with no way to report it.
+        if (!val && !isSubmitting) {
           onClose()
         }
       }}
@@ -182,7 +210,7 @@ export function DeptFormDrawer({ deptId, defaultParentId, open, deptTree, onClos
             </div>
             <DrawerTitle className="text-base font-semibold">{isEdit ? '修改部门' : '新增部门'}</DrawerTitle>
           </div>
-          <DrawerClose render={<Button variant="ghost" size="icon-sm" disabled={mutation.isPending} />}>
+          <DrawerClose render={<Button variant="ghost" size="icon-sm" disabled={isSubmitting} />}>
             <X className="size-4" />
             <span className="sr-only">关闭</span>
           </DrawerClose>
@@ -191,32 +219,42 @@ export function DeptFormDrawer({ deptId, defaultParentId, open, deptTree, onClos
         {isLoadingDetail ? (
           <DeptFormSkeleton />
         ) : (
-          <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="flex min-h-0 flex-1 flex-col">
+          <form
+            ref={formRef}
+            noValidate
+            className="flex min-h-0 flex-1 flex-col"
+            onSubmit={event => {
+              event.preventDefault()
+              void submit()
+            }}
+          >
             <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
               <FieldGroup className="gap-4">
                 {/* Parent Department */}
                 {!isRootDept ? (
-                  <Controller
-                    control={form.control}
-                    name="parentId"
-                    render={({ field, fieldState }) => (
-                      <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-                        <FieldLabel>
-                          上级部门
-                          <span className="text-destructive">*</span>
-                        </FieldLabel>
-                        <DeptParentSelect
-                          value={field.value}
-                          onChange={field.onChange}
-                          deptTree={deptTree}
-                          currentDeptId={deptId}
-                          disabled={mutation.isPending}
-                          invalid={fieldState.invalid}
-                        />
-                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                      </Field>
-                    )}
-                  />
+                  <form.Field name="parentId" validators={{ onDynamic: formSchema.shape.parentId }}>
+                    {field => {
+                      const invalid = field.state.meta.errors.length > 0
+
+                      return (
+                        <Field className="gap-1.5" data-invalid={invalid}>
+                          <FieldLabel>
+                            上级部门
+                            <RequiredMark />
+                          </FieldLabel>
+                          <DeptParentSelect
+                            value={field.state.value}
+                            onChange={next => field.handleChange(next ?? '')}
+                            deptTree={deptTree}
+                            currentDeptId={deptId}
+                            disabled={isSubmitting}
+                            invalid={invalid}
+                          />
+                          <FieldError errors={field.state.meta.errors} />
+                        </Field>
+                      )
+                    }}
+                  </form.Field>
                 ) : (
                   <Field className="gap-1.5">
                     <FieldLabel>上级部门</FieldLabel>
@@ -226,104 +264,121 @@ export function DeptFormDrawer({ deptId, defaultParentId, open, deptTree, onClos
                 )}
 
                 {/* Department Name */}
-                <Controller
-                  control={form.control}
-                  name="name"
-                  render={({ field, fieldState }) => (
-                    <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-                      <FieldLabel htmlFor="dept-name">
-                        部门名称
-                        <span className="text-destructive">*</span>
-                      </FieldLabel>
-                      <Input
-                        {...field}
-                        id="dept-name"
-                        placeholder="请输入部门名称，例如：研发中心"
-                        disabled={mutation.isPending}
-                        aria-invalid={fieldState.invalid}
-                      />
-                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                    </Field>
-                  )}
-                />
+                <form.Field name="name" validators={{ onDynamic: formSchema.shape.name }}>
+                  {field => {
+                    const invalid = field.state.meta.errors.length > 0
+
+                    return (
+                      <Field className="gap-1.5" data-invalid={invalid}>
+                        <FieldLabel htmlFor="dept-name">
+                          部门名称
+                          <RequiredMark />
+                        </FieldLabel>
+                        <Input
+                          id="dept-name"
+                          name="name"
+                          value={field.state.value}
+                          onChange={event => field.handleChange(event.target.value)}
+                          onBlur={field.handleBlur}
+                          placeholder="请输入部门名称，例如：研发中心"
+                          disabled={isSubmitting}
+                          aria-invalid={invalid}
+                        />
+                        <FieldError errors={field.state.meta.errors} />
+                      </Field>
+                    )
+                  }}
+                </form.Field>
 
                 {/* Sort */}
-                <Controller
-                  control={form.control}
-                  name="sort"
-                  render={({ field, fieldState }) => (
-                    <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-                      <FieldLabel htmlFor="dept-sort">
-                        排序
-                        <span className="text-destructive">*</span>
-                      </FieldLabel>
-                      <Input
-                        id="dept-sort"
-                        type="number"
-                        min={1}
-                        value={field.value}
-                        onChange={e => field.onChange(e.target.valueAsNumber || 1)}
-                        placeholder="请输入排序值（越小越靠前）"
-                        disabled={mutation.isPending}
-                        aria-invalid={fieldState.invalid}
-                      />
-                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                    </Field>
-                  )}
-                />
+                <form.Field name="sort" validators={{ onDynamic: formSchema.shape.sort }}>
+                  {field => {
+                    const invalid = field.state.meta.errors.length > 0
+
+                    return (
+                      <Field className="gap-1.5" data-invalid={invalid}>
+                        <FieldLabel htmlFor="dept-sort">
+                          排序
+                          <RequiredMark />
+                        </FieldLabel>
+                        <Input
+                          id="dept-sort"
+                          name="sort"
+                          type="number"
+                          min={1}
+                          value={field.state.value}
+                          onChange={event => field.handleChange(event.target.valueAsNumber || 1)}
+                          onBlur={field.handleBlur}
+                          placeholder="请输入排序值（越小越靠前）"
+                          disabled={isSubmitting}
+                          aria-invalid={invalid}
+                        />
+                        <FieldError errors={field.state.meta.errors} />
+                      </Field>
+                    )
+                  }}
+                </form.Field>
 
                 {/* Status Switch */}
-                <Controller
-                  control={form.control}
-                  name="status"
-                  render={({ field }) => (
-                    <Field orientation="horizontal" className="items-center justify-between">
-                      <FieldContent>
-                        <FieldLabel>部门状态</FieldLabel>
-                        <FieldDescription>
-                          {field.value === 1
-                            ? '启用状态，允许部门下属人员正常访问'
-                            : '禁用状态，禁用后该部门直属用户会话将失效'}
-                        </FieldDescription>
-                      </FieldContent>
-                      <Switch
-                        checked={field.value === 1}
-                        onCheckedChange={checked => field.onChange(checked ? 1 : 2)}
-                        disabled={mutation.isPending}
-                      />
-                    </Field>
-                  )}
-                />
+                <form.Field name="status" validators={{ onDynamic: formSchema.shape.status }}>
+                  {field => {
+                    const invalid = field.state.meta.errors.length > 0
+
+                    return (
+                      <Field orientation="horizontal" className="items-center justify-between" data-invalid={invalid}>
+                        <FieldContent>
+                          <FieldLabel>部门状态</FieldLabel>
+                          <FieldDescription>
+                            {field.state.value === 1
+                              ? '启用状态，允许部门下属人员正常访问'
+                              : '禁用状态，禁用后该部门直属用户会话将失效'}
+                          </FieldDescription>
+                        </FieldContent>
+                        <Switch
+                          checked={field.state.value === 1}
+                          onCheckedChange={checked => field.handleChange(checked ? 1 : 2)}
+                          disabled={isSubmitting}
+                          aria-invalid={invalid}
+                        />
+                      </Field>
+                    )
+                  }}
+                </form.Field>
 
                 {/* Description */}
-                <Controller
-                  control={form.control}
-                  name="description"
-                  render={({ field, fieldState }) => (
-                    <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-                      <FieldLabel htmlFor="dept-description">部门描述</FieldLabel>
-                      <Textarea
-                        {...field}
-                        id="dept-description"
-                        placeholder="请输入部门描述信息（选填，最大 200 字）"
-                        rows={3}
-                        disabled={mutation.isPending}
-                        aria-invalid={fieldState.invalid}
-                      />
-                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                    </Field>
-                  )}
-                />
+                <form.Field name="description" validators={{ onDynamic: formSchema.shape.description }}>
+                  {field => {
+                    const invalid = field.state.meta.errors.length > 0
+
+                    return (
+                      <Field className="gap-1.5" data-invalid={invalid}>
+                        <FieldLabel htmlFor="dept-description">部门描述</FieldLabel>
+                        <Textarea
+                          id="dept-description"
+                          name="description"
+                          value={field.state.value}
+                          onChange={event => field.handleChange(event.target.value)}
+                          onBlur={field.handleBlur}
+                          placeholder="请输入部门描述信息（选填，最大 200 字）"
+                          rows={3}
+                          disabled={isSubmitting}
+                          aria-invalid={invalid}
+                        />
+                        <FieldError errors={field.state.meta.errors} />
+                      </Field>
+                    )
+                  }}
+                </form.Field>
               </FieldGroup>
             </div>
 
             <DrawerFooter className="border-t p-4">
               <div className="flex items-center justify-end gap-2">
-                <Button type="button" variant="outline" disabled={mutation.isPending} onClick={onClose}>
+                <Button type="button" variant="outline" disabled={isSubmitting} onClick={onClose}>
                   取消
                 </Button>
-                <Button type="submit" disabled={mutation.isPending}>
-                  {mutation.isPending ? (
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? (
                     <>
                       <Spinner />
                       保存中

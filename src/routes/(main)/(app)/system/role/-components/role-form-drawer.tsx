@@ -1,8 +1,7 @@
 import * as React from 'react'
 
-import { zodResolver } from '@hookform/resolvers/zod'
+import { revalidateLogic, useForm, useSelector } from '@tanstack/react-form'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Controller, useForm, useWatch } from 'react-hook-form'
 import { z } from 'zod'
 
 import { Shield, X } from 'lucide-react'
@@ -54,6 +53,18 @@ const formSchema = z
 
 type FormValues = z.infer<typeof formSchema>
 
+const EMPTY_FORM: FormValues = {
+  name: '',
+  code: '',
+  sort: 1,
+  dataScope: 1,
+  deptIds: [],
+  deptCheckStrictly: false,
+  description: ''
+}
+
+const DATA_SCOPE_ITEMS = DATA_SCOPE_OPTIONS.map(opt => ({ value: String(opt.value), label: opt.label }))
+
 function toCheckableDeptNodes(nodes: DeptTreeNode[]): CheckableTreeNode[] {
   return nodes.map(node => ({
     id: String(node.id),
@@ -72,6 +83,7 @@ interface RoleFormDrawerProps {
 export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
   const queryClient = useQueryClient()
   const isCreate = roleId === null
+  const formRef = React.useRef<HTMLFormElement>(null)
 
   const detail = useRoleDetail(roleId, { enabled: open && !isCreate, refreshOnOpen: true })
 
@@ -86,74 +98,96 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
     return toCheckableDeptNodes(depts.data ?? [])
   }, [depts.data])
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: '',
-      code: '',
-      sort: 1,
-      dataScope: 1,
-      deptIds: [],
-      deptCheckStrictly: false,
-      description: ''
-    }
-  })
-
-  // When editing and detail data arrives, reset form
-  React.useEffect(() => {
-    if (open) {
-      if (isCreate) {
-        form.reset({
-          name: '',
-          code: '',
-          sort: 1,
-          dataScope: 1,
-          deptIds: [],
-          deptCheckStrictly: false,
-          description: ''
-        })
-      } else if (detail.data) {
-        form.reset({
-          name: detail.data.name,
-          code: detail.data.code,
-          sort: detail.data.sort ?? 1,
-          dataScope: (detail.data.dataScope as DataScope) ?? 1,
-          deptIds: (detail.data.deptIds ?? []).map(String),
-          deptCheckStrictly: Boolean(detail.data.deptCheckStrictly),
-          description: detail.data.description ?? ''
-        })
-      }
-    }
-  }, [open, isCreate, detail.data, form])
-
-  const watchedDataScope = useWatch({ control: form.control, name: 'dataScope' })
-  const watchedDeptCheckStrictly = useWatch({ control: form.control, name: 'deptCheckStrictly' })
-
-  const onSubmit = async (values: FormValues) => {
-    try {
+  const form = useForm({
+    defaultValues: EMPTY_FORM,
+    validationLogic: revalidateLogic(),
+    validators: { onDynamic: formSchema },
+    onSubmit: async ({ value }) => {
       const payload: RoleReq = {
-        name: values.name.trim(),
-        code: values.code.trim(),
-        sort: values.sort,
-        dataScope: values.dataScope as DataScope,
-        deptIds: values.dataScope === 5 ? values.deptIds : [],
-        deptCheckStrictly: values.dataScope === 5 ? values.deptCheckStrictly : false,
-        description: values.description ? values.description.trim() : null
+        name: value.name.trim(),
+        code: value.code.trim(),
+        sort: value.sort,
+        dataScope: value.dataScope as DataScope,
+        deptIds: value.dataScope === 5 ? value.deptIds : [],
+        deptCheckStrictly: value.dataScope === 5 ? value.deptCheckStrictly : false,
+        description: value.description ? value.description.trim() : null
       }
 
-      if (isCreate) {
-        await createRole(payload)
-        toast.add({ title: '新增角色成功', type: 'success' })
-      } else {
-        await updateRole(roleId, payload)
-        toast.add({ title: '修改角色成功', type: 'success' })
+      try {
+        if (roleId === null) {
+          await createRole(payload)
+          toast.add({ title: '新增角色成功', type: 'success' })
+        } else {
+          await updateRole(roleId, payload)
+          toast.add({ title: '修改角色成功', type: 'success' })
+        }
+      } catch {
+        // The HTTP layer already reported the failure.
+        return
       }
 
       onClose()
       void queryClient.invalidateQueries({ queryKey: roleKeys.all })
-    } catch {
-      // The HTTP layer already reported the failure.
     }
+  })
+
+  // `form.state` is a render-time snapshot, so anything that has to re-render on a form change goes
+  // through a subscription: the two watched branches, and the "saving" state that gates closing.
+  const dataScope = useSelector(form.store, state => state.values.dataScope)
+  const deptCheckStrictly = useSelector(form.store, state => state.values.deptCheckStrictly)
+  const isSubmitting = useSelector(form.store, state => state.isSubmitting)
+
+  // Fill the form once per open, and only after the record has settled. `keepDefaultValues` is
+  // load-bearing: `reset(values)` otherwise rewrites the form's own defaults, and the next render's
+  // `update(opts)` reads that as "defaults changed" and puts `EMPTY_FORM` back into the fields.
+  const filledForRef = React.useRef<string | null>(null)
+  React.useEffect(() => {
+    if (!open) {
+      form.reset({ ...EMPTY_FORM }, { keepDefaultValues: true })
+      filledForRef.current = null
+      return
+    }
+
+    if (isCreate) {
+      if (filledForRef.current === 'create') return
+      filledForRef.current = 'create'
+      form.reset({ ...EMPTY_FORM }, { keepDefaultValues: true })
+      return
+    }
+
+    if (!detail.data) return
+
+    const key = `${String(roleId)}:${detail.dataUpdatedAt}`
+    if (filledForRef.current === key) return
+    filledForRef.current = key
+
+    form.reset(
+      {
+        name: detail.data.name,
+        code: detail.data.code,
+        sort: detail.data.sort ?? 1,
+        dataScope: (detail.data.dataScope as DataScope) ?? 1,
+        deptIds: (detail.data.deptIds ?? []).map(String),
+        deptCheckStrictly: Boolean(detail.data.deptCheckStrictly),
+        description: detail.data.description ?? ''
+      },
+      { keepDefaultValues: true }
+    )
+  }, [open, isCreate, roleId, detail.data, detail.dataUpdatedAt, form])
+
+  /**
+   * Validates the whole object before submitting: `handleSubmit` returns as soon as the field
+   * validators report an invalid form, so the cross-field `deptIds` rule would otherwise stay hidden
+   * until the other errors were fixed.
+   */
+  const submit = async () => {
+    await form.validate('submit')
+    await form.handleSubmit()
+
+    // TanStack Form does not move focus to the first invalid control, so the drawer does it here.
+    requestAnimationFrame(() => {
+      formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
+    })
   }
 
   const isLoading = !isCreate && (detail.isPending || detail.fetchStatus !== 'idle')
@@ -163,7 +197,8 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
     <Drawer
       open={open}
       onOpenChange={nextOpen => {
-        if (!nextOpen && !form.formState.isSubmitting) {
+        // Closing mid-save would leave the request in flight with no way to report it.
+        if (!nextOpen && !isSubmitting) {
           onClose()
         }
       }}
@@ -175,7 +210,7 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
             <Shield className="size-4" />
             <DrawerTitle>{isCreate ? '新增角色' : '修改角色'}</DrawerTitle>
           </div>
-          <DrawerClose render={<Button variant="ghost" size="icon-sm" />}>
+          <DrawerClose render={<Button variant="ghost" size="icon-sm" disabled={isSubmitting} />}>
             <X className="size-4" />
             <span className="sr-only">关闭</span>
           </DrawerClose>
@@ -192,160 +227,191 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
         ) : isDetailError ? (
           <p className="p-4 text-sm text-foreground">加载失败，请稍后重试</p>
         ) : (
-          <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="flex min-h-0 flex-1 flex-col">
+          <form
+            ref={formRef}
+            noValidate
+            className="flex min-h-0 flex-1 flex-col"
+            onSubmit={event => {
+              event.preventDefault()
+              void submit()
+            }}
+          >
             <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
               <FieldGroup className="gap-4">
-                <Controller
-                  control={form.control}
-                  name="name"
-                  render={({ field, fieldState }) => (
-                    <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-                      <FieldLabel>角色名称</FieldLabel>
-                      <Input
-                        {...field}
-                        maxLength={30}
-                        placeholder="请输入角色名称（如：系统运维管理员）"
-                        aria-invalid={fieldState.invalid}
-                      />
-                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                    </Field>
-                  )}
-                />
+                <form.Field name="name" validators={{ onDynamic: formSchema.shape.name }}>
+                  {field => {
+                    const invalid = field.state.meta.errors.length > 0
 
-                <Controller
-                  control={form.control}
-                  name="code"
-                  render={({ field, fieldState }) => (
-                    <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-                      <FieldLabel>角色编码</FieldLabel>
-                      <Input
-                        {...field}
-                        disabled={!isCreate && detail.data?.isSystem}
-                        maxLength={30}
-                        placeholder="请输入角色编码（如：ops_admin）"
-                        aria-invalid={fieldState.invalid}
-                      />
-                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                    </Field>
-                  )}
-                />
+                    return (
+                      <Field className="gap-1.5" data-invalid={invalid}>
+                        <FieldLabel>角色名称</FieldLabel>
+                        <Input
+                          name="name"
+                          value={field.state.value}
+                          onChange={event => field.handleChange(event.target.value)}
+                          onBlur={field.handleBlur}
+                          maxLength={30}
+                          placeholder="请输入角色名称（如：系统运维管理员）"
+                          aria-invalid={invalid}
+                        />
+                        <FieldError errors={field.state.meta.errors} />
+                      </Field>
+                    )
+                  }}
+                </form.Field>
 
-                <Controller
-                  control={form.control}
-                  name="sort"
-                  render={({ field, fieldState }) => (
-                    <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-                      <FieldLabel>排序</FieldLabel>
-                      <Input
-                        type="number"
-                        min={1}
-                        value={field.value}
-                        onChange={e => field.onChange(e.target.valueAsNumber || 1)}
-                        placeholder="数值越小越靠前"
-                        aria-invalid={fieldState.invalid}
-                      />
-                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                    </Field>
-                  )}
-                />
+                <form.Field name="code" validators={{ onDynamic: formSchema.shape.code }}>
+                  {field => {
+                    const invalid = field.state.meta.errors.length > 0
 
-                <Controller
-                  control={form.control}
-                  name="dataScope"
-                  render={({ field, fieldState }) => (
-                    <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-                      <FieldLabel>数据权限</FieldLabel>
-                      <Select
-                        items={DATA_SCOPE_OPTIONS.map(opt => ({ value: String(opt.value), label: opt.label }))}
-                        value={String(field.value)}
-                        onValueChange={val => field.onChange(Number(val) as DataScope)}
-                      >
-                        <SelectTrigger aria-invalid={fieldState.invalid}>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent align="start" alignItemWithTrigger={false}>
-                          <SelectGroup>
-                            {DATA_SCOPE_OPTIONS.map(opt => (
-                              <SelectItem key={opt.value} value={String(opt.value)}>
-                                {opt.label}
-                              </SelectItem>
-                            ))}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                    </Field>
-                  )}
-                />
+                    return (
+                      <Field className="gap-1.5" data-invalid={invalid}>
+                        <FieldLabel>角色编码</FieldLabel>
+                        <Input
+                          name="code"
+                          value={field.state.value}
+                          onChange={event => field.handleChange(event.target.value)}
+                          onBlur={field.handleBlur}
+                          disabled={!isCreate && detail.data?.isSystem}
+                          maxLength={30}
+                          placeholder="请输入角色编码（如：ops_admin）"
+                          aria-invalid={invalid}
+                        />
+                        <FieldError errors={field.state.meta.errors} />
+                      </Field>
+                    )
+                  }}
+                </form.Field>
+
+                <form.Field name="sort" validators={{ onDynamic: formSchema.shape.sort }}>
+                  {field => {
+                    const invalid = field.state.meta.errors.length > 0
+
+                    return (
+                      <Field className="gap-1.5" data-invalid={invalid}>
+                        <FieldLabel>排序</FieldLabel>
+                        <Input
+                          name="sort"
+                          type="number"
+                          min={1}
+                          value={field.state.value}
+                          onChange={event => field.handleChange(event.target.valueAsNumber || 1)}
+                          onBlur={field.handleBlur}
+                          placeholder="数值越小越靠前"
+                          aria-invalid={invalid}
+                        />
+                        <FieldError errors={field.state.meta.errors} />
+                      </Field>
+                    )
+                  }}
+                </form.Field>
+
+                <form.Field name="dataScope" validators={{ onDynamic: formSchema.shape.dataScope }}>
+                  {field => {
+                    const invalid = field.state.meta.errors.length > 0
+
+                    return (
+                      <Field className="gap-1.5" data-invalid={invalid}>
+                        <FieldLabel>数据权限</FieldLabel>
+                        <Select
+                          items={DATA_SCOPE_ITEMS}
+                          value={String(field.state.value)}
+                          onValueChange={val => field.handleChange(Number(val) as DataScope)}
+                        >
+                          <SelectTrigger aria-invalid={invalid}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent align="start" alignItemWithTrigger={false}>
+                            <SelectGroup>
+                              {DATA_SCOPE_ITEMS.map(item => (
+                                <SelectItem key={item.value} value={item.value}>
+                                  {item.label}
+                                </SelectItem>
+                              ))}
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                        <FieldError errors={field.state.meta.errors} />
+                      </Field>
+                    )
+                  }}
+                </form.Field>
 
                 {/* Conditional Department Tree for Custom Data Scope */}
-                {watchedDataScope === 5 && (
+                {dataScope === 5 && (
                   <div className="flex flex-col gap-3 rounded-lg border bg-muted/20 p-3">
-                    <Controller
-                      control={form.control}
-                      name="deptCheckStrictly"
-                      render={({ field }) => (
+                    <form.Field name="deptCheckStrictly">
+                      {field => (
                         <Field orientation="horizontal" className="items-center justify-between">
                           <FieldContent>
                             <FieldLabel className="text-xs">父子联动</FieldLabel>
                             <FieldDescription className="text-[11px]">
-                              {field.value ? '已开启独立选择（不联动）' : '勾选父部门时自动勾选全部子部门'}
+                              {field.state.value ? '已开启独立选择（不联动）' : '勾选父部门时自动勾选全部子部门'}
                             </FieldDescription>
                           </FieldContent>
-                          <Switch checked={!field.value} onCheckedChange={checked => field.onChange(!checked)} />
-                        </Field>
-                      )}
-                    />
-
-                    <Controller
-                      control={form.control}
-                      name="deptIds"
-                      render={({ field, fieldState }) => (
-                        <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-                          <FieldLabel className="text-xs">选择权限部门</FieldLabel>
-                          <CheckableTree
-                            data={deptTreeData}
-                            checkedKeys={field.value}
-                            onCheckedChange={field.onChange}
-                            checkStrictly={watchedDeptCheckStrictly}
-                            loading={depts.isPending}
-                            searchPlaceholder="搜索部门"
-                            emptyText="未找到相关部门"
+                          <Switch
+                            checked={!field.state.value}
+                            onCheckedChange={checked => field.handleChange(!checked)}
                           />
-                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                         </Field>
                       )}
-                    />
+                    </form.Field>
+
+                    <form.Field name="deptIds" validators={{ onDynamic: formSchema.shape.deptIds }}>
+                      {field => {
+                        const invalid = field.state.meta.errors.length > 0
+
+                        return (
+                          <Field className="gap-1.5" data-invalid={invalid}>
+                            <FieldLabel className="text-xs">选择权限部门</FieldLabel>
+                            <CheckableTree
+                              data={deptTreeData}
+                              checkedKeys={field.state.value}
+                              onCheckedChange={field.handleChange}
+                              checkStrictly={deptCheckStrictly}
+                              loading={depts.isPending}
+                              searchPlaceholder="搜索部门"
+                              emptyText="未找到相关部门"
+                            />
+                            <FieldError errors={field.state.meta.errors} />
+                          </Field>
+                        )
+                      }}
+                    </form.Field>
                   </div>
                 )}
 
-                <Controller
-                  control={form.control}
-                  name="description"
-                  render={({ field, fieldState }) => (
-                    <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-                      <FieldLabel>描述</FieldLabel>
-                      <Textarea
-                        value={field.value ?? ''}
-                        onChange={field.onChange}
-                        maxLength={200}
-                        rows={3}
-                        placeholder="请输入角色描述信息（选填）"
-                        aria-invalid={fieldState.invalid}
-                      />
-                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                    </Field>
-                  )}
-                />
+                <form.Field name="description" validators={{ onDynamic: formSchema.shape.description }}>
+                  {field => {
+                    const invalid = field.state.meta.errors.length > 0
+
+                    return (
+                      <Field className="gap-1.5" data-invalid={invalid}>
+                        <FieldLabel>描述</FieldLabel>
+                        <Textarea
+                          name="description"
+                          value={field.state.value ?? ''}
+                          onChange={event => field.handleChange(event.target.value)}
+                          onBlur={field.handleBlur}
+                          maxLength={200}
+                          rows={3}
+                          placeholder="请输入角色描述信息（选填）"
+                          aria-invalid={invalid}
+                        />
+                        <FieldError errors={field.state.meta.errors} />
+                      </Field>
+                    )
+                  }}
+                </form.Field>
               </FieldGroup>
             </div>
 
             <DrawerFooter className="flex-row justify-end gap-2 border-t p-4">
-              <Button type="button" variant="outline" disabled={form.formState.isSubmitting} onClick={onClose}>
+              <Button type="button" variant="outline" disabled={isSubmitting} onClick={onClose}>
                 取消
               </Button>
-              <Button type="submit" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? (
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? (
                   <>
                     <Spinner />
                     保存中
