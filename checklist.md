@@ -3,7 +3,7 @@
 > 最后同步：2026-10-21。原始 35 条全部保留；新增 12 条（36–47）。另有 11、13、27、28、31 按复查结果扩面，不另计条目。  
 > 状态：`[x]` 已修复；`[ ]` 待处理。
 
-共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 23 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
+共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 22 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
 
 本次为静态审计，覆盖业务管理页、共享组件、请求与状态层，以及部分仪表盘页面；未进行运行时性能测试。原生 HTML、必要的异常处理和合理的 `className` 扩展本身不算问题。文件行号对应当前代码。
 
@@ -71,8 +71,8 @@
 - [x] **21 · P2｜菜单类型用三个原生按钮手写单选控件。［已修复 2026-10-21］** 改为 shadcn `RadioGroup` + 每项 `Label`（整块可点）：radiogroup/radio 语义、`aria-checked`、方向键切换与单一 Tab 停靠点由 Base UI 提供；单选控件本体 `absolute size-0 opacity-0`（不显示也不占位），键盘聚焦时整块卡片显示 focus ring；三项收进 `MENU_TYPE_OPTIONS` 常量映射，重复的三套条件样式只剩各自色板；编辑态整组 `disabled`，不再用 `pointer-events-none` 伪造禁用。选中态视觉上仍以配色区分。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/menu-form-drawer.tsx:291](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/menu-form-drawer.tsx:291>)
 
-- [ ] **22 · P2｜图标清除控件嵌套在另一个按钮内。** DialogTrigger 的 Button 内部又放置可聚焦的 `span role="button"`；只处理 Enter，没有 Space，还把键盘事件强转为鼠标事件。应拆成独立清除按钮。  
-  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/icon-picker.tsx:492](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/icon-picker.tsx:492>)
+- [x] **22 · P2｜图标清除控件嵌套在另一个按钮内。［已修复 2026-10-21］** 触发区改为 Input 外观的容器：`DialogTrigger` 只包左侧的打开按钮，清除改成独立的 `Button` + `Tooltip`（`icon-xs`），不再有按钮套按钮；清除由真按钮处理 Space/Enter，删掉了 `onKeyDown` 的事件强转和 `stopPropagation`。顺带把字号/高度/边框/内边距与相邻 `Input` 对齐（`h-8 rounded-lg border-input px-2.5 text-base md:text-sm`），聚焦环移到整块容器上。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/icon-picker.tsx:551](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/icon-picker.tsx:551>)
 
 - [ ] **23 · P2｜分页的禁用状态只改变透明度。** 到达首尾页后，上一页/下一页仍是可聚焦、可触发的链接，没有表达真实禁用状态。4 个复制表格改用 `pointer-events-none`，但键盘仍可触发。应统一禁用语义、事件处理和视觉状态。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/components/table-pagination.tsx:92](<E:/ppxb/continew-next/continew-ui-next/src/components/table-pagination.tsx:92>)

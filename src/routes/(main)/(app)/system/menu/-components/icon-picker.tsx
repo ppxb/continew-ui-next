@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dialog'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { resolveMenuIcon } from '@/navigation/sidebar/menu-icons'
 import { cn } from 'cn'
 
@@ -545,49 +546,58 @@ export function IconPicker({ value, onChange, disabled }: IconPickerProps) {
     [onChange]
   )
 
-  const handleClear = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    onChange(null)
-  }
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <div className="flex items-center gap-2">
+      <div
+        className={cn(
+          'flex h-8 w-full items-center gap-1 rounded-lg border border-input bg-transparent px-2.5 transition-colors dark:bg-input/30',
+          'has-[:focus-visible]:border-ring has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ring/50',
+          disabled && 'bg-input/50 opacity-50 dark:bg-input/80'
+        )}
+      >
         <DialogTrigger
           render={
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               disabled={disabled}
-              className="h-9 w-full justify-between px-3 font-normal"
+              className={cn(
+                'h-full min-w-0 flex-1 justify-start gap-2 px-0 text-base font-normal',
+                'hover:bg-transparent dark:hover:bg-transparent aria-expanded:bg-transparent',
+                'focus-visible:border-transparent focus-visible:ring-0 disabled:opacity-100 md:text-sm'
+              )}
             />
           }
         >
-          <div className="flex items-center gap-2 truncate">
-            {value ? (
-              <>
-                {React.createElement(resolveMenuIcon(value), {
-                  className: 'size-4 shrink-0 text-foreground'
-                })}
-                <span className="text-xs">{value}</span>
-              </>
-            ) : (
-              <span className="text-xs text-muted-foreground">点击选择图标</span>
-            )}
-          </div>
-          {value && !disabled && (
-            <span
-              role="button"
-              tabIndex={0}
-              aria-label="清除图标"
-              onClick={handleClear}
-              onKeyDown={e => e.key === 'Enter' && handleClear(e as unknown as React.MouseEvent)}
-              className="rounded-xs p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
-            >
-              <X className="size-3.5" />
-            </span>
+          {value ? (
+            <>
+              {React.createElement(resolveMenuIcon(value), {
+                className: 'size-4 shrink-0 text-foreground'
+              })}
+              <span className="truncate">{value}</span>
+            </>
+          ) : (
+            <span className="truncate text-muted-foreground">点击选择图标</span>
           )}
         </DialogTrigger>
+        {value && !disabled && (
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-xs"
+                  className="shrink-0 text-muted-foreground hover:text-foreground"
+                  onClick={() => onChange(null)}
+                />
+              }
+            >
+              <X />
+            </TooltipTrigger>
+            <TooltipContent side="top">清除图标</TooltipContent>
+          </Tooltip>
+        )}
       </div>
 
       <DialogContent className="max-w-md sm:max-w-3xl">
