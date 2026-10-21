@@ -23,6 +23,7 @@ import { toast } from '@/components/ui/toast'
 import { listRoleDict, roleKeys } from '@/lib/api/role'
 import { assignUserRoles, userKeys, type UserResp } from '@/lib/api/user'
 
+import { userLabel } from './user-display'
 import { useUserDetail } from './use-user-detail'
 import { UserRoleSelect } from './user-role-select'
 
@@ -140,6 +141,17 @@ interface UserAssignRolesDialogProps {
  */
 export function UserAssignRolesDialog({ user, open, onClose }: UserAssignRolesDialogProps) {
   const userId = user?.id ?? null
+  const [lastUser, setLastUser] = React.useState<UserResp | null>(null)
+
+  // Keep the last user during the close animation, matching the delete and reset dialogs.
+  React.useEffect(() => {
+    if (user) {
+      setLastUser(user)
+    }
+  }, [user])
+
+  const shownUser = user ?? lastUser
+  const shownLabel = userLabel(shownUser)
 
   // Shares its key with the detail and edit drawers, so all three read one cached record; the hook
   // refetches it on open, so the picker never seeds from a stale list row.
@@ -162,7 +174,9 @@ export function UserAssignRolesDialog({ user, open, onClose }: UserAssignRolesDi
             <ShieldCheck className="size-4" />
             <DialogTitle>分配角色</DialogTitle>
           </div>
-          <DialogDescription>为该用户分配角色</DialogDescription>
+          <DialogDescription>
+            {shownUser ? `为用户「${shownLabel}」分配角色` : '为该用户分配角色'}
+          </DialogDescription>
         </DialogHeader>
 
         {isDetailLoading ? (

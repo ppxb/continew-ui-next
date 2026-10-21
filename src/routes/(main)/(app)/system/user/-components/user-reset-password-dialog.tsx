@@ -23,6 +23,8 @@ import { toast } from '@/components/ui/toast'
 import { resetUserPassword, userKeys, type UserResp } from '@/lib/api/user'
 import { encryptPassword } from '@/lib/crypto'
 
+import { userLabel } from './user-display'
+
 /**
  * Mirrors the backend default policy (`RegexConstants.PASSWORD`): 8 to 32 characters with at
  * least one digit and one lowercase letter. The profile password form enforces the same rule.
@@ -59,6 +61,17 @@ interface UserResetPasswordDialogProps {
  */
 export function UserResetPasswordDialog({ user, open, onClose }: UserResetPasswordDialogProps) {
   const queryClient = useQueryClient()
+  const [lastUser, setLastUser] = React.useState<UserResp | null>(null)
+
+  // Keep the last user during the close animation, matching the delete dialog.
+  React.useEffect(() => {
+    if (user) {
+      setLastUser(user)
+    }
+  }, [user])
+
+  const shownUser = user ?? lastUser
+  const shownLabel = userLabel(shownUser)
 
   const form = useForm<FormValues>({ resolver: zodResolver(formSchema), defaultValues: EMPTY_FORM })
 
@@ -113,7 +126,9 @@ export function UserResetPasswordDialog({ user, open, onClose }: UserResetPasswo
             <KeyRound className="size-4" />
             <DialogTitle>重置密码</DialogTitle>
           </div>
-          <DialogDescription>为该用户设置新的登录密码</DialogDescription>
+          <DialogDescription>
+            {shownUser ? `为用户「${shownLabel}」设置新的登录密码` : '为该用户设置新的登录密码'}
+          </DialogDescription>
         </DialogHeader>
 
         <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">

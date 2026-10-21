@@ -19,6 +19,8 @@ import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
 import { deleteUser, userKeys, type UserResp } from '@/lib/api/user'
 
+import { userLabel } from './user-display'
+
 interface UserDeleteDialogProps {
   /** The user being deleted, or `null` before the first one is picked. */
   readonly user: UserResp | null
@@ -49,9 +51,7 @@ export function UserDeleteDialog({ user, open, onClose }: UserDeleteDialogProps)
   }, [user])
 
   const shownUser = user ?? lastUser
-  // The nickname reads better, the username is the unambiguous one, so show both when they differ.
-  const shownName = shownUser ? shownUser.nickname || shownUser.username : ''
-  const shownLabel = shownUser?.nickname ? `${shownUser.nickname}(${shownUser.username})` : shownName
+  const shownLabel = userLabel(shownUser)
 
   const handleDelete = async () => {
     if (user === null) {

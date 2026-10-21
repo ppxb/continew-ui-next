@@ -15,3 +15,11 @@ export function genderLabel(gender: UserResp['gender']) {
 export function RoleCell({ roleNames, max }: { roleNames: string[]; max?: number }) {
   return <TagList items={roleNames} max={max} />
 }
+
+export function userLabel(user: Pick<UserResp, 'nickname' | 'username'> | null | undefined) {
+  if (!user) {
+    return ''
+  }
+
+  return user.nickname ? `${user.nickname}(${user.username})` : user.username
+}
