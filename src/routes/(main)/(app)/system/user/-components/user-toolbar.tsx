@@ -30,7 +30,7 @@ interface UserToolbarProps {
   readonly onResetColumns: () => void
 }
 
-/** Actions on the left, table tools on the right. */
+/** Table actions, placed next to the filters on desktop and below them on mobile. */
 export function UserToolbar({
   table,
   isRefreshing,
@@ -46,64 +46,59 @@ export function UserToolbar({
   const hideableColumns = table.getAllColumns().filter(column => column.getCanHide())
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 px-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <Button size="sm" onClick={onCreate}>
-          <Plus />
-          新增用户
-        </Button>
-        <Button size="sm" variant="outline" onClick={onImport}>
-          <Upload />
-          导入数据
-        </Button>
-      </div>
+    <div className="flex w-full flex-wrap items-center gap-2 xl:w-auto xl:justify-end">
+      <Button className="w-full sm:w-auto" onClick={onCreate}>
+        <Plus />
+        新增用户
+      </Button>
+      <Button variant="outline" onClick={onImport}>
+        <Upload />
+        导入数据
+      </Button>
+      <Button variant="outline" disabled={isExporting} onClick={onExport}>
+        {isExporting ? <Spinner /> : <Download />}
+        导出
+      </Button>
+      <Button variant="outline" disabled={isRefreshing} onClick={onRefresh}>
+        {isRefreshing ? <Spinner /> : <RefreshCw />}
+        刷新
+      </Button>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <Button size="sm" variant="outline" disabled={isExporting} onClick={onExport}>
-          {isExporting ? <Spinner /> : <Download />}
-          导出
-        </Button>
-        <Button size="sm" variant="outline" disabled={isRefreshing} onClick={onRefresh}>
-          {isRefreshing ? <Spinner /> : <RefreshCw />}
-          刷新
-        </Button>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger render={<Button size="sm" variant="outline" />}>
-            <SlidersHorizontal />
-            隐藏列
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-44">
-            <DropdownMenuGroup>
-              <DropdownMenuLabel>显示的列</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {hideableColumns.map(column => {
-                const label = typeof column.columnDef.header === 'string' ? column.columnDef.header : column.id
-
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    checked={column.getIsVisible()}
-                    onCheckedChange={value => column.toggleVisibility(value)}
-                  >
-                    {label}
-                  </DropdownMenuCheckboxItem>
-                )
-              })}
-            </DropdownMenuGroup>
+      <DropdownMenu>
+        <DropdownMenuTrigger render={<Button variant="outline" />}>
+          <SlidersHorizontal />
+          隐藏列
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-44">
+          <DropdownMenuGroup>
+            <DropdownMenuLabel>显示的列</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={onResetColumns}>
-              <RotateCcw />
-              重置
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            {hideableColumns.map(column => {
+              const label = typeof column.columnDef.header === 'string' ? column.columnDef.header : column.id
 
-        <Button size="sm" variant="outline" onClick={onToggleFullscreen}>
-          {isFullscreen ? <Minimize /> : <Maximize />}
-          表格全屏
-        </Button>
-      </div>
+              return (
+                <DropdownMenuCheckboxItem
+                  key={column.id}
+                  checked={column.getIsVisible()}
+                  onCheckedChange={value => column.toggleVisibility(value)}
+                >
+                  {label}
+                </DropdownMenuCheckboxItem>
+              )
+            })}
+          </DropdownMenuGroup>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={onResetColumns}>
+            <RotateCcw />
+            重置
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <Button variant="outline" onClick={onToggleFullscreen}>
+        {isFullscreen ? <Minimize /> : <Maximize />}
+        表格全屏
+      </Button>
     </div>
   )
 }

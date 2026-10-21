@@ -67,7 +67,7 @@ export function TableSearch({
         <Search className="size-3.5" />
       </InputGroupAddon>
       <InputGroupInput
-        className="h-full"
+        className="h-full text-sm"
         placeholder={placeholder}
         value={text}
         onChange={event => handleTextChange(event.target.value)}

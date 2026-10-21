@@ -241,6 +241,14 @@
   }
 }
 
+/* Keep form and search controls on the same 14px scale. */
+[data-slot='input'],
+[data-slot='input-group-control'],
+[data-slot='textarea'] {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
 .disable-transitions * {
   transition: none !important;
 }

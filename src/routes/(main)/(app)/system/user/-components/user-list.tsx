@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { type ColumnVisibilityState, type PaginationState, useTable } from '@tanstack/react-table'
 import { cn } from 'cn'
 import { TableSearch } from '@/components/table-search'
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from '@/components/ui/toast'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
@@ -161,51 +161,59 @@ export function UserList() {
 
   const tableSection = (
     <>
-      <div className="flex flex-wrap items-center gap-3 px-4">
-        <DeptTreeSelect
-          size="sm"
-          triggerPrefix="部门"
-          placeholder="全部"
-          placeholderColor="foreground"
-          showAllOption
-          allOptionLabel="全部部门"
-          value={deptId}
-          onChange={handleDeptChange}
-          className="w-44"
-        />
-        <Select
-          items={STATUS_OPTIONS}
-          value={status === undefined ? 'all' : String(status)}
-          onValueChange={handleStatusChange}
-        >
-          <SelectTrigger size="sm">
-            <span className="text-muted-foreground">状态</span>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent align="start" alignItemWithTrigger={false}>
-            <SelectGroup>
-              {STATUS_OPTIONS.map(option => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      </div>
+      <div className="flex flex-col gap-3 px-4 xl:flex-row xl:items-center xl:justify-between">
+        <div className="grid min-w-0 grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
+          <TableSearch
+            className="col-span-2 h-8 w-full sm:w-64"
+            placeholder="搜索用户名、昵称、描述"
+            onSearch={handleSearch}
+          />
+          <DeptTreeSelect
+            triggerPrefix="部门"
+            placeholder="全部"
+            placeholderColor="foreground"
+            showAllOption
+            allOptionLabel="全部部门"
+            value={deptId}
+            onChange={handleDeptChange}
+            className="w-full sm:w-44"
+          />
+          <div className="w-full sm:w-32">
+            <Select
+              items={STATUS_OPTIONS}
+              value={status === undefined ? 'all' : String(status)}
+              onValueChange={handleStatusChange}
+            >
+              <SelectTrigger className="w-full">
+                <span className="text-muted-foreground">状态</span>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent align="start" alignItemWithTrigger={false}>
+                <SelectGroup>
+                  {STATUS_OPTIONS.map(option => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
 
-      <UserToolbar
-        table={table}
-        isRefreshing={query.isFetching && !query.isPending}
-        isExporting={isExporting}
-        isFullscreen={isFullscreen}
-        onCreate={() => setFormTarget({ userId: null })}
-        onImport={() => reportPending('导入数据')}
-        onExport={() => void handleExport()}
-        onRefresh={() => void query.refetch()}
-        onToggleFullscreen={toggleFullscreen}
-        onResetColumns={() => setColumnVisibility(HIDDEN_BY_DEFAULT)}
-      />
+        <UserToolbar
+          table={table}
+          isRefreshing={query.isFetching && !query.isPending}
+          isExporting={isExporting}
+          isFullscreen={isFullscreen}
+          onCreate={() => setFormTarget({ userId: null })}
+          onImport={() => reportPending('导入数据')}
+          onExport={() => void handleExport()}
+          onRefresh={() => void query.refetch()}
+          onToggleFullscreen={toggleFullscreen}
+          onResetColumns={() => setColumnVisibility(HIDDEN_BY_DEFAULT)}
+        />
+      </div>
 
       <UserTable
         table={table}
@@ -220,12 +228,9 @@ export function UserList() {
   return (
     <>
       <Card className="pb-0">
-        <CardHeader className="has-data-[slot=card-action]:grid-cols-1 md:has-data-[slot=card-action]:grid-cols-[1fr_auto]">
+        <CardHeader>
           <CardTitle className="text-xl">用户管理</CardTitle>
           <CardDescription>维护系统用户，查看用户的基本信息</CardDescription>
-          <CardAction className="col-start-1 row-start-auto flex w-full flex-wrap justify-start gap-2 justify-self-stretch md:col-start-2 md:row-span-2 md:row-start-1 md:w-auto md:flex-nowrap md:justify-end md:justify-self-end">
-            <TableSearch placeholder="搜索用户名、昵称、描述" onSearch={handleSearch} />
-          </CardAction>
         </CardHeader>
 
         <CardContent className="flex flex-col gap-4 px-0">
