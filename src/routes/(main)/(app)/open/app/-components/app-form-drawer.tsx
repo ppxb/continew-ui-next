@@ -1,13 +1,13 @@
 import * as React from 'react'
 
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { revalidateLogic, useForm, useSelector } from '@tanstack/react-form'
+import { useQueryClient } from '@tanstack/react-query'
 import { addDays, addYears, format } from 'date-fns'
-import { Controller, useForm, useWatch } from 'react-hook-form'
 import { z } from 'zod'
 
 import { Calendar as CalendarIcon, Clock, LayoutGrid, X } from 'lucide-react'
 
+import { RequiredMark } from '@/components/required-mark'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
@@ -41,6 +41,13 @@ const EMPTY_FORM: FormValues = {
   status: 1,
   expireTime: '',
   description: ''
+}
+
+/** The backend sends `yyyy-MM-dd HH:mm:ss`; Safari needs the dashes replaced to parse it. */
+const toSelectedDate = (value: string) => {
+  if (!value) return undefined
+  const date = new Date(value.replace(/-/g, '/'))
+  return Number.isNaN(date.getTime()) ? undefined : date
 }
 
 function toFormValues(app: AppDetailResp): FormValues {
@@ -91,86 +98,83 @@ interface AppFormDrawerProps {
 export function AppFormDrawer({ appId, open, onClose }: AppFormDrawerProps) {
   const isEdit = appId !== null
   const queryClient = useQueryClient()
+  const formRef = React.useRef<HTMLFormElement>(null)
   const [calendarOpen, setCalendarOpen] = React.useState(false)
 
   const detailQuery = useAppDetail(appId, { enabled: open && isEdit, refreshOnOpen: isEdit })
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: EMPTY_FORM
+  const form = useForm({
+    defaultValues: EMPTY_FORM,
+    validationLogic: revalidateLogic(),
+    validators: { onDynamic: formSchema },
+    onSubmit: async ({ value }) => {
+      const payload: AppReq = {
+        name: value.name,
+        status: value.status as AppStatus,
+        expireTime: value.expireTime ? value.expireTime : null,
+        description: value.description || undefined
+      }
+
+      try {
+        if (appId === null) {
+          await createApp(payload)
+        } else {
+          await updateApp(appId, payload)
+        }
+      } catch {
+        // The HTTP layer already reported the failure.
+        return
+      }
+
+      toast.add({ title: isEdit ? '修改应用成功' : '新增应用成功', type: 'success' })
+      void queryClient.invalidateQueries({ queryKey: appKeys.all })
+      onClose()
+    }
   })
 
-  // Synchronize form values whenever the drawer opens or the record changes
+  // `form.state` is a render-time snapshot, so the "saving" flag comes from a subscription. It covers
+  // the whole request, which is what the close guard and every disabled control below rely on.
+  const isSubmitting = useSelector(form.store, state => state.isSubmitting)
+
+  // Fill the form once per open, and only after the record has settled. `keepDefaultValues` is
+  // load-bearing: `reset(values)` otherwise rewrites the form's own defaults, and the next render's
+  // `update(opts)` reads that as "defaults changed" and puts `EMPTY_FORM` back into the fields.
+  const filledForRef = React.useRef<string | null>(null)
   React.useEffect(() => {
     if (!open) {
-      form.reset(EMPTY_FORM)
+      form.reset({ ...EMPTY_FORM }, { keepDefaultValues: true })
+      filledForRef.current = null
       return
     }
 
-    if (isEdit && detailQuery.data) {
-      form.reset(toFormValues(detailQuery.data))
-    } else if (!isEdit) {
-      form.reset(EMPTY_FORM)
+    if (!isEdit) {
+      if (filledForRef.current === 'create') return
+      filledForRef.current = 'create'
+      form.reset({ ...EMPTY_FORM }, { keepDefaultValues: true })
+      return
     }
-  }, [open, isEdit, detailQuery.data, form])
 
-  const mutation = useMutation({
-    mutationFn: async (values: FormValues) => {
-      const payload: AppReq = {
-        name: values.name,
-        status: values.status as AppStatus,
-        expireTime: values.expireTime ? values.expireTime : null,
-        description: values.description || undefined
-      }
+    if (!detailQuery.data) return
 
-      if (isEdit && appId !== null) {
-        await updateApp(appId, payload)
-      } else {
-        await createApp(payload)
-      }
-    },
-    onSuccess: () => {
-      toast.add({
-        title: isEdit ? '修改应用成功' : '新增应用成功',
-        type: 'success'
-      })
-      void queryClient.invalidateQueries({ queryKey: appKeys.all })
-      onClose()
-    },
-    onError: error => {
-      toast.add({
-        title: error instanceof Error ? error.message : '提交失败，请重试',
-        type: 'error'
-      })
-    }
-  })
+    const key = `${String(appId)}:${detailQuery.dataUpdatedAt}`
+    if (filledForRef.current === key) return
+    filledForRef.current = key
+    form.reset(toFormValues(detailQuery.data), { keepDefaultValues: true })
+  }, [open, isEdit, appId, detailQuery.data, detailQuery.dataUpdatedAt, form])
 
-  const onSubmit = (values: FormValues) => {
-    mutation.mutate(values)
-  }
+  /**
+   * Validates the whole object before submitting: `handleSubmit` returns as soon as the field
+   * validators report an invalid form, so a rule that only sits on the form would stay hidden until
+   * the other errors were fixed.
+   */
+  const submit = async () => {
+    await form.validate('submit')
+    await form.handleSubmit()
 
-  const expireTimeValue = useWatch({ control: form.control, name: 'expireTime' })
-  const selectedDate = React.useMemo(() => {
-    if (!expireTimeValue) return undefined
-    const d = new Date(expireTimeValue.replace(/-/g, '/'))
-    return Number.isNaN(d.getTime()) ? undefined : d
-  }, [expireTimeValue])
-
-  const setPresetExpire = (days: number) => {
-    const target = addDays(new Date(), days)
-    form.setValue('expireTime', format(target, 'yyyy-MM-dd 23:59:59'), { shouldValidate: true })
-    setCalendarOpen(false)
-  }
-
-  const setPresetYears = (years: number) => {
-    const target = addYears(new Date(), years)
-    form.setValue('expireTime', format(target, 'yyyy-MM-dd 23:59:59'), { shouldValidate: true })
-    setCalendarOpen(false)
-  }
-
-  const clearExpire = () => {
-    form.setValue('expireTime', '', { shouldValidate: true })
-    setCalendarOpen(false)
+    // TanStack Form does not move focus to the first invalid control, so the drawer does it here.
+    requestAnimationFrame(() => {
+      formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
+    })
   }
 
   const isLoadingDetail = isEdit && (detailQuery.isPending || detailQuery.fetchStatus !== 'idle')
@@ -180,7 +184,8 @@ export function AppFormDrawer({ appId, open, onClose }: AppFormDrawerProps) {
     <Drawer
       open={open}
       onOpenChange={val => {
-        if (!val && !mutation.isPending) {
+        // Closing mid-save would leave the request in flight with no way to report it.
+        if (!val && !isSubmitting) {
           onClose()
         }
       }}
@@ -194,7 +199,7 @@ export function AppFormDrawer({ appId, open, onClose }: AppFormDrawerProps) {
             </div>
             <DrawerTitle className="text-base font-semibold">{isEdit ? '修改应用' : '新增应用'}</DrawerTitle>
           </div>
-          <DrawerClose render={<Button variant="ghost" size="icon-sm" disabled={mutation.isPending} />}>
+          <DrawerClose render={<Button variant="ghost" size="icon-sm" disabled={isSubmitting} />}>
             <X className="size-4" />
             <span className="sr-only">关闭</span>
           </DrawerClose>
@@ -205,40 +210,58 @@ export function AppFormDrawer({ appId, open, onClose }: AppFormDrawerProps) {
         ) : isDetailError ? (
           <p className="p-4 text-sm text-foreground">加载失败，请稍后重试</p>
         ) : (
-          <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="flex min-h-0 flex-1 flex-col">
+          <form
+            ref={formRef}
+            noValidate
+            className="flex min-h-0 flex-1 flex-col"
+            onSubmit={event => {
+              event.preventDefault()
+              void submit()
+            }}
+          >
             <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
               <FieldGroup className="gap-4">
                 {/* Name field (Required, upfront) */}
-                <Controller
-                  control={form.control}
-                  name="name"
-                  render={({ field, fieldState }) => (
-                    <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-                      <FieldLabel htmlFor="app-name">
-                        应用名称
-                        <span className="text-destructive">*</span>
-                      </FieldLabel>
-                      <Input
-                        {...field}
-                        id="app-name"
-                        placeholder="请输入应用名称，例如：商城接口服务"
-                        disabled={mutation.isPending}
-                        aria-invalid={fieldState.invalid}
-                      />
-                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                    </Field>
-                  )}
-                />
-
-                {/* Expiration Time (Optional, with calendar & quick presets) */}
-                <Controller
-                  control={form.control}
-                  name="expireTime"
-                  render={({ field, fieldState }) => {
-                    const hasValue = Boolean(field.value)
+                <form.Field name="name" validators={{ onDynamic: formSchema.shape.name }}>
+                  {field => {
+                    const invalid = field.state.meta.errors.length > 0
 
                     return (
-                      <Field className="gap-1.5" data-invalid={fieldState.invalid}>
+                      <Field className="gap-1.5" data-invalid={invalid}>
+                        <FieldLabel htmlFor="app-name">
+                          应用名称
+                          <RequiredMark />
+                        </FieldLabel>
+                        <Input
+                          id="app-name"
+                          name="name"
+                          value={field.state.value}
+                          onChange={event => field.handleChange(event.target.value)}
+                          onBlur={field.handleBlur}
+                          placeholder="请输入应用名称，例如：商城接口服务"
+                          disabled={isSubmitting}
+                          aria-invalid={invalid}
+                        />
+                        <FieldError errors={field.state.meta.errors} />
+                      </Field>
+                    )
+                  }}
+                </form.Field>
+
+                {/* Expiration Time (Optional, with calendar & quick presets) */}
+                <form.Field name="expireTime" validators={{ onDynamic: formSchema.shape.expireTime }}>
+                  {field => {
+                    const invalid = field.state.meta.errors.length > 0
+                    const hasValue = field.state.value !== ''
+                    const selectedDate = toSelectedDate(field.state.value)
+
+                    const setExpire = (value: string) => {
+                      field.handleChange(value)
+                      setCalendarOpen(false)
+                    }
+
+                    return (
+                      <Field className="gap-1.5" data-invalid={invalid}>
                         <FieldLabel htmlFor="app-expire-time">失效时间</FieldLabel>
                         <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
                           <div className="relative flex items-center">
@@ -248,13 +271,13 @@ export function AppFormDrawer({ appId, open, onClose }: AppFormDrawerProps) {
                                   type="button"
                                   id="app-expire-time"
                                   variant="outline"
-                                  disabled={mutation.isPending}
+                                  disabled={isSubmitting}
                                   className="w-full justify-between pr-8 font-normal"
                                 />
                               }
                             >
                               <span className={hasValue ? 'text-foreground' : 'text-muted-foreground'}>
-                                {hasValue ? field.value : '永久有效（点击设置失效时间）'}
+                                {hasValue ? field.state.value : '永久有效（点击设置失效时间）'}
                               </span>
                               <CalendarIcon className="size-4 text-muted-foreground" />
                             </PopoverTrigger>
@@ -264,8 +287,9 @@ export function AppFormDrawer({ appId, open, onClose }: AppFormDrawerProps) {
                                 type="button"
                                 onClick={e => {
                                   e.stopPropagation()
-                                  clearExpire()
+                                  setExpire('')
                                 }}
+                                disabled={isSubmitting}
                                 className="absolute right-2.5 z-10 text-muted-foreground transition-colors hover:text-foreground"
                                 title="清空并设为永久有效"
                               >
@@ -275,21 +299,43 @@ export function AppFormDrawer({ appId, open, onClose }: AppFormDrawerProps) {
                           </div>
 
                           <PopoverContent className="w-auto p-3" align="start">
-                            <div className="flex flex-col gap-3">
+                            {/* The presets and the calendar have no single `disabled` prop to hang the
+                                saving state on, so `inert` covers the whole popover body at once. */}
+                            <div className="flex flex-col gap-3" inert={isSubmitting}>
                               <div className="flex flex-wrap items-center gap-1.5 border-b pb-2">
-                                <Button type="button" size="xs" variant="outline" onClick={() => setPresetExpire(30)}>
+                                <Button
+                                  type="button"
+                                  size="xs"
+                                  variant="outline"
+                                  onClick={() => setExpire(format(addDays(new Date(), 30), 'yyyy-MM-dd 23:59:59'))}
+                                >
                                   30天
                                 </Button>
-                                <Button type="button" size="xs" variant="outline" onClick={() => setPresetExpire(90)}>
+                                <Button
+                                  type="button"
+                                  size="xs"
+                                  variant="outline"
+                                  onClick={() => setExpire(format(addDays(new Date(), 90), 'yyyy-MM-dd 23:59:59'))}
+                                >
                                   90天
                                 </Button>
-                                <Button type="button" size="xs" variant="outline" onClick={() => setPresetYears(1)}>
+                                <Button
+                                  type="button"
+                                  size="xs"
+                                  variant="outline"
+                                  onClick={() => setExpire(format(addYears(new Date(), 1), 'yyyy-MM-dd 23:59:59'))}
+                                >
                                   1年
                                 </Button>
-                                <Button type="button" size="xs" variant="outline" onClick={() => setPresetYears(3)}>
+                                <Button
+                                  type="button"
+                                  size="xs"
+                                  variant="outline"
+                                  onClick={() => setExpire(format(addYears(new Date(), 3), 'yyyy-MM-dd 23:59:59'))}
+                                >
                                   3年
                                 </Button>
-                                <Button type="button" size="xs" variant="ghost" onClick={clearExpire}>
+                                <Button type="button" size="xs" variant="ghost" onClick={() => setExpire('')}>
                                   永久有效
                                 </Button>
                               </div>
@@ -298,14 +344,7 @@ export function AppFormDrawer({ appId, open, onClose }: AppFormDrawerProps) {
                                 mode="single"
                                 selected={selectedDate}
                                 onSelect={date => {
-                                  if (!date) {
-                                    clearExpire()
-                                  } else {
-                                    form.setValue('expireTime', format(date, 'yyyy-MM-dd 23:59:59'), {
-                                      shouldValidate: true
-                                    })
-                                    setCalendarOpen(false)
-                                  }
+                                  setExpire(date ? format(date, 'yyyy-MM-dd 23:59:59') : '')
                                 }}
                                 disabled={date => date.getTime() < Date.now() - 24 * 60 * 60 * 1000}
                               />
@@ -318,62 +357,70 @@ export function AppFormDrawer({ appId, open, onClose }: AppFormDrawerProps) {
                             留空表示永久有效；若设置则必须是未来时间
                           </span>
                         </FieldDescription>
-                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        <FieldError errors={field.state.meta.errors} />
                       </Field>
                     )
                   }}
-                />
+                </form.Field>
 
                 {/* Status Switch (One per line, placed below expire time) */}
-                <Controller
-                  control={form.control}
-                  name="status"
-                  render={({ field }) => (
-                    <Field orientation="horizontal" className="items-center justify-between">
-                      <FieldContent>
-                        <FieldLabel>应用状态</FieldLabel>
-                        <FieldDescription>
-                          {field.value === 1 ? '启用状态，允许调用开放 API 接口' : '禁用状态，阻止所有调用请求'}
-                        </FieldDescription>
-                      </FieldContent>
-                      <Switch
-                        checked={field.value === 1}
-                        onCheckedChange={checked => field.onChange(checked ? 1 : 2)}
-                        disabled={mutation.isPending}
-                      />
-                    </Field>
-                  )}
-                />
+                <form.Field name="status" validators={{ onDynamic: formSchema.shape.status }}>
+                  {field => {
+                    const invalid = field.state.meta.errors.length > 0
+
+                    return (
+                      <Field orientation="horizontal" className="items-center justify-between" data-invalid={invalid}>
+                        <FieldContent>
+                          <FieldLabel>应用状态</FieldLabel>
+                          <FieldDescription>
+                            {field.state.value === 1 ? '启用状态，允许调用开放 API 接口' : '禁用状态，阻止所有调用请求'}
+                          </FieldDescription>
+                        </FieldContent>
+                        <Switch
+                          checked={field.state.value === 1}
+                          onCheckedChange={checked => field.handleChange(checked ? 1 : 2)}
+                          disabled={isSubmitting}
+                          aria-invalid={invalid}
+                        />
+                      </Field>
+                    )
+                  }}
+                </form.Field>
 
                 {/* Description field */}
-                <Controller
-                  control={form.control}
-                  name="description"
-                  render={({ field, fieldState }) => (
-                    <Field className="gap-1.5" data-invalid={fieldState.invalid}>
-                      <FieldLabel htmlFor="app-description">应用描述</FieldLabel>
-                      <Textarea
-                        {...field}
-                        id="app-description"
-                        placeholder="请输入应用描述信息（选填，最大 200 字）"
-                        rows={3}
-                        disabled={mutation.isPending}
-                        aria-invalid={fieldState.invalid}
-                      />
-                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                    </Field>
-                  )}
-                />
+                <form.Field name="description" validators={{ onDynamic: formSchema.shape.description }}>
+                  {field => {
+                    const invalid = field.state.meta.errors.length > 0
+
+                    return (
+                      <Field className="gap-1.5" data-invalid={invalid}>
+                        <FieldLabel htmlFor="app-description">应用描述</FieldLabel>
+                        <Textarea
+                          id="app-description"
+                          name="description"
+                          value={field.state.value}
+                          onChange={event => field.handleChange(event.target.value)}
+                          onBlur={field.handleBlur}
+                          placeholder="请输入应用描述信息（选填，最大 200 字）"
+                          rows={3}
+                          disabled={isSubmitting}
+                          aria-invalid={invalid}
+                        />
+                        <FieldError errors={field.state.meta.errors} />
+                      </Field>
+                    )
+                  }}
+                </form.Field>
               </FieldGroup>
             </div>
 
             <DrawerFooter className="border-t p-4">
               <div className="flex items-center justify-end gap-2">
-                <Button type="button" variant="outline" disabled={mutation.isPending} onClick={onClose}>
+                <Button type="button" variant="outline" disabled={isSubmitting} onClick={onClose}>
                   取消
                 </Button>
-                <Button type="submit" disabled={mutation.isPending}>
-                  {mutation.isPending ? (
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? (
                     <>
                       <Spinner />
                       保存中

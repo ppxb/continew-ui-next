@@ -251,6 +251,7 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
                           onChange={event => field.handleChange(event.target.value)}
                           onBlur={field.handleBlur}
                           maxLength={30}
+                          disabled={isSubmitting}
                           placeholder="请输入角色名称（如：系统运维管理员）"
                           aria-invalid={invalid}
                         />
@@ -272,7 +273,7 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
                           value={field.state.value}
                           onChange={event => field.handleChange(event.target.value)}
                           onBlur={field.handleBlur}
-                          disabled={!isCreate && detail.data?.isSystem}
+                          disabled={isSubmitting || (!isCreate && detail.data?.isSystem)}
                           maxLength={30}
                           placeholder="请输入角色编码（如：ops_admin）"
                           aria-invalid={invalid}
@@ -297,6 +298,7 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
                           value={field.state.value}
                           onChange={event => field.handleChange(event.target.valueAsNumber || 1)}
                           onBlur={field.handleBlur}
+                          disabled={isSubmitting}
                           placeholder="数值越小越靠前"
                           aria-invalid={invalid}
                         />
@@ -318,7 +320,7 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
                           value={String(field.state.value)}
                           onValueChange={val => field.handleChange(Number(val) as DataScope)}
                         >
-                          <SelectTrigger aria-invalid={invalid}>
+                          <SelectTrigger aria-invalid={invalid} disabled={isSubmitting}>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent align="start" alignItemWithTrigger={false}>
@@ -352,6 +354,7 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
                           <Switch
                             checked={!field.state.value}
                             onCheckedChange={checked => field.handleChange(!checked)}
+                            disabled={isSubmitting}
                           />
                         </Field>
                       )}
@@ -364,15 +367,22 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
                         return (
                           <Field className="gap-1.5" data-invalid={invalid}>
                             <FieldLabel className="text-xs">选择权限部门</FieldLabel>
-                            <CheckableTree
-                              data={deptTreeData}
-                              checkedKeys={field.state.value}
-                              onCheckedChange={field.handleChange}
-                              checkStrictly={deptCheckStrictly}
-                              loading={depts.isPending}
-                              searchPlaceholder="搜索部门"
-                              emptyText="未找到相关部门"
-                            />
+                            {/* The tree has no `disabled` prop of its own, so `inert` blocks both the
+                                pointer and the keyboard while a save is in flight. */}
+                            <div
+                              inert={isSubmitting}
+                              className={isSubmitting ? 'pointer-events-none opacity-50' : undefined}
+                            >
+                              <CheckableTree
+                                data={deptTreeData}
+                                checkedKeys={field.state.value}
+                                onCheckedChange={field.handleChange}
+                                checkStrictly={deptCheckStrictly}
+                                loading={depts.isPending}
+                                searchPlaceholder="搜索部门"
+                                emptyText="未找到相关部门"
+                              />
+                            </div>
                             <FieldError errors={field.state.meta.errors} />
                           </Field>
                         )
@@ -393,6 +403,7 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
                           value={field.state.value ?? ''}
                           onChange={event => field.handleChange(event.target.value)}
                           onBlur={field.handleBlur}
+                          disabled={isSubmitting}
                           maxLength={200}
                           rows={3}
                           placeholder="请输入角色描述信息（选填）"
