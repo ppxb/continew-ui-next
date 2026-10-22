@@ -5,11 +5,9 @@ import { type ColumnVisibilityState, type PaginationState, useTable } from '@tan
 
 import { RotateCcw } from 'lucide-react'
 
-import { cn } from 'cn'
-
+import { ListPageCard } from '@/components/list-page-card'
 import { TableSearch } from '@/components/table-search'
 import { Button } from '@/components/ui/button'
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
 import { usePermission } from '@/hooks/use-permission'
@@ -52,7 +50,7 @@ export function PackageList() {
   const canGet = hasPermission('tenant:package:get')
   const canUpdate = hasPermission('tenant:package:update')
   const canDelete = hasPermission('tenant:package:delete')
-  const { isFullscreen, reservedHeight, fullscreenRef, spacerRef, toggleFullscreen } = useFullscreenTransition()
+  const fullscreen = useFullscreenTransition()
 
   const [pagination, setPagination] = React.useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
   const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>(HIDDEN_BY_DEFAULT)
@@ -157,15 +155,22 @@ export function PackageList() {
     getRowId: row => String(row.id)
   })
 
-  const tableSection = (
+  const filters = (
     <>
-      <div className="flex flex-wrap items-center gap-3 px-4">
+      <TableSearch
+        key={`keyword-${searchVersion}`}
+        clearable
+        className="col-span-2 h-8 w-full sm:w-64"
+        placeholder="搜索名称、描述"
+        onSearch={handleKeywordSearch}
+      />
+      <div className="w-full sm:w-32">
         <Select
           items={STATUS_ITEMS}
           value={status === undefined ? 'all' : String(status)}
           onValueChange={handleStatusChange}
         >
-          <SelectTrigger size="sm">
+          <SelectTrigger className="w-full">
             <span className="text-muted-foreground">状态</span>
             <SelectValue />
           </SelectTrigger>
@@ -179,57 +184,44 @@ export function PackageList() {
             </SelectGroup>
           </SelectContent>
         </Select>
-        <Button size="sm" variant="outline" onClick={handleReset}>
-          <RotateCcw />
-          重置
-        </Button>
       </div>
-
-      <PackageToolbar
-        table={table}
-        isRefreshing={query.isFetching && !query.isPending}
-        isFullscreen={isFullscreen}
-        canCreate={canCreate}
-        onCreate={() => setFormTarget({ packageId: null })}
-        onRefresh={() => void query.refetch()}
-        onToggleFullscreen={toggleFullscreen}
-        onResetColumns={() => setColumnVisibility(HIDDEN_BY_DEFAULT)}
-      />
-
-      <PackageTable
-        table={table}
-        isLoading={query.isPending}
-        isError={query.isError}
-        isShowingPreviousRows={query.isPlaceholderData}
-        onRetry={() => void query.refetch()}
-      />
+      <Button type="button" variant="ghost" onClick={handleReset}>
+        <RotateCcw />
+        重置
+      </Button>
     </>
+  )
+
+  const actions = (
+    <PackageToolbar
+      table={table}
+      isRefreshing={query.isFetching && !query.isPending}
+      isFullscreen={fullscreen.isFullscreen}
+      canCreate={canCreate}
+      onCreate={() => setFormTarget({ packageId: null })}
+      onRefresh={() => void query.refetch()}
+      onToggleFullscreen={fullscreen.toggleFullscreen}
+      onResetColumns={() => setColumnVisibility(HIDDEN_BY_DEFAULT)}
+    />
   )
 
   return (
     <>
-      <Card className="pb-0">
-        <CardHeader className="border-b has-data-[slot=card-action]:grid-cols-1 md:has-data-[slot=card-action]:grid-cols-[1fr_auto]">
-          <CardTitle className="text-xl leading-none">套餐管理</CardTitle>
-          <CardDescription className="max-w-sm leading-snug">管理租户可用的套餐与菜单授权</CardDescription>
-          <CardAction className="col-start-1 row-start-auto flex w-full flex-wrap justify-start gap-2 justify-self-stretch md:col-start-2 md:row-span-2 md:row-start-1 md:w-auto md:flex-nowrap md:justify-end md:justify-self-end">
-            <TableSearch
-              key={`keyword-${searchVersion}`}
-              clearable
-              placeholder="搜索名称、描述"
-              onSearch={handleKeywordSearch}
-            />
-          </CardAction>
-        </CardHeader>
-
-        <CardContent className="flex flex-col gap-4 px-0">
-          {isFullscreen ? <div ref={spacerRef} style={{ height: reservedHeight }} /> : null}
-
-          <div ref={fullscreenRef} className={cn('flex flex-col gap-4', isFullscreen && 'bg-background')}>
-            {tableSection}
-          </div>
-        </CardContent>
-      </Card>
+      <ListPageCard
+        title="套餐管理"
+        description="管理租户可用的套餐与菜单授权"
+        filters={filters}
+        actions={actions}
+        fullscreen={fullscreen}
+      >
+        <PackageTable
+          table={table}
+          isLoading={query.isPending}
+          isError={query.isError}
+          isShowingPreviousRows={query.isPlaceholderData}
+          onRetry={() => void query.refetch()}
+        />
+      </ListPageCard>
 
       <PackageDetailDrawer packageId={detailId} open={detailId !== null} onClose={() => setDetailId(null)} />
       <PackageFormDrawer

@@ -5,11 +5,9 @@ import { type ColumnVisibilityState, type PaginationState, useTable } from '@tan
 
 import { RotateCcw } from 'lucide-react'
 
-import { cn } from 'cn'
-
+import { ListPageCard } from '@/components/list-page-card'
 import { TableSearch } from '@/components/table-search'
 import { Button } from '@/components/ui/button'
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
 import { usePermission } from '@/hooks/use-permission'
@@ -46,7 +44,7 @@ export function TenantList() {
   const canUpdate = hasPermission('tenant:management:update')
   const canDelete = hasPermission('tenant:management:delete')
   const canUpdateAdminPassword = hasPermission('tenant:management:updateAdminUserPwd')
-  const { isFullscreen, reservedHeight, fullscreenRef, spacerRef, toggleFullscreen } = useFullscreenTransition()
+  const fullscreen = useFullscreenTransition()
 
   const [pagination, setPagination] = React.useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
   const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>(HIDDEN_BY_DEFAULT)
@@ -172,11 +170,18 @@ export function TenantList() {
     getRowId: row => String(row.id)
   })
 
-  const tableSection = (
+  const filters = (
     <>
-      <div className="flex flex-wrap items-center gap-3 px-4">
+      <TableSearch
+        key={`keyword-${searchVersion}`}
+        clearable
+        className="col-span-2 h-8 w-full sm:w-64"
+        placeholder="搜索名称、描述"
+        onSearch={handleKeywordSearch}
+      />
+      <div className="w-full sm:w-40">
         <Select items={packageItems} value={packageId ?? 'all'} onValueChange={handlePackageChange}>
-          <SelectTrigger size="sm">
+          <SelectTrigger className="w-full">
             <span className="text-muted-foreground">套餐</span>
             <SelectValue />
           </SelectTrigger>
@@ -190,57 +195,44 @@ export function TenantList() {
             </SelectGroup>
           </SelectContent>
         </Select>
-        <Button size="sm" variant="outline" onClick={handleReset}>
-          <RotateCcw />
-          重置
-        </Button>
       </div>
-
-      <TenantToolbar
-        table={table}
-        isRefreshing={query.isFetching && !query.isPending}
-        isFullscreen={isFullscreen}
-        canCreate={canCreate}
-        onCreate={() => setFormTarget({ tenantId: null })}
-        onRefresh={() => void query.refetch()}
-        onToggleFullscreen={toggleFullscreen}
-        onResetColumns={() => setColumnVisibility(HIDDEN_BY_DEFAULT)}
-      />
-
-      <TenantTable
-        table={table}
-        isLoading={query.isPending}
-        isError={query.isError}
-        isShowingPreviousRows={query.isPlaceholderData}
-        onRetry={() => void query.refetch()}
-      />
+      <Button type="button" variant="ghost" onClick={handleReset}>
+        <RotateCcw />
+        重置
+      </Button>
     </>
+  )
+
+  const actions = (
+    <TenantToolbar
+      table={table}
+      isRefreshing={query.isFetching && !query.isPending}
+      isFullscreen={fullscreen.isFullscreen}
+      canCreate={canCreate}
+      onCreate={() => setFormTarget({ tenantId: null })}
+      onRefresh={() => void query.refetch()}
+      onToggleFullscreen={fullscreen.toggleFullscreen}
+      onResetColumns={() => setColumnVisibility(HIDDEN_BY_DEFAULT)}
+    />
   )
 
   return (
     <>
-      <Card className="pb-0">
-        <CardHeader className="border-b has-data-[slot=card-action]:grid-cols-1 md:has-data-[slot=card-action]:grid-cols-[1fr_auto]">
-          <CardTitle className="text-xl leading-none">租户管理</CardTitle>
-          <CardDescription className="max-w-sm leading-snug">管理租户、套餐关联与租户管理员账号</CardDescription>
-          <CardAction className="col-start-1 row-start-auto flex w-full flex-wrap justify-start gap-2 justify-self-stretch md:col-start-2 md:row-span-2 md:row-start-1 md:w-auto md:flex-nowrap md:justify-end md:justify-self-end">
-            <TableSearch
-              key={`keyword-${searchVersion}`}
-              clearable
-              placeholder="搜索名称、描述"
-              onSearch={handleKeywordSearch}
-            />
-          </CardAction>
-        </CardHeader>
-
-        <CardContent className="flex flex-col gap-4 px-0">
-          {isFullscreen ? <div ref={spacerRef} style={{ height: reservedHeight }} /> : null}
-
-          <div ref={fullscreenRef} className={cn('flex flex-col gap-4', isFullscreen && 'bg-background')}>
-            {tableSection}
-          </div>
-        </CardContent>
-      </Card>
+      <ListPageCard
+        title="租户管理"
+        description="管理租户、套餐关联与租户管理员账号"
+        filters={filters}
+        actions={actions}
+        fullscreen={fullscreen}
+      >
+        <TenantTable
+          table={table}
+          isLoading={query.isPending}
+          isError={query.isError}
+          isShowingPreviousRows={query.isPlaceholderData}
+          onRetry={() => void query.refetch()}
+        />
+      </ListPageCard>
 
       <TenantDetailDrawer tenantId={detailId} open={detailId !== null} onClose={() => setDetailId(null)} />
       <TenantFormDrawer
