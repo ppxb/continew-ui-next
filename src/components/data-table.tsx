@@ -21,6 +21,12 @@ interface DataTableProps<TRow extends RowData> {
   readonly emptyTitle?: string
   /** Extra table classes for a screen that needs a denser or wider layout. */
   readonly className?: string
+  /** Tree tables scroll their own container and pin the header while the rows move. */
+  readonly stickyHeader?: boolean
+  /** Tree tables render every row, so they opt out of the footer. */
+  readonly showPagination?: boolean
+  /** Layout classes for the wrapper, used by the tree screens for their scroll height. */
+  readonly containerClassName?: string
 }
 
 /**
@@ -36,20 +42,24 @@ export function DataTable<TRow extends RowData>({
   onRetry,
   skeletonWidths,
   emptyTitle = '暂无数据',
-  className
+  className,
+  stickyHeader = false,
+  showPagination = true,
+  containerClassName
 }: DataTableProps<TRow>) {
-  const rows = table.getRowModel().rows
+  const rows = table.getExpandedRowModel().rows
   const columnCount = table.getVisibleLeafColumns().length
   const rowCount = table.getRowCount()
+  const hasFooter = showPagination && rowCount > 0
 
   return (
-    // The pagination footer owns the bottom padding; without rows there is no footer, so the
-    // shell supplies the same 16px itself.
-    <div className={cn('flex flex-1 flex-col', rowCount === 0 && 'pb-4')}>
+    // The pagination footer owns the bottom padding; without a footer the shell supplies the same
+    // 16px itself.
+    <div className={cn('flex flex-1 flex-col', !hasFooter && 'pb-4', containerClassName)}>
       <Table
         className={cn(
           "**:data-[slot='table-cell']:px-4 **:data-[slot='table-head']:px-4",
-          isShowingPreviousRows && 'opacity-60 transition-opacity',
+          isShowingPreviousRows && !isError && 'opacity-60 transition-opacity',
           className
         )}
       >
@@ -57,7 +67,13 @@ export function DataTable<TRow extends RowData>({
           {table.getHeaderGroups().map(headerGroup => (
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map(header => (
-                <TableHead key={header.id} className="py-4 font-normal">
+                <TableHead
+                  key={header.id}
+                  className={cn(
+                    'py-4 font-normal',
+                    stickyHeader && 'sticky top-0 z-10 border-b bg-background'
+                  )}
+                >
                   {header.isPlaceholder ? null : <table.FlexRender header={header} />}
                 </TableHead>
               ))}
@@ -68,7 +84,7 @@ export function DataTable<TRow extends RowData>({
         <TableBody>
           {rows.length ? (
             rows.map(row => (
-              <TableRow key={row.id}>
+              <TableRow key={row.id} className={cn(row.getIsSelected() && 'bg-muted/30')}>
                 {row.getVisibleCells().map(cell => (
                   <TableCell key={cell.id} className="py-4">
                     <table.FlexRender cell={cell} />
@@ -105,7 +121,7 @@ export function DataTable<TRow extends RowData>({
         </TableBody>
       </Table>
 
-      <TablePagination table={table} />
+      {showPagination ? <TablePagination table={table} /> : null}
     </div>
   )
 }

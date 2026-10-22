@@ -5,6 +5,7 @@ import { type ColumnVisibilityState, type ExpandedState, useTable } from '@tanst
 
 import { Search, X } from 'lucide-react'
 
+import { DataTable } from '@/components/data-table'
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { toast } from '@/components/ui/toast'
@@ -18,7 +19,6 @@ import { cn } from 'cn'
 import { createDeptColumns, type DeptAction } from './dept-columns'
 import { DeptDeleteDialog } from './dept-delete-dialog'
 import { DeptFormDrawer } from './dept-form-drawer'
-import { DeptTable } from './dept-table'
 import { DeptToolbar } from './dept-toolbar'
 
 const DEFAULT_COLUMN_VISIBILITY: ColumnVisibilityState = {
@@ -210,13 +210,21 @@ export function DeptList() {
         onResetColumns={() => setColumnVisibility(DEFAULT_COLUMN_VISIBILITY)}
       />
 
-      <DeptTable
+      <DataTable
         table={table}
         isLoading={query.isPending}
         isError={query.isError}
-        isStale={query.isPlaceholderData}
-        isFullscreen={isFullscreen}
+        isShowingPreviousRows={query.isPlaceholderData}
         onRetry={() => void query.refetch()}
+        stickyHeader
+        showPagination={false}
+        skeletonWidths={['w-48', 'w-12', 'w-20']}
+        containerClassName={cn(
+          '*:data-[slot=table-container]:overflow-auto',
+          isFullscreen
+            ? '*:data-[slot=table-container]:h-[calc(100vh-6.5rem)] *:data-[slot=table-container]:max-h-[calc(100vh-6.5rem)]'
+            : '*:data-[slot=table-container]:max-h-[calc(100vh-17rem)] md:*:data-[slot=table-container]:max-h-[calc(100dvh-17rem)]'
+        )}
       />
     </>
   )
