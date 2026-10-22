@@ -205,9 +205,14 @@ export function UserAssignRolesDialog({ user, open, onClose }: UserAssignRolesDi
           <div className="flex flex-col gap-4">
             <p className="text-sm text-destructive">
               用户角色加载失败，
-              <button type="button" className="underline" onClick={() => void detail.refetch()}>
+              <Button
+                type="button"
+                variant="link"
+                className="h-auto p-0 text-sm text-destructive underline"
+                onClick={() => void detail.refetch()}
+              >
                 重试
-              </button>
+              </Button>
             </p>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={onClose}>

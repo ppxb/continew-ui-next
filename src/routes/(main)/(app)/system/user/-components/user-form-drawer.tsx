@@ -537,9 +537,14 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
                         {depts.isError && (
                           <p className="text-xs text-destructive">
                             部门加载失败，
-                            <button type="button" className="underline" onClick={() => void depts.refetch()}>
+                            <Button
+                              type="button"
+                              variant="link"
+                              className="h-auto p-0 text-xs text-destructive underline"
+                              onClick={() => void depts.refetch()}
+                            >
                               重试
-                            </button>
+                            </Button>
                           </p>
                         )}
                         <FieldError errors={field.state.meta.errors} />

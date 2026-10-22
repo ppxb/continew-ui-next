@@ -93,14 +93,10 @@ export function CheckableTree<T = Record<string, unknown>>({
                 className="h-8 text-xs"
               />
               {search && (
-                <button
-                  type="button"
-                  onClick={() => setSearch('')}
-                  aria-label="清空搜索"
-                  className="mr-2 text-muted-foreground hover:text-foreground"
-                >
-                  <X className="size-3.5" />
-                </button>
+                <Button type="button" variant="ghost" size="icon-xs" className="mr-2" onClick={() => setSearch('')}>
+                  <X />
+                  <span className="sr-only">清空搜索</span>
+                </Button>
               )}
             </InputGroup>
           </div>

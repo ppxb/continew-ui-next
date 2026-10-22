@@ -74,9 +74,14 @@ export function UserRoleSelect({
         ) : roles.isError ? (
           <p className="px-2 py-1.5 text-sm text-destructive">
             角色加载失败，
-            <button type="button" className="underline" onClick={() => void roles.refetch()}>
+            <Button
+              type="button"
+              variant="link"
+              className="h-auto p-0 text-sm text-destructive underline"
+              onClick={() => void roles.refetch()}
+            >
               重试
-            </button>
+            </Button>
           </p>
         ) : (roles.data ?? []).length === 0 ? (
           <p className="px-2 py-1.5 text-sm text-muted-foreground">暂无可选角色</p>
