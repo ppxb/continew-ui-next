@@ -3,7 +3,6 @@ import { useAuthStore } from '@/stores/auth/auth-provider'
 /** The backend grants every permission with this code (SystemConstants.ALL_PERMISSION). */
 const ALL_PERMISSION = '*:*:*'
 
-/** Permission check shared by the hook and the `Can` component. */
 export function hasPermission(permissions: readonly string[], code?: string) {
   if (!code) {
     return true

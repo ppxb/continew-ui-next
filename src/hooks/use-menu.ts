@@ -48,12 +48,10 @@ export async function ensureMenuLoaded() {
     if (!queryClient.getQueryData(MENU_QUERY_KEY)) {
       queryClient.setQueryData(MENU_QUERY_KEY, cached)
     }
-    // Replaces deprecated prefetchQuery with queryClient.query(...).catch(...)
     void queryClient.query({ ...menuQueryOptions, staleTime: 0 }).catch(() => {})
     return
   }
 
-  // Replaces deprecated ensureQueryData with queryClient.query(..., staleTime: 'static')
   try {
     await queryClient.query({ ...menuQueryOptions, staleTime: 'static' })
   } catch (error) {

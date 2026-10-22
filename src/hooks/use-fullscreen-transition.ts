@@ -20,7 +20,7 @@ export function useFullscreenTransition() {
   const spacerRef = React.useRef<HTMLDivElement>(null)
   const timerRef = React.useRef<ReturnType<typeof setTimeout>>(undefined)
 
-  const isFullscreen = fullscreen === 'open'
+  const isOpen = fullscreen === 'open'
   const isClosing = fullscreen === 'closing'
   const isActive = fullscreen !== 'off'
 
@@ -114,14 +114,13 @@ export function useFullscreenTransition() {
 
   const toggleFullscreen = React.useCallback(() => {
     if (isClosing) return
-    if (isFullscreen) {
+    if (isOpen) {
       closeFullscreen()
     } else {
       openFullscreen()
     }
-  }, [isClosing, isFullscreen, closeFullscreen, openFullscreen])
+  }, [isClosing, isOpen, closeFullscreen, openFullscreen])
 
-  // Esc restores the table
   React.useEffect(() => {
     if (!isActive) return
 
