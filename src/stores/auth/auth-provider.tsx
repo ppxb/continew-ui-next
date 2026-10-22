@@ -70,7 +70,7 @@ export function AuthStoreProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function useAuthStore<T>(selector: (state: AuthState) => T): T {
-  const store = use(AuthStoreContext) as StoreApi<AuthState> | null
+  const store = use(AuthStoreContext)
   if (!store) throw new Error('Missing AuthStoreProvider')
   return useStore(store, selector)
 }
