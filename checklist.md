@@ -3,7 +3,7 @@
 > 最后同步：2026-10-21。原始 35 条全部保留；新增 12 条（36–47）。另有 11、13、27、28、31 按复查结果扩面，不另计条目。  
 > 状态：`[x]` 已修复；`[ ]` 待处理。
 
-共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 12 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
+共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 11 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
 
 本次为静态审计，覆盖业务管理页、共享组件、请求与状态层，以及部分仪表盘页面；未进行运行时性能测试。原生 HTML、必要的异常处理和合理的 `className` 扩展本身不算问题。文件行号对应当前代码。
 
@@ -83,7 +83,7 @@
 - [x] **25 · P3｜通过解析 class 字符串推断组件布局。［已修复 2026-10-22］** `CheckableTree` 新增 `fillHeight` 属性：为 true 时外层与滚动区都走 `min-h-0 flex-1`，为 false 时滚动区用 `max-h-72 min-h-36`；`className` 只承担视觉覆盖，不再参与布局判断，加载骨架与加载完成后的高度策略也一致。角色权限抽屉改用 `fillHeight`，其余两个调用方不变。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/components/checkable-tree.tsx:77](<E:/ppxb/continew-next/continew-ui-next/src/components/checkable-tree.tsx:77>)
 
-- [ ] **26 · P3｜树数据更新会重置用户的展开状态。** 注释写“首次加载展开全部”，但 effect 随索引变化重复执行。应只初始化一次，或在数据更新时保留仍然有效的展开键。  
+- [x] **26 · P3｜树数据更新会重置用户的展开状态。［已修复 2026-10-22］** `CheckableTree` 用 `hasInitializedExpanded` ref 区分首次加载：首次非空数据仍展开全部；之后数据更新只把 `expandedKeys` 过滤到仍然存在的键，刷新不会再冲掉用户折叠/展开的分支。effect 依赖也从每次新建的 `index.allKeys` 数组改为 `index`。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/components/checkable-tree.tsx:50](<E:/ppxb/continew-next/continew-ui-next/src/components/checkable-tree.tsx:50>)
 
 - [x] **27 · P3｜业务表格实现分裂为四套。［已修复 2026-10-22］** 新增共享 `DataTable`（表头/表体、加载/空/错状态、共享分页、sticky 表头、树表开关），15 张 TanStack 业务表全部收敛：用户/应用/客户端/短信/角色直接使用；菜单/部门走 `stickyHeader` + `showPagination={false}`；online/log/job-log/job/package/tenant/notice/sms-log 变成约 37 行的屏级包装，只保留按列 id 的骨架宽度映射。4 份复制分页与 8 份独立表壳已删除。dict/file 的自定义表不属于 TanStack 列表，保持独立。  

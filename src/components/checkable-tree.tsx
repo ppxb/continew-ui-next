@@ -47,6 +47,7 @@ export function CheckableTree<T = Record<string, unknown>>({
 }: CheckableTreeProps<T>) {
   const [search, setSearch] = React.useState('')
   const [expandedKeys, setExpandedKeys] = React.useState<TreeKey[]>([])
+  const hasInitializedExpanded = React.useRef(false)
 
   const index = React.useMemo(() => buildTreeIndex(data), [data])
 
@@ -56,12 +57,22 @@ export function CheckableTree<T = Record<string, unknown>>({
     [index]
   )
 
-  // Initialize expanded keys to all nodes on first load
+  // Expand everything on the first non-empty load; later data updates only drop keys that no
+  // longer exist, so a refresh keeps the branches the user opened or closed.
   React.useEffect(() => {
-    if (index.allKeys.length > 0) {
-      setExpandedKeys(index.allKeys)
+    if (index.allKeys.length === 0) {
+      return
     }
-  }, [index.allKeys])
+
+    if (!hasInitializedExpanded.current) {
+      hasInitializedExpanded.current = true
+      setExpandedKeys(index.allKeys)
+      return
+    }
+
+    const validKeys = new Set(index.allKeys.map(String))
+    setExpandedKeys(prev => prev.filter(key => validKeys.has(String(key))))
+  }, [index])
 
   const handleExpandAll = () => {
     setExpandedKeys(index.allKeys)
