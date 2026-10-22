@@ -33,8 +33,6 @@ const formSchema = z.object({
   roleIds: z.array(z.string()).min(1, '请至少选择一个角色')
 })
 
-type FormValues = z.infer<typeof formSchema>
-
 function UserAssignRolesSkeleton({ onClose }: { onClose: () => void }) {
   return (
     <div className="flex flex-col gap-4">

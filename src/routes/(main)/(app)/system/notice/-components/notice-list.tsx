@@ -5,11 +5,9 @@ import { type ColumnVisibilityState, type PaginationState, useTable } from '@tan
 
 import { RefreshCw } from 'lucide-react'
 
-import { cn } from 'cn'
-
+import { ListPageCard } from '@/components/list-page-card'
 import { TableSearch } from '@/components/table-search'
 import { Button } from '@/components/ui/button'
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
 import { usePermission } from '@/hooks/use-permission'
@@ -50,7 +48,7 @@ export function NoticeList() {
   const [formNoticeId, setFormNoticeId] = React.useState<string | number | null>(null)
   const [deletingNotice, setDeletingNotice] = React.useState<NoticeResp | null>(null)
 
-  const { isFullscreen, reservedHeight, fullscreenRef, spacerRef, toggleFullscreen } = useFullscreenTransition()
+  const fullscreen = useFullscreenTransition()
 
   const handleSearch = React.useCallback((next: string) => {
     setKeyword(next)
@@ -69,8 +67,8 @@ export function NoticeList() {
     setPagination(current => ({ ...current, pageIndex: 0 }))
   }, [])
 
-  const filters = { title: keyword || undefined, type, sort: DEFAULT_SORT }
-  const params = { page: pagination.pageIndex + 1, size: pagination.pageSize, ...filters }
+  const queryFilters = { title: keyword || undefined, type, sort: DEFAULT_SORT }
+  const params = { page: pagination.pageIndex + 1, size: pagination.pageSize, ...queryFilters }
 
   const query = useQuery({
     queryKey: noticeKeys.list(params),
@@ -156,11 +154,18 @@ export function NoticeList() {
 
   const hasActiveFilters = keyword !== '' || type !== undefined
 
-  const tableSection = (
+  const filters = (
     <>
-      <div className="flex flex-wrap items-center gap-3 px-4">
+      <TableSearch
+        className="col-span-2 h-8 w-full sm:w-64"
+        value={searchInput}
+        onValueChange={setSearchInput}
+        onSearch={handleSearch}
+        placeholder="搜索公告标题"
+      />
+      <div className="w-full sm:w-32">
         <Select items={typeFilterOptions} value={type ?? 'all'} onValueChange={handleTypeChange}>
-          <SelectTrigger size="sm">
+          <SelectTrigger className="w-full">
             <span className="text-muted-foreground">分类</span>
             <SelectValue />
           </SelectTrigger>
@@ -174,63 +179,49 @@ export function NoticeList() {
             </SelectGroup>
           </SelectContent>
         </Select>
-
-        {hasActiveFilters ? (
-          <Button type="button" size="sm" variant="ghost" className="h-8 px-2 text-xs" onClick={resetFilters}>
-            <RefreshCw className="size-3.5" />
-            重置
-          </Button>
-        ) : null}
       </div>
-
-      <NoticeToolbar
-        table={table}
-        canCreate={canCreate}
-        isRefreshing={query.isFetching && !query.isPending}
-        isFullscreen={isFullscreen}
-        onCreate={() => {
-          setFormNoticeId(null)
-          setFormOpen(true)
-        }}
-        onRefresh={() => void query.refetch()}
-        onToggleFullscreen={toggleFullscreen}
-        onResetColumns={() => setColumnVisibility(HIDDEN_BY_DEFAULT)}
-      />
-
-      <NoticeTable
-        table={table}
-        isLoading={query.isPending}
-        isError={query.isError}
-        isShowingPreviousRows={query.isPlaceholderData}
-        onRetry={() => void query.refetch()}
-      />
+      {hasActiveFilters ? (
+        <Button type="button" variant="ghost" onClick={resetFilters}>
+          <RefreshCw />
+          重置
+        </Button>
+      ) : null}
     </>
+  )
+
+  const actions = (
+    <NoticeToolbar
+      table={table}
+      canCreate={canCreate}
+      isRefreshing={query.isFetching && !query.isPending}
+      isFullscreen={fullscreen.isFullscreen}
+      onCreate={() => {
+        setFormNoticeId(null)
+        setFormOpen(true)
+      }}
+      onRefresh={() => void query.refetch()}
+      onToggleFullscreen={fullscreen.toggleFullscreen}
+      onResetColumns={() => setColumnVisibility(HIDDEN_BY_DEFAULT)}
+    />
   )
 
   return (
     <>
-      <Card className="pb-0">
-        <CardHeader className="has-data-[slot=card-action]:grid-cols-1 md:has-data-[slot=card-action]:grid-cols-[1fr_auto]">
-          <CardTitle className="text-xl">通知公告</CardTitle>
-          <CardDescription>发布系统通知与公告，支持定时发布、置顶和定向通知</CardDescription>
-          <CardAction className="col-start-1 row-start-auto flex w-full flex-wrap justify-start gap-2 justify-self-stretch md:col-start-2 md:row-span-2 md:row-start-1 md:w-auto md:flex-nowrap md:justify-end md:justify-self-end">
-            <TableSearch
-              value={searchInput}
-              onValueChange={setSearchInput}
-              onSearch={handleSearch}
-              placeholder="搜索公告标题"
-            />
-          </CardAction>
-        </CardHeader>
-
-        <CardContent className="flex flex-col gap-4 px-0">
-          {isFullscreen ? <div ref={spacerRef} style={{ height: reservedHeight }} /> : null}
-
-          <div ref={fullscreenRef} className={cn('flex flex-col gap-4', isFullscreen && 'bg-background')}>
-            {tableSection}
-          </div>
-        </CardContent>
-      </Card>
+      <ListPageCard
+        title="通知公告"
+        description="发布系统通知与公告，支持定时发布、置顶和定向通知"
+        filters={filters}
+        actions={actions}
+        fullscreen={fullscreen}
+      >
+        <NoticeTable
+          table={table}
+          isLoading={query.isPending}
+          isError={query.isError}
+          isShowingPreviousRows={query.isPlaceholderData}
+          onRetry={() => void query.refetch()}
+        />
+      </ListPageCard>
 
       <NoticeDetailDrawer noticeId={detailId} open={detailId !== null} onClose={() => setDetailId(null)} />
       <NoticeViewDrawer noticeId={viewId} open={viewId !== null} onClose={() => setViewId(null)} />

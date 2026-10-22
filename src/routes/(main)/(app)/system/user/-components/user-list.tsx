@@ -60,8 +60,8 @@ export function UserList() {
     setPagination(current => (current.pageIndex === 0 ? current : { ...current, pageIndex: 0 }))
   }, [])
 
-  const filters = { status, deptId, description: keyword || undefined, sort: DEFAULT_SORT }
-  const params = { page: pagination.pageIndex + 1, size: pagination.pageSize, ...filters }
+  const queryFilters = { status, deptId, description: keyword || undefined, sort: DEFAULT_SORT }
+  const params = { page: pagination.pageIndex + 1, size: pagination.pageSize, ...queryFilters }
 
   const query = useQuery({
     queryKey: userKeys.list(params),
@@ -149,7 +149,7 @@ export function UserList() {
     setIsExporting(true)
 
     try {
-      await exportUsers(filters)
+      await exportUsers(queryFilters)
       toast.add({ title: '导出已开始，请留意浏览器下载', type: 'success' })
     } catch {
       // The HTTP layer already reported the failure.

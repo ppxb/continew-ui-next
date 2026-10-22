@@ -3,11 +3,10 @@ import * as React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { type ColumnVisibilityState, type PaginationState, useTable } from '@tanstack/react-table'
 
-import { cn } from 'cn'
 import { Search } from 'lucide-react'
 
 import { DataTable } from '@/components/data-table'
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { ListPageCard } from '@/components/list-page-card'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { useDebouncedValue } from '@/hooks/use-debounced-value'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
@@ -49,7 +48,7 @@ export function RoleList() {
   const [deletingRole, setDeletingRole] = React.useState<RoleResp | null>(null)
   const [isDeleteOpen, setIsDeleteOpen] = React.useState(false)
 
-  const { isFullscreen, reservedHeight, fullscreenRef, spacerRef, toggleFullscreen } = useFullscreenTransition()
+  const fullscreen = useFullscreenTransition()
 
   React.useEffect(() => {
     setPagination(current => (current.pageIndex === 0 ? current : { ...current, pageIndex: 0 }))
@@ -123,58 +122,50 @@ export function RoleList() {
     setIsFormOpen(true)
   }
 
-  const tableSection = (
-    <>
-      <RoleToolbar
-        table={table}
-        isRefreshing={query.isFetching}
-        isFullscreen={isFullscreen}
-        onCreate={handleCreate}
-        onRefresh={() => void query.refetch()}
-        onToggleFullscreen={toggleFullscreen}
-        onResetColumns={() => setColumnVisibility(HIDDEN_BY_DEFAULT)}
+  const filters = (
+    <InputGroup className="w-full md:w-64">
+      <InputGroupAddon align="inline-start">
+        <Search className="size-3.5" />
+      </InputGroupAddon>
+      <InputGroupInput
+        className="text-sm"
+        placeholder="搜索角色名称、编码"
+        value={searchInput}
+        onChange={event => setSearchInput(event.target.value)}
       />
+    </InputGroup>
+  )
 
-      <DataTable
-        table={table}
-        isLoading={query.isPending}
-        isError={query.isError}
-        isShowingPreviousRows={query.isPlaceholderData}
-        onRetry={() => void query.refetch()}
-        skeletonWidths={['mx-auto w-4', 'mx-auto w-6', 'w-24', 'w-20', 'mx-auto w-16 rounded-full', 'w-20']}
-      />
-    </>
+  const actions = (
+    <RoleToolbar
+      table={table}
+      isRefreshing={query.isFetching}
+      isFullscreen={fullscreen.isFullscreen}
+      onCreate={handleCreate}
+      onRefresh={() => void query.refetch()}
+      onToggleFullscreen={fullscreen.toggleFullscreen}
+      onResetColumns={() => setColumnVisibility(HIDDEN_BY_DEFAULT)}
+    />
   )
 
   return (
     <>
-      <Card className="pb-0">
-        <CardHeader className="border-b has-data-[slot=card-action]:grid-cols-1 md:has-data-[slot=card-action]:grid-cols-[1fr_auto]">
-          <CardTitle className="text-xl leading-none">角色管理</CardTitle>
-          <CardDescription className="max-w-sm leading-snug">管理系统角色、数据权限范围及角色成员关联</CardDescription>
-          <CardAction className="col-start-1 row-start-auto flex w-full flex-wrap justify-start gap-2 justify-self-stretch md:col-start-2 md:row-span-2 md:row-start-1 md:w-auto md:flex-nowrap md:justify-end md:justify-self-end">
-            <InputGroup className="h-7 w-full md:w-64">
-              <InputGroupAddon align="inline-start">
-                <Search className="size-3.5" />
-              </InputGroupAddon>
-              <InputGroupInput
-                className="h-7"
-                placeholder="搜索角色名称、编码"
-                value={searchInput}
-                onChange={event => setSearchInput(event.target.value)}
-              />
-            </InputGroup>
-          </CardAction>
-        </CardHeader>
-
-        <CardContent className="flex flex-col gap-4 px-0">
-          {isFullscreen ? <div ref={spacerRef} style={{ height: reservedHeight }} /> : null}
-
-          <div ref={fullscreenRef} className={cn('flex flex-col gap-4', isFullscreen && 'bg-background')}>
-            {tableSection}
-          </div>
-        </CardContent>
-      </Card>
+      <ListPageCard
+        title="角色管理"
+        description="管理系统角色、数据权限范围及角色成员关联"
+        filters={filters}
+        actions={actions}
+        fullscreen={fullscreen}
+      >
+        <DataTable
+          table={table}
+          isLoading={query.isPending}
+          isError={query.isError}
+          isShowingPreviousRows={query.isPlaceholderData}
+          onRetry={() => void query.refetch()}
+          skeletonWidths={['mx-auto w-4', 'mx-auto w-6', 'w-24', 'w-20', 'mx-auto w-16 rounded-full', 'w-20']}
+        />
+      </ListPageCard>
 
       {/* Add / Edit Drawer */}
       <RoleFormDrawer roleId={formRoleId} open={isFormOpen} onClose={() => setIsFormOpen(false)} />

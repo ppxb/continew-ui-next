@@ -29,7 +29,15 @@ export function InvoiceAdjustments({ form }: { readonly form: InvoiceFormApi }) 
           {field => (
             <Field className="gap-1">
               <FieldLabel className="text-xs">Tax</FieldLabel>
-              <Select items={taxItems} value={field.state.value} onValueChange={field.handleChange}>
+              <Select
+                items={taxItems}
+                value={field.state.value}
+                onValueChange={value => {
+                  if (value !== null) {
+                    field.handleChange(value)
+                  }
+                }}
+              >
                 <SelectTrigger className="h-10 w-full">
                   <SelectValue placeholder="Select tax" />
                 </SelectTrigger>
@@ -55,7 +63,11 @@ export function InvoiceAdjustments({ form }: { readonly form: InvoiceFormApi }) 
                 <Select
                   items={discountTypeItems}
                   value={field.state.value}
-                  onValueChange={field.handleChange}
+                  onValueChange={value => {
+                    if (value !== null) {
+                      field.handleChange(value)
+                    }
+                  }}
                 >
                   <SelectTrigger className="h-10 w-full">
                     <SelectValue placeholder="Discount type" />
