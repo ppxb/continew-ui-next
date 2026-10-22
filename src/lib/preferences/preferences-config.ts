@@ -12,7 +12,7 @@ import {
   SIDEBAR_COLLAPSIBLE_VALUES,
   SIDEBAR_VARIANT_VALUES
 } from './layout'
-import { THEME_MODE_VALUES, THEME_PRESET_VALUES } from './theme'
+import { THEME_COLOR_VALUES, THEME_MODE_VALUES } from './theme'
 
 export type PreferencePersistence = 'none' | 'client-cookie' | 'localStorage'
 
@@ -57,11 +57,11 @@ export const PREFERENCE_REGISTRY = {
     attribute: 'data-theme-mode'
   }),
 
-  theme_preset: definePreference({
-    values: THEME_PRESET_VALUES,
+  theme_color: definePreference({
+    values: THEME_COLOR_VALUES,
     defaultValue: 'default',
     persistence: 'client-cookie',
-    attribute: 'data-theme-preset'
+    attribute: 'data-theme-color'
   }),
 
   content_layout: definePreference({

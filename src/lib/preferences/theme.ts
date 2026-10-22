@@ -1,52 +1,61 @@
-const THEME_MODE_OPTIONS = [
-  { label: 'Light', value: 'light' },
-  { label: 'Dark', value: 'dark' },
-  { label: 'System', value: 'system' }
-] as const
+export const THEME_MODE_VALUES = ['light', 'dark', 'system'] as const
 
-export const THEME_MODE_VALUES = THEME_MODE_OPTIONS.map(o => o.value)
 export type ThemeMode = (typeof THEME_MODE_VALUES)[number]
 export type ResolvedThemeMode = 'light' | 'dark'
 
-// --- generated:themePresets:start ---
-
-export const THEME_PRESET_OPTIONS = [
+export const THEME_COLOR_OPTIONS = [
   {
-    label: 'Default',
     value: 'default',
-    primary: {
-      light: 'oklch(0.205 0 0)',
-      dark: 'oklch(0.922 0 0)'
-    }
+    label: 'Default',
+    primary: { light: 'oklch(0.205 0 0)', dark: 'oklch(0.922 0 0)' }
   },
   {
-    label: 'Brutalist',
-    value: 'brutalist',
-    primary: {
-      light: 'oklch(0.6489 0.237 26.9728)',
-      dark: 'oklch(0.7044 0.1872 23.1858)'
-    }
+    value: 'blue',
+    label: 'Blue',
+    primary: { light: 'oklch(0.546 0.245 262.881)', dark: 'oklch(0.707 0.165 254.624)' }
   },
   {
-    label: 'Soft Pop',
-    value: 'soft-pop',
-    primary: {
-      light: 'oklch(0.5106 0.2301 276.9656)',
-      dark: 'oklch(0.6801 0.1583 276.9349)'
-    }
+    value: 'cyan',
+    label: 'Cyan',
+    primary: { light: 'oklch(0.609 0.126 221.723)', dark: 'oklch(0.789 0.154 211.530)' }
   },
   {
-    label: 'Tangerine',
-    value: 'tangerine',
-    primary: {
-      light: 'oklch(0.64 0.17 36.44)',
-      dark: 'oklch(0.64 0.17 36.44)'
-    }
-  }
+    value: 'teal',
+    label: 'Teal',
+    primary: { light: 'oklch(0.600 0.118 184.704)', dark: 'oklch(0.777 0.152 181.912)' }
+  },
+  {
+    value: 'emerald',
+    label: 'Emerald',
+    primary: { light: 'oklch(0.596 0.145 163.225)', dark: 'oklch(0.765 0.177 163.223)' }
+  },
+  {
+    value: 'amber',
+    label: 'Amber',
+    primary: { light: 'oklch(0.666 0.179 58.318)', dark: 'oklch(0.828 0.189 84.429)' }
+  },
+  {
+    value: 'orange',
+    label: 'Orange',
+    primary: { light: 'oklch(0.646 0.222 41.116)', dark: 'oklch(0.750 0.183 55.934)' }
+  },
+  {
+    value: 'rose',
+    label: 'Rose',
+    primary: { light: 'oklch(0.586 0.253 17.585)', dark: 'oklch(0.712 0.194 13.428)' }
+  },
+  {
+    value: 'fuchsia',
+    label: 'Fuchsia',
+    primary: { light: 'oklch(0.591 0.293 322.896)', dark: 'oklch(0.740 0.238 322.160)' }
+  },
+  {
+    value: 'violet',
+    label: 'Violet',
+    primary: { light: 'oklch(0.541 0.281 293.009)', dark: 'oklch(0.702 0.183 293.541)' }
+  },
 ] as const
 
-export const THEME_PRESET_VALUES = THEME_PRESET_OPTIONS.map(p => p.value)
+export const THEME_COLOR_VALUES = THEME_COLOR_OPTIONS.map(color => color.value)
 
-export type ThemePreset = (typeof THEME_PRESET_OPTIONS)[number]['value']
-
-// --- generated:themePresets:end ---
+export type ThemeColor = (typeof THEME_COLOR_OPTIONS)[number]['value']

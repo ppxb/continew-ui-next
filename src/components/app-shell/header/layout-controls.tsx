@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import type { ContentLayout, NavbarStyle, SidebarCollapsible, SidebarVariant } from '@/lib/preferences/layout'
-import { THEME_PRESET_OPTIONS, type ThemeMode, type ThemePreset } from '@/lib/preferences/theme'
+import { THEME_COLOR_OPTIONS, type ThemeColor, type ThemeMode } from '@/lib/preferences/theme'
 import { usePreferencesStore } from '@/stores/preferences/preferences-provider'
 
 export function LayoutControls() {
@@ -23,30 +23,25 @@ export function LayoutControls() {
 
   const {
     theme_mode: themeMode,
-    theme_preset: themePreset,
+    theme_color: themeColor,
     content_layout: contentLayout,
     navbar_style: navbarStyle,
     sidebar_variant: variant,
     sidebar_collapsible: collapsible
   } = values
 
-  const themePresetItems = THEME_PRESET_OPTIONS.map(preset => ({
-    value: preset.value,
+  const themeColorItems = THEME_COLOR_OPTIONS.map(color => ({
+    value: color.value,
     label: (
       <span className="flex items-center gap-1.5">
         <span
           className="size-2.5 rounded-full"
-          style={{
-            backgroundColor: (resolvedThemeMode ?? 'light') === 'dark' ? preset.primary.dark : preset.primary.light
-          }}
+          style={{ backgroundColor: resolvedThemeMode === 'dark' ? color.primary.dark : color.primary.light }}
         />
-        {preset.label}
+        {color.label}
       </span>
     )
   }))
-  const onThemePresetChange = (preset: ThemePreset) => {
-    setPreference('theme_preset', preset)
-  }
 
   return (
     <Popover>
@@ -66,30 +61,30 @@ export function LayoutControls() {
           </div>
           <div className="space-y-3 **:data-[slot=toggle-group]:w-full **:data-[slot=toggle-group-item]:flex-1 **:data-[slot=toggle-group-item]:text-xs">
             <div className="space-y-1">
-              <Label className="text-xs font-medium">Theme Preset</Label>
+              <Label className="text-xs font-medium">Theme Color</Label>
               <Select
-                items={themePresetItems}
-                value={themePreset}
+                items={themeColorItems}
+                value={themeColor}
                 onValueChange={value => {
                   if (!value) return
-                  void onThemePresetChange(value as ThemePreset)
+                  setPreference('theme_color', value as ThemeColor)
                 }}
               >
                 <SelectTrigger size="sm" className="w-full text-xs">
-                  <SelectValue className="items-center" placeholder="Preset" />
+                  <SelectValue className="items-center" placeholder="Color" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    {THEME_PRESET_OPTIONS.map(preset => (
-                      <SelectItem key={preset.value} className="text-xs" value={preset.value}>
+                    {THEME_COLOR_OPTIONS.map(color => (
+                      <SelectItem key={color.value} className="text-xs" value={color.value}>
                         <span className="flex items-center gap-2">
                           <span
                             className="size-2.5 rounded-full"
                             style={{
-                              backgroundColor: resolvedThemeMode === 'dark' ? preset.primary.dark : preset.primary.light
+                              backgroundColor: resolvedThemeMode === 'dark' ? color.primary.dark : color.primary.light
                             }}
                           />
-                          {preset.label}
+                          {color.label}
                         </span>
                       </SelectItem>
                     ))}

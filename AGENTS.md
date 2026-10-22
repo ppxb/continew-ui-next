@@ -94,10 +94,9 @@ pnpm lint:fix
 pnpm fmt
 pnpm fmt:check
 pnpm typecheck
-pnpm generate:presets
 ```
 
-There are no git hooks: formatting, linting and type checking only run when you invoke them, so run `pnpm fmt`, `pnpm lint` and `pnpm typecheck` yourself before pushing. After adding or editing a preset in `src/styles/presets/`, run `pnpm generate:presets` to refresh `src/lib/preferences/theme.ts`. `generate:presets` runs on Node's built-in TypeScript support, so Node `^20.19.0 || >=22.18.0` is required.
+There are no git hooks: formatting, linting and type checking only run when you invoke them, so run `pnpm fmt`, `pnpm lint` and `pnpm typecheck` yourself before pushing.
 
 There is currently no automated test command. Run build, lint, typecheck, or other validation commands only when the user explicitly requests that validation.
 
@@ -118,7 +117,7 @@ Keep feature code close to the route that owns it.
 - Local shadcn components: `src/components/ui/`
 - Shared hooks and utilities: `src/hooks/` and `src/lib/`
 - Global stores: `src/stores/`
-- Theme presets: `src/styles/presets/`
+- Theme colours: `src/styles/theme-colors.css` (accent tokens only; light/dark lives in `globals.css`)
 
 Keep a component inside its route until it is reused by another feature. Do not move screen-specific code into a shared directory preemptively.
 
@@ -134,7 +133,7 @@ Keep a component inside its route until it is reused by another feature. Do not 
 8. Keep the established visual rhythm where it fits: compact spacing, clear typography hierarchy, responsive action rows, and grids that collapse cleanly on smaller screens.
 9. Widget selection is not a fixed formula. Try different arrangements of cards, resource rows, meters, charts, tabs, empty states, and actions, then keep the version that communicates the content clearly and feels consistent with the project.
 10. Match nearby screens in card density, borders, radius, spacing, content width, and responsive behavior.
-11. Use semantic theme tokens so new screens work with light mode, dark mode, and the existing theme presets.
+11. Use semantic theme tokens so new screens work with light mode, dark mode, and the existing theme colours.
 12. Handle relevant loading, empty, error, disabled, and overflow states.
 13. Keep screens accessible with semantic HTML, keyboard support, visible focus states, and visible labels rather than hand-added ARIA attributes; see the `aria-label` rule under Code conventions.
 

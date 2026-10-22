@@ -4,10 +4,8 @@
 @import '@fontsource-variable/geist';
 @import '@fontsource-variable/noto-sans-sc';
 
-/* Theme preset styles: these override CSS variables based on the selected data-theme-preset */
-@import './presets/brutalist.css';
-@import './presets/soft-pop.css';
-@import './presets/tangerine.css';
+/* Accent colours: they override the brand tokens only; light/dark stays in theme_mode. */
+@import './theme-colors.css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -216,40 +214,6 @@
       scrollbar-width: thin;
       scrollbar-color: var(--border) transparent;
     }
-  }
-}
-
-@layer utilities {
-  [data-theme-preset]:not([data-theme-preset='default']) .shadow-2xs {
-    box-shadow: var(--shadow-2xs);
-  }
-
-  [data-theme-preset]:not([data-theme-preset='default']) .shadow-xs {
-    box-shadow: var(--shadow-xs);
-  }
-
-  [data-theme-preset]:not([data-theme-preset='default']) .shadow-sm {
-    box-shadow: var(--shadow-sm);
-  }
-
-  [data-theme-preset]:not([data-theme-preset='default']) .shadow {
-    box-shadow: var(--shadow);
-  }
-
-  [data-theme-preset]:not([data-theme-preset='default']) .shadow-md {
-    box-shadow: var(--shadow-md);
-  }
-
-  [data-theme-preset]:not([data-theme-preset='default']) .shadow-lg {
-    box-shadow: var(--shadow-lg);
-  }
-
-  [data-theme-preset]:not([data-theme-preset='default']) .shadow-xl {
-    box-shadow: var(--shadow-xl);
-  }
-
-  [data-theme-preset]:not([data-theme-preset='default']) .shadow-2xl {
-    box-shadow: var(--shadow-2xl);
   }
 }
 
