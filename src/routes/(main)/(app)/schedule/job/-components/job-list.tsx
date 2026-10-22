@@ -6,11 +6,9 @@ import { useNavigate } from '@tanstack/react-router'
 
 import { RotateCcw } from 'lucide-react'
 
-import { cn } from 'cn'
-
+import { ListPageCard } from '@/components/list-page-card'
 import { TableSearch } from '@/components/table-search'
 import { Button } from '@/components/ui/button'
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from '@/components/ui/toast'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
@@ -54,7 +52,7 @@ export function JobList() {
   const canDelete = hasPermission('schedule:job:delete')
   const canTrigger = hasPermission('schedule:job:trigger')
   const canViewLogs = hasPermission('schedule:log:list')
-  const { isFullscreen, reservedHeight, fullscreenRef, spacerRef, toggleFullscreen } = useFullscreenTransition()
+  const fullscreen = useFullscreenTransition()
 
   const [pagination, setPagination] = React.useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
   const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>(HIDDEN_BY_DEFAULT)
@@ -244,11 +242,18 @@ export function JobList() {
     getRowId: row => String(row.id)
   })
 
-  const tableSection = (
+  const filters = (
     <>
-      <div className="flex flex-wrap items-center gap-3 px-4">
+      <TableSearch
+        key={`keyword-${searchVersion}`}
+        clearable
+        className="col-span-2 h-8 w-full sm:w-64"
+        placeholder="搜索任务名称"
+        onSearch={handleKeywordSearch}
+      />
+      <div className="w-full sm:w-40">
         <Select items={groupItems} value={groupName ?? 'all'} onValueChange={handleGroupChange}>
-          <SelectTrigger size="sm">
+          <SelectTrigger className="w-full">
             <span className="text-muted-foreground">任务组</span>
             <SelectValue />
           </SelectTrigger>
@@ -262,12 +267,14 @@ export function JobList() {
             </SelectGroup>
           </SelectContent>
         </Select>
+      </div>
+      <div className="w-full sm:w-32">
         <Select
           items={JOB_STATUS_OPTIONS}
           value={jobStatus === undefined ? 'all' : String(jobStatus)}
           onValueChange={handleStatusChange}
         >
-          <SelectTrigger size="sm">
+          <SelectTrigger className="w-full">
             <span className="text-muted-foreground">状态</span>
             <SelectValue />
           </SelectTrigger>
@@ -281,57 +288,44 @@ export function JobList() {
             </SelectGroup>
           </SelectContent>
         </Select>
-        <Button size="sm" variant="outline" onClick={handleReset}>
-          <RotateCcw />
-          重置
-        </Button>
       </div>
-
-      <JobToolbar
-        table={table}
-        isRefreshing={query.isFetching && !query.isPending}
-        isFullscreen={isFullscreen}
-        canCreate={canCreate}
-        onCreate={() => setFormTarget({ job: null })}
-        onRefresh={() => void query.refetch()}
-        onToggleFullscreen={toggleFullscreen}
-        onResetColumns={() => setColumnVisibility(HIDDEN_BY_DEFAULT)}
-      />
-
-      <JobTable
-        table={table}
-        isLoading={query.isPending || !groupReady}
-        isError={query.isError}
-        isShowingPreviousRows={query.isPlaceholderData}
-        onRetry={() => void query.refetch()}
-      />
+      <Button type="button" variant="ghost" onClick={handleReset}>
+        <RotateCcw />
+        重置
+      </Button>
     </>
+  )
+
+  const actions = (
+    <JobToolbar
+      table={table}
+      isRefreshing={query.isFetching && !query.isPending}
+      isFullscreen={fullscreen.isFullscreen}
+      canCreate={canCreate}
+      onCreate={() => setFormTarget({ job: null })}
+      onRefresh={() => void query.refetch()}
+      onToggleFullscreen={fullscreen.toggleFullscreen}
+      onResetColumns={() => setColumnVisibility(HIDDEN_BY_DEFAULT)}
+    />
   )
 
   return (
     <>
-      <Card className="pb-0">
-        <CardHeader className="border-b has-data-[slot=card-action]:grid-cols-1 md:has-data-[slot=card-action]:grid-cols-[1fr_auto]">
-          <CardTitle className="text-xl leading-none">任务管理</CardTitle>
-          <CardDescription className="max-w-sm leading-snug">管理定时任务、调度策略与执行状态</CardDescription>
-          <CardAction className="col-start-1 row-start-auto flex w-full flex-wrap justify-start gap-2 justify-self-stretch md:col-start-2 md:row-span-2 md:row-start-1 md:w-auto md:flex-nowrap md:justify-end md:justify-self-end">
-            <TableSearch
-              key={`keyword-${searchVersion}`}
-              clearable
-              placeholder="搜索任务名称"
-              onSearch={handleKeywordSearch}
-            />
-          </CardAction>
-        </CardHeader>
-
-        <CardContent className="flex flex-col gap-4 px-0">
-          {isFullscreen ? <div ref={spacerRef} style={{ height: reservedHeight }} /> : null}
-
-          <div ref={fullscreenRef} className={cn('flex flex-col gap-4', isFullscreen && 'bg-background')}>
-            {tableSection}
-          </div>
-        </CardContent>
-      </Card>
+      <ListPageCard
+        title="任务管理"
+        description="管理定时任务、调度策略与执行状态"
+        filters={filters}
+        actions={actions}
+        fullscreen={fullscreen}
+      >
+        <JobTable
+          table={table}
+          isLoading={query.isPending || !groupReady}
+          isError={query.isError}
+          isShowingPreviousRows={query.isPlaceholderData}
+          onRetry={() => void query.refetch()}
+        />
+      </ListPageCard>
 
       <JobDetailDrawer job={liveDetailJob} open={detailJob !== null} onClose={() => setDetailJob(null)} />
       <JobFormDrawer

@@ -45,14 +45,14 @@ export function JobLogToolbar({
   const hideableColumns = table.getAllColumns().filter(column => column.getCanHide())
 
   return (
-    <div className="flex flex-wrap items-center justify-end gap-2 px-4">
-      <Button size="sm" variant="outline" disabled={isRefreshing} onClick={onRefresh}>
+    <div className="flex flex-wrap items-center gap-2">
+      <Button variant="outline" disabled={isRefreshing} onClick={onRefresh}>
         {isRefreshing ? <Spinner /> : <RefreshCw />}
         刷新
       </Button>
 
       <DropdownMenu>
-        <DropdownMenuTrigger render={<Button size="sm" variant="outline" />}>
+        <DropdownMenuTrigger render={<Button variant="outline" />}>
           <SlidersHorizontal />
           隐藏列
         </DropdownMenuTrigger>
@@ -85,7 +85,7 @@ export function JobLogToolbar({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <Button size="sm" variant="outline" onClick={onToggleFullscreen}>
+      <Button variant="outline" onClick={onToggleFullscreen}>
         {isFullscreen ? <Minimize /> : <Maximize />}
         表格全屏
       </Button>

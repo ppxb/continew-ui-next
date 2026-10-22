@@ -4,10 +4,8 @@ import { useQuery } from '@tanstack/react-query'
 import { type ColumnVisibilityState, type PaginationState, useTable } from '@tanstack/react-table'
 import type { DateRange } from 'react-day-picker'
 
-import { cn } from 'cn'
-
+import { ListPageCard } from '@/components/list-page-card'
 import { TableSearch } from '@/components/table-search'
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
 import { usePermission } from '@/hooks/use-permission'
 import { listOnlineUsers, onlineUserKeys, type OnlineUserPageQuery, type OnlineUserResp } from '@/lib/api/online'
@@ -18,7 +16,7 @@ import { createRecentDateRange, toDateTimeRangeQuery } from '@/lib/date-range'
 import { createOnlineUserColumns } from './online-user-columns'
 import { OnlineUserKickoutDialog } from './online-user-kickout-dialog'
 import { OnlineUserTable } from './online-user-table'
-import { OnlineUserToolbar } from './online-user-toolbar'
+import { OnlineUserFilters, OnlineUserToolbar } from './online-user-toolbar'
 
 const EMPTY_ROWS: OnlineUserResp[] = []
 
@@ -31,7 +29,7 @@ export function OnlineUserList() {
   // The search box owns its text, so resetting the filters remounts it.
   const [searchVersion, setSearchVersion] = React.useState(0)
   const { hasPermission } = usePermission()
-  const { isFullscreen, reservedHeight, fullscreenRef, spacerRef, toggleFullscreen } = useFullscreenTransition()
+  const fullscreen = useFullscreenTransition()
 
   // Without the permission the backend drops the action as well; hiding the column avoids a
   // button that can only fail.
@@ -105,49 +103,47 @@ export function OnlineUserList() {
     getRowId: row => row.sessionId
   })
 
-  const tableSection = (
+  const filters = (
     <>
-      <OnlineUserToolbar
-        table={table}
-        isRefreshing={query.isFetching && !query.isPending}
-        isFullscreen={isFullscreen}
-        loginTime={loginTime}
-        onLoginTimeChange={handleLoginTimeChange}
-        onReset={handleReset}
-        onRefresh={() => void query.refetch()}
-        onToggleFullscreen={toggleFullscreen}
-        onResetColumns={() => setColumnVisibility({})}
+      <TableSearch
+        key={searchVersion}
+        clearable
+        className="col-span-2 h-8 w-full sm:w-64"
+        placeholder="搜索用户名、昵称"
+        onSearch={handleSearch}
       />
-
-      <OnlineUserTable
-        table={table}
-        isLoading={query.isPending}
-        isError={query.isError}
-        isShowingPreviousRows={query.isPlaceholderData}
-        onRetry={() => void query.refetch()}
-      />
+      <OnlineUserFilters loginTime={loginTime} onLoginTimeChange={handleLoginTimeChange} onReset={handleReset} />
     </>
+  )
+
+  const actions = (
+    <OnlineUserToolbar
+      table={table}
+      isRefreshing={query.isFetching && !query.isPending}
+      isFullscreen={fullscreen.isFullscreen}
+      onRefresh={() => void query.refetch()}
+      onToggleFullscreen={fullscreen.toggleFullscreen}
+      onResetColumns={() => setColumnVisibility({})}
+    />
   )
 
   return (
     <>
-      <Card className="pb-0">
-        <CardHeader className="has-data-[slot=card-action]:grid-cols-1 md:has-data-[slot=card-action]:grid-cols-[1fr_auto]">
-          <CardTitle className="text-xl">在线用户</CardTitle>
-          <CardDescription>查看当前登录的会话，可将指定会话强制退出</CardDescription>
-          <CardAction className="col-start-1 row-start-auto flex w-full flex-wrap justify-start gap-2 justify-self-stretch md:col-start-2 md:row-span-2 md:row-start-1 md:w-auto md:flex-nowrap md:justify-end md:justify-self-end">
-            <TableSearch key={searchVersion} clearable placeholder="搜索用户名、昵称" onSearch={handleSearch} />
-          </CardAction>
-        </CardHeader>
-
-        <CardContent className="flex flex-col gap-4 px-0">
-          {isFullscreen ? <div ref={spacerRef} style={{ height: reservedHeight }} /> : null}
-
-          <div ref={fullscreenRef} className={cn('flex flex-col gap-4', isFullscreen && 'bg-background')}>
-            {tableSection}
-          </div>
-        </CardContent>
-      </Card>
+      <ListPageCard
+        title="在线用户"
+        description="查看当前登录的会话，可将指定会话强制退出"
+        filters={filters}
+        actions={actions}
+        fullscreen={fullscreen}
+      >
+        <OnlineUserTable
+          table={table}
+          isLoading={query.isPending}
+          isError={query.isError}
+          isShowingPreviousRows={query.isPlaceholderData}
+          onRetry={() => void query.refetch()}
+        />
+      </ListPageCard>
 
       <OnlineUserKickoutDialog user={kickingUser} open={kickingUser !== null} onClose={() => setKickingUser(null)} />
     </>

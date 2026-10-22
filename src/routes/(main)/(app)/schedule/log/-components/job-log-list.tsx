@@ -8,12 +8,10 @@ import type { DateRange } from 'react-day-picker'
 
 import { RotateCcw } from 'lucide-react'
 
-import { cn } from 'cn'
-
 import { DateRangeFilter } from '@/components/date-range-filter'
+import { ListPageCard } from '@/components/list-page-card'
 import { TableSearch } from '@/components/table-search'
 import { Button } from '@/components/ui/button'
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
 import { usePermission } from '@/hooks/use-permission'
@@ -55,7 +53,7 @@ export function JobLogList({ initialJobId, initialJobName, initialGroupName }: J
   const canRetry = hasPermission('schedule:log:retry')
   // `/schedule/job/group` needs the job list permission; a log-only role can still use the page.
   const canListJobs = hasPermission('schedule:job:list')
-  const { isFullscreen, reservedHeight, fullscreenRef, spacerRef, toggleFullscreen } = useFullscreenTransition()
+  const fullscreen = useFullscreenTransition()
 
   const [pagination, setPagination] = React.useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
   const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>(NO_HIDDEN_COLUMNS)
@@ -198,11 +196,19 @@ export function JobLogList({ initialJobId, initialJobName, initialGroupName }: J
     getRowId: row => String(row.id)
   })
 
-  const tableSection = (
+  const filters = (
     <>
-      <div className="flex flex-wrap items-center gap-3 px-4">
+      <TableSearch
+        className="col-span-2 h-8 w-full sm:w-64"
+        value={searchText}
+        onValueChange={setSearchText}
+        onSearch={handleKeywordSearch}
+        clearable
+        placeholder="搜索任务名称"
+      />
+      <div className="w-full sm:w-40">
         <Select items={groupItems} value={groupName ?? 'all'} onValueChange={handleGroupChange}>
-          <SelectTrigger size="sm">
+          <SelectTrigger className="w-full">
             <span className="text-muted-foreground">任务组</span>
             <SelectValue />
           </SelectTrigger>
@@ -216,12 +222,14 @@ export function JobLogList({ initialJobId, initialJobName, initialGroupName }: J
             </SelectGroup>
           </SelectContent>
         </Select>
+      </div>
+      <div className="w-full sm:w-32">
         <Select
           items={JOB_EXECUTE_STATUS_OPTIONS}
           value={status === undefined ? 'all' : String(status)}
           onValueChange={handleStatusChange}
         >
-          <SelectTrigger size="sm">
+          <SelectTrigger className="w-full">
             <span className="text-muted-foreground">状态</span>
             <SelectValue />
           </SelectTrigger>
@@ -235,57 +243,43 @@ export function JobLogList({ initialJobId, initialJobName, initialGroupName }: J
             </SelectGroup>
           </SelectContent>
         </Select>
-        <DateRangeFilter value={dateRange} onChange={handleDateRangeChange} />
-        <Button size="sm" variant="outline" onClick={handleReset}>
-          <RotateCcw />
-          重置
-        </Button>
       </div>
-
-      <JobLogToolbar
-        table={table}
-        isRefreshing={query.isFetching && !query.isPending}
-        isFullscreen={isFullscreen}
-        onRefresh={() => void query.refetch()}
-        onToggleFullscreen={toggleFullscreen}
-        onResetColumns={() => setColumnVisibility(NO_HIDDEN_COLUMNS)}
-      />
-
-      <JobLogTable
-        table={table}
-        isLoading={query.isPending}
-        isError={query.isError}
-        isShowingPreviousRows={query.isPlaceholderData}
-        onRetry={() => void query.refetch()}
-      />
+      <DateRangeFilter value={dateRange} onChange={handleDateRangeChange} />
+      <Button type="button" variant="ghost" onClick={handleReset}>
+        <RotateCcw />
+        重置
+      </Button>
     </>
+  )
+
+  const actions = (
+    <JobLogToolbar
+      table={table}
+      isRefreshing={query.isFetching && !query.isPending}
+      isFullscreen={fullscreen.isFullscreen}
+      onRefresh={() => void query.refetch()}
+      onToggleFullscreen={fullscreen.toggleFullscreen}
+      onResetColumns={() => setColumnVisibility(NO_HIDDEN_COLUMNS)}
+    />
   )
 
   return (
     <>
-      <Card className="pb-0">
-        <CardHeader className="border-b has-data-[slot=card-action]:grid-cols-1 md:has-data-[slot=card-action]:grid-cols-[1fr_auto]">
-          <CardTitle className="text-xl leading-none">任务日志</CardTitle>
-          <CardDescription className="max-w-sm leading-snug">查看任务调度记录、执行状态与执行结果</CardDescription>
-          <CardAction className="col-start-1 row-start-auto flex w-full flex-wrap justify-start gap-2 justify-self-stretch md:col-start-2 md:row-span-2 md:row-start-1 md:w-auto md:flex-nowrap md:justify-end md:justify-self-end">
-            <TableSearch
-              value={searchText}
-              onValueChange={setSearchText}
-              onSearch={handleKeywordSearch}
-              clearable
-              placeholder="搜索任务名称"
-            />
-          </CardAction>
-        </CardHeader>
-
-        <CardContent className="flex flex-col gap-4 px-0">
-          {isFullscreen ? <div ref={spacerRef} style={{ height: reservedHeight }} /> : null}
-
-          <div ref={fullscreenRef} className={cn('flex flex-col gap-4', isFullscreen && 'bg-background')}>
-            {tableSection}
-          </div>
-        </CardContent>
-      </Card>
+      <ListPageCard
+        title="任务日志"
+        description="查看任务调度记录、执行状态与执行结果"
+        filters={filters}
+        actions={actions}
+        fullscreen={fullscreen}
+      >
+        <JobLogTable
+          table={table}
+          isLoading={query.isPending}
+          isError={query.isError}
+          isShowingPreviousRows={query.isPlaceholderData}
+          onRetry={() => void query.refetch()}
+        />
+      </ListPageCard>
 
       <JobLogActionDialog action={actionTarget} open={actionTarget !== null} onClose={() => setActionTarget(null)} />
     </>
