@@ -25,6 +25,7 @@ interface TabsState {
   closeTab: (path: string) => string | undefined
   closeOtherTabs: (keepPath: string) => void
   closeAllTabs: () => void
+  pruneTabs: (isKnown: (path: string) => boolean) => void
   resetTabs: () => void
 }
 
@@ -100,6 +101,16 @@ export const useTabsStore = create<TabsState>()(
         set({
           tabs: [DEFAULT_PINNED_TAB]
         })
+      },
+
+      /** Drops persisted tabs whose page no longer exists; pinned tabs are kept. */
+      pruneTabs: isKnown => {
+        const { tabs } = get()
+        const nextTabs = tabs.filter(tab => !tab.closable || isKnown(tab.path))
+
+        if (nextTabs.length !== tabs.length) {
+          set({ tabs: nextTabs })
+        }
       },
 
       resetTabs: () => {

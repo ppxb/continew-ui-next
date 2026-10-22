@@ -64,7 +64,7 @@ const STATIC_ROUTE_ICONS: Record<string, string> = {
   '/dashboard/coming-soon': 'clock'
 }
 
-function resolveRouteInfo(pathname: string, menuRoutes?: Parameters<typeof findMenuByPath>[0]) {
+function resolveRouteInfo(pathname: string, menuRoutes: Parameters<typeof findMenuByPath>[0], isRealRoute: boolean) {
   if (pathname === '/dashboard' || pathname === '/dashboard/') {
     return { title: '仪表盘', icon: 'dashboard' }
   }
@@ -76,14 +76,17 @@ function resolveRouteInfo(pathname: string, menuRoutes?: Parameters<typeof findM
     }
   }
 
-  if (menuRoutes) {
-    const entry = findMenuByPath(menuRoutes, pathname)
-    if (entry?.title) {
-      return {
-        title: entry.title,
-        icon: entry.icon ?? 'common'
-      }
+  const entry = findMenuByPath(menuRoutes, pathname)
+  if (entry?.title) {
+    return {
+      title: entry.title,
+      icon: entry.icon ?? 'common'
     }
+  }
+
+  // Only routes that exist fall back to a generated title; splat/404 paths stay out of the tabs.
+  if (!isRealRoute) {
+    return null
   }
 
   const segment = pathname.split('/').filter(Boolean).pop()
@@ -97,6 +100,10 @@ function resolveRouteInfo(pathname: string, menuRoutes?: Parameters<typeof findM
   return { title, icon: 'common' }
 }
 
+function isKnownPath(path: string, menuRoutes: Parameters<typeof findMenuByPath>[0], router: RegisteredRouter) {
+  return resolveRouteInfo(path, menuRoutes, path in router.routesByPath) !== null
+}
+
 export function HeaderTabs() {
   const router = useRouter()
   const pathname = useRouterState({ select: s => s.location.pathname })
@@ -107,6 +114,9 @@ export function HeaderTabs() {
   const closeTab = useTabsStore(s => s.closeTab)
   const closeOtherTabs = useTabsStore(s => s.closeOtherTabs)
   const closeAllTabs = useTabsStore(s => s.closeAllTabs)
+  const pruneTabs = useTabsStore(s => s.pruneTabs)
+
+  const visibleTabs = tabs.filter(tab => isKnownPath(tab.path, menuRoutes ?? [], router))
 
   // Synchronize router location with tabs
   React.useEffect(() => {
@@ -114,14 +124,25 @@ export function HeaderTabs() {
       return
     }
 
-    const { title, icon } = resolveRouteInfo(pathname, menuRoutes ?? [])
+    const info = resolveRouteInfo(pathname, menuRoutes ?? [], pathname in router.routesByPath)
+    if (!info) {
+      return
+    }
+
     addTab({
       path: pathname,
-      title,
-      icon,
+      title: info.title,
+      icon: info.icon,
       closable: pathname !== '/dashboard'
     })
-  }, [pathname, menuRoutes, addTab])
+  }, [pathname, menuRoutes, addTab, router])
+
+  // Drop tabs persisted from pages that no longer exist.
+  React.useEffect(() => {
+    if (menuRoutes) {
+      pruneTabs(path => isKnownPath(path, menuRoutes, router))
+    }
+  }, [menuRoutes, pruneTabs, router])
 
   const handleCloseTab = (tab: TabItem) => {
     const fallbackPath = closeTab(tab.path)
@@ -159,7 +180,7 @@ export function HeaderTabs() {
       data-slot="header-tabs"
       className="inline-flex h-8 max-w-full scrollbar-none items-center gap-1 overflow-x-auto rounded-lg border border-border/70 p-0.5 select-none"
     >
-      {tabs.map(tab => {
+      {visibleTabs.map(tab => {
         const isActive = tab.path === pathname
         const isPinned = !tab.closable
         const Icon = resolveMenuIcon(tab.icon)
@@ -223,13 +244,13 @@ export function HeaderTabs() {
                   关闭当前标签
                 </ContextMenuItem>
               )}
-              {tabs.length > 1 && (
+              {visibleTabs.length > 1 && (
                 <ContextMenuItem onClick={() => handleCloseOthers(tab)} className="text-xs">
                   <Layers className="mr-2 size-3.5" />
                   关闭其他标签
                 </ContextMenuItem>
               )}
-              {tabs.length > 1 && (
+              {visibleTabs.length > 1 && (
                 <>
                   <ContextMenuSeparator />
                   <ContextMenuItem onClick={handleCloseAll} className="text-xs text-muted-foreground">

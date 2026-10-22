@@ -1,11 +1,12 @@
-import { createFileRoute, Navigate, useRouterState, type RegisteredRouter } from '@tanstack/react-router'
+import { createFileRoute, Navigate, notFound, type RegisteredRouter } from '@tanstack/react-router'
 
 import { Construction } from 'lucide-react'
 
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { useMenuRoutes } from '@/hooks/use-menu'
+import { ensureMenuLoaded, MENU_QUERY_KEY } from '@/hooks/use-menu'
+import type { RouteResp } from '@/lib/api/types'
+import { queryClient } from '@/lib/query-client'
 import { findMenuByPath, toPathname } from '@/navigation/menu'
-import { NotFound } from '@/routes/-components/not-found'
 
 /**
  * Placeholder for backend menu entries that have no page yet.
@@ -14,17 +15,22 @@ import { NotFound } from '@/routes/-components/not-found'
  * so typos are not reported as "under construction".
  */
 export const Route = createFileRoute('/(main)/(app)/$')({
+  loader: async ({ location }) => {
+    await ensureMenuLoaded()
+    const routes = queryClient.getQueryData<RouteResp[]>(MENU_QUERY_KEY) ?? []
+    const entry = findMenuByPath(routes, location.pathname)
+
+    if (!entry) {
+      throw notFound()
+    }
+
+    return { entry, pathname: location.pathname }
+  },
   component: PlaceholderPage
 })
 
 function PlaceholderPage() {
-  const pathname = useRouterState({ select: state => state.location.pathname })
-  const { data } = useMenuRoutes()
-  const entry = findMenuByPath(data ?? [], pathname)
-
-  if (!entry) {
-    return <NotFound />
-  }
+  const { entry, pathname } = Route.useLoaderData()
 
   // Directories point at the entry screen of their section, for example /system -> /system/user.
   // The type arguments are pinned for the same reason as in `nav-main.tsx`: a backend

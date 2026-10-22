@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import { Link, useRouterState, type RegisteredRouter } from '@tanstack/react-router'
+import { Link, useRouter, useRouterState, type RegisteredRouter } from '@tanstack/react-router'
 import { cn } from 'cn'
 import { Home } from 'lucide-react'
 
@@ -56,6 +56,7 @@ function formatSegmentTitle(segment: string) {
 }
 
 export function useBreadcrumbTrail(): BreadcrumbItemData[] {
+  const router = useRouter()
   const pathname = useRouterState({ select: s => s.location.pathname })
   const { data: menuRoutes } = useMenuRoutes()
 
@@ -105,7 +106,12 @@ export function useBreadcrumbTrail(): BreadcrumbItemData[] {
       ]
     }
 
-    // General fallback: split pathname segments
+    // General fallback: split pathname segments for real routes only. Unknown paths are 404s,
+    // so they must not produce a synthetic breadcrumb.
+    if (!(pathname in router.routesByPath)) {
+      return []
+    }
+
     const segments = pathname.split('/').filter(Boolean)
     if (segments.length === 0) {
       return []
@@ -122,7 +128,7 @@ export function useBreadcrumbTrail(): BreadcrumbItemData[] {
     })
 
     return [homeItem, ...dynamicItems]
-  }, [pathname, menuRoutes])
+  }, [pathname, menuRoutes, router])
 }
 
 export function AppBreadcrumb({ className }: { className?: string }) {
