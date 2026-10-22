@@ -1,4 +1,4 @@
-import { http } from '@/lib/http'
+import { http, type Query } from '@/lib/http'
 
 /** `StorageTypeEnum`: 1 本地存储, 2 对象存储. */
 export type StorageType = 1 | 2
@@ -73,7 +73,7 @@ export interface StorageReq {
 /** Queries every storage: `GET /system/storage/list` (unpaged, `Api.LIST`). */
 export function listStorage(query?: StorageQuery, signal?: AbortSignal) {
   return http.get<StorageResp[]>('/system/storage/list', {
-    query: query as Record<string, string | number | boolean | null | undefined>,
+    query: query as Query,
     signal
   })
 }

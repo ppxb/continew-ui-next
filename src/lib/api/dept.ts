@@ -1,4 +1,4 @@
-import { downloadFile, http } from '@/lib/http'
+import { downloadFile, http, type Query } from '@/lib/http'
 
 /** Response model for a department node in `GET /system/dept/tree` or `GET /system/dept/{id}`. */
 export interface DeptResp {
@@ -15,9 +15,6 @@ export interface DeptResp {
   updateTime?: string | null
   children?: DeptResp[]
 }
-
-/** Backward compatibility alias for components relying on `DeptTreeNode`. */
-export type DeptTreeNode = DeptResp
 
 /** One flattened department, tagged with its depth for indented display. */
 export interface DeptOption {
@@ -42,28 +39,18 @@ export interface DeptReq {
 }
 
 /** Fetches the whole department tree from `GET /system/dept/tree`. */
-export function getDeptTree(): Promise<DeptResp[]>
-export function getDeptTree(query?: DeptQuery, signal?: AbortSignal): Promise<DeptResp[]>
-export function getDeptTree(query?: unknown, signal?: AbortSignal): Promise<DeptResp[]> {
-  const isContext = query && typeof query === 'object' && 'queryKey' in query
-  const actualQuery = isContext ? undefined : (query as DeptQuery | undefined)
-  return http.get<DeptResp[]>('/system/dept/tree', {
-    query: actualQuery as Record<string, string | number | boolean | null | undefined>,
-    signal
-  })
+export function getDeptTree(query?: DeptQuery, signal?: AbortSignal) {
+  return http.get<DeptResp[]>('/system/dept/tree', { query: query as Query, signal })
 }
 
-/** Fetches a single department record by ID. */
 export function getDept(id: string | number, signal?: AbortSignal) {
   return http.get<DeptResp>(`/system/dept/${id}`, { signal })
 }
 
-/** Creates a new department. */
 export function createDept(body: DeptReq) {
   return http.post<{ id: string | number }>('/system/dept', body)
 }
 
-/** Updates an existing department. */
 export function updateDept(id: string | number, body: DeptReq) {
   return http.put<void>(`/system/dept/${id}`, body)
 }
@@ -73,18 +60,17 @@ export function deleteDepts(ids: Array<string | number>) {
   return http.del<void>('/system/dept', { body: { ids } })
 }
 
-/** Deletes a single department. */
 export function deleteDept(id: string | number) {
   return deleteDepts([id])
 }
 
 /** Exports department data to Excel. */
 export function exportDept(query?: DeptQuery) {
-  return downloadFile('/system/dept/export', query as Record<string, string | number | boolean | null | undefined>)
+  return downloadFile('/system/dept/export', query as Query)
 }
 
 /** Flattens the tree in display order, parents before their children. */
-export function flattenDepts(nodes: DeptTreeNode[], depth = 0): DeptOption[] {
+export function flattenDepts(nodes: DeptResp[], depth = 0): DeptOption[] {
   return nodes.flatMap(node => [
     { id: node.id, name: node.name, depth },
     ...flattenDepts(node.children ?? [], depth + 1)

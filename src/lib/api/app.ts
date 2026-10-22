@@ -60,7 +60,6 @@ export type AppReq = {
   description?: string
 }
 
-/** Saves an edited app. */
 export function updateApp(id: string | number, body: AppReq) {
   return http.put<void>(`/open/app/${id}`, body)
 }

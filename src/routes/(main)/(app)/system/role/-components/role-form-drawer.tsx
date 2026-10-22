@@ -19,7 +19,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/components/ui/toast'
-import { deptKeys, getDeptTree, type DeptTreeNode } from '@/lib/api/dept'
+import { deptKeys, getDeptTree, type DeptResp } from '@/lib/api/dept'
 import { createRole, DATA_SCOPE_OPTIONS, type DataScope, roleKeys, type RoleReq, updateRole } from '@/lib/api/role'
 
 import { useRoleDetail } from './use-role-detail'
@@ -67,7 +67,7 @@ const EMPTY_FORM: FormValues = {
 
 const DATA_SCOPE_ITEMS = DATA_SCOPE_OPTIONS.map(opt => ({ value: String(opt.value), label: opt.label }))
 
-function toCheckableDeptNodes(nodes: DeptTreeNode[]): CheckableTreeNode[] {
+function toCheckableDeptNodes(nodes: DeptResp[]): CheckableTreeNode[] {
   return nodes.map(node => ({
     id: String(node.id),
     parentId: node.parentId ? String(node.parentId) : null,

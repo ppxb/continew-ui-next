@@ -80,7 +80,6 @@ export function createPackage(body: PackageReq) {
   return http.post<{ id: string | number }>('/tenant/package', body)
 }
 
-/** Saves an edited package. */
 export function updatePackage(id: string | number, body: PackageReq) {
   return http.put<void>(`/tenant/package/${id}`, body)
 }

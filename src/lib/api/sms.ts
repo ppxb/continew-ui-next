@@ -1,4 +1,4 @@
-import { http } from '@/lib/http'
+import { http, type Query } from '@/lib/http'
 import type { PageResp } from '@/lib/api/types'
 
 export interface SmsConfigResp {
@@ -50,7 +50,7 @@ export interface SmsConfigReq {
 /** Queries SMS configurations page: `GET /system/sms/config` */
 export function listSmsConfig(query?: SmsConfigQuery, signal?: AbortSignal) {
   return http.get<PageResp<SmsConfigResp>>('/system/sms/config', {
-    query: query as Record<string, string | number | boolean | null | undefined>,
+    query: query as Query,
     signal
   })
 }

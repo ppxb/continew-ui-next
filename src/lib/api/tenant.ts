@@ -80,7 +80,6 @@ export function createTenant(body: TenantReq) {
   return http.post<{ id: string | number }>('/tenant/management', body)
 }
 
-/** Saves an edited tenant. */
 export function updateTenant(id: string | number, body: TenantReq) {
   return http.put<void>(`/tenant/management/${id}`, body)
 }

@@ -100,7 +100,6 @@ export type UserReq = {
   description?: string
 }
 
-/** Saves an edited user. */
 export function updateUser(id: string | number, body: UserReq) {
   return http.put<void>(`/system/user/${id}`, body)
 }

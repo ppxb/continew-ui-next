@@ -1,4 +1,4 @@
-import { http } from '@/lib/http'
+import { http, type Query } from '@/lib/http'
 import type { PageResp } from '@/lib/api/types'
 
 /**
@@ -124,7 +124,7 @@ export interface RoleDictResp {
 /** Every role from `GET /system/role/list`. */
 export function listRoles(query?: RoleQuery, signal?: AbortSignal) {
   return http.get<RoleResp[]>('/system/role/list', {
-    query: query as Record<string, string | number | boolean | null | undefined>,
+    query: query as Query,
     signal
   })
 }
@@ -134,20 +134,15 @@ export function listRoleDict(signal?: AbortSignal) {
   return http.get<RoleDictResp[]>('/system/role/dict', { signal })
 }
 
-/** Alias to listRoles for role queries. */
-export const listRolesPage = listRoles
-
 /** Fetches a single role with its full menuIds and deptIds. */
 export function getRole(id: string | number, signal?: AbortSignal) {
   return http.get<RoleDetailResp>(`/system/role/${id}`, { signal })
 }
 
-/** Creates a new role. */
 export function createRole(body: RoleReq) {
   return http.post<{ id: string | number }>('/system/role', body)
 }
 
-/** Updates an existing role. */
 export function updateRole(id: string | number, body: RoleReq) {
   return http.put<void>(`/system/role/${id}`, body)
 }
@@ -157,7 +152,6 @@ export function deleteRoles(ids: Array<string | number>) {
   return http.del<void>('/system/role', { body: { ids } })
 }
 
-/** Deletes a single role. */
 export function deleteRole(id: string | number) {
   return deleteRoles([id])
 }
@@ -175,7 +169,7 @@ export function updateRolePermission(id: string | number, body: RolePermissionUp
 /** Paginated list of users assigned to this role. */
 export function listRoleUsers(id: string | number, query?: RoleUserPageQuery, signal?: AbortSignal) {
   return http.get<PageResp<RoleUserResp>>(`/system/role/${id}/user`, {
-    query: query as Record<string, string | number | boolean | null | undefined>,
+    query: query as Query,
     signal
   })
 }

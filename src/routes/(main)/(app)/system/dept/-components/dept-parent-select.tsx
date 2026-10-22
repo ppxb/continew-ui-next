@@ -31,7 +31,7 @@ function collectDescendantIds(nodes: DeptResp[], targetId: string | number): Set
 }
 
 /** Transforms dept tree nodes into generic TreeNodeData for TreeSelect. */
-function toDeptTreeNodeData(nodes: DeptResp[], disabledIds: Set<string>): TreeNodeData<DeptResp>[] {
+function toDeptNodeData(nodes: DeptResp[], disabledIds: Set<string>): TreeNodeData<DeptResp>[] {
   const result: TreeNodeData<DeptResp>[] = []
 
   for (const node of nodes) {
@@ -45,7 +45,7 @@ function toDeptTreeNodeData(nodes: DeptResp[], disabledIds: Set<string>): TreeNo
       icon: Building2,
       disabled: isDisabled,
       data: node,
-      children: node.children && node.children.length > 0 ? toDeptTreeNodeData(node.children, disabledIds) : undefined
+      children: node.children && node.children.length > 0 ? toDeptNodeData(node.children, disabledIds) : undefined
     })
   }
 
@@ -75,7 +75,7 @@ export function DeptParentSelect({
   }, [deptTree, currentDeptId])
 
   const treeData = React.useMemo(() => {
-    return toDeptTreeNodeData(deptTree, disabledIds)
+    return toDeptNodeData(deptTree, disabledIds)
   }, [deptTree, disabledIds])
 
   const selectedValue = value !== null && value !== undefined && value !== '' ? String(value) : null

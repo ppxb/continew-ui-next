@@ -1,4 +1,4 @@
-import { http } from '@/lib/http'
+import { http, type Query } from '@/lib/http'
 import type { PageResp } from '@/lib/api/types'
 
 export interface ClientResp {
@@ -50,7 +50,7 @@ export interface ClientReq {
 /** Queries clients page: `GET /system/client` */
 export function listClient(query?: ClientQuery, signal?: AbortSignal) {
   return http.get<PageResp<ClientResp>>('/system/client', {
-    query: query as Record<string, string | number | boolean | null | undefined>,
+    query: query as Query,
     signal
   })
 }

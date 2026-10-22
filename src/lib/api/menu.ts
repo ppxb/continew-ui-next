@@ -1,4 +1,4 @@
-import { http } from '@/lib/http'
+import { http, type Query } from '@/lib/http'
 
 export type MenuType = 1 | 2 | 3
 
@@ -65,22 +65,19 @@ export interface MenuQuery {
 /** Fetches the whole menu tree from `GET /system/menu/tree`. */
 export function getMenuTree(query?: MenuQuery, signal?: AbortSignal) {
   return http.get<MenuResp[]>('/system/menu/tree', {
-    query: query as Record<string, string | number | boolean | null | undefined>,
+    query: query as Query,
     signal
   })
 }
 
-/** Fetches a single menu record by ID. */
 export function getMenu(id: string | number, signal?: AbortSignal) {
   return http.get<MenuResp>(`/system/menu/${id}`, { signal })
 }
 
-/** Creates a new menu. */
 export function createMenu(body: MenuReq) {
   return http.post<{ id: string | number }>('/system/menu', body)
 }
 
-/** Updates an existing menu. */
 export function updateMenu(id: string | number, body: MenuReq) {
   return http.put<void>(`/system/menu/${id}`, body)
 }
@@ -90,7 +87,6 @@ export function deleteMenus(ids: Array<string | number>) {
   return http.del<void>('/system/menu', { body: { ids } })
 }
 
-/** Deletes a single menu. */
 export function deleteMenu(id: string | number) {
   return deleteMenus([id])
 }

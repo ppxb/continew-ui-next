@@ -142,12 +142,10 @@ export function listJobs(query: JobQuery, signal?: AbortSignal) {
   return http.get<PageResp<JobResp>>('/schedule/job', { query, signal })
 }
 
-/** Creates a job. */
 export function createJob(body: JobReq) {
   return http.post<void>('/schedule/job', body)
 }
 
-/** Saves an edited job. */
 export function updateJob(id: string | number, body: JobReq) {
   return http.put<void>(`/schedule/job/${id}`, body)
 }
@@ -157,7 +155,6 @@ export function updateJobStatus(id: string | number, body: JobStatusReq) {
   return http.patch<void>(`/schedule/job/${id}/status`, body)
 }
 
-/** Deletes one job. */
 export function deleteJob(id: string | number) {
   return http.del<void>(`/schedule/job/${id}`)
 }

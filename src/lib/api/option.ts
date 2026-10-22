@@ -1,4 +1,4 @@
-import { http } from '@/lib/http'
+import { http, type Query } from '@/lib/http'
 
 export interface OptionResp {
   id: number
@@ -28,7 +28,7 @@ export interface OptionValueResetReq {
 /** Queries options list: `GET /system/option` */
 export function listOption(query: OptionQuery, signal?: AbortSignal) {
   return http.get<OptionResp[]>('/system/option', {
-    query: query as Record<string, string | number | boolean | null | undefined>,
+    query: query as Query,
     signal
   })
 }

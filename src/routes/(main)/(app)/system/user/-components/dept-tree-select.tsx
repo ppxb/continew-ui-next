@@ -4,10 +4,10 @@ import { Building2 } from 'lucide-react'
 
 import { TreeSelect } from '@/components/ui/tree-select'
 import type { TreeNodeData } from '@/components/ui/tree'
-import { deptKeys, getDeptTree, type DeptTreeNode } from '@/lib/api/dept'
+import { deptKeys, getDeptTree, type DeptResp } from '@/lib/api/dept'
 
 const LOOKUP_STALE_MS = 5 * 60_000
-const EMPTY_NODES: DeptTreeNode[] = []
+const EMPTY_NODES: DeptResp[] = []
 
 export interface DeptTreeSelectProps {
   readonly value?: string | number | null
@@ -20,7 +20,7 @@ export interface DeptTreeSelectProps {
   readonly className?: string
   readonly showPathInTrigger?: boolean
   /** Optional pre-fetched department tree data */
-  readonly data?: DeptTreeNode[]
+  readonly data?: DeptResp[]
   /** Optional loading state if data is fetched externally */
   readonly loading?: boolean
   readonly size?: 'default' | 'sm'
@@ -31,15 +31,15 @@ export interface DeptTreeSelectProps {
 }
 
 /**
- * Transforms backend `DeptTreeNode`s into generic `TreeNodeData`s for `TreeSelect`.
+ * Transforms the backend department tree into generic `TreeNodeData`s for `TreeSelect`.
  */
-export function toDeptTreeNodeData(nodes: DeptTreeNode[]): TreeNodeData<DeptTreeNode>[] {
+function toDeptNodeData(nodes: DeptResp[]): TreeNodeData<DeptResp>[] {
   return nodes.map(node => ({
     id: String(node.id),
     parentId: node.parentId ? String(node.parentId) : null,
     label: node.name,
     icon: Building2,
-    children: node.children && node.children.length > 0 ? toDeptTreeNodeData(node.children) : undefined,
+    children: node.children && node.children.length > 0 ? toDeptNodeData(node.children) : undefined,
     data: node
   }))
 }
@@ -81,7 +81,7 @@ export function DeptTreeSelect({
   const isError = shouldQuery && depts.isError
 
   const treeData = React.useMemo(() => {
-    return toDeptTreeNodeData(rawNodes)
+    return toDeptNodeData(rawNodes)
   }, [rawNodes])
 
   const selectedValue = value !== undefined && value !== null && value !== '' ? String(value) : null

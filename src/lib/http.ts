@@ -34,7 +34,7 @@ const STATUS_MESSAGE: Partial<Record<number, string>> = {
   504: '网络超时（504）'
 }
 
-type Query = Record<string, string | number | boolean | null | undefined>
+export type Query = Record<string, string | number | boolean | null | undefined>
 type ErrorDetails = { code?: string; status?: number }
 type MessagePayload = { msg?: string; message?: string }
 type RefreshState = { generation: number; promise: Promise<string> }
