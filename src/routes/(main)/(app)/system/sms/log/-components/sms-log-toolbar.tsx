@@ -30,12 +30,7 @@ const COLUMN_LABELS: Record<string, string> = {
   status: '发送状态'
 }
 
-interface SmsLogToolbarProps {
-  readonly table: ReactTable<DataTableFeatures, SmsLogResp>
-  readonly isRefreshing: boolean
-  readonly isExporting: boolean
-  readonly isFullscreen: boolean
-  readonly canExport: boolean
+interface SmsLogFiltersProps {
   /** Remounts the two search boxes, which is how a reset clears their text. */
   readonly searchVersion: number
   readonly status: SmsLogStatus | undefined
@@ -43,55 +38,36 @@ interface SmsLogToolbarProps {
   readonly onPhoneSearch: (value: string) => void
   readonly onStatusChange: (value: string | null) => void
   readonly onReset: () => void
-  readonly onExport: () => void
-  readonly onRefresh: () => void
-  readonly onToggleFullscreen: () => void
-  readonly onResetColumns: () => void
 }
 
-/** Filters on the left, table tools on the right. */
-export function SmsLogToolbar({
-  table,
-  isRefreshing,
-  isExporting,
-  isFullscreen,
-  canExport,
+/** The log filters, rendered in the list's filter row. */
+export function SmsLogFilters({
   searchVersion,
   status,
   onConfigIdSearch,
   onPhoneSearch,
   onStatusChange,
-  onReset,
-  onExport,
-  onRefresh,
-  onToggleFullscreen,
-  onResetColumns
-}: SmsLogToolbarProps) {
-  const hideableColumns = table.getAllColumns().filter(column => column.getCanHide())
-
+  onReset
+}: SmsLogFiltersProps) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 px-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <TableSearch
-          key={`config-${searchVersion}`}
-          clearable
-          placeholder="搜索配置 ID"
-          onSearch={onConfigIdSearch}
-          className="md:w-44"
-        />
-        <TableSearch
-          key={`phone-${searchVersion}`}
-          clearable
-          placeholder="搜索手机号"
-          onSearch={onPhoneSearch}
-          className="md:w-48"
-        />
-        <Select
-          items={STATUS_OPTIONS}
-          value={status === undefined ? 'all' : String(status)}
-          onValueChange={onStatusChange}
-        >
-          <SelectTrigger size="sm">
+    <>
+      <TableSearch
+        key={`config-${searchVersion}`}
+        clearable
+        className="h-8 w-full sm:w-44"
+        placeholder="搜索配置 ID"
+        onSearch={onConfigIdSearch}
+      />
+      <TableSearch
+        key={`phone-${searchVersion}`}
+        clearable
+        className="h-8 w-full sm:w-48"
+        placeholder="搜索手机号"
+        onSearch={onPhoneSearch}
+      />
+      <div className="w-full sm:w-32">
+        <Select items={STATUS_OPTIONS} value={status === undefined ? 'all' : String(status)} onValueChange={onStatusChange}>
+          <SelectTrigger className="w-full">
             <span className="text-muted-foreground">状态</span>
             <SelectValue />
           </SelectTrigger>
@@ -105,63 +81,92 @@ export function SmsLogToolbar({
             </SelectGroup>
           </SelectContent>
         </Select>
-        <Button size="sm" variant="outline" onClick={onReset}>
-          <RotateCcw />
-          重置
-        </Button>
       </div>
+      <Button type="button" variant="outline" onClick={onReset}>
+        <RotateCcw />
+        重置
+      </Button>
+    </>
+  )
+}
 
-      <div className="flex flex-wrap items-center gap-2">
-        {canExport ? (
-          <Button size="sm" variant="outline" disabled={isExporting} onClick={onExport}>
-            {isExporting ? <Spinner /> : <Download />}
-            导出
-          </Button>
-        ) : null}
-        <Button size="sm" variant="outline" disabled={isRefreshing} onClick={onRefresh}>
-          {isRefreshing ? <Spinner /> : <RefreshCw />}
-          刷新
+interface SmsLogToolbarProps {
+  readonly table: ReactTable<DataTableFeatures, SmsLogResp>
+  readonly isRefreshing: boolean
+  readonly isExporting: boolean
+  readonly isFullscreen: boolean
+  readonly canExport: boolean
+  readonly onExport: () => void
+  readonly onRefresh: () => void
+  readonly onToggleFullscreen: () => void
+  readonly onResetColumns: () => void
+}
+
+/** The table tools, rendered on the right of the filter row. */
+export function SmsLogToolbar({
+  table,
+  isRefreshing,
+  isExporting,
+  isFullscreen,
+  canExport,
+  onExport,
+  onRefresh,
+  onToggleFullscreen,
+  onResetColumns
+}: SmsLogToolbarProps) {
+  const hideableColumns = table.getAllColumns().filter(column => column.getCanHide())
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      {canExport ? (
+        <Button variant="outline" disabled={isExporting} onClick={onExport}>
+          {isExporting ? <Spinner /> : <Download />}
+          导出
         </Button>
+      ) : null}
+      <Button variant="outline" disabled={isRefreshing} onClick={onRefresh}>
+        {isRefreshing ? <Spinner /> : <RefreshCw />}
+        刷新
+      </Button>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger render={<Button size="sm" variant="outline" />}>
-            <SlidersHorizontal />
-            隐藏列
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-44">
-            <DropdownMenuGroup>
-              <DropdownMenuLabel>显示的列</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {hideableColumns.map(column => {
-                const label =
-                  typeof column.columnDef.header === 'string'
-                    ? column.columnDef.header
-                    : (COLUMN_LABELS[column.id] ?? column.id)
-
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    checked={column.getIsVisible()}
-                    onCheckedChange={value => column.toggleVisibility(value)}
-                  >
-                    {label}
-                  </DropdownMenuCheckboxItem>
-                )
-              })}
-            </DropdownMenuGroup>
+      <DropdownMenu>
+        <DropdownMenuTrigger render={<Button variant="outline" />}>
+          <SlidersHorizontal />
+          隐藏列
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-44">
+          <DropdownMenuGroup>
+            <DropdownMenuLabel>显示的列</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={onResetColumns}>
-              <RotateCcw />
-              重置
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            {hideableColumns.map(column => {
+              const label =
+                typeof column.columnDef.header === 'string'
+                  ? column.columnDef.header
+                  : (COLUMN_LABELS[column.id] ?? column.id)
 
-        <Button size="sm" variant="outline" onClick={onToggleFullscreen}>
-          {isFullscreen ? <Minimize /> : <Maximize />}
-          表格全屏
-        </Button>
-      </div>
+              return (
+                <DropdownMenuCheckboxItem
+                  key={column.id}
+                  checked={column.getIsVisible()}
+                  onCheckedChange={value => column.toggleVisibility(value)}
+                >
+                  {label}
+                </DropdownMenuCheckboxItem>
+              )
+            })}
+          </DropdownMenuGroup>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={onResetColumns}>
+            <RotateCcw />
+            重置
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <Button variant="outline" onClick={onToggleFullscreen}>
+        {isFullscreen ? <Minimize /> : <Maximize />}
+        表格全屏
+      </Button>
     </div>
   )
 }

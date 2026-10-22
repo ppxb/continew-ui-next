@@ -1,11 +1,10 @@
 import * as React from 'react'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { cn } from 'cn'
 import { Cloud, HardDrive, RefreshCw, Search } from 'lucide-react'
 
+import { ListPageCard } from '@/components/list-page-card'
 import { Button } from '@/components/ui/button'
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from '@/components/ui/toast'
@@ -75,7 +74,7 @@ export function ConfigStorage() {
   const [isFormOpen, setIsFormOpen] = React.useState(false)
   const [deletingStorage, setDeletingStorage] = React.useState<StorageResp | null>(null)
   const [isDeleteOpen, setIsDeleteOpen] = React.useState(false)
-  const { isFullscreen, reservedHeight, fullscreenRef, spacerRef, toggleFullscreen } = useFullscreenTransition()
+  const fullscreen = useFullscreenTransition()
 
   const type = typeFilter === 'all' ? undefined : (Number(typeFilter) as StorageType)
   const status = statusFilter === 'all' ? undefined : (Number(statusFilter) as StorageStatus)
@@ -156,113 +155,106 @@ export function ConfigStorage() {
     setIsFormOpen(true)
   }
 
+  const filters = (
+    <>
+      <InputGroup className="w-full md:w-64">
+        <InputGroupAddon align="inline-start">
+          <Search className="size-3.5" />
+        </InputGroupAddon>
+        <InputGroupInput
+          className="text-sm"
+          placeholder="搜索名称、编码、描述"
+          value={searchInput}
+          onChange={event => setSearchInput(event.target.value)}
+        />
+      </InputGroup>
+      <div className="w-full sm:w-32">
+        <Select items={TYPE_OPTIONS} value={typeFilter} onValueChange={value => setTypeFilter(value ?? 'all')}>
+          <SelectTrigger className="w-full">
+            <span className="text-muted-foreground">类型</span>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent align="start" alignItemWithTrigger={false}>
+            <SelectGroup>
+              {TYPE_OPTIONS.map(option => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="w-full sm:w-32">
+        <Select items={STATUS_OPTIONS} value={statusFilter} onValueChange={value => setStatusFilter(value ?? 'all')}>
+          <SelectTrigger className="w-full">
+            <span className="text-muted-foreground">状态</span>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent align="start" alignItemWithTrigger={false}>
+            <SelectGroup>
+              {STATUS_OPTIONS.map(option => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+      </div>
+      {hasActiveFilters ? (
+        <Button type="button" variant="ghost" onClick={handleResetFilters}>
+          <RefreshCw />
+          重置
+        </Button>
+      ) : null}
+    </>
+  )
+
+  const actions = (
+    <StorageToolbar
+      canCreate={canCreate}
+      isRefreshing={query.isFetching && !query.isPending}
+      isFullscreen={fullscreen.isFullscreen}
+      onCreate={handleCreate}
+      onRefresh={() => void query.refetch()}
+      onToggleFullscreen={fullscreen.toggleFullscreen}
+    />
+  )
+
   return (
     <>
-      <Card>
-        <CardHeader className="border-b has-data-[slot=card-action]:grid-cols-1 md:has-data-[slot=card-action]:grid-cols-[1fr_auto]">
-          <CardTitle className="text-xl leading-none">存储配置</CardTitle>
-          <CardDescription className="max-w-sm leading-snug">
-            维护本地与对象存储，文件上传与下载都经由默认存储
-          </CardDescription>
-          <CardAction className="col-start-1 row-start-auto flex w-full flex-wrap justify-start gap-2 justify-self-stretch md:col-start-2 md:row-span-2 md:row-start-1 md:w-auto md:flex-nowrap md:justify-end md:justify-self-end">
-            <InputGroup className="h-7 w-full md:w-64">
-              <InputGroupAddon align="inline-start">
-                <Search className="size-3.5" />
-              </InputGroupAddon>
-              <InputGroupInput
-                className="h-7"
-                placeholder="搜索名称、编码、描述"
-                value={searchInput}
-                onChange={event => setSearchInput(event.target.value)}
-              />
-            </InputGroup>
-          </CardAction>
-        </CardHeader>
-
-        <CardContent className="flex flex-col gap-4 px-0">
-          {isFullscreen ? <div ref={spacerRef} style={{ height: reservedHeight }} /> : null}
-
-          <div ref={fullscreenRef} className={cn('flex flex-col gap-4', isFullscreen && 'bg-background')}>
-            <div className="flex flex-wrap items-center gap-3 px-4">
-              <Select items={TYPE_OPTIONS} value={typeFilter} onValueChange={value => setTypeFilter(value ?? 'all')}>
-                <SelectTrigger size="sm">
-                  <span className="text-muted-foreground">类型</span>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent align="start" alignItemWithTrigger={false}>
-                  <SelectGroup>
-                    {TYPE_OPTIONS.map(option => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-
-              <Select
-                items={STATUS_OPTIONS}
-                value={statusFilter}
-                onValueChange={value => setStatusFilter(value ?? 'all')}
-              >
-                <SelectTrigger size="sm">
-                  <span className="text-muted-foreground">状态</span>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent align="start" alignItemWithTrigger={false}>
-                  <SelectGroup>
-                    {STATUS_OPTIONS.map(option => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-
-              {hasActiveFilters ? (
-                <Button size="sm" variant="ghost" className="h-8 px-2 text-xs" onClick={handleResetFilters}>
-                  <RefreshCw className="size-3.5" />
-                  重置
-                </Button>
-              ) : null}
-            </div>
-
-            <StorageToolbar
-              canCreate={canCreate}
-              isRefreshing={query.isFetching && !query.isPending}
-              isFullscreen={isFullscreen}
-              onCreate={handleCreate}
-              onRefresh={() => void query.refetch()}
-              onToggleFullscreen={toggleFullscreen}
+      <ListPageCard
+        title="存储配置"
+        description="维护本地与对象存储，文件上传与下载都经由默认存储"
+        filters={filters}
+        actions={actions}
+        fullscreen={fullscreen}
+      >
+        <div className="flex flex-col gap-4 px-4">
+          {typeFilter !== '2' ? (
+            <StorageGroupPanel
+              title="本地存储"
+              icon={<HardDrive className="size-4 text-muted-foreground" />}
+              minWidth={LOCAL_TABLE_MIN_WIDTH}
+              items={localStorages}
+              columns={localColumns}
+              isLoading={query.isPending}
             />
+          ) : null}
 
-            <div className="flex flex-col gap-4 px-4">
-              {typeFilter !== '2' ? (
-                <StorageGroupPanel
-                  title="本地存储"
-                  icon={<HardDrive className="size-4 text-muted-foreground" />}
-                  minWidth={LOCAL_TABLE_MIN_WIDTH}
-                  items={localStorages}
-                  columns={localColumns}
-                  isLoading={query.isPending}
-                />
-              ) : null}
-
-              {typeFilter !== '1' ? (
-                <StorageGroupPanel
-                  title="对象存储"
-                  icon={<Cloud className="size-4 text-muted-foreground" />}
-                  minWidth={OSS_TABLE_MIN_WIDTH}
-                  items={ossStorages}
-                  columns={ossColumns}
-                  isLoading={query.isPending}
-                />
-              ) : null}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          {typeFilter !== '1' ? (
+            <StorageGroupPanel
+              title="对象存储"
+              icon={<Cloud className="size-4 text-muted-foreground" />}
+              minWidth={OSS_TABLE_MIN_WIDTH}
+              items={ossStorages}
+              columns={ossColumns}
+              isLoading={query.isPending}
+            />
+          ) : null}
+        </div>
+      </ListPageCard>
 
       <StorageFormDrawer
         storageId={formStorageId}

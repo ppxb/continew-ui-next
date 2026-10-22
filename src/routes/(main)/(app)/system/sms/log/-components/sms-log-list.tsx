@@ -3,9 +3,7 @@ import * as React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { type ColumnVisibilityState, type PaginationState, useTable } from '@tanstack/react-table'
 
-import { cn } from 'cn'
-
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { ListPageCard } from '@/components/list-page-card'
 import { toast } from '@/components/ui/toast'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
 import { usePermission } from '@/hooks/use-permission'
@@ -23,7 +21,7 @@ import { dataTableFeatures } from '@/lib/data-table-features'
 import { createSmsLogColumns } from './sms-log-columns'
 import { SmsLogDeleteDialog } from './sms-log-delete-dialog'
 import { SmsLogTable } from './sms-log-table'
-import { SmsLogToolbar } from './sms-log-toolbar'
+import { SmsLogFilters, SmsLogToolbar } from './sms-log-toolbar'
 
 const EMPTY_ROWS: SmsLogResp[] = []
 
@@ -34,7 +32,7 @@ export function SmsLogList() {
   const { hasPermission } = usePermission()
   const canDelete = hasPermission('system:smsLog:delete')
   const canExport = hasPermission('system:smsLog:export')
-  const { isFullscreen, reservedHeight, fullscreenRef, spacerRef, toggleFullscreen } = useFullscreenTransition()
+  const fullscreen = useFullscreenTransition()
 
   const [pagination, setPagination] = React.useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
   const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>({})
@@ -89,13 +87,13 @@ export function SmsLogList() {
   // `configId` reaches the backend as a Long, so a box without digits must not be sent.
   const configIdFilter = /^\d+$/.test(configId) ? configId : undefined
 
-  const filters: SmsLogQuery = {
+  const queryFilters: SmsLogQuery = {
     sort: DEFAULT_SORT,
     configId: configIdFilter,
     phone: phone || undefined,
     status
   }
-  const params: SmsLogPageQuery = { page: pagination.pageIndex + 1, size: pagination.pageSize, ...filters }
+  const params: SmsLogPageQuery = { page: pagination.pageIndex + 1, size: pagination.pageSize, ...queryFilters }
 
   const query = useQuery({
     queryKey: smsLogKeys.list(params),
@@ -136,7 +134,7 @@ export function SmsLogList() {
     setIsExporting(true)
 
     try {
-      await exportSmsLogs(filters)
+      await exportSmsLogs(queryFilters)
       toast.add({ title: '导出已开始，请留意浏览器下载', type: 'success' })
     } catch {
       // The HTTP layer already reported the failure.
@@ -145,54 +143,48 @@ export function SmsLogList() {
     }
   }
 
-  const tableSection = (
-    <>
-      <SmsLogToolbar
-        table={table}
-        isRefreshing={query.isFetching && !query.isPending}
-        isExporting={isExporting}
-        isFullscreen={isFullscreen}
-        canExport={canExport}
-        searchVersion={searchVersion}
-        status={status}
-        onConfigIdSearch={handleConfigIdSearch}
-        onPhoneSearch={handlePhoneSearch}
-        onStatusChange={handleStatusChange}
-        onReset={handleReset}
-        onExport={() => void handleExport()}
-        onRefresh={() => void query.refetch()}
-        onToggleFullscreen={toggleFullscreen}
-        onResetColumns={() => setColumnVisibility({})}
-      />
+  const filters = (
+    <SmsLogFilters
+      searchVersion={searchVersion}
+      status={status}
+      onConfigIdSearch={handleConfigIdSearch}
+      onPhoneSearch={handlePhoneSearch}
+      onStatusChange={handleStatusChange}
+      onReset={handleReset}
+    />
+  )
 
-      <SmsLogTable
-        table={table}
-        isLoading={query.isPending}
-        isError={query.isError}
-        isShowingPreviousRows={query.isPlaceholderData}
-        onRetry={() => void query.refetch()}
-      />
-    </>
+  const actions = (
+    <SmsLogToolbar
+      table={table}
+      isRefreshing={query.isFetching && !query.isPending}
+      isExporting={isExporting}
+      isFullscreen={fullscreen.isFullscreen}
+      canExport={canExport}
+      onExport={() => void handleExport()}
+      onRefresh={() => void query.refetch()}
+      onToggleFullscreen={fullscreen.toggleFullscreen}
+      onResetColumns={() => setColumnVisibility({})}
+    />
   )
 
   return (
     <>
-      <Card className="pb-0">
-        <CardHeader className="border-b">
-          <CardTitle className="text-xl leading-none">短信日志</CardTitle>
-          <CardDescription className="max-w-sm leading-snug">
-            查看短信发送记录、发送状态与短信服务商返回数据
-          </CardDescription>
-        </CardHeader>
-
-        <CardContent className="flex flex-col gap-4 px-0">
-          {isFullscreen ? <div ref={spacerRef} style={{ height: reservedHeight }} /> : null}
-
-          <div ref={fullscreenRef} className={cn('flex flex-col gap-4', isFullscreen && 'bg-background')}>
-            {tableSection}
-          </div>
-        </CardContent>
-      </Card>
+      <ListPageCard
+        title="短信日志"
+        description="查看短信发送记录、发送状态与短信服务商返回数据"
+        filters={filters}
+        actions={actions}
+        fullscreen={fullscreen}
+      >
+        <SmsLogTable
+          table={table}
+          isLoading={query.isPending}
+          isError={query.isError}
+          isShowingPreviousRows={query.isPlaceholderData}
+          onRetry={() => void query.refetch()}
+        />
+      </ListPageCard>
 
       <SmsLogDeleteDialog log={deletingLog} open={deletingLog !== null} onClose={() => setDeletingLog(null)} />
     </>

@@ -30,11 +30,11 @@ export function StorageToolbar({
   onToggleFullscreen
 }: StorageToolbarProps) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 px-4">
+    <div className="flex flex-wrap items-center gap-2">
       <div className="flex flex-wrap items-center gap-2">
         {canCreate ? (
           <DropdownMenu>
-            <DropdownMenuTrigger render={<Button size="sm" />}>
+            <DropdownMenuTrigger render={<Button />}>
               <Plus />
               新增存储
             </DropdownMenuTrigger>
@@ -55,12 +55,12 @@ export function StorageToolbar({
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <Button size="sm" variant="outline" disabled={isRefreshing} onClick={onRefresh}>
+        <Button variant="outline" disabled={isRefreshing} onClick={onRefresh}>
           {isRefreshing ? <Spinner /> : <RefreshCw />}
           刷新
         </Button>
 
-        <Button size="sm" variant="outline" onClick={onToggleFullscreen}>
+        <Button variant="outline" onClick={onToggleFullscreen}>
           {isFullscreen ? <Minimize /> : <Maximize />}
           表格全屏
         </Button>
