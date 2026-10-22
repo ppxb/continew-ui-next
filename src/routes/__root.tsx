@@ -2,7 +2,6 @@ import { createRootRoute, Outlet } from '@tanstack/react-router'
 
 import { Toaster } from '@/components/ui/toast'
 import { TooltipProvider } from '@/components/ui/tooltip'
-import { PREFERENCE_DEFAULTS } from '@/lib/preferences/preferences-config'
 import { AuthStoreProvider } from '@/stores/auth/auth-provider'
 import { PreferencesStoreProvider } from '@/stores/preferences/preferences-provider'
 
@@ -19,7 +18,7 @@ function RootComponent() {
   return (
     <TooltipProvider>
       <AuthStoreProvider>
-        <PreferencesStoreProvider initialValues={PREFERENCE_DEFAULTS}>
+        <PreferencesStoreProvider>
           <Outlet />
           <Toaster />
         </PreferencesStoreProvider>

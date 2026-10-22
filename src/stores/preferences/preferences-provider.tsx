@@ -34,14 +34,8 @@ function readDomPreferences(): PreferenceValueMap {
   return values
 }
 
-export function PreferencesStoreProvider({
-  children,
-  initialValues
-}: {
-  children: React.ReactNode
-  initialValues: PreferenceValueMap
-}) {
-  const [store] = useState<StoreApi<PreferencesState>>(() => createPreferencesStore(initialValues))
+export function PreferencesStoreProvider({ children }: { children: React.ReactNode }) {
+  const [store] = useState<StoreApi<PreferencesState>>(() => createPreferencesStore())
 
   useEffect(() => {
     store.setState({
@@ -83,7 +77,7 @@ export function PreferencesStoreProvider({
 }
 
 export function usePreferencesStore<T>(selector: (state: PreferencesState) => T): T {
-  const store = use(PreferencesStoreContext) as StoreApi<PreferencesState> | null
+  const store = use(PreferencesStoreContext)
   if (!store) throw new Error('Missing PreferencesStoreProvider')
   return useStore(store, selector)
 }

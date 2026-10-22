@@ -18,11 +18,8 @@ export type PreferencesState = {
   resetPreferences: () => void
 }
 
-export const createPreferencesStore = (initialValues: Partial<PreferenceValueMap> = {}) => {
-  const values: PreferenceValueMap = {
-    ...PREFERENCE_DEFAULTS,
-    ...initialValues
-  }
+export const createPreferencesStore = () => {
+  const values: PreferenceValueMap = { ...PREFERENCE_DEFAULTS }
 
   return createStore<PreferencesState>()(set => ({
     values,
