@@ -16,21 +16,19 @@ function themeBootPlugin(): Plugin {
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd()) as ImportMetaEnv
-  const apiPrefix = env.VITE_API_PREFIX || '/api'
-  const apiTarget = env.VITE_API_BASE_URL || 'http://localhost:8000'
+  const { VITE_API_BASE_URL, VITE_API_PREFIX, VITE_APP_PORT } = env
 
   return {
-    base: env.VITE_BASE_PATH || '/',
     resolve: {
       tsconfigPaths: true
     },
     server: {
-      port: 5173,
+      port: +VITE_APP_PORT,
       proxy: {
-        [apiPrefix]: {
-          target: apiTarget,
+        [VITE_API_PREFIX]: {
+          target: VITE_API_BASE_URL,
           changeOrigin: true,
-          rewrite: path => path.replace(new RegExp(`^${apiPrefix}`), '')
+          rewrite: path => path.replace(VITE_API_PREFIX, '')
         }
       }
     },
