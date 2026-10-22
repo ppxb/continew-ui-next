@@ -1,9 +1,9 @@
-import { Eye, X } from 'lucide-react'
+import { Eye } from 'lucide-react'
 
+import { EntityDrawer } from '@/components/entity-drawer'
 import { RichTextContent } from '@/components/rich-text-editor'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { Skeleton } from '@/components/ui/skeleton'
 
 import { useNoticeDetail } from './use-notice-detail'
@@ -20,17 +20,7 @@ export function NoticeViewDrawer({ noticeId, open, onClose }: NoticeViewDrawerPr
   const detail = detailQuery.data
 
   return (
-    <Drawer open={open} onOpenChange={next => (!next ? onClose() : undefined)} swipeDirection="right">
-      <DrawerContent className="data-[swipe-axis=x]:sm:[--drawer-content-width:44rem]">
-        <DrawerHeader className="flex-row items-center justify-between gap-2 border-b p-4 md:gap-2">
-          <div className="flex items-center gap-2">
-            <Eye className="size-4" />
-            <DrawerTitle>查看公告</DrawerTitle>
-          </div>
-          <DrawerClose render={<Button variant="ghost" size="icon-sm" />}>
-            <X />
-          </DrawerClose>
-        </DrawerHeader>
+    <EntityDrawer open={open} onClose={onClose} title="查看公告" icon={<Eye className="size-4" />} width={44}>
 
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-5">
           {detailQuery.isPending ? (
@@ -70,7 +60,6 @@ export function NoticeViewDrawer({ noticeId, open, onClose }: NoticeViewDrawerPr
             </article>
           )}
         </div>
-      </DrawerContent>
-    </Drawer>
+    </EntityDrawer>
   )
 }

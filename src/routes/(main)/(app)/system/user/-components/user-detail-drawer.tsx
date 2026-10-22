@@ -1,11 +1,11 @@
 import * as React from 'react'
 
 import { cn } from 'cn'
-import { Check, Copy, Eye, X } from 'lucide-react'
+import { Check, Copy, Eye } from 'lucide-react'
 
+import { EntityDrawer } from '@/components/entity-drawer'
 import { StatusCell } from '@/components/status-cell'
 import { Button } from '@/components/ui/button'
-import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from '@/components/ui/toast'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
@@ -146,29 +146,7 @@ export function UserDetailDrawer({ userId, open, onClose }: UserDetailDrawerProp
   const detail = query.data
 
   return (
-    <Drawer
-      open={open}
-      onOpenChange={nextOpen => {
-        if (!nextOpen) {
-          onClose()
-        }
-      }}
-      swipeDirection="right"
-    >
-      {/*
-        The built-in width lives on `data-[swipe-axis=x]:sm:`, so the override repeats that
-        variant chain; a bare `sm:` would lose to the attribute selector on specificity.
-      */}
-      <DrawerContent className="data-[swipe-axis=x]:sm:[--drawer-content-width:32rem]">
-        <DrawerHeader className="flex-row items-center justify-between gap-2 border-b p-4 md:gap-2">
-          <div className="flex items-center gap-2">
-            <Eye className="size-4" />
-            <DrawerTitle>用户详情</DrawerTitle>
-          </div>
-          <DrawerClose render={<Button variant="ghost" size="icon-sm" />}>
-            <X />
-          </DrawerClose>
-        </DrawerHeader>
+    <EntityDrawer open={open} onClose={onClose} title="用户详情" icon={<Eye className="size-4" />} width={32}>
 
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
           {query.isPending ? (
@@ -202,7 +180,6 @@ export function UserDetailDrawer({ userId, open, onClose }: UserDetailDrawerProp
             </dl>
           )}
         </div>
-      </DrawerContent>
-    </Drawer>
+    </EntityDrawer>
   )
 }

@@ -4,12 +4,13 @@ import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { z } from 'zod'
 
-import { Pen, User2, X } from 'lucide-react'
+import { Pen, User2 } from 'lucide-react'
 
+import { EntityDrawer } from '@/components/entity-drawer'
 import { PasswordInput } from '@/components/password-input'
 import { RequiredMark } from '@/components/required-mark'
 import { Button } from '@/components/ui/button'
-import { Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
+import { DrawerFooter } from '@/components/ui/drawer'
 import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -339,26 +340,14 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
   }, [open, isCreate, userId, detail.data, detail.dataUpdatedAt, form])
 
   return (
-    <Drawer
+    <EntityDrawer
       open={open}
-      onOpenChange={nextOpen => {
-        // Closing mid-save would leave the request in flight with no way to report it.
-        if (!nextOpen && !form.state.isSubmitting) {
-          onClose()
-        }
-      }}
-      swipeDirection="right"
+      onClose={onClose}
+      title={isCreate ? '新增用户' : '修改用户'}
+      icon={isCreate ? <User2 className="size-4" /> : <Pen className="size-4" />}
+      width={32}
+      canClose={() => !form.state.isSubmitting}
     >
-      <DrawerContent className="data-[swipe-axis=x]:sm:[--drawer-content-width:32rem]">
-        <DrawerHeader className="flex-row items-center justify-between gap-2 border-b p-4 md:gap-2">
-          <div className="flex items-center gap-2">
-            {isCreate ? <User2 className="size-4" /> : <Pen className="size-4" />}
-            <DrawerTitle>{isCreate ? '新增用户' : '修改用户'}</DrawerTitle>
-          </div>
-          <DrawerClose render={<Button variant="ghost" size="icon-sm" />}>
-            <X />
-          </DrawerClose>
-        </DrawerHeader>
 
         {/* A create has nothing to load, so its form is ready the moment the drawer opens. An edit
             waits for the record to settle, so the form never renders on a stale base. */}
@@ -652,7 +641,6 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
         ) : (
           <UserFormSkeleton onClose={onClose} />
         )}
-      </DrawerContent>
-    </Drawer>
+    </EntityDrawer>
   )
 }
