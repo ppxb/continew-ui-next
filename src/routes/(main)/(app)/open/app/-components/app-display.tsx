@@ -1,14 +1,6 @@
-import * as React from 'react'
-
-import { Check, Copy } from 'lucide-react'
-
+import { CopyButton } from '@/components/copy-button'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { toast } from '@/components/ui/toast'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import type { AppResp } from '@/lib/api/app'
-
-const COPIED_FEEDBACK_MS = 1500
 
 export function appLabel(app: Pick<AppResp, 'name'>) {
   return app.name
@@ -36,37 +28,18 @@ export function ExpireTimeCell({ expireTime }: { expireTime: string | null | und
 }
 
 export function AccessKeyCell({ accessKey }: { accessKey: string }) {
-  const [copied, setCopied] = React.useState(false)
-  const timer = React.useRef<ReturnType<typeof setTimeout>>(undefined)
-
-  React.useEffect(() => () => clearTimeout(timer.current), [])
-
-  const copy = async (event: React.MouseEvent) => {
-    event.stopPropagation()
-    try {
-      await navigator.clipboard.writeText(accessKey)
-      setCopied(true)
-      clearTimeout(timer.current)
-      timer.current = setTimeout(() => setCopied(false), COPIED_FEEDBACK_MS)
-      toast.add({ title: 'Access Key 已复制到剪贴板', type: 'success' })
-    } catch {
-      toast.add({ title: '复制失败，请手动复制', type: 'error' })
-    }
-  }
-
   return (
     <div className="flex items-center gap-1.5">
       <span className="truncate text-sm" title={accessKey}>
         {accessKey}
       </span>
-      <Tooltip>
-        <TooltipTrigger render={<Button variant="ghost" size="icon-sm" className="size-6 shrink-0" onClick={copy} />}>
-          {copied ? <Check className="size-3 text-green-600" /> : <Copy className="size-3 text-muted-foreground" />}
-        </TooltipTrigger>
-        <TooltipContent side="top" sideOffset={8}>
-          {copied ? '已复制' : '复制 Access Key'}
-        </TooltipContent>
-      </Tooltip>
+      <CopyButton
+        value={accessKey}
+        label="复制 Access Key"
+        successMessage="Access Key 已复制到剪贴板"
+        size="icon-sm"
+        className="size-6 shrink-0"
+      />
     </div>
   )
 }

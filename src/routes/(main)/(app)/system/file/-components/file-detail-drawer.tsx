@@ -1,23 +1,12 @@
 import * as React from 'react'
-import type { ReactNode } from 'react'
-
-import { cn } from 'cn'
 
 import { CopyableText } from '@/components/copyable-text'
+import { DetailField, DetailGrid } from '@/components/detail-field'
 import { EntityDrawer } from '@/components/entity-drawer'
 import type { FileResp } from '@/lib/api/file'
 import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 
 import { FileTypeIcon, fileTypeLabel, formatFileSize } from './file-display'
-
-function DetailField({ label, className, children }: { label: string; className?: string; children: ReactNode }) {
-  return (
-    <div className={cn('flex flex-col gap-1', className)}>
-      <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="text-sm wrap-break-word text-foreground">{children}</dd>
-    </div>
-  )
-}
 
 interface FileDetailDrawerProps {
   /** The row that was clicked; the API has no detail endpoint. */
@@ -59,7 +48,7 @@ export function FileDetailDrawer({ file, open, onClose }: FileDetailDrawerProps)
                 />
               ) : null}
 
-              <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+              <DetailGrid>
                 <DetailField label="ID">
                   <CopyableText value={String(shownFile.id)} />
                 </DetailField>
@@ -77,7 +66,7 @@ export function FileDetailDrawer({ file, open, onClose }: FileDetailDrawerProps)
                 </DetailField>
                 <DetailField label="创建时间">{shownFile.createTime || EMPTY_PLACEHOLDER}</DetailField>
                 <DetailField label="修改时间">{shownFile.updateTime || EMPTY_PLACEHOLDER}</DetailField>
-              </dl>
+              </DetailGrid>
             </div>
           ) : null}
         </div>

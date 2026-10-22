@@ -1,9 +1,7 @@
-import type { ReactNode } from 'react'
-
-import { cn } from 'cn'
 import { Building2 } from 'lucide-react'
 
 import { CopyableText } from '@/components/copyable-text'
+import { DetailField, DetailGrid } from '@/components/detail-field'
 import { EntityDrawer } from '@/components/entity-drawer'
 import { StatusCell } from '@/components/status-cell'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -11,15 +9,6 @@ import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 
 import { DomainCell, ExpireTimeCell } from './tenant-display'
 import { useTenantDetail } from './use-tenant-detail'
-
-function DetailField({ label, className, children }: { label: string; className?: string; children: ReactNode }) {
-  return (
-    <div className={cn('flex flex-col gap-1', className)}>
-      <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="text-sm wrap-break-word text-foreground">{children}</dd>
-    </div>
-  )
-}
 
 function TenantDetailSkeleton() {
   return (
@@ -61,7 +50,7 @@ export function TenantDetailDrawer({ tenantId, open, onClose }: TenantDetailDraw
           ) : query.isError || !detail ? (
             <p className="text-sm text-foreground">加载失败，请稍后重试</p>
           ) : (
-            <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+            <DetailGrid>
               <DetailField label="ID">
                 <CopyableText value={String(detail.id)} />
               </DetailField>
@@ -87,7 +76,7 @@ export function TenantDetailDrawer({ tenantId, open, onClose }: TenantDetailDraw
               <DetailField label="描述" className="sm:col-span-2">
                 {detail.description || EMPTY_PLACEHOLDER}
               </DetailField>
-            </dl>
+            </DetailGrid>
           )}
         </div>
     </EntityDrawer>

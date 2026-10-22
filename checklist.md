@@ -3,7 +3,7 @@
 > 最后同步：2026-10-21。原始 35 条全部保留；新增 12 条（36–47）。另有 11、13、27、28、31 按复查结果扩面，不另计条目。  
 > 状态：`[x]` 已修复；`[ ]` 待处理。
 
-共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 17 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
+共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 16 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
 
 本次为静态审计，覆盖业务管理页、共享组件、请求与状态层，以及部分仪表盘页面；未进行运行时性能测试。原生 HTML、必要的异常处理和合理的 `className` 扩展本身不算问题。文件行号对应当前代码。
 
@@ -89,7 +89,7 @@
 - [x] **27 · P3｜业务表格实现分裂为四套。［已修复 2026-10-22］** 新增共享 `DataTable`（表头/表体、加载/空/错状态、共享分页、sticky 表头、树表开关），15 张 TanStack 业务表全部收敛：用户/应用/客户端/短信/角色直接使用；菜单/部门走 `stickyHeader` + `showPagination={false}`；online/log/job-log/job/package/tenant/notice/sms-log 变成约 37 行的屏级包装，只保留按列 id 的骨架宽度映射。4 份复制分页与 8 份独立表壳已删除。dict/file 的自定义表不属于 TanStack 列表，保持独立。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/components/data-table.tsx:37](<E:/ppxb/continew-next/continew-ui-next/src/components/data-table.tsx:37>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/menu-list.tsx:212](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/menu-list.tsx:212>)
 
-- [ ] **28 · P3｜详情字段与复制逻辑大量重复。［复查扩面］** `DetailField` 至少 8 处重复；复制逻辑分布在 9 个文件，`COPIED_FEEDBACK_MS` 出现 6 次；已有 `CopyableText` 只被 4 个详情页使用。成功反馈也不一致。  
+- [x] **28 · P3｜详情字段与复制逻辑大量重复。［已修复 2026-10-22］** 新增 `DetailField` + `DetailGrid`（8 份复制归一）与 `CopyButton`（复制反馈、失败提示、行内点击 `stopPropagation`）；`CopyableText` 改为复用 `CopyButton`，并支持 `label` / `successMessage`。user/app/client 详情、app 列表 Access Key、客户端 ID 列、app 密钥弹窗统一使用；`COPIED_FEEDBACK_MS` 与重复的剪贴板状态只保留在 `CopyButton` 一处。json-viewer 的复制按钮是节点内悬浮操作，交互形态不同，未并入。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/user/-components/user-detail-drawer.tsx:20](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/user/-components/user-detail-drawer.tsx:20>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/detail-drawer.tsx:19](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/detail-drawer.tsx:19>)；[E:/ppxb/continew-next/continew-ui-next/src/components/copyable-text.tsx:12](<E:/ppxb/continew-next/continew-ui-next/src/components/copyable-text.tsx:12>)
 
 - [x] **29 · P3｜业务表格重复添加底层已有的 class。［已修复 2026-10-22］** 业务表格的 `hover:bg-muted/50`、`align-middle`、`whitespace-nowrap` 等重复声明随表壳收敛：`DataTable` 只保留 `py-4`、`font-normal`、`px-4` 这类业务密度，调用处不再重复底层默认值；文件列表里最后一处 `hover:bg-muted/50` 也已删除。  

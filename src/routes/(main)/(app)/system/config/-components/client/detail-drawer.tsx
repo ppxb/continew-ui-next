@@ -1,62 +1,14 @@
-import * as React from 'react'
+import { Smartphone } from 'lucide-react'
 
-import { cn } from 'cn'
-import { Check, Copy, Smartphone } from 'lucide-react'
-
+import { CopyableText } from '@/components/copyable-text'
+import { DetailField, DetailGrid } from '@/components/detail-field'
 import { EntityDrawer } from '@/components/entity-drawer'
 import { StatusCell } from '@/components/status-cell'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { toast } from '@/components/ui/toast'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import type { ClientResp } from '@/lib/api/client'
 import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 
 import { AUTH_TYPE_MAP, LOGOUT_MODE_MAP, REFRESH_TOKEN_MODE_MAP, REPLACED_RANGE_MAP } from './columns'
-
-const COPIED_FEEDBACK_MS = 1500
-
-function DetailField({ label, className, children }: { label: string; className?: string; children: React.ReactNode }) {
-  return (
-    <div className={cn('flex flex-col gap-1', className)}>
-      <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="text-sm wrap-break-word text-foreground">{children}</dd>
-    </div>
-  )
-}
-
-function IdField({ id }: { id: string | number }) {
-  const [copied, setCopied] = React.useState(false)
-  const timer = React.useRef<ReturnType<typeof setTimeout>>(undefined)
-
-  React.useEffect(() => () => clearTimeout(timer.current), [])
-
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(String(id))
-      setCopied(true)
-      toast.add({ title: '已复制客户端 ID', type: 'success' })
-      clearTimeout(timer.current)
-      timer.current = setTimeout(() => setCopied(false), COPIED_FEEDBACK_MS)
-    } catch {
-      toast.add({ title: '复制失败，请手动选择 ID', type: 'error' })
-    }
-  }
-
-  return (
-    <div className="flex items-center gap-1">
-      <span className="break-all">{id}</span>
-      <Tooltip>
-        <TooltipTrigger render={<Button variant="ghost" size="icon-sm" onClick={() => void copy()} />}>
-          {copied ? <Check className="size-3.5 text-green-600" /> : <Copy className="size-3.5" />}
-        </TooltipTrigger>
-        <TooltipContent side="top" sideOffset={8}>
-          {copied ? '已复制' : '复制客户端 ID'}
-        </TooltipContent>
-      </Tooltip>
-    </div>
-  )
-}
 
 interface ClientDetailDrawerProps {
   readonly client: ClientResp | null
@@ -83,10 +35,15 @@ export function ClientDetailDrawer({
 
         {client ? (
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
-            <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+            <DetailGrid>
               <DetailField label="ID">{client.id}</DetailField>
               <DetailField label="客户端 ID" className="sm:col-span-2">
-                <IdField id={client.clientId} />
+                <CopyableText
+                  value={client.clientId}
+                  label="复制客户端 ID"
+                  successMessage="已复制客户端 ID"
+                  className="break-all"
+                />
               </DetailField>
               <DetailField label="客户端类型" className="sm:col-span-2">
                 <Badge variant="outline">{clientTypeMap[client.clientType] || client.clientType}</Badge>
@@ -151,7 +108,7 @@ export function ClientDetailDrawer({
               <DetailField label="创建时间">{client.createTime || EMPTY_PLACEHOLDER}</DetailField>
               <DetailField label="修改人">{client.updateUserString || EMPTY_PLACEHOLDER}</DetailField>
               <DetailField label="修改时间">{client.updateTime || EMPTY_PLACEHOLDER}</DetailField>
-            </dl>
+            </DetailGrid>
           </div>
         ) : null}
     </EntityDrawer>

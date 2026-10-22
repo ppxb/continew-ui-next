@@ -1,8 +1,7 @@
-import * as React from 'react'
-
 import type { ColumnDef } from '@tanstack/react-table'
-import { Check, Copy, Eye, MoreHorizontal, PenLine, Trash2 } from 'lucide-react'
+import { Eye, MoreHorizontal, PenLine, Trash2 } from 'lucide-react'
 
+import { CopyButton } from '@/components/copy-button'
 import { FlagBadge, TypeBadge, type TypeTone } from '@/components/data-badge'
 import { StatusCell } from '@/components/status-cell'
 import { Badge } from '@/components/ui/badge'
@@ -15,7 +14,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import { toast } from '@/components/ui/toast'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import type { ClientResp } from '@/lib/api/client'
 import { EMPTY_PLACEHOLDER } from '@/lib/constants'
@@ -81,44 +79,15 @@ function TextCell({ value }: { value: string | null | undefined }) {
 }
 
 function ClientIdCell({ clientId }: { clientId: string }) {
-  const [copied, setCopied] = React.useState(false)
-  const timer = React.useRef<ReturnType<typeof setTimeout>>(undefined)
-
-  React.useEffect(() => () => clearTimeout(timer.current), [])
-
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(clientId)
-      setCopied(true)
-      toast.add({ title: '已复制客户端 ID', type: 'success' })
-      clearTimeout(timer.current)
-      timer.current = setTimeout(() => setCopied(false), 1500)
-    } catch {
-      toast.add({ title: '复制失败，请手动选择 ID', type: 'error' })
-    }
-  }
-
   return (
     <div className="flex items-center gap-1.5 text-foreground">
       <span className="truncate">{clientId}</span>
-      <Tooltip>
-        <TooltipTrigger
-          render={
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-xs"
-              className="size-6 text-muted-foreground transition-colors hover:text-foreground"
-              onClick={copy}
-            />
-          }
-        >
-          {copied ? <Check className="size-3 text-green-600" /> : <Copy className="size-3" />}
-        </TooltipTrigger>
-        <TooltipContent side="top" sideOffset={8}>
-          {copied ? '已复制' : '复制客户端 ID'}
-        </TooltipContent>
-      </Tooltip>
+      <CopyButton
+        value={clientId}
+        label="复制客户端 ID"
+        successMessage="已复制客户端 ID"
+        className="size-6 text-muted-foreground transition-colors hover:text-foreground"
+      />
     </div>
   )
 }

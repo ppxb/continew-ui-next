@@ -1,8 +1,9 @@
 import * as React from 'react'
 
 import { useQuery } from '@tanstack/react-query'
-import { Check, Copy, Eye, EyeOff, KeyRound, ShieldAlert } from 'lucide-react'
+import { Eye, EyeOff, KeyRound, ShieldAlert } from 'lucide-react'
 
+import { CopyButton } from '@/components/copy-button'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import {
@@ -15,7 +16,6 @@ import {
   DialogTitle
 } from '@/components/ui/dialog'
 import { Skeleton } from '@/components/ui/skeleton'
-import { toast } from '@/components/ui/toast'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { appKeys, type AppResp, getAppSecret } from '@/lib/api/app'
 
@@ -25,26 +25,8 @@ interface AppSecretDialogProps {
   readonly onClose: () => void
 }
 
-const COPIED_FEEDBACK_MS = 1500
-
 function SecretField({ label, value, isMaskable = false }: { label: string; value: string; isMaskable?: boolean }) {
   const [show, setShow] = React.useState(!isMaskable)
-  const [copied, setCopied] = React.useState(false)
-  const timer = React.useRef<ReturnType<typeof setTimeout>>(undefined)
-
-  React.useEffect(() => () => clearTimeout(timer.current), [])
-
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(value)
-      setCopied(true)
-      clearTimeout(timer.current)
-      timer.current = setTimeout(() => setCopied(false), COPIED_FEEDBACK_MS)
-      toast.add({ title: `${label} 已复制到剪贴板`, type: 'success' })
-    } catch {
-      toast.add({ title: '复制失败，请手动选择复制', type: 'error' })
-    }
-  }
 
   const masked = value.replace(/./g, '•')
 
@@ -68,20 +50,13 @@ function SecretField({ label, value, isMaskable = false }: { label: string; valu
               </TooltipContent>
             </Tooltip>
           ) : null}
-          <Tooltip>
-            <TooltipTrigger
-              render={<Button variant="ghost" size="icon-sm" className="size-7" onClick={() => void copy()} />}
-            >
-              {copied ? (
-                <Check className="size-3.5 text-green-600" />
-              ) : (
-                <Copy className="size-3.5 text-muted-foreground" />
-              )}
-            </TooltipTrigger>
-            <TooltipContent side="top" sideOffset={8}>
-              {copied ? '已复制' : `复制 ${label}`}
-            </TooltipContent>
-          </Tooltip>
+          <CopyButton
+            value={value}
+            label={`复制 ${label}`}
+            successMessage={`${label} 已复制到剪贴板`}
+            size="icon-sm"
+            className="size-7"
+          />
         </div>
       </div>
     </div>

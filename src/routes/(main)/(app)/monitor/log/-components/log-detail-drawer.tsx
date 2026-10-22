@@ -1,8 +1,7 @@
-import type { ReactNode } from 'react'
-
 import { cn } from 'cn'
 import { ScrollText } from 'lucide-react'
 
+import { DetailField, DetailGrid } from '@/components/detail-field'
 import { EntityDrawer } from '@/components/entity-drawer'
 import { JsonViewer, type JsonValue } from '@/components/json-viewer/json-viewer'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -11,15 +10,6 @@ import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 
 import { LogStatusCell, TimeTakenCell } from './log-display'
 import { useLogDetail } from './use-log-detail'
-
-function DetailField({ label, className, children }: { label: string; className?: string; children: ReactNode }) {
-  return (
-    <div className={cn('flex flex-col gap-1', className)}>
-      <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="text-sm wrap-break-word text-foreground">{children}</dd>
-    </div>
-  )
-}
 
 const RAW_PAYLOAD_CLASS = cn(
   'max-h-72 overflow-auto overscroll-contain rounded-lg border bg-muted/40 p-3',
@@ -141,7 +131,7 @@ export function LogDetailDrawer({ logId, open, onClose }: LogDetailDrawerProps) 
             <div className="flex flex-col gap-6">
               <section className="flex flex-col gap-3">
                 <h3 className="text-sm font-medium text-foreground">基本信息</h3>
-                <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+                <DetailGrid>
                   <DetailField label="日志 ID">
                     <span className="break-all">{detail.id}</span>
                   </DetailField>
@@ -165,7 +155,7 @@ export function LogDetailDrawer({ logId, open, onClose }: LogDetailDrawerProps) 
                   <DetailField label="请求 URI" className="sm:col-span-2">
                     <span className="break-all">{detail.requestUrl || EMPTY_PLACEHOLDER}</span>
                   </DetailField>
-                </dl>
+                </DetailGrid>
               </section>
 
               <section className="flex flex-col gap-3">

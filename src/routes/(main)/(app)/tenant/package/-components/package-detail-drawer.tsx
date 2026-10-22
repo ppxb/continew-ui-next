@@ -1,11 +1,9 @@
-import type { ReactNode } from 'react'
-
 import { useQuery } from '@tanstack/react-query'
 
-import { cn } from 'cn'
 import { FolderTree } from 'lucide-react'
 
 import { CopyableText } from '@/components/copyable-text'
+import { DetailField, DetailGrid } from '@/components/detail-field'
 import { EntityDrawer } from '@/components/entity-drawer'
 import { StatusCell } from '@/components/status-cell'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -17,15 +15,6 @@ import { usePackageDetail } from './use-package-detail'
 
 /** Menus barely change, so they stay cached between openings. */
 const LOOKUP_STALE_MS = 5 * 60_000
-
-function DetailField({ label, className, children }: { label: string; className?: string; children: ReactNode }) {
-  return (
-    <div className={cn('flex flex-col gap-1', className)}>
-      <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="text-sm wrap-break-word text-foreground">{children}</dd>
-    </div>
-  )
-}
 
 function toTreeNodes(nodes: PackageMenuNode[]): TreeNodeData[] {
   return nodes.map(node => ({
@@ -91,7 +80,7 @@ export function PackageDetailDrawer({ packageId, open, onClose }: PackageDetailD
             <div className="flex flex-col gap-6">
               <section>
                 <h3 className="mb-3 text-sm font-medium text-foreground">基础信息</h3>
-                <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+                <DetailGrid>
                   <DetailField label="ID" className="sm:col-span-2">
                     <CopyableText value={String(pkg.id)} />
                   </DetailField>
@@ -108,7 +97,7 @@ export function PackageDetailDrawer({ packageId, open, onClose }: PackageDetailD
                   <DetailField label="描述" className="sm:col-span-2">
                     {pkg.description || EMPTY_PLACEHOLDER}
                   </DetailField>
-                </dl>
+                </DetailGrid>
               </section>
 
               <section>

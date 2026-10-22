@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react'
 
-import { cn } from 'cn'
 import { ListChecks } from 'lucide-react'
 
 import { CopyableText } from '@/components/copyable-text'
+import { DetailField, DetailGrid } from '@/components/detail-field'
 import { EntityDrawer } from '@/components/entity-drawer'
 import { StatusCell } from '@/components/status-cell'
 import { Badge } from '@/components/ui/badge'
@@ -15,15 +15,6 @@ import {
   type JobResp
 } from '@/lib/api/job'
 import { EMPTY_PLACEHOLDER } from '@/lib/constants'
-
-function DetailField({ label, className, children }: { label: string; className?: string; children: ReactNode }) {
-  return (
-    <div className={cn('flex flex-col gap-1', className)}>
-      <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="text-sm wrap-break-word text-foreground">{children}</dd>
-    </div>
-  )
-}
 
 function LabelBadge({ children }: { children: ReactNode }) {
   return <Badge variant="secondary">{children}</Badge>
@@ -49,7 +40,7 @@ export function JobDetailDrawer({ job, open, onClose }: JobDetailDrawerProps) {
 
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
           {job ? (
-            <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+            <DetailGrid>
               <DetailField label="ID" className="sm:col-span-2">
                 <CopyableText value={String(job.id)} />
               </DetailField>
@@ -97,7 +88,7 @@ export function JobDetailDrawer({ job, open, onClose }: JobDetailDrawerProps) {
               <DetailField label="描述" className="sm:col-span-2">
                 {job.description || EMPTY_PLACEHOLDER}
               </DetailField>
-            </dl>
+            </DetailGrid>
           ) : null}
         </div>
     </EntityDrawer>

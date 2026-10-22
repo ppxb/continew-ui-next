@@ -1,64 +1,14 @@
-import * as React from 'react'
+import { Eye } from 'lucide-react'
 
-import { cn } from 'cn'
-import { Check, Copy, Eye } from 'lucide-react'
-
+import { CopyableText } from '@/components/copyable-text'
+import { DetailField, DetailGrid } from '@/components/detail-field'
 import { EntityDrawer } from '@/components/entity-drawer'
 import { StatusCell } from '@/components/status-cell'
-import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { toast } from '@/components/ui/toast'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import type { UserDetailResp } from '@/lib/api/user'
 import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 
 import { genderLabel, RoleCell } from './user-display'
 import { useUserDetail } from './use-user-detail'
-
-const COPIED_FEEDBACK_MS = 1500
-
-function DetailField({ label, className, children }: { label: string; className?: string; children: React.ReactNode }) {
-  return (
-    <div className={cn('flex flex-col gap-1', className)}>
-      <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="text-sm wrap-break-word text-foreground">{children}</dd>
-    </div>
-  )
-}
-
-/** The ID is a snowflake number, so it is only useful next to a copy button. */
-function IdField({ id }: { id: UserDetailResp['id'] }) {
-  const [copied, setCopied] = React.useState(false)
-  const timer = React.useRef<ReturnType<typeof setTimeout>>(undefined)
-
-  React.useEffect(() => () => clearTimeout(timer.current), [])
-
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(String(id))
-      setCopied(true)
-      clearTimeout(timer.current)
-      timer.current = setTimeout(() => setCopied(false), COPIED_FEEDBACK_MS)
-    } catch {
-      // `navigator.clipboard` only exists in a secure context, so this can fail outright.
-      toast.add({ title: '复制失败，请手动选择 ID', type: 'error' })
-    }
-  }
-
-  return (
-    <div className="flex items-center gap-1">
-      <span className="break-all">{id}</span>
-      <Tooltip>
-        <TooltipTrigger render={<Button variant="ghost" size="icon-sm" onClick={() => void copy()} />}>
-          {copied ? <Check className="size-3.5 text-green-600" /> : <Copy className="size-3.5" />}
-        </TooltipTrigger>
-        <TooltipContent side="top" sideOffset={8}>
-          {copied ? '已复制' : '复制 ID'}
-        </TooltipContent>
-      </Tooltip>
-    </div>
-  )
-}
 
 function UserDetailSkeleton() {
   return (
@@ -154,9 +104,9 @@ export function UserDetailDrawer({ userId, open, onClose }: UserDetailDrawerProp
           ) : query.isError || !detail ? (
             <p className="text-sm text-foreground">加载失败，请稍后重试</p>
           ) : (
-            <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+            <DetailGrid>
               <DetailField label="ID" className="sm:col-span-2">
-                <IdField id={detail.id} />
+                <CopyableText value={String(detail.id)} label="复制 ID" className="break-all" />
               </DetailField>
               <DetailField label="用户名">{detail.username}</DetailField>
               <DetailField label="昵称">{detail.nickname}</DetailField>
@@ -177,7 +127,7 @@ export function UserDetailDrawer({ userId, open, onClose }: UserDetailDrawerProp
               <DetailField label="修改人">{detail.updateUserString || EMPTY_PLACEHOLDER}</DetailField>
               <DetailField label="创建时间">{detail.createTime || EMPTY_PLACEHOLDER}</DetailField>
               <DetailField label="修改时间">{detail.updateTime || EMPTY_PLACEHOLDER}</DetailField>
-            </dl>
+            </DetailGrid>
           )}
         </div>
     </EntityDrawer>

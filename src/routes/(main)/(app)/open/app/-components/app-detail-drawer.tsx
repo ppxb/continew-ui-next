@@ -1,95 +1,14 @@
-import * as React from 'react'
+import { LayoutGrid } from 'lucide-react'
 
-import { cn } from 'cn'
-import { Check, Copy, LayoutGrid } from 'lucide-react'
-
+import { CopyableText } from '@/components/copyable-text'
+import { DetailField, DetailGrid } from '@/components/detail-field'
 import { EntityDrawer } from '@/components/entity-drawer'
 import { StatusCell } from '@/components/status-cell'
-import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { toast } from '@/components/ui/toast'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import type { AppDetailResp } from '@/lib/api/app'
 import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 
 import { ExpireTimeCell } from './app-display'
 import { useAppDetail } from './use-app-detail'
-
-const COPIED_FEEDBACK_MS = 1500
-
-function DetailField({ label, className, children }: { label: string; className?: string; children: React.ReactNode }) {
-  return (
-    <div className={cn('flex flex-col gap-1', className)}>
-      <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="text-sm wrap-break-word text-foreground">{children}</dd>
-    </div>
-  )
-}
-
-function IdField({ id }: { id: AppDetailResp['id'] }) {
-  const [copied, setCopied] = React.useState(false)
-  const timer = React.useRef<ReturnType<typeof setTimeout>>(undefined)
-
-  React.useEffect(() => () => clearTimeout(timer.current), [])
-
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(String(id))
-      setCopied(true)
-      clearTimeout(timer.current)
-      timer.current = setTimeout(() => setCopied(false), COPIED_FEEDBACK_MS)
-    } catch {
-      toast.add({ title: '复制失败，请手动选择 ID', type: 'error' })
-    }
-  }
-
-  return (
-    <div className="flex items-center gap-1">
-      <span className="break-all">{id}</span>
-      <Tooltip>
-        <TooltipTrigger render={<Button variant="ghost" size="icon-sm" onClick={() => void copy()} />}>
-          {copied ? <Check className="size-3.5 text-green-600" /> : <Copy className="size-3.5" />}
-        </TooltipTrigger>
-        <TooltipContent side="top" sideOffset={8}>
-          {copied ? '已复制' : '复制 ID'}
-        </TooltipContent>
-      </Tooltip>
-    </div>
-  )
-}
-
-function AccessKeyField({ accessKey }: { accessKey: string }) {
-  const [copied, setCopied] = React.useState(false)
-  const timer = React.useRef<ReturnType<typeof setTimeout>>(undefined)
-
-  React.useEffect(() => () => clearTimeout(timer.current), [])
-
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(accessKey)
-      setCopied(true)
-      clearTimeout(timer.current)
-      timer.current = setTimeout(() => setCopied(false), COPIED_FEEDBACK_MS)
-      toast.add({ title: 'Access Key 已复制到剪贴板', type: 'success' })
-    } catch {
-      toast.add({ title: '复制失败，请手动选择复制', type: 'error' })
-    }
-  }
-
-  return (
-    <div className="flex items-center gap-1">
-      <span className="break-all">{accessKey}</span>
-      <Tooltip>
-        <TooltipTrigger render={<Button variant="ghost" size="icon-sm" onClick={() => void copy()} />}>
-          {copied ? <Check className="size-3.5 text-green-600" /> : <Copy className="size-3.5" />}
-        </TooltipTrigger>
-        <TooltipContent side="top" sideOffset={8}>
-          {copied ? '已复制' : '复制 Access Key'}
-        </TooltipContent>
-      </Tooltip>
-    </div>
-  )
-}
 
 function AppDetailSkeleton() {
   return (
@@ -170,9 +89,9 @@ export function AppDetailDrawer({ appId, open, onClose }: AppDetailDrawerProps) 
           ) : query.isError ? (
             <div className="py-8 text-center text-sm text-destructive">获取应用详情失败，请检查网络或重试</div>
           ) : detail ? (
-            <dl className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+            <DetailGrid>
               <DetailField label="应用 ID" className="sm:col-span-2">
-                <IdField id={detail.id} />
+                <CopyableText value={String(detail.id)} label="复制 ID" className="break-all" />
               </DetailField>
 
               <DetailField label="应用名称" className="sm:col-span-2">
@@ -180,7 +99,12 @@ export function AppDetailDrawer({ appId, open, onClose }: AppDetailDrawerProps) 
               </DetailField>
 
               <DetailField label="Access Key" className="sm:col-span-2">
-                <AccessKeyField accessKey={detail.accessKey} />
+                <CopyableText
+                  value={detail.accessKey}
+                  label="复制 Access Key"
+                  successMessage="Access Key 已复制到剪贴板"
+                  className="break-all"
+                />
               </DetailField>
 
               <DetailField label="状态">
@@ -201,7 +125,7 @@ export function AppDetailDrawer({ appId, open, onClose }: AppDetailDrawerProps) 
               <DetailField label="创建时间">{detail.createTime || EMPTY_PLACEHOLDER}</DetailField>
               <DetailField label="修改人">{detail.updateUserString || EMPTY_PLACEHOLDER}</DetailField>
               <DetailField label="修改时间">{detail.updateTime || EMPTY_PLACEHOLDER}</DetailField>
-            </dl>
+            </DetailGrid>
           ) : null}
         </div>
     </EntityDrawer>
