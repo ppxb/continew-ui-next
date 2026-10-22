@@ -56,12 +56,12 @@ export function LayoutControls() {
       <PopoverContent align="end">
         <div className="flex flex-col gap-5">
           <div className="space-y-1.5">
-            <h4 className="text-sm leading-none font-medium">Preferences</h4>
-            <p className="text-xs text-muted-foreground">Customize your dashboard layout preferences.</p>
+            <h4 className="text-sm leading-none font-medium">偏好设置</h4>
+            <p className="text-xs text-muted-foreground">自定义仪表盘的外观与布局。</p>
           </div>
           <div className="space-y-3 **:data-[slot=toggle-group]:w-full **:data-[slot=toggle-group-item]:flex-1 **:data-[slot=toggle-group-item]:text-xs">
             <div className="space-y-1">
-              <Label className="text-xs font-medium">Theme Color</Label>
+              <Label className="text-xs font-medium">主题色</Label>
               <Select
                 items={themeColorItems}
                 value={themeColor}
@@ -71,7 +71,7 @@ export function LayoutControls() {
                 }}
               >
                 <SelectTrigger size="sm" className="w-full text-xs">
-                  <SelectValue className="items-center" placeholder="Color" />
+                  <SelectValue className="items-center" placeholder="选择颜色" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
@@ -94,7 +94,7 @@ export function LayoutControls() {
             </div>
 
             <div className="space-y-1">
-              <Label className="text-xs font-medium">Theme Mode</Label>
+              <Label className="text-xs font-medium">主题模式</Label>
               <ToggleGroup
                 size="sm"
                 spacing={0}
@@ -105,20 +105,20 @@ export function LayoutControls() {
                   setPreference('theme_mode', mode as ThemeMode)
                 }}
               >
-                <ToggleGroupItem value="light" aria-label="Toggle light">
-                  Light
+                <ToggleGroupItem value="light" aria-label="切换浅色">
+                  浅色
                 </ToggleGroupItem>
-                <ToggleGroupItem value="dark" aria-label="Toggle dark">
-                  Dark
+                <ToggleGroupItem value="dark" aria-label="切换深色">
+                  深色
                 </ToggleGroupItem>
-                <ToggleGroupItem value="system" aria-label="Toggle system">
-                  System
+                <ToggleGroupItem value="system" aria-label="跟随系统">
+                  跟随系统
                 </ToggleGroupItem>
               </ToggleGroup>
             </div>
 
             <div className="space-y-1">
-              <Label className="text-xs font-medium">Page Layout</Label>
+              <Label className="text-xs font-medium">页面布局</Label>
               <ToggleGroup
                 size="sm"
                 spacing={0}
@@ -129,17 +129,17 @@ export function LayoutControls() {
                   setPreference('content_layout', layout as ContentLayout)
                 }}
               >
-                <ToggleGroupItem value="centered" aria-label="Toggle centered">
-                  Centered
+                <ToggleGroupItem value="centered" aria-label="居中布局">
+                  居中
                 </ToggleGroupItem>
-                <ToggleGroupItem value="full-width" aria-label="Toggle full-width">
-                  Full Width
+                <ToggleGroupItem value="full-width" aria-label="全宽布局">
+                  全宽
                 </ToggleGroupItem>
               </ToggleGroup>
             </div>
 
             <div className="space-y-1">
-              <Label className="text-xs font-medium">Navbar Behavior</Label>
+              <Label className="text-xs font-medium">导航栏行为</Label>
               <ToggleGroup
                 size="sm"
                 spacing={0}
@@ -150,17 +150,17 @@ export function LayoutControls() {
                   setPreference('navbar_style', style as NavbarStyle)
                 }}
               >
-                <ToggleGroupItem value="sticky" aria-label="Toggle sticky">
-                  Sticky
+                <ToggleGroupItem value="sticky" aria-label="吸顶导航">
+                  吸顶
                 </ToggleGroupItem>
-                <ToggleGroupItem value="scroll" aria-label="Toggle scroll">
-                  Scroll
+                <ToggleGroupItem value="scroll" aria-label="滚动导航">
+                  跟随滚动
                 </ToggleGroupItem>
               </ToggleGroup>
             </div>
 
             <div className="space-y-1">
-              <Label className="text-xs font-medium">Sidebar Style</Label>
+              <Label className="text-xs font-medium">侧边栏样式</Label>
               <ToggleGroup
                 size="sm"
                 spacing={0}
@@ -171,20 +171,20 @@ export function LayoutControls() {
                   setPreference('sidebar_variant', nextVariant as SidebarVariant)
                 }}
               >
-                <ToggleGroupItem value="inset" aria-label="Toggle inset">
-                  Inset
+                <ToggleGroupItem value="inset" aria-label="内嵌侧边栏">
+                  内嵌
                 </ToggleGroupItem>
-                <ToggleGroupItem value="sidebar" aria-label="Toggle sidebar">
-                  Sidebar
+                <ToggleGroupItem value="sidebar" aria-label="侧边栏">
+                  侧边
                 </ToggleGroupItem>
-                <ToggleGroupItem value="floating" aria-label="Toggle floating">
-                  Floating
+                <ToggleGroupItem value="floating" aria-label="悬浮侧边栏">
+                  悬浮
                 </ToggleGroupItem>
               </ToggleGroup>
             </div>
 
             <div className="space-y-1">
-              <Label className="text-xs font-medium">Sidebar Collapse Mode</Label>
+              <Label className="text-xs font-medium">侧边栏折叠方式</Label>
               <ToggleGroup
                 size="sm"
                 spacing={0}
@@ -195,17 +195,17 @@ export function LayoutControls() {
                   setPreference('sidebar_collapsible', nextCollapsible as SidebarCollapsible)
                 }}
               >
-                <ToggleGroupItem value="icon" aria-label="Toggle icon">
-                  Icon
+                <ToggleGroupItem value="icon" aria-label="图标折叠">
+                  图标
                 </ToggleGroupItem>
-                <ToggleGroupItem value="offcanvas" aria-label="Toggle offcanvas">
-                  OffCanvas
+                <ToggleGroupItem value="offcanvas" aria-label="抽屉折叠">
+                  抽屉
                 </ToggleGroupItem>
               </ToggleGroup>
             </div>
 
             <Button type="button" size="sm" variant="outline" className="w-full text-xs" onClick={resetPreferences}>
-              Restore Defaults
+              恢复默认
             </Button>
           </div>
         </div>
