@@ -24,7 +24,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/components/ui/toast'
 import { listPackageDict, packageKeys } from '@/lib/api/package'
 import { createTenant, tenantKeys, updateTenant, type TenantDetailResp, type TenantReq } from '@/lib/api/tenant'
-import { encryptPassword } from '@/lib/crypto'
+import { encryptByRsa } from '@/lib/crypto'
 
 import { TenantExpiryPicker } from './tenant-expiry-picker'
 import { useTenantDetail } from './use-tenant-detail'
@@ -164,7 +164,7 @@ export function TenantFormDrawer({ tenantId, open, onClose }: TenantFormDrawerPr
       if (tenantId === null) {
         let password: string
         try {
-          password = encryptPassword(value.adminPassword)
+          password = encryptByRsa(value.adminPassword)
         } catch {
           // Encryption happens locally, so the HTTP layer is not there to report it.
           toast.add({ title: '密码加密失败，请刷新页面后重试', type: 'error' })

@@ -31,7 +31,7 @@ import {
   type UserReq,
   type UserStatus
 } from '@/lib/api/user'
-import { encryptPassword } from '@/lib/crypto'
+import { encryptByRsa } from '@/lib/crypto'
 
 import { DeptTreeSelect } from './dept-tree-select'
 import { genderLabel } from './user-display'
@@ -264,7 +264,7 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
       if (userId === null) {
         let password: string
         try {
-          password = encryptPassword(value.password)
+          password = encryptByRsa(value.password)
         } catch {
           // Encryption happens locally, so the HTTP layer is not there to report it.
           toast.add({ title: '密码加密失败，请刷新页面后重试', type: 'error' })

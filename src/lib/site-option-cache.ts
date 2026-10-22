@@ -1,33 +1,14 @@
 import type { LabelValueResp } from './api/common'
+import { getLocalStorageJson, setLocalStorageJson } from './local-storage'
 
 const SITE_OPTION_CACHE_KEY = 'continew.site-options'
 
-/**
- * Returns the cached public site options from localStorage, or null if missing/corrupt.
- */
+/** Reads the cached site options used to render the shell before the first query resolves. */
 export function getCachedSiteOptions(): LabelValueResp<string>[] | null {
-  try {
-    const raw = window.localStorage.getItem(SITE_OPTION_CACHE_KEY)
-    if (!raw) {
-      return null
-    }
-
-    const parsed = JSON.parse(raw) as unknown
-    return Array.isArray(parsed) ? (parsed as LabelValueResp<string>[]) : null
-  } catch {
-    return null
-  }
+  const parsed = getLocalStorageJson<unknown>(SITE_OPTION_CACHE_KEY)
+  return Array.isArray(parsed) ? (parsed as LabelValueResp<string>[]) : null
 }
 
-/**
- * Persists public site options to localStorage so the shell can render them on first paint.
- */
-export function setCachedSiteOptions(options: LabelValueResp<string>[]): void {
-  try {
-    window.localStorage.setItem(SITE_OPTION_CACHE_KEY, JSON.stringify(options))
-  } catch (error) {
-    if (import.meta.env.DEV) {
-      console.error('[site-option-cache] Failed to persist site options:', error)
-    }
-  }
+export function setCachedSiteOptions(options: LabelValueResp<string>[]) {
+  setLocalStorageJson(SITE_OPTION_CACHE_KEY, options)
 }

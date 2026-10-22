@@ -1,28 +1,27 @@
-export const getInitials = (str: string): string => {
-  if (typeof str !== 'string' || !str.trim()) return '?'
+export function getInitials(str: string): string {
+  const trimmed = str.trim()
 
-  return (
-    str
-      .trim()
-      .split(/\s+/)
-      .filter(Boolean)
-      .map(word => word[0])
-      .join('')
-      .toUpperCase() || '?'
-  )
+  if (!trimmed) {
+    return '?'
+  }
+
+  return trimmed
+    .split(/\s+/)
+    .map(word => word[0])
+    .join('')
+    .toUpperCase()
 }
 
-export function formatCurrency(
-  amount: number,
-  opts?: {
-    currency?: string
-    locale?: string
-    minimumFractionDigits?: number
-    maximumFractionDigits?: number
-    noDecimals?: boolean
-  }
-) {
-  const { currency = 'USD', locale = 'en-US', minimumFractionDigits, maximumFractionDigits, noDecimals } = opts ?? {}
+interface CurrencyFormatOptions {
+  currency?: string
+  locale?: string
+  minimumFractionDigits?: number
+  maximumFractionDigits?: number
+  noDecimals?: boolean
+}
+
+export function formatCurrency(amount: number, options: CurrencyFormatOptions = {}) {
+  const { currency = 'USD', locale = 'en-US', minimumFractionDigits, maximumFractionDigits, noDecimals } = options
 
   const formatOptions: Intl.NumberFormatOptions = {
     style: 'currency',

@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input'
 import { toast } from '@/components/ui/toast'
 import { useLogout } from '@/hooks/use-logout'
 import { updatePassword } from '@/lib/api/profile'
-import { encryptPassword } from '@/lib/crypto'
+import { encryptByRsa } from '@/lib/crypto'
 
 /**
  * Mirrors the backend default policy (`RegexConstants.PASSWORD`): 8 to 32
@@ -54,8 +54,8 @@ export function PasswordForm() {
       let newPassword: string
 
       try {
-        oldPassword = encryptPassword(value.oldPassword)
-        newPassword = encryptPassword(value.newPassword)
+        oldPassword = encryptByRsa(value.oldPassword)
+        newPassword = encryptByRsa(value.newPassword)
       } catch {
         // Encryption happens locally, so the HTTP layer is not there to report it.
         toast.add({ title: 'Password encryption failed. Please refresh the page and try again.', type: 'error' })

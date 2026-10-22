@@ -15,12 +15,7 @@ import type { StorageQuery } from '@/lib/api/storage'
 import type { TenantPageQuery } from '@/lib/api/tenant'
 import type { UserPageQuery } from '@/lib/api/user'
 
-/**
- * Unified query key factories following TanStack Query best practices.
- *
- * Using hierarchical arrays ensures type-safety, prevents typo bugs in string keys,
- * and makes prefix-based query invalidation predictable and reliable across the application.
- */
+/** Hierarchical query-key factories: typed keys and predictable prefix invalidation. */
 export const userKeys = {
   all: ['system', 'user'] as const,
   lists: () => [...userKeys.all, 'list'] as const,
@@ -41,8 +36,6 @@ export const menuKeys = {
   all: ['system', 'menu'] as const,
   trees: () => [...menuKeys.all, 'tree'] as const,
   tree: (query?: { title?: string; status?: number }) => [...menuKeys.trees(), query] as const,
-  dicts: () => [...menuKeys.all, 'tree-dict'] as const,
-  dict: () => [...menuKeys.dicts()] as const,
   details: () => [...menuKeys.all, 'detail'] as const,
   detail: (id: string | number | null) => [...menuKeys.details(), id] as const
 }
@@ -114,13 +107,9 @@ export const dictKeys = {
   code: (code: string) => [...dictKeys.all, code] as const,
   lists: () => [...dictKeys.all, 'list'] as const,
   list: (query?: DictQuery) => [...dictKeys.lists(), query] as const,
-  details: () => [...dictKeys.all, 'detail'] as const,
-  detail: (id: string | number | null) => [...dictKeys.details(), id] as const,
   items: () => [...dictKeys.all, 'items'] as const,
   itemLists: () => [...dictKeys.items(), 'list'] as const,
-  itemList: (query?: DictItemQuery) => [...dictKeys.itemLists(), query] as const,
-  itemDetails: () => [...dictKeys.items(), 'detail'] as const,
-  itemDetail: (id: string | number | null) => [...dictKeys.itemDetails(), id] as const
+  itemList: (query?: DictItemQuery) => [...dictKeys.itemLists(), query] as const
 }
 
 export const noticeKeys = {

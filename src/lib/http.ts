@@ -82,9 +82,9 @@ function messageOf(payload: MessagePayload | null | undefined, fallback: string)
 
 function fail(message: string, options: ErrorDetails = {}, silent = false) {
   const error = new ApiError(message, options)
-  error.notified = !silent
 
   if (!silent) {
+    error.notified = true
     toast.add({ title: message, type: 'error' })
   }
 
@@ -128,10 +128,10 @@ function buildUrl(path: string, query?: Query) {
   return queryString ? `${url}?${queryString}` : url
 }
 
-function buildHeaders(path: string, hasBody: boolean, extra?: HeadersInit, isFormData = false) {
+function buildHeaders(path: string, body?: unknown, extra?: HeadersInit) {
   const headers = new Headers(extra)
 
-  if (hasBody && !isFormData && !headers.has('Content-Type')) {
+  if (body !== undefined && !(body instanceof FormData) && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json')
   }
 
@@ -152,11 +152,19 @@ async function readPayload<T>(response: Response) {
   return (await response.json().catch(() => null)) as ApiResponse<T> | null
 }
 
+function toRequestBody(body: unknown): BodyInit | undefined {
+  if (body === undefined) {
+    return undefined
+  }
+
+  return body instanceof FormData ? body : JSON.stringify(body)
+}
+
 async function performRefresh(generation: number): Promise<string> {
   const response = await fetch(buildUrl(REFRESH_PATH), {
     method: 'POST',
     credentials: 'include',
-    headers: buildHeaders(REFRESH_PATH, false),
+    headers: buildHeaders(REFRESH_PATH),
     signal: timeoutSignal()
   })
   const payload = await readPayload<LoginResp>(response)
@@ -181,18 +189,13 @@ function refreshAccessToken(generation: number): Promise<string> {
     return refreshState.promise
   }
 
-  const state: RefreshState = {
-    generation,
-    promise: performRefresh(generation)
-  }
-
-  state.promise = state.promise.finally(() => {
-    if (refreshState === state) {
+  const promise = performRefresh(generation).finally(() => {
+    if (refreshState?.promise === promise) {
       refreshState = null
     }
   })
-  refreshState = state
-  return state.promise
+  refreshState = { generation, promise }
+  return promise
 }
 
 function handleSessionExpired(generation: number, message: string) {
@@ -210,7 +213,7 @@ function handleSessionExpired(generation: number, message: string) {
   void fetch(buildUrl(LOGOUT_PATH), {
     method: 'POST',
     credentials: 'include',
-    headers: buildHeaders(LOGOUT_PATH, false),
+    headers: buildHeaders(LOGOUT_PATH),
     signal: timeoutSignal(),
     keepalive: true
   }).catch(() => undefined)
@@ -254,7 +257,6 @@ async function send<T>(
   assertGeneration(generation)
 
   const { body, query, skipAuthRefresh, silent, headers, ...init } = options
-  const isFormData = typeof FormData !== 'undefined' && body instanceof FormData
   const timeout = timeoutSignal()
   // A caller-provided signal cancels the request too, but the request timeout still applies.
   const signal = init.signal ? AbortSignal.any([init.signal, timeout]) : timeout
@@ -265,8 +267,8 @@ async function send<T>(
       ...init,
       method,
       credentials: 'include',
-      headers: buildHeaders(path, body !== undefined, headers, isFormData),
-      body: body === undefined ? undefined : isFormData ? body : JSON.stringify(body),
+      headers: buildHeaders(path, body, headers),
+      body: toRequestBody(body),
       signal
     })
   } catch (error) {
@@ -332,7 +334,7 @@ async function fetchDownload(path: string, query?: Query) {
   try {
     return await fetch(buildUrl(path, query), {
       credentials: 'include',
-      headers: buildHeaders(path, false),
+      headers: buildHeaders(path),
       signal: timeoutSignal()
     })
   } catch {

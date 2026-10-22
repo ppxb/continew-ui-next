@@ -16,7 +16,7 @@ import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
 import { updateTenantAdminPassword, type TenantResp } from '@/lib/api/tenant'
-import { encryptPassword } from '@/lib/crypto'
+import { encryptByRsa } from '@/lib/crypto'
 
 /** Mirrors `RegexConstants.PASSWORD`: 8 to 32 characters with at least one digit and one lowercase letter. */
 const PASSWORD_PATTERN = /^(?=.*\d)(?=.*[a-z]).{8,32}$/
@@ -66,7 +66,7 @@ export function TenantAdminPasswordDialog({ tenant, open, onClose }: TenantAdmin
 
     let encrypted: string
     try {
-      encrypted = encryptPassword(password)
+      encrypted = encryptByRsa(password)
     } catch {
       toast.add({ title: '密码加密失败，请刷新页面后重试', type: 'error' })
       return

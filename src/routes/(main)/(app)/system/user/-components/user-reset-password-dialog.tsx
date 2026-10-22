@@ -20,7 +20,7 @@ import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/c
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
 import { resetUserPassword, userKeys, type UserResp } from '@/lib/api/user'
-import { encryptPassword } from '@/lib/crypto'
+import { encryptByRsa } from '@/lib/crypto'
 
 import { userLabel } from './user-display'
 
@@ -84,7 +84,7 @@ export function UserResetPasswordDialog({ user, open, onClose }: UserResetPasswo
 
       let newPassword: string
       try {
-        newPassword = encryptPassword(value.newPassword)
+        newPassword = encryptByRsa(value.newPassword)
       } catch {
         // Encryption happens locally, so the HTTP layer is not there to report it.
         toast.add({ title: '密码加密失败，请刷新页面后重试', type: 'error' })

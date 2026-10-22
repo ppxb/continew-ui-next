@@ -1,44 +1,18 @@
 import type { RouteResp } from './api/types'
+import { getLocalStorageJson, removeLocalStorageValue, setLocalStorageJson } from './local-storage'
 
 const MENU_CACHE_KEY = 'continew.menu-cache'
 
-/**
- * Returns the cached menu routes from localStorage, or null if missing/corrupt.
- */
+/** Reads the cached menu routes; missing or malformed entries yield null. */
 export function getCachedMenu(): RouteResp[] | null {
-  try {
-    const raw = window.localStorage.getItem(MENU_CACHE_KEY)
-    if (!raw) {
-      return null
-    }
-
-    const parsed = JSON.parse(raw) as unknown
-    return Array.isArray(parsed) ? (parsed as RouteResp[]) : null
-  } catch {
-    return null
-  }
+  const parsed = getLocalStorageJson<unknown>(MENU_CACHE_KEY)
+  return Array.isArray(parsed) ? (parsed as RouteResp[]) : null
 }
 
-/**
- * Persists backend menu routes to localStorage.
- */
-export function setCachedMenu(routes: RouteResp[]): void {
-  try {
-    window.localStorage.setItem(MENU_CACHE_KEY, JSON.stringify(routes))
-  } catch (error) {
-    if (import.meta.env.DEV) {
-      console.error('[menu-cache] Failed to persist menu cache:', error)
-    }
-  }
+export function setCachedMenu(routes: RouteResp[]) {
+  setLocalStorageJson(MENU_CACHE_KEY, routes)
 }
 
-/**
- * Removes cached menu routes from localStorage.
- */
-export function clearCachedMenu(): void {
-  try {
-    window.localStorage.removeItem(MENU_CACHE_KEY)
-  } catch {
-    // Ignore storage errors during cleanup.
-  }
+export function clearCachedMenu() {
+  removeLocalStorageValue(MENU_CACHE_KEY)
 }

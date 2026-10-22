@@ -8,7 +8,7 @@ import {
 } from '@/lib/api/auth'
 import type { UserInfoResp } from '@/lib/api/types'
 import { clearSession, getAccessToken, getAuthGeneration, setSession } from '@/lib/auth-session'
-import { encryptPassword } from '@/lib/crypto'
+import { encryptByRsa } from '@/lib/crypto'
 
 export type AuthStatus = 'anonymous' | 'authenticated'
 
@@ -81,7 +81,7 @@ export const createAuthStore = () => {
           clientId: import.meta.env.VITE_CLIENT_ID,
           authType: 'ACCOUNT',
           username,
-          password: encryptPassword(password),
+          password: encryptByRsa(password),
           captcha,
           uuid
         })
