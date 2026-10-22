@@ -3,7 +3,7 @@
 > 最后同步：2026-10-21。原始 35 条全部保留；新增 12 条（36–47）。另有 11、13、27、28、31 按复查结果扩面，不另计条目。  
 > 状态：`[x]` 已修复；`[ ]` 待处理。
 
-共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 9 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
+共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 8 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
 
 本次为静态审计，覆盖业务管理页、共享组件、请求与状态层，以及部分仪表盘页面；未进行运行时性能测试。原生 HTML、必要的异常处理和合理的 `className` 扩展本身不算问题。文件行号对应当前代码。
 
@@ -113,7 +113,7 @@
 - [x] **35 · P3｜同类管理表单使用两套实现体系。［已修复 2026-10-21］** 业务侧 19 个表单与仪表盘 `invoice` 演示页已全部迁到 TanStack Form；`react-hook-form`、`@hookform/resolvers` 已从 `package.json` 移除，项目内不再引用。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/user/-components/user-form-drawer.tsx:3](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/user/-components/user-form-drawer.tsx:3>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:6](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:6>)
 
-- [ ] **36 · P2｜字典项和通知用户被固定截断在前 100 条。** `dict-panel` 只取 100 个字典项且没有分页；通知表单只用前 100 个用户解析姓名，选择器搜索也最多 100 条。超过后字典项不可见，通知用户只能显示“用户 {id}”。与 16 同类。  
+- [x] **36 · P2｜字典项和通知用户被固定截断在前 100 条。［已修复 2026-10-22］** 字典组改为每页 10 条的服务端分页（页码进 queryKey，删除导致越界时回退，底部复用 `PaginationArrow`）；公告表单对前 100 之外的已选 id 用 `useQueries` + `getUser` 补拉姓名（走 `userKeys.detail` 缓存），Badge 不再显示「用户 id」；用户选择器改为 `useInfiniteQuery`，底部「加载更多」按 `total` 续页，服务端搜索仍按关键词重查。无批量 ids 接口时，补拉请求数等于超出前 100 的已选人数。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/dict/-components/dict-panel.tsx:57](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/dict/-components/dict-panel.tsx:57>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/notice/-components/notice-form-drawer.tsx:119](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/notice/-components/notice-form-drawer.tsx:119>)；[notice-user-picker.tsx:39](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/notice/-components/notice-user-picker.tsx:39>)
 
 - [ ] **37 · P2｜HeaderTabs 将关闭按钮嵌套在 Link 内。** `<Link>` 内又渲染 `<button>`，属于嵌套交互元素，键盘和读屏语义会混淆；`preventDefault/stopPropagation` 只掩盖了行为，没有修正结构。应把关闭按钮移到 Link 外。  

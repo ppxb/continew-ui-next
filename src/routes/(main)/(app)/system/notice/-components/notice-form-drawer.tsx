@@ -1,7 +1,7 @@
 import * as React from 'react'
 
-import { revalidateLogic, useForm } from '@tanstack/react-form'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { revalidateLogic, useForm, useSelector } from '@tanstack/react-form'
+import { useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { Megaphone, UserPlus } from 'lucide-react'
 
@@ -29,7 +29,7 @@ import {
   type NoticeScope,
   type NoticeStatus
 } from '@/lib/api/notice'
-import { listUsers, userKeys } from '@/lib/api/user'
+import { getUser, listUsers, userKeys } from '@/lib/api/user'
 
 import { NoticeStatusBadge } from './notice-display'
 import { NoticePublishTimePicker } from './notice-publish-time-picker'
@@ -198,10 +198,33 @@ export function NoticeFormDrawer({ noticeId, open, onClose }: NoticeFormDrawerPr
     void form.handleSubmit()
   }
 
-  const getUserName = (id: string) => {
-    const user = users.find(item => String(item.id) === id)
-    return user ? user.nickname || user.username : `用户 ${id}`
-  }
+  const noticeScope = useSelector(form.store, state => state.values.noticeScope)
+  const selectedUserIds = useSelector(form.store, state => state.values.noticeUsers)
+  const knownUserNames = new Map(users.map(user => [String(user.id), user.nickname || user.username]))
+
+  // The first page covers most notices; ids beyond it are resolved one by one.
+  const unresolvedUserIds =
+    noticeScope === 2
+      ? Array.from(new Set(selectedUserIds.map(String).filter(id => !knownUserNames.has(id))))
+      : []
+  const unresolvedUserQueries = useQueries({
+    queries: unresolvedUserIds.map(id => ({
+      queryKey: userKeys.detail(id),
+      queryFn: () => getUser(id),
+      enabled: open,
+      staleTime: 5 * 60_000
+    }))
+  })
+
+  unresolvedUserIds.forEach((id, index) => {
+    const user = unresolvedUserQueries[index]?.data
+
+    if (user) {
+      knownUserNames.set(id, user.nickname || user.username)
+    }
+  })
+
+  const getUserName = (id: string | number) => knownUserNames.get(String(id)) ?? `用户 ${id}`
 
   return (
     <EntityDrawer

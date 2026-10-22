@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 
 import { ChevronDown, MoreHorizontal, Pencil, Plus, Trash2 } from 'lucide-react'
 
+import { PaginationArrow } from '@/components/pagination-arrow'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
@@ -15,11 +16,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
+import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { dictKeys, listDictItems, type DictItemResp, type DictResp } from '@/lib/api/dict'
 
 import { createDictItemColumns, type DictItemAction } from './dict-columns'
 import { DictTable } from './dict-table'
+
+const PAGE_SIZE = 10
 
 interface DictGroupProps {
   readonly dict: DictResp
@@ -53,11 +57,22 @@ export function DictGroup({
 }: DictGroupProps) {
   const [open, setOpen] = React.useState(defaultOpen)
 
+  const [page, setPage] = React.useState(1)
+
   const query = useQuery({
-    queryKey: dictKeys.itemList({ dictId: dict.id, page: 1, size: 100, sort: 'sort,asc' }),
-    queryFn: () => listDictItems({ dictId: dict.id, page: 1, size: 100, sort: 'sort,asc' }),
+    queryKey: dictKeys.itemList({ dictId: dict.id, page, size: PAGE_SIZE, sort: 'sort,asc' }),
+    queryFn: () => listDictItems({ dictId: dict.id, page, size: PAGE_SIZE, sort: 'sort,asc' }),
     enabled: open
   })
+
+  const total = query.data?.total ?? 0
+  const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE))
+
+  React.useEffect(() => {
+    if (page > pageCount) {
+      setPage(pageCount)
+    }
+  }, [page, pageCount])
 
   const handleAction = React.useCallback(
     (action: DictItemAction, item: DictItemResp) => {
@@ -167,6 +182,34 @@ export function DictGroup({
           isError={query.isError}
           onRetry={() => void query.refetch()}
         />
+        {pageCount > 1 ? (
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t px-4 py-2 text-xs text-muted-foreground">
+            <span>共 {total} 项</span>
+            <Pagination className="mx-0 w-auto">
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationArrow
+                    direction="previous"
+                    text="上一页"
+                    disabled={page <= 1 || query.isFetching}
+                    onClick={() => setPage(current => Math.max(1, current - 1))}
+                  />
+                </PaginationItem>
+                <span className="px-2 tabular-nums">
+                  第 {page} / {pageCount} 页
+                </span>
+                <PaginationItem>
+                  <PaginationArrow
+                    direction="next"
+                    text="下一页"
+                    disabled={page >= pageCount || query.isFetching}
+                    onClick={() => setPage(current => Math.min(pageCount, current + 1))}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        ) : null}
       </CollapsibleContent>
     </Collapsible>
   )

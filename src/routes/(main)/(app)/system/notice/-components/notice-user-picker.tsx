@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import { useQuery } from '@tanstack/react-query'
+import { useInfiniteQuery } from '@tanstack/react-query'
 
 import { Search, UserPlus } from 'lucide-react'
 
@@ -30,6 +30,7 @@ interface NoticeUserPickerProps {
 }
 
 const EMPTY_USERS: UserResp[] = []
+const PAGE_SIZE = 100
 
 /** The Vue page uses a user-selection modal; this is the same picker in the project's dialog style. */
 export function NoticeUserPicker({ open, selected, onClose, onConfirm }: NoticeUserPickerProps) {
@@ -37,10 +38,17 @@ export function NoticeUserPicker({ open, selected, onClose, onConfirm }: NoticeU
   const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set())
   const debouncedSearch = useDebouncedValue(search)
 
-  // Search runs on the server so users beyond the first page stay selectable.
-  const usersQuery = useQuery({
-    queryKey: userKeys.list({ page: 1, size: 100, description: debouncedSearch.trim() || undefined }),
-    queryFn: () => listUsers({ page: 1, size: 100, description: debouncedSearch.trim() || undefined }),
+  // Search runs on the server; further pages load on demand so matches beyond the first 100 stay
+  // reachable.
+  const usersQuery = useInfiniteQuery({
+    queryKey: userKeys.list({ page: 1, size: PAGE_SIZE, description: debouncedSearch.trim() || undefined }),
+    queryFn: ({ pageParam }) =>
+      listUsers({ page: pageParam, size: PAGE_SIZE, description: debouncedSearch.trim() || undefined }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, allPages) => {
+      const loaded = allPages.reduce((count, page) => count + page.list.length, 0)
+      return loaded < lastPage.total ? allPages.length + 1 : undefined
+    },
     enabled: open
   })
 
@@ -51,7 +59,10 @@ export function NoticeUserPicker({ open, selected, onClose, onConfirm }: NoticeU
     }
   }, [open, selected])
 
-  const users = usersQuery.data?.list ?? EMPTY_USERS
+  const users = React.useMemo(
+    () => usersQuery.data?.pages.flatMap(page => page.list) ?? EMPTY_USERS,
+    [usersQuery.data]
+  )
 
   const toggleSelect = (id: string) => {
     setSelectedIds(prev => {
@@ -149,6 +160,19 @@ export function NoticeUserPicker({ open, selected, onClose, onConfirm }: NoticeU
                     </Field>
                   )
                 })}
+                {usersQuery.hasNextPage ? (
+                  <div className="flex justify-center py-2">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="xs"
+                      disabled={usersQuery.isFetchingNextPage}
+                      onClick={() => void usersQuery.fetchNextPage()}
+                    >
+                      {usersQuery.isFetchingNextPage ? '加载中…' : '加载更多'}
+                    </Button>
+                  </div>
+                ) : null}
               </div>
             )}
           </div>
