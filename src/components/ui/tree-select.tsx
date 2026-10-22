@@ -248,7 +248,7 @@ export function TreeSelect<T = Record<string, unknown>>({
                 'mb-1 flex h-auto w-full cursor-pointer items-center justify-start gap-2 rounded-md px-2 py-1.5 text-xs font-normal transition-colors outline-none',
                 !hasValue
                   ? 'bg-accent font-medium text-accent-foreground hover:bg-accent'
-                  : 'text-foreground hover:bg-muted/50'
+                  : 'text-foreground hover:bg-accent/60 hover:text-accent-foreground'
               )}
             >
               <span>{allOptionLabel}</span>
