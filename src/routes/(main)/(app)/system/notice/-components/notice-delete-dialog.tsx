@@ -18,10 +18,9 @@ interface NoticeDeleteDialogProps {
   readonly notice: NoticeResp | null
   readonly open: boolean
   readonly onClose: () => void
-  readonly onCompleted: () => void
 }
 
-export function NoticeDeleteDialog({ notice, open, onClose, onCompleted }: NoticeDeleteDialogProps) {
+export function NoticeDeleteDialog({ notice, open, onClose }: NoticeDeleteDialogProps) {
   const queryClient = useQueryClient()
 
   const deleteMutation = useMutation({
@@ -29,7 +28,6 @@ export function NoticeDeleteDialog({ notice, open, onClose, onCompleted }: Notic
     onSuccess: () => {
       toast.add({ title: '删除成功', type: 'success' })
       void queryClient.invalidateQueries({ queryKey: noticeKeys.all })
-      onCompleted()
       onClose()
     }
   })

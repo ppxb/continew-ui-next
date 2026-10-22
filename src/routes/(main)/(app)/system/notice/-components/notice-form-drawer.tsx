@@ -104,11 +104,10 @@ interface NoticeFormDrawerProps {
   readonly noticeId: string | number | null
   readonly open: boolean
   readonly onClose: () => void
-  readonly onCompleted: () => void
 }
 
 /** Creates or edits a notice; every action is a drawer, matching the user management screen. */
-export function NoticeFormDrawer({ noticeId, open, onClose, onCompleted }: NoticeFormDrawerProps) {
+export function NoticeFormDrawer({ noticeId, open, onClose }: NoticeFormDrawerProps) {
   const queryClient = useQueryClient()
   const { typeOptions, scopeOptions, methodOptions, statusOptions } = useNoticeDicts()
 
@@ -159,7 +158,6 @@ export function NoticeFormDrawer({ noticeId, open, onClose, onCompleted }: Notic
         }
 
         void queryClient.invalidateQueries({ queryKey: noticeKeys.all })
-        onCompleted()
         onClose()
       } catch {
         // The HTTP layer already reported the failure.

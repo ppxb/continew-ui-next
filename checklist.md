@@ -3,7 +3,7 @@
 > 最后同步：2026-10-21。原始 35 条全部保留；新增 12 条（36–47）。另有 11、13、27、28、31 按复查结果扩面，不另计条目。  
 > 状态：`[x]` 已修复；`[ ]` 待处理。
 
-共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 10 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
+共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 9 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
 
 本次为静态审计，覆盖业务管理页、共享组件、请求与状态层，以及部分仪表盘页面；未进行运行时性能测试。原生 HTML、必要的异常处理和合理的 `className` 扩展本身不算问题。文件行号对应当前代码。
 
@@ -107,7 +107,7 @@
 - [ ] **33 · P3｜邮件页面保留挂载后才能显示内容的门禁。** `isMounted + useEffect` 无条件先显示一次 Loading，再渲染实际布局。项目是纯 SPA，可直接初始化所需浏览器状态，减少额外首屏渲染。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/mail/-components/mail.tsx:21](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/mail/-components/mail.tsx:21>)
 
-- [ ] **34 · P3｜完成回调被设计为必填，但调用方只传空函数。** 公告表单和删除弹窗传入 `onCompleted={() => undefined}`，增加了没有实际职责的接口和样板代码。可移除无用回调，或仅在确有扩展需求时设为可选。  
+- [x] **34 · P3｜完成回调被设计为必填，但调用方只传空函数。［已修复 2026-10-22］** 公告表单抽屉与删除弹窗移除 `onCompleted` 必填属性及成功后的调用（列表刷新本来就由组件内部 `invalidateQueries(noticeKeys.all)` 完成），`notice-list` 两处 `onCompleted={() => undefined}` 一并删除。dict、file 那些确有职责的回调保留。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/notice/-components/notice-list.tsx:237](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/notice/-components/notice-list.tsx:237>)
 
 - [x] **35 · P3｜同类管理表单使用两套实现体系。［已修复 2026-10-21］** 业务侧 19 个表单与仪表盘 `invoice` 演示页已全部迁到 TanStack Form；`react-hook-form`、`@hookform/resolvers` 已从 `package.json` 移除，项目内不再引用。  

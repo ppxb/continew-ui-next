@@ -225,17 +225,11 @@ export function NoticeList() {
 
       <NoticeDetailDrawer noticeId={detailId} open={detailId !== null} onClose={() => setDetailId(null)} />
       <NoticeViewDrawer noticeId={viewId} open={viewId !== null} onClose={() => setViewId(null)} />
-      <NoticeFormDrawer
-        noticeId={formNoticeId}
-        open={formOpen}
-        onClose={() => setFormOpen(false)}
-        onCompleted={() => undefined}
-      />
+      <NoticeFormDrawer noticeId={formNoticeId} open={formOpen} onClose={() => setFormOpen(false)} />
       <NoticeDeleteDialog
         notice={deletingNotice}
         open={deletingNotice !== null}
         onClose={() => setDeletingNotice(null)}
-        onCompleted={() => undefined}
       />
     </>
   )
