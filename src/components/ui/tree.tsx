@@ -202,6 +202,17 @@ export function Tree<T = Record<string, unknown>>({
     return new Set((controlledCheckedKeys ?? []).map(String))
   }, [controlledCheckedKeys])
 
+  /** Disabled nodes are locked: only `checkedKeys` decides their state, never a user action. */
+  const disabledKeySet = React.useMemo(() => {
+    const set = new Set<string>()
+    for (const [key, node] of index.nodeMap.entries()) {
+      if (node.disabled) {
+        set.add(String(key))
+      }
+    }
+    return set
+  }, [index])
+
   const indeterminateKeySet = React.useMemo(() => {
     if (!checkable || checkStrictly || checkedKeySet.size === 0) {
       return new Set<string>()
@@ -232,7 +243,9 @@ export function Tree<T = Record<string, unknown>>({
           nextChecked.add(keyStr)
         }
       } else {
-        const descendants = (index.descendantsMap.get(nodeId) ?? []).map(String)
+        // Locked nodes keep their checked state through every cascade path, so the descendants
+        // and ancestors handled here exclude them.
+        const descendants = (index.descendantsMap.get(nodeId) ?? []).map(String).filter(d => !disabledKeySet.has(d))
 
         if (isCurrentlyChecked) {
           nextChecked.delete(keyStr)
@@ -241,7 +254,9 @@ export function Tree<T = Record<string, unknown>>({
           }
           const ancestors = (index.ancestorsMap.get(nodeId) ?? []).map(String)
           for (const a of ancestors) {
-            nextChecked.delete(a)
+            if (!disabledKeySet.has(a)) {
+              nextChecked.delete(a)
+            }
           }
         } else {
           nextChecked.add(keyStr)
@@ -250,7 +265,11 @@ export function Tree<T = Record<string, unknown>>({
           }
           const ancestors = (index.ancestorsMap.get(nodeId) ?? []).map(String)
           for (const a of ancestors) {
-            const children = (index.directChildrenMap.get(a) ?? []).map(String)
+            if (disabledKeySet.has(a)) {
+              continue
+            }
+
+            const children = (index.directChildrenMap.get(a) ?? []).map(String).filter(c => !disabledKeySet.has(c))
             const allChecked = children.every(c => nextChecked.has(c))
             if (allChecked) {
               nextChecked.add(a)
@@ -261,7 +280,7 @@ export function Tree<T = Record<string, unknown>>({
 
       onCheckedChange?.(Array.from(nextChecked))
     },
-    [checkedKeySet, checkStrictly, index, onCheckedChange]
+    [checkedKeySet, checkStrictly, disabledKeySet, index, onCheckedChange]
   )
 
   const lastAutoExpandedKey = React.useRef<TreeKey | null | undefined>(undefined)

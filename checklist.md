@@ -3,7 +3,7 @@
 > 最后同步：2026-10-21。原始 35 条全部保留；新增 12 条（36–47）。另有 11、13、27、28、31 按复查结果扩面，不另计条目。  
 > 状态：`[x]` 已修复；`[ ]` 待处理。
 
-共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 14 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
+共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 13 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
 
 本次为静态审计，覆盖业务管理页、共享组件、请求与状态层，以及部分仪表盘页面；未进行运行时性能测试。原生 HTML、必要的异常处理和合理的 `className` 扩展本身不算问题。文件行号对应当前代码。
 
@@ -77,7 +77,7 @@
 - [x] **23 · P2｜分页的禁用状态只改变透明度。［已修复 2026-10-21］** 新增共享 `PaginationArrow`：到达首尾页时设置 `aria-disabled`、`tabIndex={-1}`、`pointer-events-none opacity-50`，并在点击处理里拦截激活；共享 `TablePagination`、app/client/sms/role 四张复制表格，以及角色成员抽屉与回收站抽屉统一改用它，禁用语义、事件处理与视觉状态一致。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/components/pagination-arrow.tsx:16](<E:/ppxb/continew-next/continew-ui-next/src/components/pagination-arrow.tsx:16>)；[E:/ppxb/continew-next/continew-ui-next/src/components/table-pagination.tsx:91](<E:/ppxb/continew-next/continew-ui-next/src/components/table-pagination.tsx:91>)
 
-- [ ] **24 · P2｜树组件的“全选”忽略节点禁用状态。** 单节点操作支持 `disabled`，但全选直接提交 `index.allKeys`。这是共享组件契约不一致，应明确禁用节点在批量选择中的处理规则。  
+- [x] **24 · P2｜树组件的“全选”忽略节点禁用状态。［已修复 2026-10-22］** 明确 `disabled` 为“锁定”：其勾选状态只由 `checkedKeys`/数据决定，单击、父级级联、全选、清空都不改动它。`ui/tree.tsx` 的级联只处理 enabled 后代/祖先，父节点“全选”判定只统计 enabled 子节点；`checkable-tree.tsx` 的全选/清空以当前勾选为基线增删 enabled 节点。可能出现“父节点勾选而禁用子节点未勾选”，属于“父节点代表所有可操作子节点”的预期语义。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/components/checkable-tree.tsx:65](<E:/ppxb/continew-next/continew-ui-next/src/components/checkable-tree.tsx:65>)
 
 - [ ] **25 · P3｜通过解析 class 字符串推断组件布局。** `className.includes('flex-1')` 将布局行为绑定到字符串，`md:flex-1` 也会触发所有断点的伸展布局。应通过明确属性或容器样式表达布局。  

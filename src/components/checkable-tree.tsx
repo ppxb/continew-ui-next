@@ -47,6 +47,12 @@ export function CheckableTree<T = Record<string, unknown>>({
 
   const index = React.useMemo(() => buildTreeIndex(data), [data])
 
+  /** Disabled nodes are locked, so the batch actions below leave them untouched. */
+  const enabledKeys = React.useMemo(
+    () => index.allKeys.filter(key => !index.nodeMap.get(key)?.disabled).map(key => String(key)),
+    [index]
+  )
+
   // Initialize expanded keys to all nodes on first load
   React.useEffect(() => {
     if (index.allKeys.length > 0) {
@@ -63,11 +69,19 @@ export function CheckableTree<T = Record<string, unknown>>({
   }
 
   const handleSelectAll = () => {
-    onCheckedChange(index.allKeys.map(k => String(k)))
+    const next = new Set(checkedKeys.map(String))
+    for (const key of enabledKeys) {
+      next.add(key)
+    }
+    onCheckedChange(Array.from(next))
   }
 
   const handleClearAll = () => {
-    onCheckedChange([])
+    const next = new Set(checkedKeys.map(String))
+    for (const key of enabledKeys) {
+      next.delete(key)
+    }
+    onCheckedChange(Array.from(next))
   }
 
   if (loading) {
