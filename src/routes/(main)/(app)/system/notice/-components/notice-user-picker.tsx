@@ -133,7 +133,7 @@ export function NoticeUserPicker({ open, selected, onClose, onConfirm }: NoticeU
                       key={id}
                       orientation="horizontal"
                       className={`gap-2.5 rounded-md px-2 py-1.5 transition-colors ${
-                        isSelected ? 'bg-accent text-accent-foreground' : 'hover:bg-muted/60'
+                        isSelected ? 'bg-accent text-accent-foreground' : 'hover:bg-accent/60'
                       }`}
                     >
                       <Checkbox

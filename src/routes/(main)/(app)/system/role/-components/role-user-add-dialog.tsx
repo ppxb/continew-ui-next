@@ -148,7 +148,7 @@ export function RoleUserAddDialog({ role, open, onClose, onSuccess }: RoleUserAd
                           ? 'cursor-not-allowed bg-muted/20 opacity-50'
                           : isSelected
                             ? 'cursor-pointer bg-accent text-accent-foreground'
-                            : 'cursor-pointer hover:bg-muted/60'
+                            : 'cursor-pointer hover:bg-accent/60'
                       }`}
                       onClick={() => {
                         if (!isAssigned) {

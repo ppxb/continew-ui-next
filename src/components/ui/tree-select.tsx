@@ -46,7 +46,7 @@ export function TreeSelect<T = Record<string, unknown>>({
   loading = false,
   clearable = true,
   searchable = true,
-  searchPlaceholder = '搜索节点…',
+  searchPlaceholder = '搜索节点',
   showExpandActions = true,
   showIcons = true,
   selectableLeafOnly = false,
@@ -239,16 +239,15 @@ export function TreeSelect<T = Record<string, unknown>>({
           {showAllOption && !searchKeyword && (
             <Button
               type="button"
-              variant="ghost"
               onClick={() => {
                 onChange?.(null, null)
                 setOpen(false)
               }}
               className={cn(
-                'mb-1 flex h-auto w-full cursor-pointer items-center justify-start gap-2 rounded-md px-2 py-1.5 text-xs font-normal transition-colors outline-none',
+                'mb-1 flex h-auto w-full cursor-pointer items-center justify-start gap-2 rounded-md px-2 py-1.5 transition-colors outline-none',
                 !hasValue
-                  ? 'bg-accent font-medium text-accent-foreground hover:bg-accent'
-                  : 'text-foreground hover:bg-accent/60 hover:text-accent-foreground'
+                  ? 'bg-accent font-medium text-accent-foreground hover:bg-accent dark:hover:bg-accent'
+                  : 'text-foreground hover:bg-accent/60 hover:text-accent-foreground dark:hover:bg-accent/60'
               )}
             >
               <span>{allOptionLabel}</span>

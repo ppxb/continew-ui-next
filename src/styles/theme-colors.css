@@ -16,8 +16,8 @@
   --ring: oklch(0.707 0.165 254.624);
   --chart-1: oklch(0.707 0.165 254.624);
   --sidebar-ring: oklch(0.707 0.165 254.624);
-  --accent: color-mix(in oklab, var(--primary) 14%, var(--background));
-  --sidebar-accent: color-mix(in oklab, var(--primary) 14%, var(--sidebar));
+  --accent: color-mix(in oklab, var(--primary) 26%, var(--background));
+  --sidebar-accent: color-mix(in oklab, var(--primary) 26%, var(--sidebar));
 }
 
 :root[data-theme-color='cyan'] {
@@ -36,8 +36,8 @@
   --ring: oklch(0.789 0.154 211.530);
   --chart-1: oklch(0.789 0.154 211.530);
   --sidebar-ring: oklch(0.789 0.154 211.530);
-  --accent: color-mix(in oklab, var(--primary) 14%, var(--background));
-  --sidebar-accent: color-mix(in oklab, var(--primary) 14%, var(--sidebar));
+  --accent: color-mix(in oklab, var(--primary) 26%, var(--background));
+  --sidebar-accent: color-mix(in oklab, var(--primary) 26%, var(--sidebar));
 }
 
 :root[data-theme-color='teal'] {
@@ -56,8 +56,8 @@
   --ring: oklch(0.777 0.152 181.912);
   --chart-1: oklch(0.777 0.152 181.912);
   --sidebar-ring: oklch(0.777 0.152 181.912);
-  --accent: color-mix(in oklab, var(--primary) 14%, var(--background));
-  --sidebar-accent: color-mix(in oklab, var(--primary) 14%, var(--sidebar));
+  --accent: color-mix(in oklab, var(--primary) 26%, var(--background));
+  --sidebar-accent: color-mix(in oklab, var(--primary) 26%, var(--sidebar));
 }
 
 :root[data-theme-color='emerald'] {
@@ -76,8 +76,8 @@
   --ring: oklch(0.765 0.177 163.223);
   --chart-1: oklch(0.765 0.177 163.223);
   --sidebar-ring: oklch(0.765 0.177 163.223);
-  --accent: color-mix(in oklab, var(--primary) 14%, var(--background));
-  --sidebar-accent: color-mix(in oklab, var(--primary) 14%, var(--sidebar));
+  --accent: color-mix(in oklab, var(--primary) 26%, var(--background));
+  --sidebar-accent: color-mix(in oklab, var(--primary) 26%, var(--sidebar));
 }
 
 :root[data-theme-color='amber'] {
@@ -96,8 +96,8 @@
   --ring: oklch(0.828 0.189 84.429);
   --chart-1: oklch(0.828 0.189 84.429);
   --sidebar-ring: oklch(0.828 0.189 84.429);
-  --accent: color-mix(in oklab, var(--primary) 14%, var(--background));
-  --sidebar-accent: color-mix(in oklab, var(--primary) 14%, var(--sidebar));
+  --accent: color-mix(in oklab, var(--primary) 26%, var(--background));
+  --sidebar-accent: color-mix(in oklab, var(--primary) 26%, var(--sidebar));
 }
 
 :root[data-theme-color='orange'] {
@@ -116,8 +116,8 @@
   --ring: oklch(0.750 0.183 55.934);
   --chart-1: oklch(0.750 0.183 55.934);
   --sidebar-ring: oklch(0.750 0.183 55.934);
-  --accent: color-mix(in oklab, var(--primary) 14%, var(--background));
-  --sidebar-accent: color-mix(in oklab, var(--primary) 14%, var(--sidebar));
+  --accent: color-mix(in oklab, var(--primary) 26%, var(--background));
+  --sidebar-accent: color-mix(in oklab, var(--primary) 26%, var(--sidebar));
 }
 
 :root[data-theme-color='rose'] {
@@ -136,8 +136,8 @@
   --ring: oklch(0.712 0.194 13.428);
   --chart-1: oklch(0.712 0.194 13.428);
   --sidebar-ring: oklch(0.712 0.194 13.428);
-  --accent: color-mix(in oklab, var(--primary) 14%, var(--background));
-  --sidebar-accent: color-mix(in oklab, var(--primary) 14%, var(--sidebar));
+  --accent: color-mix(in oklab, var(--primary) 26%, var(--background));
+  --sidebar-accent: color-mix(in oklab, var(--primary) 26%, var(--sidebar));
 }
 
 :root[data-theme-color='fuchsia'] {
@@ -156,8 +156,8 @@
   --ring: oklch(0.740 0.238 322.160);
   --chart-1: oklch(0.740 0.238 322.160);
   --sidebar-ring: oklch(0.740 0.238 322.160);
-  --accent: color-mix(in oklab, var(--primary) 14%, var(--background));
-  --sidebar-accent: color-mix(in oklab, var(--primary) 14%, var(--sidebar));
+  --accent: color-mix(in oklab, var(--primary) 26%, var(--background));
+  --sidebar-accent: color-mix(in oklab, var(--primary) 26%, var(--sidebar));
 }
 
 :root[data-theme-color='violet'] {
@@ -176,6 +176,6 @@
   --ring: oklch(0.702 0.183 293.541);
   --chart-1: oklch(0.702 0.183 293.541);
   --sidebar-ring: oklch(0.702 0.183 293.541);
-  --accent: color-mix(in oklab, var(--primary) 14%, var(--background));
-  --sidebar-accent: color-mix(in oklab, var(--primary) 14%, var(--sidebar));
+  --accent: color-mix(in oklab, var(--primary) 26%, var(--background));
+  --sidebar-accent: color-mix(in oklab, var(--primary) 26%, var(--sidebar));
 }
