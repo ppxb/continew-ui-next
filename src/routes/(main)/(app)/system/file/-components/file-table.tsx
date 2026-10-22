@@ -29,7 +29,7 @@ export function FileTable({ files, canDownload, canUpdate, canDelete, handlers }
       </TableHeader>
       <TableBody>
         {files.map(file => (
-          <TableRow key={String(file.id)} className="hover:bg-muted/50">
+          <TableRow key={String(file.id)}>
             <TableCell className="py-3">
               <div className="flex min-w-0 items-center gap-2">
                 <FileTypeIcon type={file.type} className="size-4 shrink-0 text-muted-foreground" />

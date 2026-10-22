@@ -3,7 +3,7 @@
 > 最后同步：2026-10-21。原始 35 条全部保留；新增 12 条（36–47）。另有 11、13、27、28、31 按复查结果扩面，不另计条目。  
 > 状态：`[x]` 已修复；`[ ]` 待处理。
 
-共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 21 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
+共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 19 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
 
 本次为静态审计，覆盖业务管理页、共享组件、请求与状态层，以及部分仪表盘页面；未进行运行时性能测试。原生 HTML、必要的异常处理和合理的 `className` 扩展本身不算问题。文件行号对应当前代码。
 
@@ -86,14 +86,14 @@
 - [ ] **26 · P3｜树数据更新会重置用户的展开状态。** 注释写“首次加载展开全部”，但 effect 随索引变化重复执行。应只初始化一次，或在数据更新时保留仍然有效的展开键。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/components/checkable-tree.tsx:50](<E:/ppxb/continew-next/continew-ui-next/src/components/checkable-tree.tsx:50>)
 
-- [ ] **27 · P3｜业务表格实现分裂为四套。［复查扩面］** 15 张 TanStack 表中，9 张使用共享分页，4 张（app/client/sms/role，224–226 行）各自复制整套分页和骨架，menu/dept 又复制骨架；dict/file 另有两套自定义表。建议抽 `DataTableShell` 和共享分页，先迁移 4 张大表。  
-  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/user/-components/user-table.tsx:22](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/user/-components/user-table.tsx:22>)；[open/app/-components/app-table.tsx:31](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/open/app/-components/app-table.tsx:31>)；[client/table.tsx:32](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/table.tsx:32>)；[dict-table.tsx:13](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/dict/-components/dict-table.tsx:13>)
+- [x] **27 · P3｜业务表格实现分裂为四套。［已修复 2026-10-22］** 新增共享 `DataTable`（表头/表体、加载/空/错状态、共享分页、sticky 表头、树表开关），15 张 TanStack 业务表全部收敛：用户/应用/客户端/短信/角色直接使用；菜单/部门走 `stickyHeader` + `showPagination={false}`；online/log/job-log/job/package/tenant/notice/sms-log 变成约 37 行的屏级包装，只保留按列 id 的骨架宽度映射。4 份复制分页与 8 份独立表壳已删除。dict/file 的自定义表不属于 TanStack 列表，保持独立。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/components/data-table.tsx:37](<E:/ppxb/continew-next/continew-ui-next/src/components/data-table.tsx:37>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/menu-list.tsx:212](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/menu-list.tsx:212>)
 
 - [ ] **28 · P3｜详情字段与复制逻辑大量重复。［复查扩面］** `DetailField` 至少 8 处重复；复制逻辑分布在 9 个文件，`COPIED_FEEDBACK_MS` 出现 6 次；已有 `CopyableText` 只被 4 个详情页使用。成功反馈也不一致。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/user/-components/user-detail-drawer.tsx:20](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/user/-components/user-detail-drawer.tsx:20>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/detail-drawer.tsx:19](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/detail-drawer.tsx:19>)；[E:/ppxb/continew-next/continew-ui-next/src/components/copyable-text.tsx:12](<E:/ppxb/continew-next/continew-ui-next/src/components/copyable-text.tsx:12>)
 
-- [ ] **29 · P3｜业务表格重复添加底层已有的 class。** 例如 `TableRow` 的 `hover:bg-muted/50`、`TableCell` 的 `align-middle`、`TableHead` 的 `whitespace-nowrap` 均已有默认实现，可删除调用处的重复声明。  
-  文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/user/-components/user-table.tsx:37](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/user/-components/user-table.tsx:37>)；[E:/ppxb/continew-next/continew-ui-next/src/components/ui/table.tsx:30](<E:/ppxb/continew-next/continew-ui-next/src/components/ui/table.tsx:30>)
+- [x] **29 · P3｜业务表格重复添加底层已有的 class。［已修复 2026-10-22］** 业务表格的 `hover:bg-muted/50`、`align-middle`、`whitespace-nowrap` 等重复声明随表壳收敛：`DataTable` 只保留 `py-4`、`font-normal`、`px-4` 这类业务密度，调用处不再重复底层默认值；文件列表里最后一处 `hover:bg-muted/50` 也已删除。  
+  文件：[E:/ppxb/continew-next/continew-ui-next/src/components/data-table.tsx:66](<E:/ppxb/continew-next/continew-ui-next/src/components/data-table.tsx:66>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/file/-components/file-table.tsx:32](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/file/-components/file-table.tsx:32>)
 
 - [ ] **30 · P3｜通过额外样式重新定义 shadcn Button 尺寸。** “清空”按钮使用 `size="sm"`，又覆盖 `h-6 px-2 text-xs`；本地已有接近该规格的 `size="xs"`。应优先使用已有尺寸变体，减少样式覆盖。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/notice/-components/notice-user-picker.tsx:150](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/notice/-components/notice-user-picker.tsx:150>)
