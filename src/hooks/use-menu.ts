@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 
-import { queryOptions, useQuery } from '@tanstack/react-query'
+import { isCancelledError, queryOptions, useQuery } from '@tanstack/react-query'
 
 import { getUserRoutes } from '@/lib/api/auth'
 import { ApiError } from '@/lib/http'
@@ -55,7 +55,7 @@ export async function ensureMenuLoaded() {
   try {
     await queryClient.query({ ...menuQueryOptions, staleTime: 'static' })
   } catch (error) {
-    if (!(error instanceof ApiError)) {
+    if (!(error instanceof ApiError) && !isCancelledError(error)) {
       throw error
     }
   }
