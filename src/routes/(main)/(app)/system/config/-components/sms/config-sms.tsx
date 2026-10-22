@@ -5,6 +5,7 @@ import { type ColumnVisibilityState, type PaginationState, useTable } from '@tan
 import { cn } from 'cn'
 import { RefreshCw, Search } from 'lucide-react'
 
+import { DataTable } from '@/components/data-table'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
@@ -22,7 +23,6 @@ import { dictKeys, smsKeys } from '@/lib/query-keys'
 import { createSmsColumns, type SmsAction } from './columns'
 import { SmsDeleteDialog } from './delete-dialog'
 import { SmsFormDrawer } from './form-drawer'
-import { SmsTable } from './table'
 import { SmsToolbar } from './toolbar'
 
 const SUPPLIER_PRESETS = [
@@ -246,12 +246,13 @@ export function ConfigSms() {
       />
 
       {/* TanStack Table */}
-      <SmsTable
+      <DataTable
         table={table}
         isLoading={query.isPending}
         isError={query.isError}
-        isStale={query.isPlaceholderData}
+        isShowingPreviousRows={query.isPlaceholderData}
         onRetry={() => void query.refetch()}
+        skeletonWidths={['mx-auto w-6', 'w-24', 'w-16', 'w-28', 'w-20']}
       />
     </>
   )

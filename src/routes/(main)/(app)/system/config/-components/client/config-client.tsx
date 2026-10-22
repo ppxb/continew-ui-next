@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { type ColumnVisibilityState, type PaginationState, useTable } from '@tanstack/react-table'
 import { cn } from 'cn'
 
+import { DataTable } from '@/components/data-table'
 import { Card, CardContent } from '@/components/ui/card'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
@@ -23,7 +24,6 @@ import {
 import { ClientDeleteDialog } from './delete-dialog'
 import { ClientDetailDrawer } from './detail-drawer'
 import { ClientFormDrawer } from './form-drawer'
-import { ClientTable } from './table'
 import { ClientToolbar } from './toolbar'
 
 const CLIENT_TYPE_PRESETS = [
@@ -303,19 +303,30 @@ export function ConfigClient() {
       />
 
       {/* TanStack Table */}
-      <ClientTable
+      <DataTable
         table={table}
         isLoading={query.isPending}
         isError={query.isError}
-        isStale={query.isPlaceholderData}
+        isShowingPreviousRows={query.isPlaceholderData}
         onRetry={() => void query.refetch()}
+        skeletonWidths={[
+          'mx-auto w-6',
+          'w-24',
+          'w-20',
+          'w-24',
+          'mx-auto w-12 rounded-full',
+          'w-24',
+          'w-24',
+          'w-24',
+          'mx-auto w-10'
+        ]}
       />
     </>
   )
 
   return (
     <>
-      <Card>
+      <Card className="pb-0">
         <CardContent className="flex flex-col gap-4 px-0">
           {isFullscreen ? <div ref={spacerRef} style={{ height: reservedHeight }} /> : null}
 

@@ -6,6 +6,7 @@ import { type ColumnVisibilityState, type PaginationState, useTable } from '@tan
 import { cn } from 'cn'
 import { Search, X } from 'lucide-react'
 
+import { DataTable } from '@/components/data-table'
 import { Button } from '@/components/ui/button'
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
@@ -21,7 +22,6 @@ import { AppDetailDrawer } from './app-detail-drawer'
 import { AppFormDrawer } from './app-form-drawer'
 import { AppResetSecretDialog } from './app-reset-secret-dialog'
 import { AppSecretDialog } from './app-secret-dialog'
-import { AppTable } from './app-table'
 import { AppToolbar } from './app-toolbar'
 
 const HIDDEN_BY_DEFAULT: ColumnVisibilityState = {
@@ -168,12 +168,13 @@ export function AppList() {
         onResetColumns={() => setColumnVisibility(HIDDEN_BY_DEFAULT)}
       />
 
-      <AppTable
+      <DataTable
         table={table}
         isLoading={query.isPending}
         isError={query.isError}
-        isStale={query.isPlaceholderData}
+        isShowingPreviousRows={query.isPlaceholderData}
         onRetry={() => void query.refetch()}
+        skeletonWidths={['mx-auto w-4', 'mx-auto w-6', 'w-24', 'w-36', 'mx-auto w-12 rounded-full', 'w-24']}
       />
     </>
   )

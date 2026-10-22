@@ -6,6 +6,7 @@ import { type ColumnVisibilityState, type PaginationState, useTable } from '@tan
 import { cn } from 'cn'
 import { Search } from 'lucide-react'
 
+import { DataTable } from '@/components/data-table'
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { useDebouncedValue } from '@/hooks/use-debounced-value'
@@ -17,7 +18,6 @@ import { createRoleColumns, type RoleAction } from './role-columns'
 import { RoleDeleteDialog } from './role-delete-dialog'
 import { RoleFormDrawer } from './role-form-drawer'
 import { RolePermissionDrawer } from './role-permission-drawer'
-import { RoleTable } from './role-table'
 import { RoleToolbar } from './role-toolbar'
 import { RoleUserDrawer } from './role-user-drawer'
 
@@ -135,19 +135,20 @@ export function RoleList() {
         onResetColumns={() => setColumnVisibility(HIDDEN_BY_DEFAULT)}
       />
 
-      <RoleTable
+      <DataTable
         table={table}
         isLoading={query.isPending}
         isError={query.isError}
-        isStale={query.isPlaceholderData}
+        isShowingPreviousRows={query.isPlaceholderData}
         onRetry={() => void query.refetch()}
+        skeletonWidths={['mx-auto w-4', 'mx-auto w-6', 'w-24', 'w-20', 'mx-auto w-16 rounded-full', 'w-20']}
       />
     </>
   )
 
   return (
     <>
-      <Card>
+      <Card className="pb-0">
         <CardHeader className="border-b has-data-[slot=card-action]:grid-cols-1 md:has-data-[slot=card-action]:grid-cols-[1fr_auto]">
           <CardTitle className="text-xl leading-none">角色管理</CardTitle>
           <CardDescription className="max-w-sm leading-snug">管理系统角色、数据权限范围及角色成员关联</CardDescription>
