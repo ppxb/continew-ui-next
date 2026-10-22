@@ -23,7 +23,7 @@ import {
   SidebarMenuSubItem,
   useSidebar
 } from '@/components/ui/sidebar'
-import { toPathname, type MenuGroup, type MenuItem } from '@/navigation/sidebar/menu'
+import { toPathname, type MenuGroup, type MenuItem } from '@/navigation/menu'
 
 interface NavMainProps {
   readonly items: readonly MenuGroup[]

@@ -7,7 +7,7 @@ import { ApiError } from '@/lib/http'
 import { getAccessToken } from '@/lib/auth-session'
 import { getCachedMenu, setCachedMenu } from '@/lib/menu-cache'
 import { queryClient } from '@/lib/query-client'
-import { STATIC_MENU_ITEMS, toMenuGroups } from '@/navigation/sidebar/menu'
+import { toMenuGroups } from '@/navigation/menu'
 import { useAuthStore } from '@/stores/auth/auth-provider'
 
 /** The menu only changes when the signed-in user or its roles change. */
@@ -72,7 +72,7 @@ export function useMenuGroups() {
   const { data, isPending } = useMenuRoutes()
 
   return {
-    groups: useMemo(() => toMenuGroups(data ?? [], STATIC_MENU_ITEMS), [data]),
+    groups: useMemo(() => toMenuGroups(data ?? []), [data]),
     isPending
   }
 }

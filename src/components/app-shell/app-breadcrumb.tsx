@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/breadcrumb'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { useMenuRoutes } from '@/hooks/use-menu'
-import { findMenuTrail, toPathname } from '@/navigation/sidebar/menu'
+import { findMenuTrail, toPathname } from '@/navigation/menu'
 
 export interface BreadcrumbItemData {
   id: string

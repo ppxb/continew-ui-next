@@ -23,6 +23,7 @@ export interface MenuGroup {
 
 /** Backend menu type: 1 directory, 2 menu, 3 button. */
 const TYPE_MENU = 2
+const TYPE_BUTTON = 3
 
 /** The backend stores paths with an optional query string, for example `?tab=site`. */
 export function toPathname(path: string) {
@@ -32,7 +33,7 @@ export function toPathname(path: string) {
 
 /** Buttons carry a permission code instead of a page, and hidden nodes are details. */
 function isVisible(node: RouteResp) {
-  return node.type !== 3 && !node.isHidden
+  return node.type !== TYPE_BUTTON && !node.isHidden
 }
 
 function toMenuItem(node: RouteResp): MenuItem {
@@ -77,11 +78,11 @@ export const STATIC_MENU_ITEMS: readonly MenuItem[] = [
  * A top-level directory becomes a labelled group, a menu becomes a link item, and a
  * directory nested inside a group becomes a collapsible parent item. Menus that sit
  * at the top level are collected into an unlabelled group in front of the rest, and
- * `staticItems` are merged into that same group so app-owned routes stay on top.
+ * the app-owned static items are merged into that same group so they stay on top.
  */
-export function toMenuGroups(nodes: readonly RouteResp[], staticItems: readonly MenuItem[] = []): MenuGroup[] {
+export function toMenuGroups(nodes: readonly RouteResp[]): MenuGroup[] {
   const groups: MenuGroup[] = []
-  const looseItems: MenuItem[] = [...staticItems]
+  const looseItems: MenuItem[] = [...STATIC_MENU_ITEMS]
 
   for (const node of nodes.filter(isVisible)) {
     if (node.type === TYPE_MENU || !node.children?.length) {
@@ -97,7 +98,9 @@ export function toMenuGroups(nodes: readonly RouteResp[], staticItems: readonly 
           : toMenuItem(child)
       )
 
-    groups.push({ id: String(node.id), label: node.title, items })
+    if (items.length > 0) {
+      groups.push({ id: String(node.id), label: node.title, items })
+    }
   }
 
   if (looseItems.length > 0) {
@@ -105,22 +108,6 @@ export function toMenuGroups(nodes: readonly RouteResp[], staticItems: readonly 
   }
 
   return groups
-}
-
-/** Finds the menu entry behind a pathname, so placeholders can show its title. */
-export function findMenuByPath(nodes: readonly RouteResp[], pathname: string): RouteResp | undefined {
-  for (const node of nodes) {
-    if (toPathname(node.path) === pathname) {
-      return node
-    }
-
-    const match = node.children ? findMenuByPath(node.children, pathname) : undefined
-    if (match) {
-      return match
-    }
-  }
-
-  return undefined
 }
 
 /** Finds the full trail of menu entries leading to a pathname, for breadcrumb navigation. */
@@ -139,4 +126,9 @@ export function findMenuTrail(nodes: readonly RouteResp[], pathname: string): Ro
   }
 
   return []
+}
+
+/** Finds the menu entry behind a pathname, so placeholders can show its title. */
+export function findMenuByPath(nodes: readonly RouteResp[], pathname: string) {
+  return findMenuTrail(nodes, pathname).at(-1)
 }

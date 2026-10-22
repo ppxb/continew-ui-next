@@ -15,7 +15,7 @@ import {
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { resolveMenuIcon } from '@/navigation/sidebar/menu-icons'
+import { resolveMenuIcon } from '@/navigation/menu-icons'
 import { cn } from 'cn'
 
 export interface IconCategory {

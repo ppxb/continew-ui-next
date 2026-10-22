@@ -4,7 +4,7 @@ import { Construction } from 'lucide-react'
 
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useMenuRoutes } from '@/hooks/use-menu'
-import { findMenuByPath, toPathname } from '@/navigation/sidebar/menu'
+import { findMenuByPath, toPathname } from '@/navigation/menu'
 import { NotFound } from '@/routes/-components/not-found'
 
 /**

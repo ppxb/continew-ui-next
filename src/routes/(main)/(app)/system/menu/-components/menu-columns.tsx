@@ -27,7 +27,7 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { MENU_TYPE_MAP, type MenuResp, type MenuType } from '@/lib/api/menu'
 import type { DataTableFeatures } from '@/lib/data-table-features'
-import { resolveMenuIcon } from '@/navigation/sidebar/menu-icons'
+import { resolveMenuIcon } from '@/navigation/menu-icons'
 import { cn } from 'cn'
 
 export type MenuAction = 'edit' | 'add-child' | 'delete'

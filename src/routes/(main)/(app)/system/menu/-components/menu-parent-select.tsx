@@ -5,7 +5,7 @@ import { FileText, Folder } from 'lucide-react'
 import { TreeSelect } from '@/components/ui/tree-select'
 import type { TreeKey, TreeNodeData } from '@/components/ui/tree'
 import type { MenuResp } from '@/lib/api/menu'
-import { resolveMenuIcon } from '@/navigation/sidebar/menu-icons'
+import { resolveMenuIcon } from '@/navigation/menu-icons'
 
 /** Recursively collects the target ID and all its descendant IDs to prevent cyclic parenting. */
 function collectDescendantIds(nodes: MenuResp[], targetId: string | number): Set<string> {

@@ -12,8 +12,8 @@ import {
   ContextMenuTrigger
 } from '@/components/ui/context-menu'
 import { useMenuRoutes } from '@/hooks/use-menu'
-import { resolveMenuIcon } from '@/navigation/sidebar/menu-icons'
-import { findMenuByPath } from '@/navigation/sidebar/menu'
+import { resolveMenuIcon } from '@/navigation/menu-icons'
+import { findMenuByPath } from '@/navigation/menu'
 import { type TabItem, useTabsStore } from '@/stores/tabs'
 
 const STATIC_ROUTE_TITLES: Record<string, string> = {

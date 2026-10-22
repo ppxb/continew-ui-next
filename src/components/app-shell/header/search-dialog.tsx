@@ -16,7 +16,7 @@ import {
   CommandSeparator
 } from '@/components/ui/command'
 import { useMenuGroups } from '@/hooks/use-menu'
-import type { MenuGroup, MenuItem } from '@/navigation/sidebar/menu'
+import type { MenuGroup, MenuItem } from '@/navigation/menu'
 
 interface SearchItem {
   id: string
