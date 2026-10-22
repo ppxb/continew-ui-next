@@ -12,8 +12,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem
 } from '@/components/ui/sidebar'
-import { APP_CONFIG } from '@/config/app-config'
 import { useMenuGroups } from '@/hooks/use-menu'
+import { useSiteOptions } from '@/hooks/use-site-options'
 import { usePreferencesStore } from '@/stores/preferences/preferences-provider'
 
 import { NavMain } from './nav-main'
@@ -28,6 +28,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     }))
   )
   const { groups } = useMenuGroups()
+  const { title } = useSiteOptions()
 
   const variant = isSynced ? sidebarVariant : props.variant
   const collapsible = isSynced ? sidebarCollapsible : props.collapsible
@@ -39,7 +40,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton render={<Link to="/dashboard" />}>
               <Command />
-              <span className="text-base font-semibold">{APP_CONFIG.name}</span>
+              <span className="text-base font-semibold">{title}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
