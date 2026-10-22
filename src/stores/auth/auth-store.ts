@@ -70,8 +70,15 @@ export const createAuthStore = () => {
       })
 
       setSession({ accessToken: response.accessToken, tenantId: response.tenantId, persist })
-      set({ status: 'authenticated', user: null, permissions: [], roles: [] })
-      await get().loadUser()
+
+      try {
+        // Flip to authenticated only once the profile loads; a failed profile fetch must not leave
+        // a token behind that the shell would read as a signed-in session.
+        await get().loadUser()
+      } catch (error) {
+        get().clearLocalSession()
+        throw error
+      }
     },
 
     socialLogin: async params => {
@@ -83,8 +90,13 @@ export const createAuthStore = () => {
 
       // There is no "remember me" on this path, so the session always persists.
       setSession({ accessToken: response.accessToken, tenantId: response.tenantId, persist: true })
-      set({ status: 'authenticated', user: null, permissions: [], roles: [] })
-      await get().loadUser()
+
+      try {
+        await get().loadUser()
+      } catch (error) {
+        get().clearLocalSession()
+        throw error
+      }
     },
 
     loadUser: () => {

@@ -3,7 +3,7 @@
 > 最后同步：2026-10-21。原始 35 条全部保留；新增 12 条（36–47）。另有 11、13、27、28、31 按复查结果扩面，不另计条目。  
 > 状态：`[x]` 已修复；`[ ]` 待处理。
 
-共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 15 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
+共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 14 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
 
 本次为静态审计，覆盖业务管理页、共享组件、请求与状态层，以及部分仪表盘页面；未进行运行时性能测试。原生 HTML、必要的异常处理和合理的 `className` 扩展本身不算问题。文件行号对应当前代码。
 
@@ -143,7 +143,7 @@
 - [ ] **45 · P3｜地图加载失败没有界面反馈。** `catch` 只 `console.error`，失败后地图只剩背景色，没有错误态或重试；同时 div/svg/rect 三层使用同一背景色，属于冗余。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/dashboard/logistics/-components/shipment-route-map.tsx:156](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/dashboard/logistics/-components/shipment-route-map.tsx:156>)；[三层背景:171](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/dashboard/logistics/-components/shipment-route-map.tsx:171>)
 
-- [ ] **46 · P3｜登录成功后 `getUserInfo` 失败会留下半登录状态。** 登录先写 token 并置为 `authenticated`，再 `await loadUser()`；失败时只提示错误，token 与 `authenticated` 仍保留（旧用户资料已在登录时清空），刷新后会带着 token 进入应用但权限为空。建议在 `loadUser()` 成功后再切换状态，失败时清 token。  
+- [x] **46 · P3｜登录成功后 `getUserInfo` 失败会留下半登录状态。［已修复 2026-10-22］** `login` / `socialLogin` 不再提前置 `authenticated`，改由 `loadUser()` 成功分支切换状态；失败时调用 `clearLocalSession()` 清 token 并回到 `anonymous`，错误继续抛给登录页展示。刷新时带 token 启动的 `loadUser` 仍由 `AuthStoreProvider` 吞错，保留请求层按 401 清会话的现有行为。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/stores/auth/auth-store.ts:56](<E:/ppxb/continew-next/continew-ui-next/src/stores/auth/auth-store.ts:56>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/auth/-components/login-form.tsx:61](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/auth/-components/login-form.tsx:61>)
 
 - [x] **47 · P3｜原生控件与 shadcn 控件混用。［已修复 2026-10-22］** 三处「重试」从裸 `<button className="underline">` 改为 `Button variant="link"`（`h-auto p-0`，保留始终下划线与 destructive 色）；checkable-tree 的搜索清空改为 `Button variant="ghost" size="icon-xs"` + `sr-only`。树展开按钮位于 `src/components/ui/tree.tsx`（16px/24px 触摸目标、`tabIndex={-1}` 由整行接管键盘），按项目约定不改 ui 目录；「短信复制」在当前代码中已无原生 button；文件名、卡片、图标格保持原生。  
