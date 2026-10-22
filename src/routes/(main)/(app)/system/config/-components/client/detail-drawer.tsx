@@ -1,12 +1,12 @@
 import * as React from 'react'
 
 import { cn } from 'cn'
-import { Check, Copy, Smartphone, X } from 'lucide-react'
+import { Check, Copy, Smartphone } from 'lucide-react'
 
+import { EntityDrawer } from '@/components/entity-drawer'
 import { StatusCell } from '@/components/status-cell'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { toast } from '@/components/ui/toast'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import type { ClientResp } from '@/lib/api/client'
@@ -79,18 +79,7 @@ export function ClientDetailDrawer({
 }: ClientDetailDrawerProps) {
   // Keep the Drawer mounted while closed so the first open still plays its enter transition; guard the body instead.
   return (
-    <Drawer open={open} onOpenChange={isOpen => !isOpen && onClose()} swipeDirection="right">
-      <DrawerContent className="data-[swipe-axis=x]:sm:[--drawer-content-width:32rem]">
-        <DrawerHeader className="flex-row items-center justify-between gap-2 border-b p-4 md:gap-2">
-          <div className="flex items-center gap-2">
-            <Smartphone className="size-4" />
-            <DrawerTitle>客户端详情</DrawerTitle>
-          </div>
-          <DrawerClose render={<Button variant="ghost" size="icon-sm" />}>
-            <X className="size-4" />
-            <span className="sr-only">关闭</span>
-          </DrawerClose>
-        </DrawerHeader>
+    <EntityDrawer open={open} onClose={onClose} title="客户端详情" icon={<Smartphone className="size-4" />} width={32}>
 
         {client ? (
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
@@ -165,7 +154,6 @@ export function ClientDetailDrawer({
             </dl>
           </div>
         ) : null}
-      </DrawerContent>
-    </Drawer>
+    </EntityDrawer>
   )
 }

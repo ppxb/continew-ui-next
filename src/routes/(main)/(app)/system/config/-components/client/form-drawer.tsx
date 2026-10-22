@@ -4,11 +4,12 @@ import { revalidateLogic, useForm, useSelector } from '@tanstack/react-form'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { z } from 'zod'
 
-import { HelpCircle, Smartphone, X } from 'lucide-react'
+import { HelpCircle, Smartphone } from 'lucide-react'
 
+import { EntityDrawer } from '@/components/entity-drawer'
 import { RequiredMark } from '@/components/required-mark'
 import { Button } from '@/components/ui/button'
-import { Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
+import { DrawerFooter } from '@/components/ui/drawer'
 import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -270,28 +271,15 @@ export function ClientFormDrawer({
   }
 
   return (
-    <Drawer
+    <EntityDrawer
       open={open}
-      onOpenChange={nextOpen => {
-        // Closing mid-save would leave the request in flight with no way to report it. The footer
-        // buttons read the same flag, so "cancel" and the X cannot disagree about it.
-        if (!nextOpen && !isSubmitting) {
-          onClose()
-        }
-      }}
-      swipeDirection="right"
+      onClose={onClose}
+      title={isEdit ? '修改客户端' : '新增客户端'}
+      icon={<Smartphone className="size-4" />}
+      width={36}
+      closeDisabled={isSubmitting}
+      canClose={() => !isSubmitting}
     >
-      <DrawerContent className="data-[swipe-axis=x]:sm:[--drawer-content-width:36rem]">
-        <DrawerHeader className="flex-row items-center justify-between gap-2 border-b p-4 md:gap-2">
-          <div className="flex items-center gap-2">
-            <Smartphone className="size-4" />
-            <DrawerTitle>{isEdit ? '修改客户端' : '新增客户端'}</DrawerTitle>
-          </div>
-          <DrawerClose render={<Button variant="ghost" size="icon-sm" disabled={isSubmitting} />}>
-            <X className="size-4" />
-            <span className="sr-only">关闭</span>
-          </DrawerClose>
-        </DrawerHeader>
 
         {isEdit && isLoading ? (
           <ClientFormSkeleton onClose={onClose} />
@@ -705,7 +693,6 @@ export function ClientFormDrawer({
             </DrawerFooter>
           </form>
         )}
-      </DrawerContent>
-    </Drawer>
+    </EntityDrawer>
   )
 }

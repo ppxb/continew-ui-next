@@ -30,6 +30,8 @@ interface EntityDrawerProps {
   /** A secondary line under the title. */
   readonly description?: string
   readonly width?: EntityDrawerWidth
+  /** Disables the close button outright, for states that re-render while saving. */
+  readonly closeDisabled?: boolean
   /** Return false to keep the drawer open, such as while a save is in flight. */
   readonly canClose?: () => boolean
   readonly children: ReactNode
@@ -48,6 +50,7 @@ export function EntityDrawer({
   badge,
   description,
   width = 32,
+  closeDisabled = false,
   canClose,
   children
 }: EntityDrawerProps) {
@@ -55,7 +58,7 @@ export function EntityDrawer({
     <Drawer
       open={open}
       onOpenChange={nextOpen => {
-        if (!nextOpen && (canClose?.() ?? true)) {
+        if (!nextOpen && !closeDisabled && (canClose?.() ?? true)) {
           onClose()
         }
       }}
@@ -77,7 +80,7 @@ export function EntityDrawer({
             {description ? <p className="text-xs text-muted-foreground">{description}</p> : null}
           </div>
 
-          <DrawerClose render={<Button variant="ghost" size="icon-sm" />}>
+          <DrawerClose render={<Button variant="ghost" size="icon-sm" disabled={closeDisabled} />}>
             <X />
             <span className="sr-only">关闭</span>
           </DrawerClose>
