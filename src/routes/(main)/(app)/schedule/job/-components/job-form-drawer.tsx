@@ -4,11 +4,12 @@ import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { z } from 'zod'
 
-import { Layers, ListChecks, Plus, Trash2, X } from 'lucide-react'
+import { Layers, ListChecks, Plus, Trash2 } from 'lucide-react'
 
+import { EntityDrawer } from '@/components/entity-drawer'
 import { RequiredMark } from '@/components/required-mark'
 import { Button } from '@/components/ui/button'
-import { Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
+import { DrawerFooter } from '@/components/ui/drawer'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field'
@@ -350,26 +351,14 @@ export function JobFormDrawer({ job, open, onClose, defaultGroupName }: JobFormD
   )
 
   return (
-    <Drawer
+    <EntityDrawer
       open={open}
-      onOpenChange={nextOpen => {
-        // Closing mid-save would leave the request in flight with no way to report it.
-        if (!nextOpen && !form.state.isSubmitting) {
-          onClose()
-        }
-      }}
-      swipeDirection="right"
+      onClose={onClose}
+      title={isCreate ? '新增任务' : '修改任务'}
+      icon={<ListChecks className="size-4" />}
+      width={40}
+      canClose={() => !form.state.isSubmitting}
     >
-      <DrawerContent className="data-[swipe-axis=x]:sm:[--drawer-content-width:40rem]">
-        <DrawerHeader className="flex-row items-center justify-between gap-2 border-b p-4 md:gap-2">
-          <div className="flex items-center gap-2">
-            <ListChecks className="size-4" />
-            <DrawerTitle>{isCreate ? '新增任务' : '修改任务'}</DrawerTitle>
-          </div>
-          <DrawerClose render={<Button variant="ghost" size="icon-sm" />}>
-            <X />
-          </DrawerClose>
-        </DrawerHeader>
 
         <form
           ref={formRef}
@@ -830,7 +819,6 @@ export function JobFormDrawer({ job, open, onClose, defaultGroupName }: JobFormD
             </form.Subscribe>
           </DrawerFooter>
         </form>
-      </DrawerContent>
-    </Drawer>
+    </EntityDrawer>
   )
 }
