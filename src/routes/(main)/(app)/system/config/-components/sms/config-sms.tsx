@@ -6,6 +6,7 @@ import { cn } from 'cn'
 import { RefreshCw, Search } from 'lucide-react'
 
 import { DataTable } from '@/components/data-table'
+import { ListFilterRow } from '@/components/list-filter-row'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
@@ -189,60 +190,66 @@ export function ConfigSms() {
 
   const tableSection = (
     <>
-      {/* Top Filter Bar */}
-      <div className="flex flex-wrap items-center gap-3 px-4">
-        <InputGroup className="h-8 w-60">
-          <InputGroupAddon align="inline-start">
-            <Search className="size-3.5" />
-          </InputGroupAddon>
-          <InputGroupInput
-            placeholder="搜索配置名称"
-            value={searchInput}
-            onChange={event => setSearchInput(event.target.value)}
+      <ListFilterRow
+        filters={
+          <>
+            <InputGroup className="w-full sm:w-60">
+              <InputGroupAddon align="inline-start">
+                <Search className="size-3.5" />
+              </InputGroupAddon>
+              <InputGroupInput
+                className="text-sm"
+                placeholder="搜索配置名称"
+                value={searchInput}
+                onChange={event => setSearchInput(event.target.value)}
+              />
+            </InputGroup>
+
+            <div className="w-full sm:w-32">
+              <Select
+                items={supplierFilterOptions}
+                value={filterSupplier}
+                onValueChange={val => {
+                  setFilterSupplier(val || 'all')
+                  setPagination(current => ({ ...current, pageIndex: 0 }))
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <span className="text-muted-foreground">厂商</span>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent align="start" alignItemWithTrigger={false}>
+                  <SelectGroup>
+                    {supplierFilterOptions.map(s => (
+                      <SelectItem key={s.value} value={s.value}>
+                        {s.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {(keyword || filterSupplier !== 'all') && (
+              <Button type="button" variant="ghost" onClick={handleResetFilters}>
+                <RefreshCw />
+                重置
+              </Button>
+            )}
+          </>
+        }
+        actions={
+          <SmsToolbar
+            table={table}
+            isRefreshing={query.isFetching && !query.isPending}
+            isFullscreen={isFullscreen}
+            canCreate={canCreate}
+            onCreate={handleCreate}
+            onRefresh={() => void query.refetch()}
+            onToggleFullscreen={toggleFullscreen}
+            onResetColumns={() => setColumnVisibility(HIDDEN_BY_DEFAULT)}
           />
-        </InputGroup>
-
-        <Select
-          items={supplierFilterOptions}
-          value={filterSupplier}
-          onValueChange={val => {
-            setFilterSupplier(val || 'all')
-            setPagination(current => ({ ...current, pageIndex: 0 }))
-          }}
-        >
-          <SelectTrigger size="sm" className="w-32">
-            <span className="text-muted-foreground">厂商</span>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent align="start" alignItemWithTrigger={false}>
-            <SelectGroup>
-              {supplierFilterOptions.map(s => (
-                <SelectItem key={s.value} value={s.value}>
-                  {s.label}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-
-        {(keyword || filterSupplier !== 'all') && (
-          <Button size="sm" variant="ghost" onClick={handleResetFilters} className="h-8 px-2 text-xs">
-            <RefreshCw className="size-3.5" />
-            重置
-          </Button>
-        )}
-      </div>
-
-      {/* Toolbar */}
-      <SmsToolbar
-        table={table}
-        isRefreshing={query.isFetching && !query.isPending}
-        isFullscreen={isFullscreen}
-        canCreate={canCreate}
-        onCreate={handleCreate}
-        onRefresh={() => void query.refetch()}
-        onToggleFullscreen={toggleFullscreen}
-        onResetColumns={() => setColumnVisibility(HIDDEN_BY_DEFAULT)}
+        }
       />
 
       {/* TanStack Table */}

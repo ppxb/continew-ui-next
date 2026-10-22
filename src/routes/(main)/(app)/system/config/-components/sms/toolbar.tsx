@@ -40,10 +40,10 @@ export function SmsToolbar({
   const hideableColumns = table.getAllColumns().filter(column => column.getCanHide())
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 px-4">
+    <div className="flex flex-wrap items-center gap-2">
       <div className="flex flex-wrap items-center gap-2">
         {canCreate && (
-          <Button size="sm" onClick={onCreate}>
+          <Button onClick={onCreate}>
             <Plus />
             新增配置
           </Button>
@@ -51,13 +51,13 @@ export function SmsToolbar({
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <Button size="sm" variant="outline" disabled={isRefreshing} onClick={onRefresh}>
+        <Button variant="outline" disabled={isRefreshing} onClick={onRefresh}>
           {isRefreshing ? <Spinner /> : <RefreshCw />}
           刷新
         </Button>
 
         <DropdownMenu>
-          <DropdownMenuTrigger render={<Button size="sm" variant="outline" />}>
+          <DropdownMenuTrigger render={<Button variant="outline" />}>
             <SlidersHorizontal />
             隐藏列
           </DropdownMenuTrigger>
@@ -88,7 +88,6 @@ export function SmsToolbar({
         </DropdownMenu>
 
         <Button
-          size="sm"
           variant="outline"
           onClick={onToggleFullscreen}
           aria-label={isFullscreen ? '退出全屏' : '全屏'}

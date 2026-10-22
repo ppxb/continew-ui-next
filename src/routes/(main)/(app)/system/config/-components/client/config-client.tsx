@@ -5,6 +5,7 @@ import { type ColumnVisibilityState, type PaginationState, useTable } from '@tan
 import { cn } from 'cn'
 
 import { DataTable } from '@/components/data-table'
+import { ListFilterRow } from '@/components/list-filter-row'
 import { Card, CardContent } from '@/components/ui/card'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
@@ -247,59 +248,66 @@ export function ConfigClient() {
 
   const tableSection = (
     <>
-      {/* Top Filter Bar */}
-      <div className="flex flex-wrap items-center gap-3 px-4">
-        <Select
-          items={clientTypeFilterOptions}
-          value={clientType === undefined ? 'all' : clientType}
-          onValueChange={handleClientTypeChange}
-        >
-          <SelectTrigger size="sm">
-            <span className="text-muted-foreground">客户端类型</span>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent align="start" alignItemWithTrigger={false}>
-            <SelectGroup>
-              {clientTypeFilterOptions.map(option => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
+      <ListFilterRow
+        filters={
+          <>
+            <div className="w-full sm:w-40">
+              <Select
+                items={clientTypeFilterOptions}
+                value={clientType === undefined ? 'all' : clientType}
+                onValueChange={handleClientTypeChange}
+              >
+                <SelectTrigger className="w-full">
+                  <span className="text-muted-foreground">客户端类型</span>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent align="start" alignItemWithTrigger={false}>
+                  <SelectGroup>
+                    {clientTypeFilterOptions.map(option => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
 
-        <Select
-          items={STATUS_OPTIONS}
-          value={status === undefined ? 'all' : String(status)}
-          onValueChange={handleStatusChange}
-        >
-          <SelectTrigger size="sm">
-            <span className="text-muted-foreground">状态</span>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent align="start" alignItemWithTrigger={false}>
-            <SelectGroup>
-              {STATUS_OPTIONS.map(option => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Toolbar */}
-      <ClientToolbar
-        table={table}
-        isRefreshing={query.isFetching && !query.isPending}
-        isFullscreen={isFullscreen}
-        canCreate={canCreate}
-        onCreate={handleCreate}
-        onRefresh={() => void query.refetch()}
-        onToggleFullscreen={toggleFullscreen}
-        onResetColumns={() => setColumnVisibility(HIDDEN_BY_DEFAULT)}
+            <div className="w-full sm:w-32">
+              <Select
+                items={STATUS_OPTIONS}
+                value={status === undefined ? 'all' : String(status)}
+                onValueChange={handleStatusChange}
+              >
+                <SelectTrigger className="w-full">
+                  <span className="text-muted-foreground">状态</span>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent align="start" alignItemWithTrigger={false}>
+                  <SelectGroup>
+                    {STATUS_OPTIONS.map(option => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
+          </>
+        }
+        actions={
+          <ClientToolbar
+            table={table}
+            isRefreshing={query.isFetching && !query.isPending}
+            isFullscreen={isFullscreen}
+            canCreate={canCreate}
+            onCreate={handleCreate}
+            onRefresh={() => void query.refetch()}
+            onToggleFullscreen={toggleFullscreen}
+            onResetColumns={() => setColumnVisibility(HIDDEN_BY_DEFAULT)}
+          />
+        }
       />
 
       {/* TanStack Table */}

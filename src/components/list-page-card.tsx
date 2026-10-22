@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 
 import { cn } from 'cn'
 
+import { ListFilterRow } from '@/components/list-filter-row'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
 
@@ -39,12 +40,7 @@ export function ListPageCard({ title, description, filters, actions, fullscreen,
           ref={fullscreen.fullscreenRef}
           className={cn('flex flex-col gap-4', fullscreen.isFullscreen && 'bg-background')}
         >
-          {filters || actions ? (
-            <div className="flex flex-col gap-3 px-4 xl:flex-row xl:items-center xl:justify-between">
-              <div className="grid min-w-0 grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">{filters}</div>
-              {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
-            </div>
-          ) : null}
+          <ListFilterRow filters={filters} actions={actions} />
 
           {children}
         </div>
