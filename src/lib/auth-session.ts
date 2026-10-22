@@ -1,14 +1,3 @@
-/**
- * Session state for the HTTP layer.
- *
- * The access token and tenant id live here instead of in the React store so that
- * `src/lib/http.ts` can read and rotate them without importing a store. The
- * generation counter makes a late 401 from a previous session unable to clear the
- * session that replaced it.
- *
- * The refresh token is never stored on the client: the backend keeps it in an
- * HttpOnly cookie, so only the access token is persisted here.
- */
 import { clearCachedMenu } from './menu-cache'
 
 const ACCESS_TOKEN_KEY = 'continew.access-token'
@@ -18,6 +7,11 @@ let accessToken: string | null = null
 let tenantId: string | null = null
 let authGeneration = 0
 
+const isPersisted = (key: string) => window.localStorage.getItem(key) !== null
+
+const toTenantId = (value: string | number | null | undefined) =>
+  value === null || value === undefined ? null : String(value)
+
 function readStored(key: string): string | null {
   try {
     return window.localStorage.getItem(key) ?? window.sessionStorage.getItem(key)
@@ -26,7 +20,7 @@ function readStored(key: string): string | null {
   }
 }
 
-function writeStored(key: string, value: string | null, persist: boolean) {
+function writeStored(key: string, value: string | null, persist?: boolean) {
   try {
     if (value === null) {
       window.localStorage.removeItem(key)
@@ -45,7 +39,6 @@ function writeStored(key: string, value: string | null, persist: boolean) {
   }
 }
 
-/** Reads the persisted session into memory; call once while the app starts. */
 export function hydrateSession() {
   accessToken = readStored(ACCESS_TOKEN_KEY)
   tenantId = readStored(TENANT_ID_KEY)
@@ -59,19 +52,8 @@ export function getTenantId(): string | null {
   return tenantId
 }
 
-/**
- * The login session id of the current access token, read from its `sid` claim.
- *
- * The backend puts the session id into the JWT payload when it signs in. The online-user
- * screen compares it with each row's `sessionId`, because the backend rejects kicking out
- * the session that sent the request.
- */
 export function getSessionId(): string | null {
-  if (!accessToken) {
-    return null
-  }
-
-  const payload = accessToken.split('.')[1]
+  const payload = accessToken?.split('.')[1]
 
   if (!payload) {
     return null
@@ -92,30 +74,28 @@ export function getAuthGeneration(): number {
 
 export function setAccessToken(token: string) {
   accessToken = token
-  writeStored(ACCESS_TOKEN_KEY, token, window.localStorage.getItem(ACCESS_TOKEN_KEY) !== null)
+  writeStored(ACCESS_TOKEN_KEY, token, isPersisted(ACCESS_TOKEN_KEY))
 }
 
 export function setTenantId(value: string | number | null) {
-  tenantId = value === null || value === undefined ? null : String(value)
-  writeStored(TENANT_ID_KEY, tenantId, window.localStorage.getItem(TENANT_ID_KEY) !== null)
+  tenantId = toTenantId(value)
+  writeStored(TENANT_ID_KEY, tenantId, isPersisted(TENANT_ID_KEY))
 }
 
-/** Stores a freshly created session. `persist` keeps it across browser restarts. */
 export function setSession(next: { accessToken: string; tenantId?: string | number | null; persist?: boolean }) {
   const persist = next.persist ?? true
   authGeneration += 1
   accessToken = next.accessToken
-  tenantId = next.tenantId === null || next.tenantId === undefined ? null : String(next.tenantId)
+  tenantId = toTenantId(next.tenantId)
   writeStored(ACCESS_TOKEN_KEY, accessToken, persist)
   writeStored(TENANT_ID_KEY, tenantId, persist)
 }
 
-/** Clears the session and invalidates in-flight requests from the old session. */
 export function clearSession() {
   accessToken = null
   tenantId = null
   authGeneration += 1
-  writeStored(ACCESS_TOKEN_KEY, null, true)
-  writeStored(TENANT_ID_KEY, null, true)
+  writeStored(ACCESS_TOKEN_KEY, null)
+  writeStored(TENANT_ID_KEY, null)
   clearCachedMenu()
 }
