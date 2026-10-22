@@ -3,7 +3,7 @@
 > 最后同步：2026-10-21。原始 35 条全部保留；新增 12 条（36–47）。另有 11、13、27、28、31 按复查结果扩面，不另计条目。  
 > 状态：`[x]` 已修复；`[ ]` 待处理。
 
-共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 13 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
+共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 12 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
 
 本次为静态审计，覆盖业务管理页、共享组件、请求与状态层，以及部分仪表盘页面；未进行运行时性能测试。原生 HTML、必要的异常处理和合理的 `className` 扩展本身不算问题。文件行号对应当前代码。
 
@@ -80,7 +80,7 @@
 - [x] **24 · P2｜树组件的“全选”忽略节点禁用状态。［已修复 2026-10-22］** 明确 `disabled` 为“锁定”：其勾选状态只由 `checkedKeys`/数据决定，单击、父级级联、全选、清空都不改动它。`ui/tree.tsx` 的级联只处理 enabled 后代/祖先，父节点“全选”判定只统计 enabled 子节点；`checkable-tree.tsx` 的全选/清空以当前勾选为基线增删 enabled 节点。可能出现“父节点勾选而禁用子节点未勾选”，属于“父节点代表所有可操作子节点”的预期语义。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/components/checkable-tree.tsx:65](<E:/ppxb/continew-next/continew-ui-next/src/components/checkable-tree.tsx:65>)
 
-- [ ] **25 · P3｜通过解析 class 字符串推断组件布局。** `className.includes('flex-1')` 将布局行为绑定到字符串，`md:flex-1` 也会触发所有断点的伸展布局。应通过明确属性或容器样式表达布局。  
+- [x] **25 · P3｜通过解析 class 字符串推断组件布局。［已修复 2026-10-22］** `CheckableTree` 新增 `fillHeight` 属性：为 true 时外层与滚动区都走 `min-h-0 flex-1`，为 false 时滚动区用 `max-h-72 min-h-36`；`className` 只承担视觉覆盖，不再参与布局判断，加载骨架与加载完成后的高度策略也一致。角色权限抽屉改用 `fillHeight`，其余两个调用方不变。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/components/checkable-tree.tsx:77](<E:/ppxb/continew-next/continew-ui-next/src/components/checkable-tree.tsx:77>)
 
 - [ ] **26 · P3｜树数据更新会重置用户的展开状态。** 注释写“首次加载展开全部”，但 effect 随索引变化重复执行。应只初始化一次，或在数据更新时保留仍然有效的展开键。  

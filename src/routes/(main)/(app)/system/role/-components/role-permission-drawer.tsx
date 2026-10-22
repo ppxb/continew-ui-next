@@ -151,7 +151,7 @@ export function RolePermissionDrawer({ role, open, onClose }: RolePermissionDraw
                 onCheckedChange={setSelectedMenuIds}
                 checkStrictly={menuCheckStrictly}
                 searchPlaceholder="搜索菜单或权限名"
-                className="min-h-0 flex-1"
+                fillHeight
               />
             </div>
 

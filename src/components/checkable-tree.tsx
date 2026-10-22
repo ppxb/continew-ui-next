@@ -22,6 +22,8 @@ export interface CheckableTreeProps<T = Record<string, unknown>> {
   readonly showExpandActions?: boolean
   readonly showSelectActions?: boolean
   readonly showIcons?: boolean
+  /** Fills the remaining height of a flex parent instead of the fixed `max-h-72` tree box. */
+  readonly fillHeight?: boolean
   readonly className?: string
   readonly treeContainerClassName?: string
   readonly emptyText?: string
@@ -38,6 +40,7 @@ export function CheckableTree<T = Record<string, unknown>>({
   showExpandActions = true,
   showSelectActions = true,
   showIcons = false,
+  fillHeight = false,
   className,
   treeContainerClassName,
   emptyText = '暂无匹配节点'
@@ -85,13 +88,11 @@ export function CheckableTree<T = Record<string, unknown>>({
   }
 
   if (loading) {
-    return <TreeSkeleton rows={7} className={className} />
+    return <TreeSkeleton rows={7} className={cn(fillHeight && 'min-h-0 flex-1', className)} />
   }
 
-  const isFlex1 = className?.includes('flex-1')
-
   return (
-    <div className={cn('flex flex-col gap-2.5', className)}>
+    <div className={cn('flex flex-col gap-2.5', fillHeight && 'min-h-0 flex-1', className)}>
       {/* Header action bar with pure icon buttons matching Dept tree */}
       <div className="flex shrink-0 items-center justify-between gap-2">
         {showSearch && (
@@ -187,7 +188,7 @@ export function CheckableTree<T = Record<string, unknown>>({
       <div
         className={cn(
           'overflow-auto overscroll-contain rounded-md border bg-background/50 p-1.5 select-none',
-          treeContainerClassName || (isFlex1 ? 'min-h-0 flex-1' : 'max-h-72 min-h-36')
+          treeContainerClassName || (fillHeight ? 'min-h-0 flex-1' : 'max-h-72 min-h-36')
         )}
       >
         <Tree
