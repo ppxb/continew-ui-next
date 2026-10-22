@@ -192,41 +192,50 @@ export function DeptList() {
 
   const isAllExpanded = expanded === true || (typeof expanded === 'object' && Object.keys(expanded).length > 0)
 
-  const tableSection = (
-    <>
-      <DeptToolbar
-        table={table}
-        isRefreshing={query.isFetching}
-        isExporting={exportMutation.isPending}
-        isFullscreen={fullscreen.isFullscreen}
-        isAllExpanded={isAllExpanded}
-        hasCreatePermission={hasCreatePermission}
-        hasExportPermission={hasExportPermission}
-        onCreate={handleCreateNew}
-        onExport={() => exportMutation.mutate()}
-        onRefresh={() => void query.refetch()}
-        onToggleExpandAll={handleToggleExpandAll}
-        onToggleFullscreen={fullscreen.toggleFullscreen}
-        onResetColumns={() => setColumnVisibility(DEFAULT_COLUMN_VISIBILITY)}
+  const filters = (
+    <InputGroup className="w-full sm:w-64">
+      <InputGroupAddon>
+        <Search className="size-4" />
+      </InputGroupAddon>
+      <InputGroupInput
+        className="text-sm"
+        placeholder="搜索部门名称或描述"
+        value={searchInput}
+        onChange={e => setSearchInput(e.target.value)}
       />
+      {searchInput && (
+        <InputGroupAddon align="inline-end">
+          <button
+            type="button"
+            onClick={() => {
+              setSearchInput('')
+            }}
+            className="cursor-pointer text-muted-foreground transition-colors hover:text-foreground"
+            title="清空搜索"
+          >
+            <X className="size-3.5" />
+          </button>
+        </InputGroupAddon>
+      )}
+    </InputGroup>
+  )
 
-      <DataTable
-        table={table}
-        isLoading={query.isPending}
-        isError={query.isError}
-        isShowingPreviousRows={query.isPlaceholderData}
-        onRetry={() => void query.refetch()}
-        stickyHeader
-        showPagination={false}
-        skeletonWidths={['w-48', 'w-12', 'w-20']}
-        containerClassName={cn(
-          '*:data-[slot=table-container]:overflow-auto',
-          fullscreen.isFullscreen
-            ? '*:data-[slot=table-container]:h-[calc(100vh-6.5rem)] *:data-[slot=table-container]:max-h-[calc(100vh-6.5rem)]'
-            : '*:data-[slot=table-container]:max-h-[calc(100vh-17rem)] md:*:data-[slot=table-container]:max-h-[calc(100dvh-17rem)]'
-        )}
-      />
-    </>
+  const actions = (
+    <DeptToolbar
+      table={table}
+      isRefreshing={query.isFetching}
+      isExporting={exportMutation.isPending}
+      isFullscreen={fullscreen.isFullscreen}
+      isAllExpanded={isAllExpanded}
+      hasCreatePermission={hasCreatePermission}
+      hasExportPermission={hasExportPermission}
+      onCreate={handleCreateNew}
+      onExport={() => exportMutation.mutate()}
+      onRefresh={() => void query.refetch()}
+      onToggleExpandAll={handleToggleExpandAll}
+      onToggleFullscreen={fullscreen.toggleFullscreen}
+      onResetColumns={() => setColumnVisibility(DEFAULT_COLUMN_VISIBILITY)}
+    />
   )
 
   return (
@@ -234,35 +243,26 @@ export function DeptList() {
       <ListPageCard
         title="部门管理"
         description="管理系统组织架构、部门层级与人员归属"
-        actions={
-          <InputGroup className="w-full sm:w-64">
-            <InputGroupAddon>
-              <Search className="size-4" />
-            </InputGroupAddon>
-            <InputGroupInput
-              placeholder="搜索部门名称或描述"
-              value={searchInput}
-              onChange={e => setSearchInput(e.target.value)}
-            />
-            {searchInput && (
-              <InputGroupAddon align="inline-end">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSearchInput('')
-                  }}
-                  className="cursor-pointer text-muted-foreground transition-colors hover:text-foreground"
-                  title="清空搜索"
-                >
-                  <X className="size-3.5" />
-                </button>
-              </InputGroupAddon>
-            )}
-          </InputGroup>
-        }
+        filters={filters}
+        actions={actions}
         fullscreen={fullscreen}
       >
-        {tableSection}
+        <DataTable
+          table={table}
+          isLoading={query.isPending}
+          isError={query.isError}
+          isShowingPreviousRows={query.isPlaceholderData}
+          onRetry={() => void query.refetch()}
+          stickyHeader
+          showPagination={false}
+          skeletonWidths={['w-48', 'w-12', 'w-20']}
+          containerClassName={cn(
+            '*:data-[slot=table-container]:overflow-auto',
+            fullscreen.isFullscreen
+              ? '*:data-[slot=table-container]:h-[calc(100vh-6.5rem)] *:data-[slot=table-container]:max-h-[calc(100vh-6.5rem)]'
+              : '*:data-[slot=table-container]:max-h-[calc(100vh-17rem)] md:*:data-[slot=table-container]:max-h-[calc(100dvh-17rem)]'
+          )}
+        />
       </ListPageCard>
 
       {/* Form Drawer */}

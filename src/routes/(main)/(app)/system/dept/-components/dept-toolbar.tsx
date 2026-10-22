@@ -73,96 +73,66 @@ export function DeptToolbar({
   const hideableColumns = table.getAllColumns().filter(column => column.getCanHide())
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 px-4">
-      {/* Left actions */}
-      <div className="flex flex-wrap items-center gap-2">
-        {hasCreatePermission && (
-          <Button size="sm" onClick={onCreate} className="inline-flex items-center justify-center gap-1.5">
-            <Plus className="size-3.5 shrink-0" />
-            <span className="leading-none">新增部门</span>
-          </Button>
-        )}
-
-        {hasExportPermission && (
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={isExporting}
-            onClick={onExport}
-            className="inline-flex items-center justify-center gap-1.5"
-          >
-            {isExporting ? <Spinner className="size-3.5" /> : <Download className="size-3.5" />}
-            <span className="leading-none">导出</span>
-          </Button>
-        )}
-      </div>
-
-      {/* Right actions */}
-      <div className="flex flex-wrap items-center gap-2">
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={onToggleExpandAll}
-          className="inline-flex items-center justify-center gap-1.5"
-        >
-          {isAllExpanded ? <ChevronsDownUp className="size-3.5" /> : <ChevronsUpDown className="size-3.5" />}
-          <span className="leading-none">{isAllExpanded ? '折叠全部' : '展开全部'}</span>
+    <div className="flex flex-wrap items-center gap-2">
+      {hasCreatePermission ? (
+        <Button onClick={onCreate}>
+          <Plus />
+          新增部门
         </Button>
+      ) : null}
 
-        <Button
-          size="sm"
-          variant="outline"
-          disabled={isRefreshing}
-          onClick={onRefresh}
-          className="inline-flex items-center justify-center gap-1.5"
-        >
-          {isRefreshing ? <Spinner className="size-3.5" /> : <RefreshCw className="size-3.5" />}
-          <span className="leading-none">刷新</span>
+      {hasExportPermission ? (
+        <Button variant="outline" disabled={isExporting} onClick={onExport}>
+          {isExporting ? <Spinner /> : <Download />}
+          导出
         </Button>
+      ) : null}
 
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={<Button size="sm" variant="outline" className="inline-flex items-center justify-center gap-1.5" />}
-          >
-            <SlidersHorizontal className="size-3.5" />
-            <span className="leading-none">隐藏列</span>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-44">
-            <DropdownMenuGroup>
-              <DropdownMenuLabel>显示的列</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {hideableColumns.map(column => {
-                const label = COLUMN_LABEL_MAP[column.id] ?? column.id
+      <Button variant="outline" onClick={onToggleExpandAll}>
+        {isAllExpanded ? <ChevronsDownUp /> : <ChevronsUpDown />}
+        {isAllExpanded ? '折叠全部' : '展开全部'}
+      </Button>
 
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    checked={column.getIsVisible()}
-                    onCheckedChange={value => column.toggleVisibility(value)}
-                  >
-                    {label}
-                  </DropdownMenuCheckboxItem>
-                )
-              })}
-            </DropdownMenuGroup>
+      <Button variant="outline" disabled={isRefreshing} onClick={onRefresh}>
+        {isRefreshing ? <Spinner /> : <RefreshCw />}
+        刷新
+      </Button>
+
+      <DropdownMenu>
+        <DropdownMenuTrigger render={<Button variant="outline" />}>
+          <SlidersHorizontal />
+          隐藏列
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-44">
+          <DropdownMenuGroup>
+            <DropdownMenuLabel>显示的列</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={onResetColumns}>
-              <RotateCcw />
-              重置
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            {hideableColumns.map(column => {
+              const label = COLUMN_LABEL_MAP[column.id] ?? column.id
 
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={onToggleFullscreen}
-          className="inline-flex items-center justify-center gap-1.5"
-        >
-          {isFullscreen ? <Minimize className="size-3.5" /> : <Maximize className="size-3.5" />}
-          <span className="leading-none">表格全屏</span>
-        </Button>
-      </div>
+              return (
+                <DropdownMenuCheckboxItem
+                  key={column.id}
+                  checked={column.getIsVisible()}
+                  onCheckedChange={value => column.toggleVisibility(value)}
+                >
+                  {label}
+                </DropdownMenuCheckboxItem>
+              )
+            })}
+          </DropdownMenuGroup>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={onResetColumns}>
+            <RotateCcw />
+            重置
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <Button variant="outline" onClick={onToggleFullscreen}>
+        {isFullscreen ? <Minimize /> : <Maximize />}
+        表格全屏
+      </Button>
     </div>
   )
 }

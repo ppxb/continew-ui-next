@@ -191,41 +191,43 @@ export function MenuList() {
 
   const isAllExpanded = expanded === true || (typeof expanded === 'object' && Object.keys(expanded).length > 0)
 
-  const tableSection = (
-    <>
-      <MenuToolbar
-        table={table}
-        isRefreshing={query.isFetching}
-        isFullscreen={fullscreen.isFullscreen}
-        isAllExpanded={isAllExpanded}
-        isClearingCache={clearCacheMutation.isPending}
-        hasCreatePermission={hasCreatePermission}
-        hasClearCachePermission={hasClearCachePermission}
-        onCreate={handleCreateNew}
-        onRefresh={() => void query.refetch()}
-        onToggleExpandAll={handleToggleExpandAll}
-        onClearCache={() => clearCacheMutation.mutate()}
-        onToggleFullscreen={fullscreen.toggleFullscreen}
-        onResetColumns={() => setColumnVisibility(DEFAULT_COLUMN_VISIBILITY)}
+  const filters = (
+    <InputGroup className="w-full md:w-64">
+      <InputGroupAddon align="inline-start">
+        <Search className="size-3.5" />
+      </InputGroupAddon>
+      <InputGroupInput
+        className="text-sm"
+        placeholder="搜索名称、路由、权限"
+        value={searchInput}
+        onChange={event => setSearchInput(event.target.value)}
       />
+      {searchInput ? (
+        <InputGroupAddon align="inline-end">
+          <Button type="button" variant="ghost" size="icon-xs" aria-label="清空搜索" onClick={() => setSearchInput('')}>
+            <X className="size-3" />
+          </Button>
+        </InputGroupAddon>
+      ) : null}
+    </InputGroup>
+  )
 
-      <DataTable
-        table={table}
-        isLoading={query.isPending}
-        isError={query.isError}
-        isShowingPreviousRows={query.isPlaceholderData}
-        onRetry={() => void query.refetch()}
-        stickyHeader
-        showPagination={false}
-        skeletonWidths={['w-48', 'w-12', 'w-20']}
-        containerClassName={cn(
-          '*:data-[slot=table-container]:overflow-auto',
-          fullscreen.isFullscreen
-            ? '*:data-[slot=table-container]:h-[calc(100vh-6.5rem)] *:data-[slot=table-container]:max-h-[calc(100vh-6.5rem)]'
-            : '*:data-[slot=table-container]:max-h-[calc(100vh-17rem)] md:*:data-[slot=table-container]:max-h-[calc(100dvh-17rem)]'
-        )}
-      />
-    </>
+  const actions = (
+    <MenuToolbar
+      table={table}
+      isRefreshing={query.isFetching}
+      isFullscreen={fullscreen.isFullscreen}
+      isAllExpanded={isAllExpanded}
+      isClearingCache={clearCacheMutation.isPending}
+      hasCreatePermission={hasCreatePermission}
+      hasClearCachePermission={hasClearCachePermission}
+      onCreate={handleCreateNew}
+      onRefresh={() => void query.refetch()}
+      onToggleExpandAll={handleToggleExpandAll}
+      onClearCache={() => clearCacheMutation.mutate()}
+      onToggleFullscreen={fullscreen.toggleFullscreen}
+      onResetColumns={() => setColumnVisibility(DEFAULT_COLUMN_VISIBILITY)}
+    />
   )
 
   return (
@@ -233,35 +235,26 @@ export function MenuList() {
       <ListPageCard
         title="菜单管理"
         description="配置系统目录、路由页面与按钮权限"
-        actions={
-          <InputGroup className="h-7 w-full md:w-64">
-            <InputGroupAddon align="inline-start">
-              <Search className="size-3.5" />
-            </InputGroupAddon>
-            <InputGroupInput
-              className="h-7"
-              placeholder="搜索名称、路由、权限"
-              value={searchInput}
-              onChange={event => setSearchInput(event.target.value)}
-            />
-            {searchInput ? (
-              <InputGroupAddon align="inline-end">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-xs"
-                  aria-label="清空搜索"
-                  onClick={() => setSearchInput('')}
-                >
-                  <X className="size-3" />
-                </Button>
-              </InputGroupAddon>
-            ) : null}
-          </InputGroup>
-        }
+        filters={filters}
+        actions={actions}
         fullscreen={fullscreen}
       >
-        {tableSection}
+        <DataTable
+          table={table}
+          isLoading={query.isPending}
+          isError={query.isError}
+          isShowingPreviousRows={query.isPlaceholderData}
+          onRetry={() => void query.refetch()}
+          stickyHeader
+          showPagination={false}
+          skeletonWidths={['w-48', 'w-12', 'w-20']}
+          containerClassName={cn(
+            '*:data-[slot=table-container]:overflow-auto',
+            fullscreen.isFullscreen
+              ? '*:data-[slot=table-container]:h-[calc(100vh-6.5rem)] *:data-[slot=table-container]:max-h-[calc(100vh-6.5rem)]'
+              : '*:data-[slot=table-container]:max-h-[calc(100vh-17rem)] md:*:data-[slot=table-container]:max-h-[calc(100dvh-17rem)]'
+          )}
+        />
       </ListPageCard>
 
       {/* Form Drawer */}

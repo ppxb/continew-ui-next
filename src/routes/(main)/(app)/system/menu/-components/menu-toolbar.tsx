@@ -75,11 +75,11 @@ export function MenuToolbar({
   const hideableColumns = table.getAllColumns().filter(column => column.getCanHide())
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 px-4">
+    <div className="flex flex-wrap items-center gap-2">
       {/* Left actions */}
       <div className="flex flex-wrap items-center gap-2">
         {hasCreatePermission && (
-          <Button size="sm" onClick={onCreate}>
+          <Button onClick={onCreate}>
             <Plus />
             新增菜单
           </Button>
@@ -87,7 +87,6 @@ export function MenuToolbar({
 
         {hasClearCachePermission && (
           <Button
-            size="sm"
             variant="outline"
             disabled={isClearingCache}
             onClick={onClearCache}
@@ -101,18 +100,18 @@ export function MenuToolbar({
 
       {/* Right actions */}
       <div className="flex flex-wrap items-center gap-2">
-        <Button size="sm" variant="outline" onClick={onToggleExpandAll}>
+        <Button variant="outline" onClick={onToggleExpandAll}>
           {isAllExpanded ? <ChevronsDownUp /> : <ChevronsUpDown />}
           {isAllExpanded ? '折叠全部' : '展开全部'}
         </Button>
 
-        <Button size="sm" variant="outline" disabled={isRefreshing} onClick={onRefresh}>
+        <Button variant="outline" disabled={isRefreshing} onClick={onRefresh}>
           {isRefreshing ? <Spinner /> : <RefreshCw />}
           刷新
         </Button>
 
         <DropdownMenu>
-          <DropdownMenuTrigger render={<Button size="sm" variant="outline" />}>
+          <DropdownMenuTrigger render={<Button variant="outline" />}>
             <SlidersHorizontal />
             隐藏列
           </DropdownMenuTrigger>
@@ -144,7 +143,7 @@ export function MenuToolbar({
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <Button size="sm" variant="outline" onClick={onToggleFullscreen}>
+        <Button variant="outline" onClick={onToggleFullscreen}>
           {isFullscreen ? <Minimize /> : <Maximize />}
           表格全屏
         </Button>

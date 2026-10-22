@@ -158,77 +158,79 @@ export function UserList() {
     }
   }
 
-  const tableSection = (
+  const filters = (
     <>
-      <div className="flex flex-col gap-3 px-4 xl:flex-row xl:items-center xl:justify-between">
-        <div className="grid min-w-0 grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
-          <TableSearch
-            className="col-span-2 h-8 w-full sm:w-64"
-            placeholder="搜索用户名、昵称、描述"
-            onSearch={handleSearch}
-          />
-          <DeptTreeSelect
-            triggerPrefix="部门"
-            placeholder="全部"
-            placeholderColor="foreground"
-            showAllOption
-            allOptionLabel="全部部门"
-            value={deptId}
-            onChange={handleDeptChange}
-            className="w-full sm:w-44"
-          />
-          <div className="w-full sm:w-32">
-            <Select
-              items={STATUS_OPTIONS}
-              value={status === undefined ? 'all' : String(status)}
-              onValueChange={handleStatusChange}
-            >
-              <SelectTrigger className="w-full">
-                <span className="text-muted-foreground">状态</span>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent align="start" alignItemWithTrigger={false}>
-                <SelectGroup>
-                  {STATUS_OPTIONS.map(option => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        <UserToolbar
-          table={table}
-          isRefreshing={query.isFetching && !query.isPending}
-          isExporting={isExporting}
-          isFullscreen={fullscreen.isFullscreen}
-          onCreate={() => setFormTarget({ userId: null })}
-          onImport={() => reportPending('导入数据')}
-          onExport={() => void handleExport()}
-          onRefresh={() => void query.refetch()}
-          onToggleFullscreen={fullscreen.toggleFullscreen}
-          onResetColumns={() => setColumnVisibility(HIDDEN_BY_DEFAULT)}
-        />
-      </div>
-
-      <DataTable
-        table={table}
-        isLoading={query.isPending}
-        isError={query.isError}
-        isShowingPreviousRows={query.isPlaceholderData}
-        onRetry={() => void query.refetch()}
-        skeletonWidths={['mx-auto w-6', 'w-24', 'w-20', 'mx-auto w-12 rounded-full', 'mx-auto w-8', 'w-12']}
+      <TableSearch
+        className="col-span-2 h-8 w-full sm:w-64"
+        placeholder="搜索用户名、昵称、描述"
+        onSearch={handleSearch}
       />
+      <DeptTreeSelect
+        triggerPrefix="部门"
+        placeholder="全部"
+        placeholderColor="foreground"
+        showAllOption
+        allOptionLabel="全部部门"
+        value={deptId}
+        onChange={handleDeptChange}
+        className="w-full sm:w-44"
+      />
+      <div className="w-full sm:w-32">
+        <Select
+          items={STATUS_OPTIONS}
+          value={status === undefined ? 'all' : String(status)}
+          onValueChange={handleStatusChange}
+        >
+          <SelectTrigger className="w-full">
+            <span className="text-muted-foreground">状态</span>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent align="start" alignItemWithTrigger={false}>
+            <SelectGroup>
+              {STATUS_OPTIONS.map(option => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+      </div>
     </>
+  )
+
+  const actions = (
+    <UserToolbar
+      table={table}
+      isRefreshing={query.isFetching && !query.isPending}
+      isExporting={isExporting}
+      isFullscreen={fullscreen.isFullscreen}
+      onCreate={() => setFormTarget({ userId: null })}
+      onImport={() => reportPending('导入数据')}
+      onExport={() => void handleExport()}
+      onRefresh={() => void query.refetch()}
+      onToggleFullscreen={fullscreen.toggleFullscreen}
+      onResetColumns={() => setColumnVisibility(HIDDEN_BY_DEFAULT)}
+    />
   )
 
   return (
     <>
-      <ListPageCard title="用户管理" description="维护系统用户，查看用户的基本信息" fullscreen={fullscreen}>
-        {tableSection}
+      <ListPageCard
+        title="用户管理"
+        description="维护系统用户，查看用户的基本信息"
+        filters={filters}
+        actions={actions}
+        fullscreen={fullscreen}
+      >
+        <DataTable
+          table={table}
+          isLoading={query.isPending}
+          isError={query.isError}
+          isShowingPreviousRows={query.isPlaceholderData}
+          onRetry={() => void query.refetch()}
+          skeletonWidths={['mx-auto w-6', 'w-24', 'w-20', 'mx-auto w-12 rounded-full', 'mx-auto w-8', 'w-12']}
+        />
       </ListPageCard>
 
       <UserDetailDrawer userId={detailUserId} open={detailUserId !== null} onClose={() => setDetailUserId(null)} />
