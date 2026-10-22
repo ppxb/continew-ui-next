@@ -26,9 +26,10 @@ export interface OptionValueResetReq {
 }
 
 /** Queries options list: `GET /system/option` */
-export function listOption(query: OptionQuery) {
+export function listOption(query: OptionQuery, signal?: AbortSignal) {
   return http.get<OptionResp[]>('/system/option', {
-    query: query as Record<string, string | number | boolean | null | undefined>
+    query: query as Record<string, string | number | boolean | null | undefined>,
+    signal
   })
 }
 

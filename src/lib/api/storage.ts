@@ -71,15 +71,16 @@ export interface StorageReq {
 }
 
 /** Queries every storage: `GET /system/storage/list` (unpaged, `Api.LIST`). */
-export function listStorage(query?: StorageQuery) {
+export function listStorage(query?: StorageQuery, signal?: AbortSignal) {
   return http.get<StorageResp[]>('/system/storage/list', {
-    query: query as Record<string, string | number | boolean | null | undefined>
+    query: query as Record<string, string | number | boolean | null | undefined>,
+    signal
   })
 }
 
 /** Fetches single storage detail: `GET /system/storage/{id}` */
-export function getStorage(id: string | number) {
-  return http.get<StorageResp>(`/system/storage/${id}`)
+export function getStorage(id: string | number, signal?: AbortSignal) {
+  return http.get<StorageResp>(`/system/storage/${id}`, { signal })
 }
 
 /** Creates new storage: `POST /system/storage` */

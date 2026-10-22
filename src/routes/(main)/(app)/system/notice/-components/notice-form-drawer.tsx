@@ -122,7 +122,7 @@ export function NoticeFormDrawer({ noticeId, open, onClose }: NoticeFormDrawerPr
 
   const usersQuery = useQuery({
     queryKey: userKeys.list({ page: 1, size: 100 }),
-    queryFn: () => listUsers({ page: 1, size: 100 }),
+    queryFn: ({ signal }) => listUsers({ page: 1, size: 100 }, signal),
     enabled: open
   })
   const users = usersQuery.data?.list ?? []
@@ -211,7 +211,7 @@ export function NoticeFormDrawer({ noticeId, open, onClose }: NoticeFormDrawerPr
   const unresolvedUserQueries = useQueries({
     queries: unresolvedUserIds.map(id => ({
       queryKey: userKeys.detail(id),
-      queryFn: () => getUser(id),
+      queryFn: ({ signal }) => getUser(id, signal),
       enabled: open,
       staleTime: 5 * 60_000
     }))

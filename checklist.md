@@ -3,7 +3,7 @@
 > 最后同步：2026-10-21。原始 35 条全部保留；新增 12 条（36–47）。另有 11、13、27、28、31 按复查结果扩面，不另计条目。  
 > 状态：`[x]` 已修复；`[ ]` 待处理。
 
-共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 7 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
+共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 5 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
 
 本次为静态审计，覆盖业务管理页、共享组件、请求与状态层，以及部分仪表盘页面；未进行运行时性能测试。原生 HTML、必要的异常处理和合理的 `className` 扩展本身不算问题。文件行号对应当前代码。
 
@@ -116,7 +116,7 @@
 - [x] **36 · P2｜字典项和通知用户被固定截断在前 100 条。［已修复 2026-10-22］** 字典组改为每页 10 条的服务端分页（页码进 queryKey，删除导致越界时回退，底部复用 `PaginationArrow`）；公告表单对前 100 之外的已选 id 用 `useQueries` + `getUser` 补拉姓名（走 `userKeys.detail` 缓存），Badge 不再显示「用户 id」；用户选择器改为 `useInfiniteQuery`，底部「加载更多」按 `total` 续页，服务端搜索仍按关键词重查。无批量 ids 接口时，补拉请求数等于超出前 100 的已选人数。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/dict/-components/dict-panel.tsx:57](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/dict/-components/dict-panel.tsx:57>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/notice/-components/notice-form-drawer.tsx:119](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/notice/-components/notice-form-drawer.tsx:119>)；[notice-user-picker.tsx:39](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/notice/-components/notice-user-picker.tsx:39>)
 
-- [ ] **37 · P2｜HeaderTabs 将关闭按钮嵌套在 Link 内。** `<Link>` 内又渲染 `<button>`，属于嵌套交互元素，键盘和读屏语义会混淆；`preventDefault/stopPropagation` 只掩盖了行为，没有修正结构。应把关闭按钮移到 Link 外。  
+- [x] **37 · P2｜HeaderTabs 将关闭按钮嵌套在 Link 内。［已修复 2026-10-22］** 标签结构改为 `div`（边框/圆角/hover）包 `Link` + 同级 `<button>`；关闭处理不再依赖 `preventDefault/stopPropagation`，`handleCloseTab` 只接收 tab；关闭按钮的 `aria-label` 换成 `sr-only` 文本，左右间距按原视觉重新分配。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/components/app-shell/header/header-tabs.tsx:197](<E:/ppxb/continew-next/continew-ui-next/src/components/app-shell/header/header-tabs.tsx:197>)
 
 - [x] **38 · P3｜表单回填策略不统一，部分表单会覆盖正在编辑的内容。［已修复 2026-10-21］** client、sms、storage、role、dept、menu 六个表单统一为 `filledForRef` 一次性回填 + `keepDefaultValues`；SMS 的 `supplierOptions` 不再触发重置，菜单按 id 回填，重取详情不会覆盖正在编辑的内容。  
@@ -131,7 +131,7 @@
 - [x] **41 · P3｜空态、错态、加载态与重试入口不统一。［已修复 2026-10-22］** 新增共享 `QueryState`（`empty` / `error`：块级错态统一「数据加载失败」+ outline「重新加载」），`DataTable`、`DictTable`、`ConfigPanelError`、`file-manager`、`role-user` 成员表已接入；17 个详情/表单抽屉的「加载失败，请稍后重试」段落改为带 `refetch` 重试的 `QueryState`（`role-permission` 同时重试两个查询）。`RetryHint` 已移入 `backups/`。加载态继续用各页内容骨架；带图标/描述的富空态（文件区、字典列表、任务组等）保留 `Empty`；mail 为 demo，未改。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/user/-components/user-table.tsx:66](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/user/-components/user-table.tsx:66>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/file/-components/file-recycle-drawer.tsx:162](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/file/-components/file-recycle-drawer.tsx:162>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/dict/-components/dict-table.tsx:29](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/dict/-components/dict-table.tsx:29>)；[retry-hint.tsx:8](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/retry-hint.tsx:8>)
 
-- [ ] **42 · P3｜查询函数普遍丢弃 TanStack Query 的 `AbortSignal`。** `http.ts` 支持 `RequestOptions.signal`，但 API 包装和 `queryFn` 都未使用；切换筛选、分页或关闭页面时旧请求仍会跑完，搜索类请求尤其明显。建议 API 层增加可选 `signal`，`queryFn: ({ signal }) => listX({ ..., signal })`。  
+- [x] **42 · P3｜查询函数普遍丢弃 TanStack Query 的 `AbortSignal`。［已修复 2026-10-22］** `http.ts` 用 `AbortSignal.any` 合并调用方 signal 与 15 秒超时，并让取消不再被包成网络错误、不弹 toast；API 层 45 个 GET 包装新增可选 `signal`，全部 `queryFn`（含详情 hooks、`useQueries`、`useInfiniteQuery`）改为 `({ signal }) => listX(..., signal)`。切换筛选、翻页、关闭抽屉时旧请求会被真正取消。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/lib/http.ts:56](<E:/ppxb/continew-next/continew-ui-next/src/lib/http.ts:56>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/user/-components/user-list.tsx:65](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/user/-components/user-list.tsx:65>)；[notice-user-picker.tsx:38](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/notice/-components/notice-user-picker.tsx:38>)
 
 - [ ] **43 · P3｜发票预览滚动定位未节流。** 每次 `scroll` 都调用 `getBoundingClientRect()` 并 `setLayout`，DEV 下还在滚动回调里 `console.log`。建议用 rAF 合并，或改用 `ResizeObserver` 与滚动结束回调。  

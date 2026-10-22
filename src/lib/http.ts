@@ -255,6 +255,9 @@ async function send<T>(
 
   const { body, query, skipAuthRefresh, silent, headers, ...init } = options
   const isFormData = typeof FormData !== 'undefined' && body instanceof FormData
+  const timeout = timeoutSignal()
+  // A caller-provided signal cancels the request too, but the request timeout still applies.
+  const signal = init.signal ? AbortSignal.any([init.signal, timeout]) : timeout
 
   let response: Response
   try {
@@ -264,9 +267,15 @@ async function send<T>(
       credentials: 'include',
       headers: buildHeaders(path, body !== undefined, headers, isFormData),
       body: body === undefined ? undefined : isFormData ? body : JSON.stringify(body),
-      signal: init.signal ?? timeoutSignal()
+      signal
     })
-  } catch {
+  } catch (error) {
+    // React Query aborts the previous request when its key changes or the view unmounts. That is
+    // not a network failure, so it must not surface an error toast.
+    if (init.signal?.aborted) {
+      throw error
+    }
+
     throw fail(NETWORK_ERROR_MESSAGE, {}, silent)
   }
 

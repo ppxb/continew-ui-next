@@ -71,7 +71,7 @@ export function DeptTreeSelect({
 
   const depts = useQuery({
     queryKey: deptKeys.trees(),
-    queryFn: getDeptTree,
+    queryFn: ({ signal }) => getDeptTree(undefined, signal),
     staleTime: LOOKUP_STALE_MS,
     enabled: enabled && shouldQuery
   })

@@ -63,15 +63,16 @@ export interface MenuQuery {
 }
 
 /** Fetches the whole menu tree from `GET /system/menu/tree`. */
-export function getMenuTree(query?: MenuQuery) {
+export function getMenuTree(query?: MenuQuery, signal?: AbortSignal) {
   return http.get<MenuResp[]>('/system/menu/tree', {
-    query: query as Record<string, string | number | boolean | null | undefined>
+    query: query as Record<string, string | number | boolean | null | undefined>,
+    signal
   })
 }
 
 /** Fetches a single menu record by ID. */
-export function getMenu(id: string | number) {
-  return http.get<MenuResp>(`/system/menu/${id}`)
+export function getMenu(id: string | number, signal?: AbortSignal) {
+  return http.get<MenuResp>(`/system/menu/${id}`, { signal })
 }
 
 /** Creates a new menu. */

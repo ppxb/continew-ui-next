@@ -66,13 +66,13 @@ export type PackageReq = {
 }
 
 /** One page of packages. */
-export function listPackages(query: PackagePageQuery) {
-  return http.get<PageResp<PackageResp>>('/tenant/package', { query })
+export function listPackages(query: PackagePageQuery, signal?: AbortSignal) {
+  return http.get<PageResp<PackageResp>>('/tenant/package', { query, signal })
 }
 
 /** One package's record, including its menu ids. */
-export function getPackage(id: string | number) {
-  return http.get<PackageDetailResp>(`/tenant/package/${id}`)
+export function getPackage(id: string | number, signal?: AbortSignal) {
+  return http.get<PackageDetailResp>(`/tenant/package/${id}`, { signal })
 }
 
 /** Creates a package, answering with its new id. */
@@ -91,13 +91,13 @@ export function deletePackage(id: string | number) {
 }
 
 /** Every package as a label/value option. */
-export function listPackageDict() {
-  return http.get<PackageDictResp[]>('/tenant/package/dict')
+export function listPackageDict(signal?: AbortSignal) {
+  return http.get<PackageDictResp[]>('/tenant/package/dict', { signal })
 }
 
 /** The menu tree a package may grant, already filtered for tenant use. */
-export function getPackageMenuTree() {
-  return http.get<PackageMenuNode[]>('/tenant/package/menu/tree')
+export function getPackageMenuTree(signal?: AbortSignal) {
+  return http.get<PackageMenuNode[]>('/tenant/package/menu/tree', { signal })
 }
 
 export { packageKeys } from '@/lib/query-keys'

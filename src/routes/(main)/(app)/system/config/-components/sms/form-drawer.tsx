@@ -140,7 +140,7 @@ export function SmsFormDrawer({ smsId, open, supplierOptions, onClose }: SmsForm
 
   const detailQuery = useQuery({
     queryKey: smsKeys.detail(smsId ?? ''),
-    queryFn: () => getSmsConfig(smsId!),
+    queryFn: ({ signal }) => getSmsConfig(smsId!, signal),
     enabled: open && isEdit
   })
 

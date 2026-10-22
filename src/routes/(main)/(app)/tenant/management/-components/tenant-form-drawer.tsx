@@ -131,7 +131,7 @@ export function TenantFormDrawer({ tenantId, open, onClose }: TenantFormDrawerPr
 
   const packages = useQuery({
     queryKey: packageKeys.dicts(),
-    queryFn: listPackageDict,
+    queryFn: ({ signal }) => listPackageDict(signal),
     staleTime: LOOKUP_STALE_MS,
     enabled: open
   })

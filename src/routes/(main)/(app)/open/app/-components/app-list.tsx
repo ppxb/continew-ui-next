@@ -64,13 +64,16 @@ export function AppList() {
       description: keyword || undefined,
       sort: DEFAULT_SORT
     }),
-    queryFn: () =>
-      listApps({
-        page: pagination.pageIndex + 1,
-        size: pagination.pageSize,
-        description: keyword || undefined,
-        sort: DEFAULT_SORT
-      }),
+    queryFn: ({ signal }) =>
+      listApps(
+        {
+          page: pagination.pageIndex + 1,
+          size: pagination.pageSize,
+          description: keyword || undefined,
+          sort: DEFAULT_SORT
+        },
+        signal
+      ),
     placeholderData: previous => previous
   })
 

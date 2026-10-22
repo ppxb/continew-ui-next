@@ -138,8 +138,8 @@ export const JOB_BLOCK_STRATEGY_OPTIONS = [
 ]
 
 /** One page of jobs. */
-export function listJobs(query: JobQuery) {
-  return http.get<PageResp<JobResp>>('/schedule/job', { query })
+export function listJobs(query: JobQuery, signal?: AbortSignal) {
+  return http.get<PageResp<JobResp>>('/schedule/job', { query, signal })
 }
 
 /** Creates a job. */
@@ -168,8 +168,8 @@ export function triggerJob(id: string | number) {
 }
 
 /** The job groups the scheduler knows about. */
-export function listJobGroups() {
-  return http.get<string[]>('/schedule/job/group')
+export function listJobGroups(signal?: AbortSignal) {
+  return http.get<string[]>('/schedule/job/group', { signal })
 }
 
 export { jobKeys } from '@/lib/query-keys'

@@ -17,12 +17,12 @@ export function useAppDetail(
 ) {
   return useQuery({
     queryKey: appKeys.detail(appId),
-    queryFn: () => {
+    queryFn: ({ signal }) => {
       if (appId === null) {
         throw new Error('An app detail was requested without an id')
       }
 
-      return getApp(appId)
+      return getApp(appId, signal)
     },
     enabled: enabled && appId !== null,
     staleTime: refreshOnOpen ? 0 : DETAIL_STALE_TIME_MS

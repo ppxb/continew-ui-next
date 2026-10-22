@@ -48,12 +48,12 @@ export interface NoticeReq {
   status: NoticeStatus
 }
 
-export function listNotices(query: NoticePageQuery) {
-  return http.get<PageResp<NoticeResp>>('/system/notice', { query })
+export function listNotices(query: NoticePageQuery, signal?: AbortSignal) {
+  return http.get<PageResp<NoticeResp>>('/system/notice', { query, signal })
 }
 
-export function getNotice(id: string | number) {
-  return http.get<NoticeDetailResp>(`/system/notice/${id}`)
+export function getNotice(id: string | number, signal?: AbortSignal) {
+  return http.get<NoticeDetailResp>(`/system/notice/${id}`, { signal })
 }
 
 export function createNotice(body: NoticeReq) {

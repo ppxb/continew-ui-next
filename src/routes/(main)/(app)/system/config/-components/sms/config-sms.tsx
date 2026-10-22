@@ -79,7 +79,7 @@ export function ConfigSms() {
   // Dict query for supplier presets
   const { data: dictSuppliers = [] } = useQuery({
     queryKey: dictKeys.code('sms_supplier'),
-    queryFn: () => listDict('sms_supplier')
+    queryFn: ({ signal }) => listDict('sms_supplier', signal)
   })
 
   const supplierOptions = dictSuppliers.length > 0 ? dictSuppliers : SUPPLIER_PRESETS
@@ -105,13 +105,16 @@ export function ConfigSms() {
       name: keyword || undefined,
       supplier: filterSupplier === 'all' ? undefined : filterSupplier
     }),
-    queryFn: () =>
-      listSmsConfig({
-        page: pagination.pageIndex + 1,
-        size: pagination.pageSize,
-        name: keyword || undefined,
-        supplier: filterSupplier === 'all' ? undefined : filterSupplier
-      }),
+    queryFn: ({ signal }) =>
+      listSmsConfig(
+        {
+          page: pagination.pageIndex + 1,
+          size: pagination.pageSize,
+          name: keyword || undefined,
+          supplier: filterSupplier === 'all' ? undefined : filterSupplier
+        },
+        signal
+      ),
     placeholderData: previous => previous
   })
 

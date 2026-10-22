@@ -67,7 +67,7 @@ export function JobLogList({ initialJobId, initialJobName, initialGroupName }: J
 
   const groups = useQuery({
     queryKey: jobKeys.groups(),
-    queryFn: listJobGroups,
+    queryFn: ({ signal }) => listJobGroups(signal),
     staleTime: LOOKUP_STALE_MS,
     enabled: canListJobs
   })
@@ -163,7 +163,7 @@ export function JobLogList({ initialJobId, initialJobName, initialGroupName }: J
 
   const query = useQuery({
     queryKey: jobLogKeys.list(params),
-    queryFn: () => listJobLogs(params),
+    queryFn: ({ signal }) => listJobLogs(params, signal),
     placeholderData: previous => previous
   })
 

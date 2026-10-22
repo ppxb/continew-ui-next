@@ -127,13 +127,13 @@ export function FileManager() {
 
   const query = useQuery({
     queryKey: fileKeys.list(params),
-    queryFn: () => listFiles(params),
+    queryFn: ({ signal }) => listFiles(params, signal),
     placeholderData: previous => previous
   })
 
   const stats = useQuery({
     queryKey: fileKeys.statistics(),
-    queryFn: getFileStatistics
+    queryFn: ({ signal }) => getFileStatistics(signal)
   })
 
   const files = query.data?.list ?? []

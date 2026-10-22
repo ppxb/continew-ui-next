@@ -61,7 +61,7 @@ export function DictGroup({
 
   const query = useQuery({
     queryKey: dictKeys.itemList({ dictId: dict.id, page, size: PAGE_SIZE, sort: 'sort,asc' }),
-    queryFn: () => listDictItems({ dictId: dict.id, page, size: PAGE_SIZE, sort: 'sort,asc' }),
+    queryFn: ({ signal }) => listDictItems({ dictId: dict.id, page, size: PAGE_SIZE, sort: 'sort,asc' }, signal),
     enabled: open
   })
 

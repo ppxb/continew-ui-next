@@ -56,8 +56,8 @@ export type UserPageQuery = {
 }
 
 /** One page of users. */
-export function listUsers(query: UserPageQuery) {
-  return http.get<PageResp<UserResp>>('/system/user', { query })
+export function listUsers(query: UserPageQuery, signal?: AbortSignal) {
+  return http.get<PageResp<UserResp>>('/system/user', { query, signal })
 }
 
 /** Every user matching the filter, as a file download. */
@@ -76,8 +76,8 @@ export interface UserDetailResp extends UserResp {
 }
 
 /** One user's full record. */
-export function getUser(id: string | number) {
-  return http.get<UserDetailResp>(`/system/user/${id}`)
+export function getUser(id: string | number, signal?: AbortSignal) {
+  return http.get<UserDetailResp>(`/system/user/${id}`, { signal })
 }
 
 /**

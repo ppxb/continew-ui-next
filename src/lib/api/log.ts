@@ -62,13 +62,13 @@ export type LogPageQuery = {
 export type LogExportQuery = Omit<LogPageQuery, 'page' | 'size'>
 
 /** One page of logs. */
-export function listLogs(query: LogPageQuery) {
-  return http.get<PageResp<LogResp>>('/system/log', { query })
+export function listLogs(query: LogPageQuery, signal?: AbortSignal) {
+  return http.get<PageResp<LogResp>>('/system/log', { query, signal })
 }
 
 /** One log's full record, including the request and response it captured. */
-export function getLog(id: string | number) {
-  return http.get<LogDetailResp>(`/system/log/${id}`)
+export function getLog(id: string | number, signal?: AbortSignal) {
+  return http.get<LogDetailResp>(`/system/log/${id}`, { signal })
 }
 
 /** Every login log matching the filter, as a file download. */

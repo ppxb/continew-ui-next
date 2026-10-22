@@ -32,7 +32,7 @@ export function UserRoleSelect({
 }: UserRoleSelectProps) {
   const roles = useQuery({
     queryKey: roleKeys.dicts(),
-    queryFn: listRoleDict,
+    queryFn: ({ signal }) => listRoleDict(signal),
     staleTime: LOOKUP_STALE_MS,
     enabled
   })

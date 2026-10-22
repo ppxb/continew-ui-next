@@ -97,7 +97,7 @@ export function DeptList() {
   // Fetch department tree
   const query = useQuery({
     queryKey: deptKeys.trees(),
-    queryFn: () => getDeptTree()
+    queryFn: ({ signal }) => getDeptTree(undefined, signal)
   })
 
   const rawTree = query.data ?? EMPTY_TREE

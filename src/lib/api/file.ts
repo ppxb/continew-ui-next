@@ -68,8 +68,8 @@ export interface FileStatisticsResp {
   data?: FileStatisticsResp[] | null
 }
 
-export function listFiles(query: FilePageQuery) {
-  return http.get<PageResp<FileResp>>('/system/file', { query })
+export function listFiles(query: FilePageQuery, signal?: AbortSignal) {
+  return http.get<PageResp<FileResp>>('/system/file', { query, signal })
 }
 
 export function uploadFile(file: File, parentPath: string) {
@@ -92,12 +92,12 @@ export function createDir(parentPath: string, originalName: string) {
   return http.post<{ id: string | number }>('/system/file/dir', { parentPath, originalName })
 }
 
-export function getFileStatistics() {
-  return http.get<FileStatisticsResp>('/system/file/statistics')
+export function getFileStatistics(signal?: AbortSignal) {
+  return http.get<FileStatisticsResp>('/system/file/statistics', { signal })
 }
 
-export function listRecycleFiles(query: FilePageQuery) {
-  return http.get<PageResp<FileResp>>('/system/file/recycle', { query })
+export function listRecycleFiles(query: FilePageQuery, signal?: AbortSignal) {
+  return http.get<PageResp<FileResp>>('/system/file/recycle', { query, signal })
 }
 
 export function restoreRecycleFile(id: string | number) {

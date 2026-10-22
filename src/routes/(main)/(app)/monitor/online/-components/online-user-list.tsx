@@ -66,7 +66,7 @@ export function OnlineUserList() {
 
   const query = useQuery({
     queryKey: onlineUserKeys.list(params),
-    queryFn: () => listOnlineUsers(params),
+    queryFn: ({ signal }) => listOnlineUsers(params, signal),
     placeholderData: previous => previous
   })
 

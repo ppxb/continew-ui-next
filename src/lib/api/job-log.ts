@@ -73,8 +73,8 @@ export const JOB_EXECUTE_REASON_LABELS: Record<number, string> = {
 }
 
 /** One page of job logs. */
-export function listJobLogs(query: JobLogQuery) {
-  return http.get<PageResp<JobLogResp>>('/schedule/log', { query })
+export function listJobLogs(query: JobLogQuery, signal?: AbortSignal) {
+  return http.get<PageResp<JobLogResp>>('/schedule/log', { query, signal })
 }
 
 /** Stops one running job batch. */

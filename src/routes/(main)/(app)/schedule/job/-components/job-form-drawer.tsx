@@ -161,7 +161,7 @@ export function JobFormDrawer({ job, open, onClose, defaultGroupName }: JobFormD
 
   const groups = useQuery({
     queryKey: jobKeys.groups(),
-    queryFn: listJobGroups,
+    queryFn: ({ signal }) => listJobGroups(signal),
     staleTime: LOOKUP_STALE_MS,
     enabled: open
   })

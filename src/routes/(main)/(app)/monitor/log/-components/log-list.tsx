@@ -126,7 +126,7 @@ export function LogList({ mode }: LogListProps) {
 
   const query = useQuery({
     queryKey: logKeys.list(params),
-    queryFn: () => listLogs(params),
+    queryFn: ({ signal }) => listLogs(params, signal),
     placeholderData: previous => previous
   })
 

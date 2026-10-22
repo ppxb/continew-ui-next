@@ -42,8 +42,8 @@ export function NoticeUserPicker({ open, selected, onClose, onConfirm }: NoticeU
   // reachable.
   const usersQuery = useInfiniteQuery({
     queryKey: userKeys.list({ page: 1, size: PAGE_SIZE, description: debouncedSearch.trim() || undefined }),
-    queryFn: ({ pageParam }) =>
-      listUsers({ page: pageParam, size: PAGE_SIZE, description: debouncedSearch.trim() || undefined }),
+    queryFn: ({ pageParam, signal }) =>
+      listUsers({ page: pageParam, size: PAGE_SIZE, description: debouncedSearch.trim() || undefined }, signal),
     initialPageParam: 1,
     getNextPageParam: (lastPage, allPages) => {
       const loaded = allPages.reduce((count, page) => count + page.list.length, 0)

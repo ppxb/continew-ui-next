@@ -64,13 +64,17 @@ export function RoleUserDrawer({ role, open, onClose }: RoleUserDrawerProps) {
       size: pagination.pageSize,
       description: keyword || undefined
     }),
-    queryFn: () => {
+    queryFn: ({ signal }) => {
       if (!roleId) return Promise.resolve({ list: [], total: 0 })
-      return listRoleUsers(roleId, {
-        page: pagination.pageIndex + 1,
-        size: pagination.pageSize,
-        description: keyword || undefined
-      })
+      return listRoleUsers(
+        roleId,
+        {
+          page: pagination.pageIndex + 1,
+          size: pagination.pageSize,
+          description: keyword || undefined
+        },
+        signal
+      )
     },
     enabled: open && roleId !== null
   })

@@ -20,7 +20,7 @@ export function usePackageDetail(
 ) {
   return useQuery({
     queryKey: packageKeys.detail(packageId),
-    queryFn: packageId === null ? skipToken : () => getPackage(packageId),
+    queryFn: packageId === null ? skipToken : ({ signal }) => getPackage(packageId, signal),
     enabled,
     staleTime: refreshOnOpen ? 0 : DETAIL_STALE_TIME_MS
   })

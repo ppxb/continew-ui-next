@@ -17,12 +17,12 @@ export function useRoleDetail(
 ) {
   return useQuery({
     queryKey: roleKeys.detail(roleId),
-    queryFn: () => {
+    queryFn: ({ signal }) => {
       if (roleId === null) {
         throw new Error('A role detail was requested without an id')
       }
 
-      return getRole(roleId)
+      return getRole(roleId, signal)
     },
     enabled: enabled && roleId !== null,
     staleTime: refreshOnOpen ? 0 : DETAIL_STALE_TIME_MS

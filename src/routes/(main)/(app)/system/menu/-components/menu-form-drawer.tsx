@@ -174,7 +174,7 @@ export function MenuFormDrawer({ menuId, defaultParentId, open, onClose, menuTre
   // Fetch menu details when editing
   const { data: menuDetail, isLoading: isLoadingDetail } = useQuery({
     queryKey: menuKeys.detail(menuId),
-    queryFn: () => getMenu(menuId!),
+    queryFn: ({ signal }) => getMenu(menuId!, signal),
     enabled: open && isEdit
   })
 

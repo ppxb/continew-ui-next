@@ -65,19 +65,19 @@ export function UserList() {
 
   const query = useQuery({
     queryKey: userKeys.list(params),
-    queryFn: () => listUsers(params),
+    queryFn: ({ signal }) => listUsers(params, signal),
     placeholderData: previous => previous
   })
 
   useQuery({
     queryKey: deptKeys.trees(),
-    queryFn: getDeptTree,
+    queryFn: ({ signal }) => getDeptTree(undefined, signal),
     staleTime: 5 * 60_000
   })
 
   useQuery({
     queryKey: roleKeys.dicts(),
-    queryFn: listRoleDict,
+    queryFn: ({ signal }) => listRoleDict(signal),
     staleTime: 5 * 60_000
   })
 

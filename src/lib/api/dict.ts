@@ -60,12 +60,12 @@ export interface DictItemReq {
   dictId: string | number
 }
 
-export function listDicts(query?: DictQuery) {
-  return http.get<DictResp[]>('/system/dict/list', { query })
+export function listDicts(query?: DictQuery, signal?: AbortSignal) {
+  return http.get<DictResp[]>('/system/dict/list', { query, signal })
 }
 
-export function getDict(id: string | number) {
-  return http.get<DictResp>(`/system/dict/${id}`)
+export function getDict(id: string | number, signal?: AbortSignal) {
+  return http.get<DictResp>(`/system/dict/${id}`, { signal })
 }
 
 export function createDict(body: DictReq) {
@@ -84,12 +84,12 @@ export function clearDictCache(code: string) {
   return http.del(`/system/dict/cache/${code}`)
 }
 
-export function listDictItems(query: DictItemQuery) {
-  return http.get<PageResp<DictItemResp>>('/system/dict/item', { query })
+export function listDictItems(query: DictItemQuery, signal?: AbortSignal) {
+  return http.get<PageResp<DictItemResp>>('/system/dict/item', { query, signal })
 }
 
-export function getDictItem(id: string | number) {
-  return http.get<DictItemResp>(`/system/dict/item/${id}`)
+export function getDictItem(id: string | number, signal?: AbortSignal) {
+  return http.get<DictItemResp>(`/system/dict/item/${id}`, { signal })
 }
 
 export function createDictItem(body: DictItemReq) {

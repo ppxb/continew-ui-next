@@ -115,7 +115,7 @@ export function PackageList() {
 
   const query = useQuery({
     queryKey: packageKeys.list(params),
-    queryFn: () => listPackages(params),
+    queryFn: ({ signal }) => listPackages(params, signal),
     placeholderData: previous => previous
   })
 

@@ -66,13 +66,13 @@ export type TenantAdminPasswordReq = {
 }
 
 /** One page of tenants. */
-export function listTenants(query: TenantPageQuery) {
-  return http.get<PageResp<TenantResp>>('/tenant/management', { query })
+export function listTenants(query: TenantPageQuery, signal?: AbortSignal) {
+  return http.get<PageResp<TenantResp>>('/tenant/management', { query, signal })
 }
 
 /** One tenant's record. */
-export function getTenant(id: string | number) {
-  return http.get<TenantDetailResp>(`/tenant/management/${id}`)
+export function getTenant(id: string | number, signal?: AbortSignal) {
+  return http.get<TenantDetailResp>(`/tenant/management/${id}`, { signal })
 }
 
 /** Creates a tenant, answering with its new id. */

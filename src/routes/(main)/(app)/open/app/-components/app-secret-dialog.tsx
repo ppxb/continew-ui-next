@@ -68,11 +68,11 @@ export function AppSecretDialog({ app, open, onClose }: AppSecretDialogProps) {
 
   const query = useQuery({
     queryKey: appKeys.secret(appId),
-    queryFn: () => {
+    queryFn: ({ signal }) => {
       if (appId === null) {
         throw new Error('App ID is required')
       }
-      return getAppSecret(appId)
+      return getAppSecret(appId, signal)
     },
     enabled: open && appId !== null
   })

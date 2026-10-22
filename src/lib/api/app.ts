@@ -31,8 +31,8 @@ export type AppPageQuery = {
 }
 
 /** One page of apps. */
-export function listApps(query: AppPageQuery) {
-  return http.get<PageResp<AppResp>>('/open/app', { query })
+export function listApps(query: AppPageQuery, signal?: AbortSignal) {
+  return http.get<PageResp<AppResp>>('/open/app', { query, signal })
 }
 
 /** Every app matching the filter, as a file download. */
@@ -46,8 +46,8 @@ export function exportApps(query: Omit<AppPageQuery, 'page' | 'size'>) {
 export interface AppDetailResp extends AppResp {}
 
 /** One app's full record. */
-export function getApp(id: string | number) {
-  return http.get<AppDetailResp>(`/open/app/${id}`)
+export function getApp(id: string | number, signal?: AbortSignal) {
+  return http.get<AppDetailResp>(`/open/app/${id}`, { signal })
 }
 
 /**
@@ -93,8 +93,8 @@ export interface AppSecretResp {
 }
 
 /** Fetches one app's secret keys. */
-export function getAppSecret(id: string | number) {
-  return http.get<AppSecretResp>(`/open/app/${id}/secret`)
+export function getAppSecret(id: string | number, signal?: AbortSignal) {
+  return http.get<AppSecretResp>(`/open/app/${id}/secret`, { signal })
 }
 
 /** Resets one app's secret key. */

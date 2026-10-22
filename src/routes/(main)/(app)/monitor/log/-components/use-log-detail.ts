@@ -20,7 +20,7 @@ export function useLogDetail(
 ) {
   return useQuery({
     queryKey: logKeys.detail(logId),
-    queryFn: logId === null ? skipToken : () => getLog(logId),
+    queryFn: logId === null ? skipToken : ({ signal }) => getLog(logId, signal),
     enabled,
     staleTime: refreshOnOpen ? 0 : DETAIL_STALE_TIME_MS
   })

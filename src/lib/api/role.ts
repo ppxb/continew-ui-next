@@ -122,23 +122,24 @@ export interface RoleDictResp {
 }
 
 /** Every role from `GET /system/role/list`. */
-export function listRoles(query?: RoleQuery) {
+export function listRoles(query?: RoleQuery, signal?: AbortSignal) {
   return http.get<RoleResp[]>('/system/role/list', {
-    query: query as Record<string, string | number | boolean | null | undefined>
+    query: query as Record<string, string | number | boolean | null | undefined>,
+    signal
   })
 }
 
 /** Role picker options without requiring the role management list permission. */
-export function listRoleDict() {
-  return http.get<RoleDictResp[]>('/system/role/dict')
+export function listRoleDict(signal?: AbortSignal) {
+  return http.get<RoleDictResp[]>('/system/role/dict', { signal })
 }
 
 /** Alias to listRoles for role queries. */
 export const listRolesPage = listRoles
 
 /** Fetches a single role with its full menuIds and deptIds. */
-export function getRole(id: string | number) {
-  return http.get<RoleDetailResp>(`/system/role/${id}`)
+export function getRole(id: string | number, signal?: AbortSignal) {
+  return http.get<RoleDetailResp>(`/system/role/${id}`, { signal })
 }
 
 /** Creates a new role. */
@@ -162,8 +163,8 @@ export function deleteRole(id: string | number) {
 }
 
 /** Fetches the full functional permissions tree for authorization. */
-export function listRolePermissionTree() {
-  return http.get<RolePermissionResp[]>('/system/role/permission/tree')
+export function listRolePermissionTree(signal?: AbortSignal) {
+  return http.get<RolePermissionResp[]>('/system/role/permission/tree', { signal })
 }
 
 /** Updates functional menu permissions for a role. */
@@ -172,15 +173,16 @@ export function updateRolePermission(id: string | number, body: RolePermissionUp
 }
 
 /** Paginated list of users assigned to this role. */
-export function listRoleUsers(id: string | number, query?: RoleUserPageQuery) {
+export function listRoleUsers(id: string | number, query?: RoleUserPageQuery, signal?: AbortSignal) {
   return http.get<PageResp<RoleUserResp>>(`/system/role/${id}/user`, {
-    query: query as Record<string, string | number | boolean | null | undefined>
+    query: query as Record<string, string | number | boolean | null | undefined>,
+    signal
   })
 }
 
 /** User IDs already assigned to this role. */
-export function listRoleUserIds(id: string | number) {
-  return http.get<Array<string | number>>(`/system/role/${id}/user/id`)
+export function listRoleUserIds(id: string | number, signal?: AbortSignal) {
+  return http.get<Array<string | number>>(`/system/role/${id}/user/id`, { signal })
 }
 
 /** Assigns users to this role in bulk. */

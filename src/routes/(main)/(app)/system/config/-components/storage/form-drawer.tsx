@@ -265,7 +265,7 @@ export function StorageFormDrawer({ storageId, storageType, open, onClose }: Sto
 
   const detail = useQuery({
     queryKey: storageKeys.detail(storageId),
-    queryFn: () => getStorage(storageId!),
+    queryFn: ({ signal }) => getStorage(storageId!, signal),
     enabled: open && isEdit
   })
 

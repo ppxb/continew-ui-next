@@ -48,15 +48,16 @@ export interface ClientReq {
 }
 
 /** Queries clients page: `GET /system/client` */
-export function listClient(query?: ClientQuery) {
+export function listClient(query?: ClientQuery, signal?: AbortSignal) {
   return http.get<PageResp<ClientResp>>('/system/client', {
-    query: query as Record<string, string | number | boolean | null | undefined>
+    query: query as Record<string, string | number | boolean | null | undefined>,
+    signal
   })
 }
 
 /** Fetches single client detail: `GET /system/client/{id}` */
-export function getClient(id: string | number) {
-  return http.get<ClientResp>(`/system/client/${id}`)
+export function getClient(id: string | number, signal?: AbortSignal) {
+  return http.get<ClientResp>(`/system/client/${id}`, { signal })
 }
 
 /** Creates new client: `POST /system/client` */

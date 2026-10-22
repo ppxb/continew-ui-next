@@ -93,7 +93,7 @@ export function DeptFormDrawer({ deptId, defaultParentId, open, deptTree, onClos
 
   const detailQuery = useQuery({
     queryKey: deptKeys.detail(deptId),
-    queryFn: () => getDept(deptId!),
+    queryFn: ({ signal }) => getDept(deptId!, signal),
     enabled: open && isEdit
   })
 

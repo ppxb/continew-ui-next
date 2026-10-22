@@ -48,15 +48,16 @@ export interface SmsConfigReq {
 }
 
 /** Queries SMS configurations page: `GET /system/sms/config` */
-export function listSmsConfig(query?: SmsConfigQuery) {
+export function listSmsConfig(query?: SmsConfigQuery, signal?: AbortSignal) {
   return http.get<PageResp<SmsConfigResp>>('/system/sms/config', {
-    query: query as Record<string, string | number | boolean | null | undefined>
+    query: query as Record<string, string | number | boolean | null | undefined>,
+    signal
   })
 }
 
 /** Fetches single SMS config detail: `GET /system/sms/config/{id}` */
-export function getSmsConfig(id: string | number) {
-  return http.get<SmsConfigResp>(`/system/sms/config/${id}`)
+export function getSmsConfig(id: string | number, signal?: AbortSignal) {
+  return http.get<SmsConfigResp>(`/system/sms/config/${id}`, { signal })
 }
 
 /** Creates new SMS config: `POST /system/sms/config` */

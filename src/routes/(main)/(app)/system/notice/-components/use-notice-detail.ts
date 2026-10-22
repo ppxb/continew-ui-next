@@ -16,7 +16,7 @@ export function useNoticeDetail(
 ) {
   return useQuery({
     queryKey: noticeKeys.detail(id),
-    queryFn: () => getNotice(id as string | number),
+    queryFn: ({ signal }) => getNotice(id as string | number, signal),
     enabled: enabled && id !== null,
     staleTime: refreshOnOpen ? 0 : DETAIL_STALE_TIME_MS
   })

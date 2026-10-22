@@ -221,14 +221,14 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
 
   const depts = useQuery({
     queryKey: deptKeys.trees(),
-    queryFn: getDeptTree,
+    queryFn: ({ signal }) => getDeptTree(undefined, signal),
     staleTime: LOOKUP_STALE_MS,
     enabled: open
   })
 
   const roles = useQuery({
     queryKey: roleKeys.dicts(),
-    queryFn: listRoleDict,
+    queryFn: ({ signal }) => listRoleDict(signal),
     staleTime: LOOKUP_STALE_MS,
     enabled: open
   })

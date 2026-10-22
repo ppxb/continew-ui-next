@@ -192,7 +192,7 @@ export function ClientFormDrawer({
   // Fetch client details when editing
   const { data: clientDetail, isLoading, isError: isDetailError, refetch: refetchDetail } = useQuery({
     queryKey: clientKeys.detail(clientId ?? ''),
-    queryFn: () => getClient(clientId!),
+    queryFn: ({ signal }) => getClient(clientId!, signal),
     enabled: open && isEdit
   })
 

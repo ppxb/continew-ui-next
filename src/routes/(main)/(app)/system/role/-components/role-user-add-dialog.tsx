@@ -41,7 +41,7 @@ export function RoleUserAddDialog({ role, open, onClose, onSuccess }: RoleUserAd
   // Fetch already assigned user IDs for this role
   const assignedQuery = useQuery({
     queryKey: roleKeys.userIds(roleId),
-    queryFn: () => (roleId ? listRoleUserIds(roleId) : Promise.resolve([])),
+    queryFn: ({ signal }) => (roleId ? listRoleUserIds(roleId, signal) : Promise.resolve([])),
     enabled: open && roleId !== null,
     staleTime: 0
   })
@@ -49,7 +49,7 @@ export function RoleUserAddDialog({ role, open, onClose, onSuccess }: RoleUserAd
   // Fetch candidate users
   const usersQuery = useQuery({
     queryKey: userKeys.list({ page: 1, size: 50, description: search || undefined }),
-    queryFn: () => listUsers({ page: 1, size: 50, description: search || undefined }),
+    queryFn: ({ signal }) => listUsers({ page: 1, size: 50, description: search || undefined }, signal),
     enabled: open
   })
 

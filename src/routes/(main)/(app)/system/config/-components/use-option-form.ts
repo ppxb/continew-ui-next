@@ -47,7 +47,7 @@ export function useOptionForm<TForm extends object>({ category, toForm, schema }
 
   const query = useQuery({
     queryKey: optionKeys.list(category),
-    queryFn: () => listOption({ category })
+    queryFn: ({ signal }) => listOption({ category }, signal)
   })
   const options = query.data ?? EMPTY_OPTIONS
 

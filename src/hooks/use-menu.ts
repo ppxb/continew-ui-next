@@ -15,8 +15,8 @@ export const MENU_QUERY_KEY = ['auth', 'menu'] as const
 
 export const menuQueryOptions = queryOptions({
   queryKey: MENU_QUERY_KEY,
-  queryFn: async () => {
-    const routes = await getUserRoutes()
+  queryFn: async ({ signal }) => {
+    const routes = await getUserRoutes(signal)
     setCachedMenu(routes)
     return routes
   },

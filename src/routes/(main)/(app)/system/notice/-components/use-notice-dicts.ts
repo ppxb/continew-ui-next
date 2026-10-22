@@ -32,22 +32,22 @@ function normalize(options: LabelValueResp[]): NoticeDictOption[] {
 export function useNoticeDicts() {
   const typeQuery = useQuery({
     queryKey: dictKeys.code('notice_type'),
-    queryFn: () => listDict('notice_type')
+    queryFn: ({ signal }) => listDict('notice_type', signal)
   })
 
   const scopeQuery = useQuery({
     queryKey: dictKeys.code('notice_scope_enum'),
-    queryFn: () => listDict('notice_scope_enum')
+    queryFn: ({ signal }) => listDict('notice_scope_enum', signal)
   })
 
   const methodQuery = useQuery({
     queryKey: dictKeys.code('notice_method_enum'),
-    queryFn: () => listDict('notice_method_enum')
+    queryFn: ({ signal }) => listDict('notice_method_enum', signal)
   })
 
   const statusQuery = useQuery({
     queryKey: dictKeys.code('notice_status_enum'),
-    queryFn: () => listDict('notice_status_enum')
+    queryFn: ({ signal }) => listDict('notice_status_enum', signal)
   })
 
   const typeOptions = normalize(typeQuery.data ?? [])

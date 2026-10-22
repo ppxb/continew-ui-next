@@ -26,7 +26,7 @@ export function useUserDetail(
 ) {
   return useQuery({
     queryKey: userKeys.detail(userId),
-    queryFn: userId === null ? skipToken : () => getUser(userId),
+    queryFn: userId === null ? skipToken : ({ signal }) => getUser(userId, signal),
     enabled,
     staleTime: refreshOnOpen ? 0 : DETAIL_STALE_TIME_MS
   })

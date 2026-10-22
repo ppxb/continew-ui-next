@@ -14,8 +14,8 @@ export interface FileUploadResp {
 }
 
 /** Fetches dictionary items by dict code: `GET /system/common/dict/{code}` */
-export function listDict(code: string) {
-  return http.get<LabelValueResp[]>(`/system/common/dict/${code}`)
+export function listDict(code: string, signal?: AbortSignal) {
+  return http.get<LabelValueResp[]>(`/system/common/dict/${code}`, { signal })
 }
 
 /** Uploads a file: `POST /system/common/file` */
@@ -28,6 +28,6 @@ export function uploadFile(file: File, parentPath = '/') {
 }
 
 /** Fetches public site option dict: `GET /system/common/dict/option/site` */
-export function listSiteOptionDict() {
-  return http.get<LabelValueResp<string>[]>('/system/common/dict/option/site')
+export function listSiteOptionDict(signal?: AbortSignal) {
+  return http.get<LabelValueResp<string>[]>('/system/common/dict/option/site', { signal })
 }

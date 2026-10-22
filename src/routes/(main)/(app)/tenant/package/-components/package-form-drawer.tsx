@@ -128,7 +128,7 @@ export function PackageFormDrawer({ packageId, open, onClose }: PackageFormDrawe
 
   const menuTree = useQuery({
     queryKey: packageKeys.menus(),
-    queryFn: getPackageMenuTree,
+    queryFn: ({ signal }) => getPackageMenuTree(signal),
     staleTime: LOOKUP_STALE_MS,
     enabled: open
   })

@@ -91,7 +91,7 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
 
   const depts = useQuery({
     queryKey: deptKeys.trees(),
-    queryFn: getDeptTree,
+    queryFn: ({ signal }) => getDeptTree(undefined, signal),
     staleTime: 5 * 60_000,
     enabled: open
   })

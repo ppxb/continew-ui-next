@@ -72,7 +72,7 @@ export function NoticeList() {
 
   const query = useQuery({
     queryKey: noticeKeys.list(params),
-    queryFn: () => listNotices(params),
+    queryFn: ({ signal }) => listNotices(params, signal),
     placeholderData: previous => previous
   })
 

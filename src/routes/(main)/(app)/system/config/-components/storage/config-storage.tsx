@@ -81,7 +81,8 @@ export function ConfigStorage() {
 
   const query = useQuery({
     queryKey: storageKeys.list({ description: keyword || undefined, type, status, sort: DEFAULT_SORT }),
-    queryFn: () => listStorage({ description: keyword || undefined, type, status, sort: DEFAULT_SORT }),
+    queryFn: ({ signal }) =>
+      listStorage({ description: keyword || undefined, type, status, sort: DEFAULT_SORT }, signal),
     // Keep the current rows on screen while the next filter loads.
     placeholderData: previous => previous
   })

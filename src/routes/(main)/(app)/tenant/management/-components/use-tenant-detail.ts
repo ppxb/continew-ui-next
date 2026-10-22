@@ -22,7 +22,7 @@ export function useTenantDetail(
 ) {
   return useQuery({
     queryKey: tenantKeys.detail(tenantId),
-    queryFn: tenantId === null ? skipToken : () => getTenant(tenantId),
+    queryFn: tenantId === null ? skipToken : ({ signal }) => getTenant(tenantId, signal),
     enabled,
     staleTime: refreshOnOpen ? 0 : DETAIL_STALE_TIME_MS
   })

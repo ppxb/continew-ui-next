@@ -39,8 +39,8 @@ export type OnlineUserPageQuery = {
 }
 
 /** One page of login sessions. */
-export function listOnlineUsers(query: OnlineUserPageQuery) {
-  return http.get<PageResp<OnlineUserResp>>('/monitor/online', { query })
+export function listOnlineUsers(query: OnlineUserPageQuery, signal?: AbortSignal) {
+  return http.get<PageResp<OnlineUserResp>>('/monitor/online', { query, signal })
 }
 
 /** Revokes one login session; the backend rejects kicking out the current one. */

@@ -97,7 +97,7 @@ export function SmsLogList() {
 
   const query = useQuery({
     queryKey: smsLogKeys.list(params),
-    queryFn: () => listSmsLogs(params),
+    queryFn: ({ signal }) => listSmsLogs(params, signal),
     placeholderData: previous => previous
   })
 

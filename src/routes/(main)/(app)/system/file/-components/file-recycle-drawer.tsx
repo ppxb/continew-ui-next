@@ -58,7 +58,7 @@ export function FileRecycleDrawer({ open, onClose }: FileRecycleDrawerProps) {
 
   const query = useQuery({
     queryKey: fileKeys.recycle({ page, size: RECYCLE_PAGE_SIZE }),
-    queryFn: () => listRecycleFiles({ page, size: RECYCLE_PAGE_SIZE }),
+    queryFn: ({ signal }) => listRecycleFiles({ page, size: RECYCLE_PAGE_SIZE }, signal),
     placeholderData: previous => previous,
     enabled: open
   })

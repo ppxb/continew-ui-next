@@ -50,6 +50,6 @@ export function getUserInfo() {
 }
 
 /** Returns the menu tree the current user is allowed to see. */
-export function getUserRoutes() {
-  return http.get<RouteResp[]>('/auth/user/route')
+export function getUserRoutes(signal?: AbortSignal) {
+  return http.get<RouteResp[]>('/auth/user/route', { signal })
 }

@@ -72,7 +72,7 @@ export function DictManager() {
 
   const query = useQuery({
     queryKey: dictKeys.list(),
-    queryFn: () => listDicts()
+    queryFn: ({ signal }) => listDicts(undefined, signal)
   })
 
   const dicts = query.data ?? EMPTY_DICTS

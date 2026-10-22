@@ -43,18 +43,19 @@ export interface DeptReq {
 
 /** Fetches the whole department tree from `GET /system/dept/tree`. */
 export function getDeptTree(): Promise<DeptResp[]>
-export function getDeptTree(query?: DeptQuery): Promise<DeptResp[]>
-export function getDeptTree(query?: unknown): Promise<DeptResp[]> {
+export function getDeptTree(query?: DeptQuery, signal?: AbortSignal): Promise<DeptResp[]>
+export function getDeptTree(query?: unknown, signal?: AbortSignal): Promise<DeptResp[]> {
   const isContext = query && typeof query === 'object' && 'queryKey' in query
   const actualQuery = isContext ? undefined : (query as DeptQuery | undefined)
   return http.get<DeptResp[]>('/system/dept/tree', {
-    query: actualQuery as Record<string, string | number | boolean | null | undefined>
+    query: actualQuery as Record<string, string | number | boolean | null | undefined>,
+    signal
   })
 }
 
 /** Fetches a single department record by ID. */
-export function getDept(id: string | number) {
-  return http.get<DeptResp>(`/system/dept/${id}`)
+export function getDept(id: string | number, signal?: AbortSignal) {
+  return http.get<DeptResp>(`/system/dept/${id}`, { signal })
 }
 
 /** Creates a new department. */

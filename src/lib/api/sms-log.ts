@@ -40,8 +40,8 @@ export type SmsLogPageQuery = {
 export type SmsLogQuery = Omit<SmsLogPageQuery, 'page' | 'size'>
 
 /** One page of SMS logs. */
-export function listSmsLogs(query: SmsLogPageQuery) {
-  return http.get<PageResp<SmsLogResp>>('/system/sms/log', { query })
+export function listSmsLogs(query: SmsLogPageQuery, signal?: AbortSignal) {
+  return http.get<PageResp<SmsLogResp>>('/system/sms/log', { query, signal })
 }
 
 /**

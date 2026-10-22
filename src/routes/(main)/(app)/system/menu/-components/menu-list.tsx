@@ -97,7 +97,7 @@ export function MenuList() {
   // Fetch menu tree
   const query = useQuery({
     queryKey: menuKeys.trees(),
-    queryFn: () => getMenuTree()
+    queryFn: ({ signal }) => getMenuTree(undefined, signal)
   })
 
   const rawTree = query.data ?? EMPTY_TREE

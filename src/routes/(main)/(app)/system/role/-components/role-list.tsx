@@ -59,11 +59,14 @@ export function RoleList() {
       description: keyword || undefined,
       sort: DEFAULT_SORT
     }),
-    queryFn: () =>
-      listRoles({
-        description: keyword || undefined,
-        sort: DEFAULT_SORT
-      }),
+    queryFn: ({ signal }) =>
+      listRoles(
+        {
+          description: keyword || undefined,
+          sort: DEFAULT_SORT
+        },
+        signal
+      ),
     placeholderData: previous => previous
   })
 

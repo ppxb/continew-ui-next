@@ -61,7 +61,7 @@ export function TenantList() {
 
   const packages = useQuery({
     queryKey: packageKeys.dicts(),
-    queryFn: listPackageDict,
+    queryFn: ({ signal }) => listPackageDict(signal),
     staleTime: LOOKUP_STALE_MS
   })
 
@@ -129,7 +129,7 @@ export function TenantList() {
 
   const query = useQuery({
     queryKey: tenantKeys.list(params),
-    queryFn: () => listTenants(params),
+    queryFn: ({ signal }) => listTenants(params, signal),
     placeholderData: previous => previous
   })
 

@@ -82,22 +82,22 @@ export function ConfigClient() {
   // Dict queries matching Vue version: client_type, auth_type_enum, replaced_range_enum, logout_mode_enum
   const { data: dictClientTypes = [] } = useQuery({
     queryKey: dictKeys.code('client_type'),
-    queryFn: () => listDict('client_type')
+    queryFn: ({ signal }) => listDict('client_type', signal)
   })
 
   const { data: dictAuthTypes = [] } = useQuery({
     queryKey: dictKeys.code('auth_type_enum'),
-    queryFn: () => listDict('auth_type_enum')
+    queryFn: ({ signal }) => listDict('auth_type_enum', signal)
   })
 
   const { data: dictReplacedRanges = [] } = useQuery({
     queryKey: dictKeys.code('replaced_range_enum'),
-    queryFn: () => listDict('replaced_range_enum')
+    queryFn: ({ signal }) => listDict('replaced_range_enum', signal)
   })
 
   const { data: dictLogoutModes = [] } = useQuery({
     queryKey: dictKeys.code('logout_mode_enum'),
-    queryFn: () => listDict('logout_mode_enum')
+    queryFn: ({ signal }) => listDict('logout_mode_enum', signal)
   })
 
   const clientTypeOptions = dictClientTypes.length > 0 ? dictClientTypes : CLIENT_TYPE_PRESETS
@@ -150,13 +150,16 @@ export function ConfigClient() {
       clientType,
       status
     }),
-    queryFn: () =>
-      listClient({
-        page: pagination.pageIndex + 1,
-        size: pagination.pageSize,
-        clientType,
-        status
-      }),
+    queryFn: ({ signal }) =>
+      listClient(
+        {
+          page: pagination.pageIndex + 1,
+          size: pagination.pageSize,
+          clientType,
+          status
+        },
+        signal
+      ),
     placeholderData: previous => previous
   })
 
