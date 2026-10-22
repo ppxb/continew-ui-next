@@ -6,8 +6,8 @@ import { type ColumnVisibilityState, type ExpandedState, useTable } from '@tanst
 import { Search, X } from 'lucide-react'
 
 import { DataTable } from '@/components/data-table'
+import { ListPageCard } from '@/components/list-page-card'
 import { Button } from '@/components/ui/button'
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { toast } from '@/components/ui/toast'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
@@ -92,7 +92,7 @@ export function MenuList() {
   const [deletingMenu, setDeletingMenu] = React.useState<MenuResp | null>(null)
   const [isDeleteOpen, setIsDeleteOpen] = React.useState(false)
 
-  const { isFullscreen, reservedHeight, fullscreenRef, spacerRef, toggleFullscreen } = useFullscreenTransition()
+  const fullscreen = useFullscreenTransition()
 
   // Fetch menu tree
   const query = useQuery({
@@ -196,7 +196,7 @@ export function MenuList() {
       <MenuToolbar
         table={table}
         isRefreshing={query.isFetching}
-        isFullscreen={isFullscreen}
+        isFullscreen={fullscreen.isFullscreen}
         isAllExpanded={isAllExpanded}
         isClearingCache={clearCacheMutation.isPending}
         hasCreatePermission={hasCreatePermission}
@@ -205,7 +205,7 @@ export function MenuList() {
         onRefresh={() => void query.refetch()}
         onToggleExpandAll={handleToggleExpandAll}
         onClearCache={() => clearCacheMutation.mutate()}
-        onToggleFullscreen={toggleFullscreen}
+        onToggleFullscreen={fullscreen.toggleFullscreen}
         onResetColumns={() => setColumnVisibility(DEFAULT_COLUMN_VISIBILITY)}
       />
 
@@ -220,7 +220,7 @@ export function MenuList() {
         skeletonWidths={['w-48', 'w-12', 'w-20']}
         containerClassName={cn(
           '*:data-[slot=table-container]:overflow-auto',
-          isFullscreen
+          fullscreen.isFullscreen
             ? '*:data-[slot=table-container]:h-[calc(100vh-6.5rem)] *:data-[slot=table-container]:max-h-[calc(100vh-6.5rem)]'
             : '*:data-[slot=table-container]:max-h-[calc(100vh-17rem)] md:*:data-[slot=table-container]:max-h-[calc(100dvh-17rem)]'
         )}
@@ -230,46 +230,39 @@ export function MenuList() {
 
   return (
     <>
-      <Card className="pb-0">
-        <CardHeader className="border-b has-data-[slot=card-action]:grid-cols-1 md:has-data-[slot=card-action]:grid-cols-[1fr_auto]">
-          <CardTitle className="text-xl leading-none">菜单管理</CardTitle>
-          <CardDescription className="max-w-sm leading-snug">配置系统目录、路由页面与按钮权限</CardDescription>
-          <CardAction className="col-start-1 row-start-auto flex w-full flex-wrap justify-start gap-2 justify-self-stretch md:col-start-2 md:row-span-2 md:row-start-1 md:w-auto md:flex-nowrap md:justify-end md:justify-self-end">
-            <InputGroup className="h-7 w-full md:w-64">
-              <InputGroupAddon align="inline-start">
-                <Search className="size-3.5" />
+      <ListPageCard
+        title="菜单管理"
+        description="配置系统目录、路由页面与按钮权限"
+        actions={
+          <InputGroup className="h-7 w-full md:w-64">
+            <InputGroupAddon align="inline-start">
+              <Search className="size-3.5" />
+            </InputGroupAddon>
+            <InputGroupInput
+              className="h-7"
+              placeholder="搜索名称、路由、权限"
+              value={searchInput}
+              onChange={event => setSearchInput(event.target.value)}
+            />
+            {searchInput ? (
+              <InputGroupAddon align="inline-end">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-xs"
+                  aria-label="清空搜索"
+                  onClick={() => setSearchInput('')}
+                >
+                  <X className="size-3" />
+                </Button>
               </InputGroupAddon>
-              <InputGroupInput
-                className="h-7"
-                placeholder="搜索名称、路由、权限"
-                value={searchInput}
-                onChange={event => setSearchInput(event.target.value)}
-              />
-              {searchInput ? (
-                <InputGroupAddon align="inline-end">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-xs"
-                    aria-label="清空搜索"
-                    onClick={() => setSearchInput('')}
-                  >
-                    <X className="size-3" />
-                  </Button>
-                </InputGroupAddon>
-              ) : null}
-            </InputGroup>
-          </CardAction>
-        </CardHeader>
-
-        <CardContent className="flex flex-col gap-4 px-0 pb-0">
-          {isFullscreen ? <div ref={spacerRef} style={{ height: reservedHeight }} /> : null}
-
-          <div ref={fullscreenRef} className={cn('flex flex-col gap-4', isFullscreen && 'bg-background')}>
-            {tableSection}
-          </div>
-        </CardContent>
-      </Card>
+            ) : null}
+          </InputGroup>
+        }
+        fullscreen={fullscreen}
+      >
+        {tableSection}
+      </ListPageCard>
 
       {/* Form Drawer */}
       <MenuFormDrawer

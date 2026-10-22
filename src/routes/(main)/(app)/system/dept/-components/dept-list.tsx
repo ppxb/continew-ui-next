@@ -6,7 +6,7 @@ import { type ColumnVisibilityState, type ExpandedState, useTable } from '@tanst
 import { Search, X } from 'lucide-react'
 
 import { DataTable } from '@/components/data-table'
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { ListPageCard } from '@/components/list-page-card'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { toast } from '@/components/ui/toast'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
@@ -92,7 +92,7 @@ export function DeptList() {
   const [deletingDept, setDeletingDept] = React.useState<DeptResp | null>(null)
   const [isDeleteOpen, setIsDeleteOpen] = React.useState(false)
 
-  const { isFullscreen, reservedHeight, fullscreenRef, spacerRef, toggleFullscreen } = useFullscreenTransition()
+  const fullscreen = useFullscreenTransition()
 
   // Fetch department tree
   const query = useQuery({
@@ -198,7 +198,7 @@ export function DeptList() {
         table={table}
         isRefreshing={query.isFetching}
         isExporting={exportMutation.isPending}
-        isFullscreen={isFullscreen}
+        isFullscreen={fullscreen.isFullscreen}
         isAllExpanded={isAllExpanded}
         hasCreatePermission={hasCreatePermission}
         hasExportPermission={hasExportPermission}
@@ -206,7 +206,7 @@ export function DeptList() {
         onExport={() => exportMutation.mutate()}
         onRefresh={() => void query.refetch()}
         onToggleExpandAll={handleToggleExpandAll}
-        onToggleFullscreen={toggleFullscreen}
+        onToggleFullscreen={fullscreen.toggleFullscreen}
         onResetColumns={() => setColumnVisibility(DEFAULT_COLUMN_VISIBILITY)}
       />
 
@@ -221,7 +221,7 @@ export function DeptList() {
         skeletonWidths={['w-48', 'w-12', 'w-20']}
         containerClassName={cn(
           '*:data-[slot=table-container]:overflow-auto',
-          isFullscreen
+          fullscreen.isFullscreen
             ? '*:data-[slot=table-container]:h-[calc(100vh-6.5rem)] *:data-[slot=table-container]:max-h-[calc(100vh-6.5rem)]'
             : '*:data-[slot=table-container]:max-h-[calc(100vh-17rem)] md:*:data-[slot=table-container]:max-h-[calc(100dvh-17rem)]'
         )}
@@ -231,49 +231,39 @@ export function DeptList() {
 
   return (
     <>
-      <Card className="pb-0">
-        <CardHeader className="border-b has-data-[slot=card-action]:grid-cols-1 md:has-data-[slot=card-action]:grid-cols-[1fr_auto]">
-          <div className="flex flex-col gap-1.5">
-            <CardTitle>部门管理</CardTitle>
-            <CardDescription>管理系统组织架构、部门层级与人员归属</CardDescription>
-          </div>
-
-          <CardAction className="flex flex-wrap items-center gap-2">
-            <InputGroup className="w-full sm:w-64">
-              <InputGroupAddon>
-                <Search className="size-4" />
+      <ListPageCard
+        title="部门管理"
+        description="管理系统组织架构、部门层级与人员归属"
+        actions={
+          <InputGroup className="w-full sm:w-64">
+            <InputGroupAddon>
+              <Search className="size-4" />
+            </InputGroupAddon>
+            <InputGroupInput
+              placeholder="搜索部门名称或描述"
+              value={searchInput}
+              onChange={e => setSearchInput(e.target.value)}
+            />
+            {searchInput && (
+              <InputGroupAddon align="inline-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchInput('')
+                  }}
+                  className="cursor-pointer text-muted-foreground transition-colors hover:text-foreground"
+                  title="清空搜索"
+                >
+                  <X className="size-3.5" />
+                </button>
               </InputGroupAddon>
-              <InputGroupInput
-                placeholder="搜索部门名称或描述"
-                value={searchInput}
-                onChange={e => setSearchInput(e.target.value)}
-              />
-              {searchInput && (
-                <InputGroupAddon align="inline-end">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSearchInput('')
-                    }}
-                    className="cursor-pointer text-muted-foreground transition-colors hover:text-foreground"
-                    title="清空搜索"
-                  >
-                    <X className="size-3.5" />
-                  </button>
-                </InputGroupAddon>
-              )}
-            </InputGroup>
-          </CardAction>
-        </CardHeader>
-
-        <CardContent className="flex flex-col gap-4 px-0">
-          {isFullscreen ? <div ref={spacerRef} style={{ height: reservedHeight }} /> : null}
-
-          <div ref={fullscreenRef} className={cn('flex flex-col gap-4', isFullscreen && 'bg-background')}>
-            {tableSection}
-          </div>
-        </CardContent>
-      </Card>
+            )}
+          </InputGroup>
+        }
+        fullscreen={fullscreen}
+      >
+        {tableSection}
+      </ListPageCard>
 
       {/* Form Drawer */}
       <DeptFormDrawer

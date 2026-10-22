@@ -1,10 +1,9 @@
 import * as React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { type ColumnVisibilityState, type PaginationState, useTable } from '@tanstack/react-table'
-import { cn } from 'cn'
 import { DataTable } from '@/components/data-table'
+import { ListPageCard } from '@/components/list-page-card'
 import { TableSearch } from '@/components/table-search'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from '@/components/ui/toast'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
@@ -54,7 +53,7 @@ export function UserList() {
   const [resetUser, setResetUser] = React.useState<UserResp | null>(null)
   const [roleUser, setRoleUser] = React.useState<UserResp | null>(null)
   const [deletingUser, setDeletingUser] = React.useState<UserResp | null>(null)
-  const { isFullscreen, reservedHeight, fullscreenRef, spacerRef, toggleFullscreen } = useFullscreenTransition()
+  const fullscreen = useFullscreenTransition()
 
   const handleSearch = React.useCallback((next: string) => {
     setKeyword(next)
@@ -205,12 +204,12 @@ export function UserList() {
           table={table}
           isRefreshing={query.isFetching && !query.isPending}
           isExporting={isExporting}
-          isFullscreen={isFullscreen}
+          isFullscreen={fullscreen.isFullscreen}
           onCreate={() => setFormTarget({ userId: null })}
           onImport={() => reportPending('导入数据')}
           onExport={() => void handleExport()}
           onRefresh={() => void query.refetch()}
-          onToggleFullscreen={toggleFullscreen}
+          onToggleFullscreen={fullscreen.toggleFullscreen}
           onResetColumns={() => setColumnVisibility(HIDDEN_BY_DEFAULT)}
         />
       </div>
@@ -228,20 +227,9 @@ export function UserList() {
 
   return (
     <>
-      <Card className="pb-0">
-        <CardHeader>
-          <CardTitle className="text-xl">用户管理</CardTitle>
-          <CardDescription>维护系统用户，查看用户的基本信息</CardDescription>
-        </CardHeader>
-
-        <CardContent className="flex flex-col gap-4 px-0">
-          {isFullscreen ? <div ref={spacerRef} style={{ height: reservedHeight }} /> : null}
-
-          <div ref={fullscreenRef} className={cn('flex flex-col gap-4', isFullscreen && 'bg-background')}>
-            {tableSection}
-          </div>
-        </CardContent>
-      </Card>
+      <ListPageCard title="用户管理" description="维护系统用户，查看用户的基本信息" fullscreen={fullscreen}>
+        {tableSection}
+      </ListPageCard>
 
       <UserDetailDrawer userId={detailUserId} open={detailUserId !== null} onClose={() => setDetailUserId(null)} />
       <UserFormDrawer
