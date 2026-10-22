@@ -1,6 +1,5 @@
+import { QueryState } from '@/components/query-state'
 import { Skeleton } from '@/components/ui/skeleton'
-
-import { RetryHint } from './retry-hint'
 
 interface ConfigPanelSkeletonProps {
   fields?: number
@@ -55,9 +54,6 @@ interface ConfigPanelErrorProps {
 
 export function ConfigPanelError({ onRetry }: ConfigPanelErrorProps) {
   return (
-    <div className="flex flex-col items-center justify-center gap-1 rounded-xl border bg-card p-10 text-center">
-      <p className="text-sm text-muted-foreground">配置加载失败，请稍后重试</p>
-      <RetryHint onRetry={onRetry} />
-    </div>
+    <QueryState state="error" className="rounded-xl border border-solid bg-card p-10" onRetry={onRetry} />
   )
 }

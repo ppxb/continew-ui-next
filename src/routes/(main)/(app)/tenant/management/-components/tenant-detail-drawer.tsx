@@ -3,6 +3,7 @@ import { Building2 } from 'lucide-react'
 import { CopyableText } from '@/components/copyable-text'
 import { DetailField, DetailGrid } from '@/components/detail-field'
 import { EntityDrawer } from '@/components/entity-drawer'
+import { QueryState } from '@/components/query-state'
 import { StatusCell } from '@/components/status-cell'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EMPTY_PLACEHOLDER } from '@/lib/constants'
@@ -48,7 +49,7 @@ export function TenantDetailDrawer({ tenantId, open, onClose }: TenantDetailDraw
           {query.isPending ? (
             <TenantDetailSkeleton />
           ) : query.isError || !detail ? (
-            <p className="text-sm text-foreground">加载失败，请稍后重试</p>
+            <QueryState state="error" onRetry={() => void query.refetch()} />
           ) : (
             <DetailGrid>
               <DetailField label="ID">

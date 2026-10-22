@@ -1,8 +1,6 @@
-import { CircleDashed } from 'lucide-react'
-
 import { cn } from 'cn'
 
-import { Button } from '@/components/ui/button'
+import { QueryState } from '@/components/query-state'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import type { DictItemResp } from '@/lib/api/dict'
@@ -26,7 +24,14 @@ interface DictTableProps {
 /** The plain item table of one dictionary, styled like the storage group tables. */
 export function DictTable({ items, columns, isLoading, isError, onRetry }: DictTableProps) {
   if (isError) {
-    return <DictTableMessage title="字典项加载失败" action={onRetry} />
+    return (
+      <QueryState
+        state="error"
+        title="字典项加载失败"
+        className="min-h-24 rounded-none border-t bg-muted/50 p-4"
+        onRetry={onRetry}
+      />
+    )
   }
 
   if (isLoading && items.length === 0) {
@@ -34,7 +39,7 @@ export function DictTable({ items, columns, isLoading, isError, onRetry }: DictT
   }
 
   if (items.length === 0) {
-    return <DictTableMessage title="暂无字典项" />
+    return <QueryState state="empty" title="暂无字典项" className="min-h-24 rounded-none border-t bg-muted/50 p-4" />
   }
 
   return (
@@ -105,21 +110,5 @@ function TableColGroup({ columns }: { columns: DictItemColumn[] }) {
         <col key={column.id} className={column.width} />
       ))}
     </colgroup>
-  )
-}
-
-function DictTableMessage({ title, action }: { title: string; action?: () => void }) {
-  return (
-    <div className="flex min-h-24 items-center justify-center border-t bg-muted/50 p-4">
-      <div className="flex items-center gap-2">
-        <CircleDashed className="size-4" />
-        <p className="text-sm font-medium">{title}</p>
-        {action ? (
-          <Button type="button" variant="link" size="sm" className="h-auto p-0" onClick={action}>
-            重新加载
-          </Button>
-        ) : null}
-      </div>
-    </div>
   )
 }

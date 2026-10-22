@@ -8,6 +8,7 @@ import { z } from 'zod'
 import { Calendar as CalendarIcon, Clock, LayoutGrid, X } from 'lucide-react'
 
 import { EntityDrawer } from '@/components/entity-drawer'
+import { QueryState } from '@/components/query-state'
 import { RequiredMark } from '@/components/required-mark'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
@@ -199,7 +200,7 @@ export function AppFormDrawer({ appId, open, onClose }: AppFormDrawerProps) {
         {isLoadingDetail ? (
           <AppFormSkeleton />
         ) : isDetailError ? (
-          <p className="p-4 text-sm text-foreground">加载失败，请稍后重试</p>
+          <QueryState state="error" className="p-6" onRetry={() => void detailQuery.refetch()} />
         ) : (
           <form
             ref={formRef}

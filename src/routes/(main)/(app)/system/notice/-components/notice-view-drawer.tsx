@@ -1,9 +1,9 @@
 import { Eye } from 'lucide-react'
 
 import { EntityDrawer } from '@/components/entity-drawer'
+import { QueryState } from '@/components/query-state'
 import { RichTextContent } from '@/components/rich-text-editor'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 
 import { useNoticeDetail } from './use-notice-detail'
@@ -32,12 +32,7 @@ export function NoticeViewDrawer({ noticeId, open, onClose }: NoticeViewDrawerPr
               <Skeleton className="h-3 w-4/5" />
             </div>
           ) : detailQuery.isError || !detail ? (
-            <div className="flex flex-col items-start gap-2">
-              <p className="text-sm text-foreground">加载失败，请稍后重试</p>
-              <Button type="button" variant="outline" size="sm" onClick={() => void detailQuery.refetch()}>
-                重新加载
-              </Button>
-            </div>
+            <QueryState state="error" onRetry={() => void detailQuery.refetch()} />
           ) : (
             <article className="flex flex-col gap-4">
               <header className="flex flex-col gap-2 border-b pb-4">

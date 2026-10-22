@@ -3,6 +3,7 @@ import { LayoutGrid } from 'lucide-react'
 import { CopyableText } from '@/components/copyable-text'
 import { DetailField, DetailGrid } from '@/components/detail-field'
 import { EntityDrawer } from '@/components/entity-drawer'
+import { QueryState } from '@/components/query-state'
 import { StatusCell } from '@/components/status-cell'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EMPTY_PLACEHOLDER } from '@/lib/constants'
@@ -87,7 +88,7 @@ export function AppDetailDrawer({ appId, open, onClose }: AppDetailDrawerProps) 
           {query.isLoading ? (
             <AppDetailSkeleton />
           ) : query.isError ? (
-            <div className="py-8 text-center text-sm text-destructive">获取应用详情失败，请检查网络或重试</div>
+            <QueryState state="error" onRetry={() => void query.refetch()} />
           ) : detail ? (
             <DetailGrid>
               <DetailField label="应用 ID" className="sm:col-span-2">

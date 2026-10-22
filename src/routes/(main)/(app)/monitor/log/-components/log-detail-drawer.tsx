@@ -4,6 +4,7 @@ import { ScrollText } from 'lucide-react'
 import { DetailField, DetailGrid } from '@/components/detail-field'
 import { EntityDrawer } from '@/components/entity-drawer'
 import { JsonViewer, type JsonValue } from '@/components/json-viewer/json-viewer'
+import { QueryState } from '@/components/query-state'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { EMPTY_PLACEHOLDER } from '@/lib/constants'
@@ -126,7 +127,7 @@ export function LogDetailDrawer({ logId, open, onClose }: LogDetailDrawerProps) 
           {query.isPending ? (
             <LogDetailSkeleton />
           ) : query.isError || !detail ? (
-            <p className="text-sm text-foreground">加载失败，请稍后重试</p>
+            <QueryState state="error" onRetry={() => void query.refetch()} />
           ) : (
             <div className="flex flex-col gap-6">
               <section className="flex flex-col gap-3">

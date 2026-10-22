@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import { FileText } from 'lucide-react'
 
 import { EntityDrawer } from '@/components/entity-drawer'
-import { Button } from '@/components/ui/button'
+import { QueryState } from '@/components/query-state'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 
@@ -52,12 +52,7 @@ export function NoticeDetailDrawer({ noticeId, open, onClose }: NoticeDetailDraw
               ))}
             </div>
           ) : detailQuery.isError || !detail ? (
-            <div className="flex flex-col items-start gap-2">
-              <p className="text-sm text-foreground">加载失败，请稍后重试</p>
-              <Button type="button" variant="outline" size="sm" onClick={() => void detailQuery.refetch()}>
-                重新加载
-              </Button>
-            </div>
+            <QueryState state="error" onRetry={() => void detailQuery.refetch()} />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="sm:col-span-2">

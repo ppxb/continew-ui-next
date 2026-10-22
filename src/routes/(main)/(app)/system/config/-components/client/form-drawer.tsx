@@ -7,6 +7,7 @@ import { z } from 'zod'
 import { HelpCircle, Smartphone } from 'lucide-react'
 
 import { EntityDrawer } from '@/components/entity-drawer'
+import { QueryState } from '@/components/query-state'
 import { RequiredMark } from '@/components/required-mark'
 import { Button } from '@/components/ui/button'
 import { DrawerFooter } from '@/components/ui/drawer'
@@ -189,7 +190,7 @@ export function ClientFormDrawer({
   const isSubmitting = useSelector(form.store, state => state.isSubmitting)
 
   // Fetch client details when editing
-  const { data: clientDetail, isLoading, isError: isDetailError } = useQuery({
+  const { data: clientDetail, isLoading, isError: isDetailError, refetch: refetchDetail } = useQuery({
     queryKey: clientKeys.detail(clientId ?? ''),
     queryFn: () => getClient(clientId!),
     enabled: open && isEdit
@@ -285,7 +286,7 @@ export function ClientFormDrawer({
           <ClientFormSkeleton onClose={onClose} />
         ) : isDetailError ? (
           // Without the record the form would post its defaults over an existing client.
-          <p className="p-4 text-sm text-foreground">加载失败，请稍后重试</p>
+          <QueryState state="error" className="p-6" onRetry={() => void refetchDetail()} />
         ) : (
           <form
             ref={formRef}

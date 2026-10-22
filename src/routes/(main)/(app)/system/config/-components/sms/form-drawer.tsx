@@ -8,6 +8,7 @@ import { MessageSquare } from 'lucide-react'
 
 import { EntityDrawer } from '@/components/entity-drawer'
 import { PasswordInput } from '@/components/password-input'
+import { QueryState } from '@/components/query-state'
 import { RequiredMark } from '@/components/required-mark'
 import { Button } from '@/components/ui/button'
 import { DrawerFooter } from '@/components/ui/drawer'
@@ -264,7 +265,7 @@ export function SmsFormDrawer({ smsId, open, supplierOptions, onClose }: SmsForm
           <SmsFormSkeleton onClose={onClose} />
         ) : isEdit && detailQuery.isError ? (
           // Without the record the form would post its defaults over an existing config.
-          <p className="p-4 text-sm text-foreground">加载失败，请稍后重试</p>
+          <QueryState state="error" className="p-6" onRetry={() => void detailQuery.refetch()} />
         ) : (
           <form
             ref={formRef}

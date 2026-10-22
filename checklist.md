@@ -3,7 +3,7 @@
 > 最后同步：2026-10-21。原始 35 条全部保留；新增 12 条（36–47）。另有 11、13、27、28、31 按复查结果扩面，不另计条目。  
 > 状态：`[x]` 已修复；`[ ]` 待处理。
 
-共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 8 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
+共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 7 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
 
 本次为静态审计，覆盖业务管理页、共享组件、请求与状态层，以及部分仪表盘页面；未进行运行时性能测试。原生 HTML、必要的异常处理和合理的 `className` 扩展本身不算问题。文件行号对应当前代码。
 
@@ -128,7 +128,7 @@
 - [x] **40 · P3｜抽屉头与列表页脚手架大量重复。［已修复 2026-10-22］** 新增共享 `EntityDrawer`（宽度枚举、标题/图标/徽章/描述槽、统一关闭按钮与 `canClose`/`closeDisabled` 关闭守卫）与 `ListPageCard` + `ListFilterRow`（标题区、筛选行、全屏 spacer）；26 个抽屉与 15 个列表/配置页已迁移。file-manager 按非 CRUD 浏览页保留自有结构，只统一控件规格。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/file/-components/file-recycle-drawer.tsx:106](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/file/-components/file-recycle-drawer.tsx:106>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/user/-components/user-form-drawer.tsx:353](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/user/-components/user-form-drawer.tsx:353>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/menu-list.tsx:272](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/menu-list.tsx:272>)
 
-- [ ] **41 · P3｜空态、错态、加载态与重试入口不统一。** 6 个文件使用 `Empty`，15 张表使用纯 `span` 文案，`DictTable` 又有自定义空态；重试入口有 `Button variant="outline"`、`RetryHint` 的 link、原生下划线 button 三种；mail 还保留英文 `Loading mail...`。建议抽 `QueryState`/`EmptyState`，统一文案和重试规格。  
+- [x] **41 · P3｜空态、错态、加载态与重试入口不统一。［已修复 2026-10-22］** 新增共享 `QueryState`（`empty` / `error`：块级错态统一「数据加载失败」+ outline「重新加载」），`DataTable`、`DictTable`、`ConfigPanelError`、`file-manager`、`role-user` 成员表已接入；17 个详情/表单抽屉的「加载失败，请稍后重试」段落改为带 `refetch` 重试的 `QueryState`（`role-permission` 同时重试两个查询）。`RetryHint` 已移入 `backups/`。加载态继续用各页内容骨架；带图标/描述的富空态（文件区、字典列表、任务组等）保留 `Empty`；mail 为 demo，未改。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/user/-components/user-table.tsx:66](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/user/-components/user-table.tsx:66>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/file/-components/file-recycle-drawer.tsx:162](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/file/-components/file-recycle-drawer.tsx:162>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/dict/-components/dict-table.tsx:29](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/dict/-components/dict-table.tsx:29>)；[retry-hint.tsx:8](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/retry-hint.tsx:8>)
 
 - [ ] **42 · P3｜查询函数普遍丢弃 TanStack Query 的 `AbortSignal`。** `http.ts` 支持 `RequestOptions.signal`，但 API 包装和 `queryFn` 都未使用；切换筛选、分页或关闭页面时旧请求仍会跑完，搜索类请求尤其明显。建议 API 层增加可选 `signal`，`queryFn: ({ signal }) => listX({ ..., signal })`。  

@@ -7,6 +7,7 @@ import { Plus, Search, Trash2, Users, UserX } from 'lucide-react'
 
 import { EntityDrawer } from '@/components/entity-drawer'
 import { PaginationArrow } from '@/components/pagination-arrow'
+import { QueryState } from '@/components/query-state'
 import { StatusCell } from '@/components/status-cell'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -290,10 +291,16 @@ export function RoleUserDrawer({ role, open, onClose }: RoleUserDrawerProps) {
                         </TableCell>
                       </TableRow>
                     ))
+                  ) : query.isError ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="h-32">
+                        <QueryState state="error" onRetry={() => void query.refetch()} />
+                      </TableCell>
+                    </TableRow>
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={5} className="h-32 text-center text-xs text-muted-foreground">
-                        暂无成员数据
+                      <TableCell colSpan={5} className="h-32">
+                        <QueryState state="empty" title="暂无成员数据" />
                       </TableCell>
                     </TableRow>
                   )}

@@ -5,6 +5,7 @@ import { FolderTree } from 'lucide-react'
 import { CopyableText } from '@/components/copyable-text'
 import { DetailField, DetailGrid } from '@/components/detail-field'
 import { EntityDrawer } from '@/components/entity-drawer'
+import { QueryState } from '@/components/query-state'
 import { StatusCell } from '@/components/status-cell'
 import { Skeleton } from '@/components/ui/skeleton'
 import { type TreeNodeData, Tree } from '@/components/ui/tree'
@@ -75,7 +76,7 @@ export function PackageDetailDrawer({ packageId, open, onClose }: PackageDetailD
           {isLoading ? (
             <PackageDetailSkeleton />
           ) : detail.isError || !pkg ? (
-            <p className="text-sm text-foreground">加载失败，请稍后重试</p>
+            <QueryState state="error" onRetry={() => void detail.refetch()} />
           ) : (
             <div className="flex flex-col gap-6">
               <section>

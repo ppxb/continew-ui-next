@@ -6,6 +6,7 @@ import { KeyRound } from 'lucide-react'
 
 import { type CheckableTreeNode, CheckableTree } from '@/components/checkable-tree'
 import { EntityDrawer } from '@/components/entity-drawer'
+import { QueryState } from '@/components/query-state'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { DrawerFooter } from '@/components/ui/drawer'
@@ -127,7 +128,14 @@ export function RolePermissionDrawer({ role, open, onClose }: RolePermissionDraw
             <Skeleton className="h-64 w-full" />
           </div>
         ) : isLoadError ? (
-          <p className="p-4 text-sm text-foreground">加载失败，请稍后重试</p>
+          <QueryState
+            state="error"
+            className="p-6"
+            onRetry={() => {
+              void detail.refetch()
+              void permTree.refetch()
+            }}
+          />
         ) : (
           <div className="flex min-h-0 flex-1 flex-col">
             <div className="flex min-h-0 flex-1 flex-col gap-3 p-4">

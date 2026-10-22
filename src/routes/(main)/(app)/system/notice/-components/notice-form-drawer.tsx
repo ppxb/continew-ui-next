@@ -8,6 +8,7 @@ import { Megaphone, UserPlus } from 'lucide-react'
 import { z } from 'zod'
 
 import { EntityDrawer } from '@/components/entity-drawer'
+import { QueryState } from '@/components/query-state'
 import { RequiredMark } from '@/components/required-mark'
 import { RichTextEditor } from '@/components/rich-text-editor'
 import { Badge } from '@/components/ui/badge'
@@ -241,7 +242,7 @@ export function NoticeFormDrawer({ noticeId, open, onClose }: NoticeFormDrawerPr
           <NoticeFormSkeleton onClose={onClose} />
         ) : isEdit && detailQuery.isError ? (
           <div className="flex min-h-0 flex-1 flex-col">
-            <p className="p-4 text-sm text-foreground">加载失败，请稍后重试</p>
+            <QueryState state="error" className="p-6" onRetry={() => void detailQuery.refetch()} />
             <DrawerFooter className="flex-row justify-end gap-2 border-t p-4">
               <Button type="button" variant="outline" onClick={onClose}>
                 取消

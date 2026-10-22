@@ -8,6 +8,7 @@ import { Pen, User2 } from 'lucide-react'
 
 import { EntityDrawer } from '@/components/entity-drawer'
 import { PasswordInput } from '@/components/password-input'
+import { QueryState } from '@/components/query-state'
 import { RequiredMark } from '@/components/required-mark'
 import { Button } from '@/components/ui/button'
 import { DrawerFooter } from '@/components/ui/drawer'
@@ -642,7 +643,7 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
             </DrawerFooter>
           </form>
         ) : detail.isError ? (
-          <p className="p-4 text-sm text-foreground">加载失败，请稍后重试</p>
+          <QueryState state="error" className="p-6" onRetry={() => void detail.refetch()} />
         ) : (
           <UserFormSkeleton onClose={onClose} />
         )}

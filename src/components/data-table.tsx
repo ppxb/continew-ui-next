@@ -2,10 +2,9 @@ import type { ReactTable, RowData } from '@tanstack/react-table'
 
 import { cn } from 'cn'
 
+import { QueryState } from '@/components/query-state'
 import { TablePagination } from '@/components/table-pagination'
 import { TableSkeletonRows } from '@/components/table-skeleton-rows'
-import { Button } from '@/components/ui/button'
-import { Empty, EmptyHeader, EmptyTitle } from '@/components/ui/empty'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 
@@ -97,24 +96,11 @@ export function DataTable<TRow extends RowData>({
           ) : (
             <TableRow className="hover:bg-transparent">
               <TableCell colSpan={columnCount} className="h-32">
-                {isError ? (
-                  <Empty className="gap-2 p-4">
-                    <EmptyHeader>
-                      <EmptyTitle>数据加载失败</EmptyTitle>
-                    </EmptyHeader>
-                    {onRetry ? (
-                      <Button type="button" variant="outline" size="sm" onClick={onRetry}>
-                        重新加载
-                      </Button>
-                    ) : null}
-                  </Empty>
-                ) : (
-                  <Empty className="gap-2 p-4">
-                    <EmptyHeader>
-                      <EmptyTitle>{emptyTitle}</EmptyTitle>
-                    </EmptyHeader>
-                  </Empty>
-                )}
+                <QueryState
+                  state={isError ? 'error' : 'empty'}
+                  title={isError ? '数据加载失败' : emptyTitle}
+                  onRetry={isError ? onRetry : undefined}
+                />
               </TableCell>
             </TableRow>
           )}

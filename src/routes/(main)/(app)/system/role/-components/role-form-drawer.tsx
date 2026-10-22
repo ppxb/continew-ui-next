@@ -8,6 +8,7 @@ import { Shield } from 'lucide-react'
 
 import { type CheckableTreeNode, CheckableTree } from '@/components/checkable-tree'
 import { EntityDrawer } from '@/components/entity-drawer'
+import { QueryState } from '@/components/query-state'
 import { Button } from '@/components/ui/button'
 import { DrawerFooter } from '@/components/ui/drawer'
 import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
@@ -214,7 +215,7 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
             <Skeleton className="h-20 w-full" />
           </div>
         ) : isDetailError ? (
-          <p className="p-4 text-sm text-foreground">加载失败，请稍后重试</p>
+          <QueryState state="error" className="p-6" onRetry={() => void detail.refetch()} />
         ) : (
           <form
             ref={formRef}

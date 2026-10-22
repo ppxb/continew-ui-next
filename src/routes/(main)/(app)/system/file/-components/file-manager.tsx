@@ -16,6 +16,7 @@ import {
 import { cn } from 'cn'
 
 import { PaginationArrow } from '@/components/pagination-arrow'
+import { QueryState } from '@/components/query-state'
 import { TableSearch } from '@/components/table-search'
 import {
   Breadcrumb,
@@ -274,12 +275,7 @@ export function FileManager() {
   const activeTypeLabel = FILE_TYPE_FILTERS.find(item => item.value === activeType)?.label
 
   const fileContent = query.isError ? (
-    <div className="flex h-64 flex-col items-center justify-center gap-2">
-      <p className="text-sm text-muted-foreground">数据加载失败</p>
-      <Button type="button" variant="outline" size="sm" onClick={() => void query.refetch()}>
-        重新加载
-      </Button>
-    </div>
+    <QueryState state="error" className="min-h-64" onRetry={() => void query.refetch()} />
   ) : query.isPending ? (
     <FileListSkeleton view={view} />
   ) : files.length === 0 ? (
