@@ -4,8 +4,6 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 import {
   ArrowLeft,
-  ChevronLeft,
-  ChevronRight,
   FolderOpen,
   FolderPlus,
   LayoutGrid,
@@ -17,6 +15,7 @@ import {
 
 import { cn } from 'cn'
 
+import { PaginationArrow } from '@/components/pagination-arrow'
 import { TableSearch } from '@/components/table-search'
 import {
   Breadcrumb,
@@ -29,6 +28,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
+import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
@@ -319,31 +319,29 @@ export function FileManager() {
   const pagination = (
     <div className="flex flex-wrap items-center justify-between gap-2 border-t px-4 py-3 text-sm text-muted-foreground">
       <span>共 {total} 项</span>
-      <div className="flex items-center gap-2">
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          disabled={page <= 1 || query.isFetching}
-          onClick={() => setPage(current => Math.max(1, current - 1))}
-        >
-          <ChevronLeft />
-          上一页
-        </Button>
-        <span className="tabular-nums">
-          第 {page} / {pageCount} 页
-        </span>
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          disabled={page >= pageCount || query.isFetching}
-          onClick={() => setPage(current => Math.min(pageCount, current + 1))}
-        >
-          下一页
-          <ChevronRight />
-        </Button>
-      </div>
+      <Pagination className="mx-0 w-auto">
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationArrow
+              direction="previous"
+              text="上一页"
+              disabled={page <= 1 || query.isFetching}
+              onClick={() => setPage(current => Math.max(1, current - 1))}
+            />
+          </PaginationItem>
+          <span className="px-2 text-sm tabular-nums">
+            第 {page} / {pageCount} 页
+          </span>
+          <PaginationItem>
+            <PaginationArrow
+              direction="next"
+              text="下一页"
+              disabled={page >= pageCount || query.isFetching}
+              onClick={() => setPage(current => Math.min(pageCount, current + 1))}
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
     </div>
   )
 
@@ -364,10 +362,15 @@ export function FileManager() {
 
         <Card className="min-w-0 flex-1 pb-0">
           <CardHeader className="border-b has-data-[slot=card-action]:grid-cols-1 md:has-data-[slot=card-action]:grid-cols-[1fr_auto]">
-            <CardTitle className="text-xl leading-none">文件管理</CardTitle>
-            <CardDescription className="max-w-sm leading-snug">管理存储文件与文件夹</CardDescription>
+            <CardTitle className="text-xl">文件管理</CardTitle>
+            <CardDescription>管理存储文件与文件夹</CardDescription>
             <CardAction className="col-start-1 row-start-auto flex w-full flex-wrap justify-start gap-2 justify-self-stretch md:col-start-2 md:row-span-2 md:row-start-1 md:w-auto md:flex-nowrap md:justify-end md:justify-self-end">
-              <TableSearch clearable placeholder="搜索文件名称" onSearch={handleSearch} />
+              <TableSearch
+                clearable
+                className="h-8 w-full sm:w-64"
+                placeholder="搜索文件名称"
+                onSearch={handleSearch}
+              />
             </CardAction>
           </CardHeader>
 
@@ -418,7 +421,7 @@ export function FileManager() {
                 </BreadcrumbList>
               </Breadcrumb>
               {activeType === 'all' && currentPath && currentPath !== '/' ? (
-                <Button type="button" variant="ghost" size="sm" onClick={goParent}>
+                <Button type="button" variant="ghost" onClick={goParent}>
                   <ArrowLeft />
                   返回上级
                 </Button>
@@ -428,7 +431,7 @@ export function FileManager() {
             <div className="flex flex-wrap items-center justify-between gap-2 px-4">
               <div className="flex flex-wrap items-center gap-2">
                 {canUpload ? (
-                  <Button type="button" size="sm" onClick={() => setUploadOpen(true)}>
+                  <Button type="button" onClick={() => setUploadOpen(true)}>
                     <Upload />
                     上传文件
                   </Button>
@@ -436,7 +439,6 @@ export function FileManager() {
                 {canCreateDir ? (
                   <Button
                     type="button"
-                    size="sm"
                     variant="outline"
                     disabled={currentPath === undefined}
                     onClick={() => setCreateDirOpen(true)}
@@ -448,19 +450,18 @@ export function FileManager() {
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
-                <Button type="button" size="sm" variant="outline" disabled={query.isFetching} onClick={refreshFiles}>
+                <Button type="button" variant="outline" disabled={query.isFetching} onClick={refreshFiles}>
                   {query.isFetching ? <Spinner /> : <RefreshCw />}
                   刷新
                 </Button>
                 {canListRecycle ? (
-                  <Button type="button" size="sm" variant="outline" onClick={() => setRecycleOpen(true)}>
+                  <Button type="button" variant="outline" onClick={() => setRecycleOpen(true)}>
                     <Trash2 />
                     回收站
                   </Button>
                 ) : null}
                 <ToggleGroup
                   variant="outline"
-                  size="sm"
                   spacing={0}
                   value={[view]}
                   onValueChange={values => {
