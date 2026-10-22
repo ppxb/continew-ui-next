@@ -123,10 +123,7 @@ export function HeaderTabs() {
     })
   }, [pathname, menuRoutes, addTab])
 
-  const handleCloseTab = (e: React.MouseEvent | null, tab: TabItem) => {
-    e?.preventDefault()
-    e?.stopPropagation()
-
+  const handleCloseTab = (tab: TabItem) => {
     const fallbackPath = closeTab(tab.path)
     if (tab.path === pathname && fallbackPath) {
       void router.navigate({ href: fallbackPath })
@@ -170,45 +167,49 @@ export function HeaderTabs() {
         return (
           <ContextMenu key={tab.id}>
             <ContextMenuTrigger render={<div className="min-w-0 shrink" />}>
-              <Link<RegisteredRouter, string, string>
-                href={tab.path}
+              <div
                 className={cn(
-                  'group relative flex h-7 max-w-[130px] min-w-0 shrink items-center gap-1.5 rounded-md px-2.5 text-xs transition-all duration-150',
+                  'group relative flex h-7 max-w-[130px] min-w-0 shrink items-center rounded-md text-xs transition-all duration-150',
                   isActive
                     ? 'border border-border/80'
                     : 'border border-transparent text-muted-foreground hover:bg-accent-foreground/5 hover:text-foreground'
                 )}
               >
-                {/* Active indicator dot with emerald green styling */}
-                {isActive && <span className="size-1.5 shrink-0 rounded-full bg-emerald-500" />}
+                <Link<RegisteredRouter, string, string>
+                  href={tab.path}
+                  className="flex h-full min-w-0 flex-1 items-center gap-1.5 pl-2.5"
+                >
+                  {/* Active indicator dot with emerald green styling */}
+                  {isActive && <span className="size-1.5 shrink-0 rounded-full bg-emerald-500" />}
 
-                {/* Menu Lucide Icon */}
-                <Icon
-                  className={cn(
-                    'size-3.5 shrink-0 transition-colors',
-                    isActive ? 'text-foreground' : 'text-muted-foreground/80 group-hover:text-foreground'
-                  )}
-                />
+                  {/* Menu Lucide Icon */}
+                  <Icon
+                    className={cn(
+                      'size-3.5 shrink-0 transition-colors',
+                      isActive ? 'text-foreground' : 'text-muted-foreground/80 group-hover:text-foreground'
+                    )}
+                  />
 
-                <span className="truncate">{tab.title}</span>
+                  <span className="truncate">{tab.title}</span>
+                </Link>
 
-                {/* Close button */}
+                {/* The close button is a sibling of the link: a button inside an anchor is invalid. */}
                 {!isPinned && (
                   <button
                     type="button"
-                    aria-label={`关闭 ${tab.title}`}
-                    onClick={e => handleCloseTab(e, tab)}
+                    onClick={() => handleCloseTab(tab)}
                     className={cn(
-                      '-mr-1 ml-0.5 flex size-3.5 shrink-0 items-center justify-center rounded-xs transition-all hover:bg-muted-foreground/15 hover:text-foreground',
+                      'mr-1 ml-1.5 flex size-3.5 shrink-0 items-center justify-center rounded-xs transition-all hover:bg-muted-foreground/15 hover:text-foreground',
                       isActive
                         ? 'opacity-50 hover:opacity-100'
                         : 'opacity-0 group-hover:opacity-50 group-hover:hover:opacity-100'
                     )}
                   >
                     <X className="size-2.5" />
+                    <span className="sr-only">关闭 {tab.title}</span>
                   </button>
                 )}
-              </Link>
+              </div>
             </ContextMenuTrigger>
 
             <ContextMenuContent className="min-w-36 text-xs">
@@ -217,7 +218,7 @@ export function HeaderTabs() {
                 重新加载
               </ContextMenuItem>
               {!isPinned && (
-                <ContextMenuItem onClick={() => handleCloseTab(null, tab)} className="text-xs">
+                <ContextMenuItem onClick={() => handleCloseTab(tab)} className="text-xs">
                   <X className="mr-2 size-3.5" />
                   关闭当前标签
                 </ContextMenuItem>
