@@ -2,6 +2,7 @@ import * as React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { type ColumnVisibilityState, type PaginationState, useTable } from '@tanstack/react-table'
 import { cn } from 'cn'
+import { DataTable } from '@/components/data-table'
 import { TableSearch } from '@/components/table-search'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -19,7 +20,6 @@ import { UserDeleteDialog } from './user-delete-dialog'
 import { UserDetailDrawer } from './user-detail-drawer'
 import { UserFormDrawer } from './user-form-drawer'
 import { UserResetPasswordDialog } from './user-reset-password-dialog'
-import { UserTable } from './user-table'
 import { UserToolbar } from './user-toolbar'
 
 const HIDDEN_BY_DEFAULT: ColumnVisibilityState = {
@@ -215,12 +215,13 @@ export function UserList() {
         />
       </div>
 
-      <UserTable
+      <DataTable
         table={table}
         isLoading={query.isPending}
         isError={query.isError}
         isShowingPreviousRows={query.isPlaceholderData}
         onRetry={() => void query.refetch()}
+        skeletonWidths={['mx-auto w-6', 'w-24', 'w-20', 'mx-auto w-12 rounded-full', 'mx-auto w-8', 'w-12']}
       />
     </>
   )
