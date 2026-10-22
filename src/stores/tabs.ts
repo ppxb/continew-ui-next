@@ -44,13 +44,12 @@ export const useTabsStore = create<TabsState>()(
 
         if (existingIndex !== -1) {
           const existing = tabs[existingIndex]
-          if ((title && existing.title !== title) || (icon && existing.icon !== icon)) {
-            set({
-              tabs: tabs.map((t, idx) =>
-                idx === existingIndex ? { ...t, title: title || t.title, icon: icon ?? t.icon } : t
-              )
-            })
+          const merged = { ...existing, title: title || existing.title, icon: icon ?? existing.icon }
+
+          if (merged.title !== existing.title || merged.icon !== existing.icon) {
+            set({ tabs: tabs.map((t, idx) => (idx === existingIndex ? merged : t)) })
           }
+
           return
         }
 
@@ -58,13 +57,12 @@ export const useTabsStore = create<TabsState>()(
           id: path,
           title: title || '新标签页',
           path,
-          closable: path === '/dashboard' ? false : closable,
+          closable: path === DEFAULT_PINNED_TAB.path ? false : closable,
           icon: icon ?? null
         }
 
         let nextTabs = [...tabs]
 
-        // When exceeding max tabs, evict the earliest closable tab (FIFO)
         if (nextTabs.length >= MAX_HEADER_TABS) {
           const firstClosableIndex = nextTabs.findIndex(t => t.closable)
           if (firstClosableIndex !== -1) {
@@ -88,9 +86,7 @@ export const useTabsStore = create<TabsState>()(
         const nextTabs = tabs.filter(t => t.path !== path)
         set({ tabs: nextTabs })
 
-        // Determine fallback tab if active
-        const fallback = nextTabs[targetIndex] ?? nextTabs[targetIndex - 1] ?? DEFAULT_PINNED_TAB
-        return fallback.path
+        return (nextTabs[targetIndex] ?? nextTabs[targetIndex - 1] ?? DEFAULT_PINNED_TAB).path
       },
 
       closeOtherTabs: (keepPath: string) => {
