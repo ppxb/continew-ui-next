@@ -3,15 +3,16 @@ import * as React from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { type ColumnDef, type PaginationState, type RowSelectionState, useTable } from '@tanstack/react-table'
 
-import { Plus, Search, Trash2, Users, UserX, X } from 'lucide-react'
+import { Plus, Search, Trash2, Users, UserX } from 'lucide-react'
 
+import { EntityDrawer } from '@/components/entity-drawer'
 import { PaginationArrow } from '@/components/pagination-arrow'
 import { StatusCell } from '@/components/status-cell'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import { Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
+import { DrawerFooter } from '@/components/ui/drawer'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -211,28 +212,15 @@ export function RoleUserDrawer({ role, open, onClose }: RoleUserDrawerProps) {
 
   return (
     <>
-      <Drawer
+      <EntityDrawer
         open={open}
-        onOpenChange={nextOpen => {
-          if (!nextOpen) onClose()
-        }}
-        swipeDirection="right"
+        onClose={onClose}
+        title="角色成员管理"
+        icon={<Users className="size-4" />}
+        badge={role ? <Badge variant="secondary">{role.name}</Badge> : undefined}
+        description="维护属于该角色的用户成员"
+        width={40}
       >
-        <DrawerContent className="data-[swipe-axis=x]:sm:[--drawer-content-width:40rem]">
-          <DrawerHeader className="flex-row items-start justify-between gap-2 border-b p-4 md:gap-2">
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center gap-2">
-                <Users className="size-4" />
-                <DrawerTitle>角色成员管理</DrawerTitle>
-                {role && <Badge variant="secondary">{role.name}</Badge>}
-              </div>
-              <p className="text-xs text-muted-foreground">维护属于该角色的用户成员</p>
-            </div>
-            <DrawerClose render={<Button variant="ghost" size="icon-sm" />}>
-              <X className="size-4" />
-              <span className="sr-only">关闭</span>
-            </DrawerClose>
-          </DrawerHeader>
 
           <div className="flex min-h-0 flex-1 flex-col gap-3 p-4">
             {/* Toolbar */}
@@ -349,8 +337,7 @@ export function RoleUserDrawer({ role, open, onClose }: RoleUserDrawerProps) {
               关闭
             </Button>
           </DrawerFooter>
-        </DrawerContent>
-      </Drawer>
+      </EntityDrawer>
 
       <RoleUserAddDialog
         role={role}

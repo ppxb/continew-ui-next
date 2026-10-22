@@ -4,11 +4,12 @@ import { revalidateLogic, useForm, useSelector } from '@tanstack/react-form'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { z } from 'zod'
 
-import { Building2, X } from 'lucide-react'
+import { Building2 } from 'lucide-react'
 
+import { EntityDrawer } from '@/components/entity-drawer'
 import { RequiredMark } from '@/components/required-mark'
 import { Button } from '@/components/ui/button'
-import { Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
+import { DrawerFooter } from '@/components/ui/drawer'
 import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -192,29 +193,19 @@ export function DeptFormDrawer({ deptId, defaultParentId, open, deptTree, onClos
   const isLoadingDetail = isEdit && detailQuery.isLoading
 
   return (
-    <Drawer
+    <EntityDrawer
       open={open}
-      onOpenChange={val => {
-        // Closing mid-save would leave the request in flight with no way to report it.
-        if (!val && !isSubmitting) {
-          onClose()
-        }
-      }}
-      swipeDirection="right"
+      onClose={onClose}
+      title={isEdit ? '修改部门' : '新增部门'}
+      icon={
+        <div className="flex size-7 items-center justify-center rounded-md bg-primary/10 text-primary">
+          <Building2 className="size-4" />
+        </div>
+      }
+      width={30}
+      closeDisabled={isSubmitting}
+      canClose={() => !isSubmitting}
     >
-      <DrawerContent className="data-[swipe-axis=x]:sm:[--drawer-content-width:30rem]">
-        <DrawerHeader className="flex-row items-center justify-between gap-2 border-b p-4 md:gap-2">
-          <div className="flex items-center gap-2">
-            <div className="flex size-7 items-center justify-center rounded-md bg-primary/10 text-primary">
-              <Building2 className="size-4" />
-            </div>
-            <DrawerTitle className="text-base font-semibold">{isEdit ? '修改部门' : '新增部门'}</DrawerTitle>
-          </div>
-          <DrawerClose render={<Button variant="ghost" size="icon-sm" disabled={isSubmitting} />}>
-            <X className="size-4" />
-            <span className="sr-only">关闭</span>
-          </DrawerClose>
-        </DrawerHeader>
 
         {isLoadingDetail ? (
           <DeptFormSkeleton />
@@ -391,7 +382,6 @@ export function DeptFormDrawer({ deptId, defaultParentId, open, deptTree, onClos
             </DrawerFooter>
           </form>
         )}
-      </DrawerContent>
-    </Drawer>
+    </EntityDrawer>
   )
 }

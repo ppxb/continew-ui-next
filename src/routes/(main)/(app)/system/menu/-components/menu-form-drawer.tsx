@@ -4,11 +4,12 @@ import { revalidateLogic, useForm, useSelector } from '@tanstack/react-form'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { z } from 'zod'
 
-import { FileText, Folder, MousePointerClick, X } from 'lucide-react'
+import { FileText, Folder, MousePointerClick } from 'lucide-react'
 
+import { EntityDrawer } from '@/components/entity-drawer'
 import { RequiredMark } from '@/components/required-mark'
 import { Button } from '@/components/ui/button'
-import { Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
+import { DrawerFooter } from '@/components/ui/drawer'
 import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -239,24 +240,14 @@ export function MenuFormDrawer({ menuId, defaultParentId, open, onClose, menuTre
   }
 
   return (
-    <Drawer
+    <EntityDrawer
       open={open}
-      onOpenChange={val => {
-        // Closing mid-save would leave the request in flight with no way to report it.
-        if (!val && !isSubmitting) {
-          onClose()
-        }
-      }}
-      swipeDirection="right"
+      onClose={onClose}
+      title={isEdit ? '修改菜单' : '新增菜单'}
+      width={32}
+      closeDisabled={isSubmitting}
+      canClose={() => !isSubmitting}
     >
-      <DrawerContent className="data-[swipe-axis=x]:sm:[--drawer-content-width:32rem]">
-        <DrawerHeader className="flex-row items-center justify-between gap-2 border-b p-4 md:gap-2">
-          <DrawerTitle className="text-base font-semibold">{isEdit ? '修改菜单' : '新增菜单'}</DrawerTitle>
-          <DrawerClose render={<Button variant="ghost" size="icon-sm" disabled={isSubmitting} />}>
-            <X className="size-4" />
-            <span className="sr-only">关闭</span>
-          </DrawerClose>
-        </DrawerHeader>
 
         {isEdit && isLoadingDetail ? (
           <div className="flex min-h-0 flex-1 flex-col gap-4 p-4">
@@ -670,7 +661,6 @@ export function MenuFormDrawer({ menuId, defaultParentId, open, onClose, menuTre
             </DrawerFooter>
           </form>
         )}
-      </DrawerContent>
-    </Drawer>
+    </EntityDrawer>
   )
 }

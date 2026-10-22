@@ -2,12 +2,13 @@ import * as React from 'react'
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { KeyRound, X } from 'lucide-react'
+import { KeyRound } from 'lucide-react'
 
 import { type CheckableTreeNode, CheckableTree } from '@/components/checkable-tree'
+import { EntityDrawer } from '@/components/entity-drawer'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
+import { DrawerFooter } from '@/components/ui/drawer'
 import { Field, FieldContent, FieldDescription, FieldLabel } from '@/components/ui/field'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
@@ -110,25 +111,15 @@ export function RolePermissionDrawer({ role, open, onClose }: RolePermissionDraw
   const isLoadError = !isLoading && (detail.isError || permTree.isError)
 
   return (
-    <Drawer
+    <EntityDrawer
       open={open}
-      onOpenChange={nextOpen => {
-        if (!nextOpen && !isSubmitting) {
-          onClose()
-        }
-      }}
-      swipeDirection="right"
+      onClose={onClose}
+      title="分配功能权限"
+      icon={<KeyRound className="size-4" />}
+      width={36}
+      closeDisabled={isSubmitting}
+      canClose={() => !isSubmitting}
     >
-      <DrawerContent className="data-[swipe-axis=x]:sm:[--drawer-content-width:36rem]">
-        <DrawerHeader className="flex-row items-center justify-between gap-2 border-b p-4 md:gap-2">
-          <div className="flex items-center gap-2">
-            <KeyRound className="size-4" />
-            <DrawerTitle>分配功能权限</DrawerTitle>
-          </div>
-          <DrawerClose render={<Button variant="ghost" size="icon-sm" aria-label="关闭" />}>
-            <X className="size-4" />
-          </DrawerClose>
-        </DrawerHeader>
 
         {isLoading ? (
           <div className="flex flex-col gap-4 p-4">
@@ -181,7 +172,6 @@ export function RolePermissionDrawer({ role, open, onClose }: RolePermissionDraw
             </DrawerFooter>
           </div>
         )}
-      </DrawerContent>
-    </Drawer>
+    </EntityDrawer>
   )
 }

@@ -4,11 +4,12 @@ import { revalidateLogic, useForm, useSelector } from '@tanstack/react-form'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { z } from 'zod'
 
-import { Shield, X } from 'lucide-react'
+import { Shield } from 'lucide-react'
 
 import { type CheckableTreeNode, CheckableTree } from '@/components/checkable-tree'
+import { EntityDrawer } from '@/components/entity-drawer'
 import { Button } from '@/components/ui/button'
-import { Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
+import { DrawerFooter } from '@/components/ui/drawer'
 import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -194,27 +195,15 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
   const isDetailError = !isCreate && !isLoading && detail.isError
 
   return (
-    <Drawer
+    <EntityDrawer
       open={open}
-      onOpenChange={nextOpen => {
-        // Closing mid-save would leave the request in flight with no way to report it.
-        if (!nextOpen && !isSubmitting) {
-          onClose()
-        }
-      }}
-      swipeDirection="right"
+      onClose={onClose}
+      title={isCreate ? '新增角色' : '修改角色'}
+      icon={<Shield className="size-4" />}
+      width={32}
+      closeDisabled={isSubmitting}
+      canClose={() => !isSubmitting}
     >
-      <DrawerContent className="data-[swipe-axis=x]:sm:[--drawer-content-width:32rem]">
-        <DrawerHeader className="flex-row items-center justify-between gap-2 border-b p-4 md:gap-2">
-          <div className="flex items-center gap-2">
-            <Shield className="size-4" />
-            <DrawerTitle>{isCreate ? '新增角色' : '修改角色'}</DrawerTitle>
-          </div>
-          <DrawerClose render={<Button variant="ghost" size="icon-sm" disabled={isSubmitting} />}>
-            <X className="size-4" />
-            <span className="sr-only">关闭</span>
-          </DrawerClose>
-        </DrawerHeader>
 
         {isLoading ? (
           <div className="flex min-h-0 flex-1 flex-col gap-4 p-4">
@@ -434,7 +423,6 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
             </DrawerFooter>
           </form>
         )}
-      </DrawerContent>
-    </Drawer>
+    </EntityDrawer>
   )
 }
