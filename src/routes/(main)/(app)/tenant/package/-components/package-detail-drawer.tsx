@@ -3,12 +3,11 @@ import type { ReactNode } from 'react'
 import { useQuery } from '@tanstack/react-query'
 
 import { cn } from 'cn'
-import { FolderTree, X } from 'lucide-react'
+import { FolderTree } from 'lucide-react'
 
 import { CopyableText } from '@/components/copyable-text'
+import { EntityDrawer } from '@/components/entity-drawer'
 import { StatusCell } from '@/components/status-cell'
-import { Button } from '@/components/ui/button'
-import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { Skeleton } from '@/components/ui/skeleton'
 import { type TreeNodeData, Tree } from '@/components/ui/tree'
 import { getPackageMenuTree, packageKeys, type PackageMenuNode } from '@/lib/api/package'
@@ -75,25 +74,13 @@ export function PackageDetailDrawer({ packageId, open, onClose }: PackageDetailD
   const isLoading = detail.isPending || menuTree.isPending
 
   return (
-    <Drawer
+    <EntityDrawer
       open={open}
-      onOpenChange={nextOpen => {
-        if (!nextOpen) {
-          onClose()
-        }
-      }}
-      swipeDirection="right"
+      onClose={onClose}
+      title="套餐详情"
+      icon={<FolderTree className="size-4" />}
+      width={40}
     >
-      <DrawerContent className="data-[swipe-axis=x]:sm:[--drawer-content-width:40rem]">
-        <DrawerHeader className="flex-row items-center justify-between gap-2 border-b p-4 md:gap-2">
-          <div className="flex items-center gap-2">
-            <FolderTree className="size-4" />
-            <DrawerTitle>套餐详情</DrawerTitle>
-          </div>
-          <DrawerClose render={<Button variant="ghost" size="icon-sm" />}>
-            <X />
-          </DrawerClose>
-        </DrawerHeader>
 
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
           {isLoading ? (
@@ -139,7 +126,6 @@ export function PackageDetailDrawer({ packageId, open, onClose }: PackageDetailD
             </div>
           )}
         </div>
-      </DrawerContent>
-    </Drawer>
+    </EntityDrawer>
   )
 }

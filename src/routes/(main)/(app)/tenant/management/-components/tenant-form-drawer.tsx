@@ -4,12 +4,13 @@ import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { z } from 'zod'
 
-import { Building2, PackageOpen, X } from 'lucide-react'
+import { Building2, PackageOpen } from 'lucide-react'
 
+import { EntityDrawer } from '@/components/entity-drawer'
 import { PasswordInput } from '@/components/password-input'
 import { RequiredMark } from '@/components/required-mark'
 import { Button } from '@/components/ui/button'
-import { Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
+import { DrawerFooter } from '@/components/ui/drawer'
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
@@ -236,26 +237,14 @@ export function TenantFormDrawer({ tenantId, open, onClose }: TenantFormDrawerPr
   }
 
   return (
-    <Drawer
+    <EntityDrawer
       open={open}
-      onOpenChange={nextOpen => {
-        // Closing mid-save would leave the request in flight with no way to report it.
-        if (!nextOpen && !form.state.isSubmitting) {
-          onClose()
-        }
-      }}
-      swipeDirection="right"
+      onClose={onClose}
+      title={isCreate ? '新增租户' : '修改租户'}
+      icon={<Building2 className="size-4" />}
+      width={32}
+      canClose={() => !form.state.isSubmitting}
     >
-      <DrawerContent className="data-[swipe-axis=x]:sm:[--drawer-content-width:32rem]">
-        <DrawerHeader className="flex-row items-center justify-between gap-2 border-b p-4 md:gap-2">
-          <div className="flex items-center gap-2">
-            <Building2 className="size-4" />
-            <DrawerTitle>{isCreate ? '新增租户' : '修改租户'}</DrawerTitle>
-          </div>
-          <DrawerClose render={<Button variant="ghost" size="icon-sm" />}>
-            <X />
-          </DrawerClose>
-        </DrawerHeader>
 
         {isCreate || (!detail.isError && detail.data && detail.fetchStatus === 'idle') ? (
           <form
@@ -542,7 +531,6 @@ export function TenantFormDrawer({ tenantId, open, onClose }: TenantFormDrawerPr
         ) : (
           <TenantFormSkeleton />
         )}
-      </DrawerContent>
-    </Drawer>
+    </EntityDrawer>
   )
 }

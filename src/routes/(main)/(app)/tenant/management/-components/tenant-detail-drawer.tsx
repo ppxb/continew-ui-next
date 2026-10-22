@@ -1,12 +1,11 @@
 import type { ReactNode } from 'react'
 
 import { cn } from 'cn'
-import { Building2, X } from 'lucide-react'
+import { Building2 } from 'lucide-react'
 
 import { CopyableText } from '@/components/copyable-text'
+import { EntityDrawer } from '@/components/entity-drawer'
 import { StatusCell } from '@/components/status-cell'
-import { Button } from '@/components/ui/button'
-import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 
@@ -48,25 +47,13 @@ export function TenantDetailDrawer({ tenantId, open, onClose }: TenantDetailDraw
   const detail = query.data
 
   return (
-    <Drawer
+    <EntityDrawer
       open={open}
-      onOpenChange={nextOpen => {
-        if (!nextOpen) {
-          onClose()
-        }
-      }}
-      swipeDirection="right"
+      onClose={onClose}
+      title="租户详情"
+      icon={<Building2 className="size-4" />}
+      width={36}
     >
-      <DrawerContent className="data-[swipe-axis=x]:sm:[--drawer-content-width:36rem]">
-        <DrawerHeader className="flex-row items-center justify-between gap-2 border-b p-4 md:gap-2">
-          <div className="flex items-center gap-2">
-            <Building2 className="size-4" />
-            <DrawerTitle>租户详情</DrawerTitle>
-          </div>
-          <DrawerClose render={<Button variant="ghost" size="icon-sm" />}>
-            <X />
-          </DrawerClose>
-        </DrawerHeader>
 
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
           {query.isPending ? (
@@ -103,7 +90,6 @@ export function TenantDetailDrawer({ tenantId, open, onClose }: TenantDetailDraw
             </dl>
           )}
         </div>
-      </DrawerContent>
-    </Drawer>
+    </EntityDrawer>
   )
 }

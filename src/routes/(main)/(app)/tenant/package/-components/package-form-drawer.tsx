@@ -4,12 +4,13 @@ import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { z } from 'zod'
 
-import { FolderTree, X } from 'lucide-react'
+import { FolderTree } from 'lucide-react'
 
 import { CheckableTree, type CheckableTreeNode } from '@/components/checkable-tree'
+import { EntityDrawer } from '@/components/entity-drawer'
 import { RequiredMark } from '@/components/required-mark'
 import { Button } from '@/components/ui/button'
-import { Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
+import { DrawerFooter } from '@/components/ui/drawer'
 import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -233,26 +234,14 @@ export function PackageFormDrawer({ packageId, open, onClose }: PackageFormDrawe
   }
 
   return (
-    <Drawer
+    <EntityDrawer
       open={open}
-      onOpenChange={nextOpen => {
-        // Closing mid-save would leave the request in flight with no way to report it.
-        if (!nextOpen && !form.state.isSubmitting) {
-          onClose()
-        }
-      }}
-      swipeDirection="right"
+      onClose={onClose}
+      title={isCreate ? '新增套餐' : '修改套餐'}
+      icon={<FolderTree className="size-4" />}
+      width={36}
+      canClose={() => !form.state.isSubmitting}
     >
-      <DrawerContent className="data-[swipe-axis=x]:sm:[--drawer-content-width:36rem]">
-        <DrawerHeader className="flex-row items-center justify-between gap-2 border-b p-4 md:gap-2">
-          <div className="flex items-center gap-2">
-            <FolderTree className="size-4" />
-            <DrawerTitle>{isCreate ? '新增套餐' : '修改套餐'}</DrawerTitle>
-          </div>
-          <DrawerClose render={<Button variant="ghost" size="icon-sm" />}>
-            <X />
-          </DrawerClose>
-        </DrawerHeader>
 
         {isCreate || (!detail.isError && detail.data && detail.fetchStatus === 'idle') ? (
           <form
@@ -414,7 +403,6 @@ export function PackageFormDrawer({ packageId, open, onClose }: PackageFormDrawe
         ) : (
           <PackageFormSkeleton />
         )}
-      </DrawerContent>
-    </Drawer>
+    </EntityDrawer>
   )
 }
