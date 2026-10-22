@@ -3,7 +3,7 @@
 > 最后同步：2026-10-21。原始 35 条全部保留；新增 12 条（36–47）。另有 11、13、27、28、31 按复查结果扩面，不另计条目。  
 > 状态：`[x]` 已修复；`[ ]` 待处理。
 
-共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 19 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
+共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 17 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
 
 本次为静态审计，覆盖业务管理页、共享组件、请求与状态层，以及部分仪表盘页面；未进行运行时性能测试。原生 HTML、必要的异常处理和合理的 `className` 扩展本身不算问题。文件行号对应当前代码。
 
@@ -125,7 +125,7 @@
 - [x] **39 · P3｜必填星号有 29 处绕过 `RequiredMark`。［已修复 2026-10-21］** 29 处全部替换（client 8、storage 9、sms 5、menu 3、dept 3、app-form 1）；`src` 中除 `required-mark.tsx` 自身外已无手写星号。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:265](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/client/form-drawer.tsx:265>)；[storage/form-drawer.tsx:367](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/storage/form-drawer.tsx:367>)；[sms/form-drawer.tsx:243](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/config/-components/sms/form-drawer.tsx:243>)
 
-- [ ] **40 · P3｜抽屉头与列表页脚手架大量重复。** 26 个抽屉复制同一段 `DrawerHeader` + 关闭按钮 + 宽度变量；17 个列表页复制全屏 spacer + `CardHeader/CardAction`。建议抽 `EntityDrawer` 和 `ListPageCard`，减少宽度、图标、关闭按钮的重复维护。  
+- [x] **40 · P3｜抽屉头与列表页脚手架大量重复。［已修复 2026-10-22］** 新增共享 `EntityDrawer`（宽度枚举、标题/图标/徽章/描述槽、统一关闭按钮与 `canClose`/`closeDisabled` 关闭守卫）与 `ListPageCard` + `ListFilterRow`（标题区、筛选行、全屏 spacer）；26 个抽屉与 15 个列表/配置页已迁移。file-manager 按非 CRUD 浏览页保留自有结构，只统一控件规格。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/file/-components/file-recycle-drawer.tsx:106](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/file/-components/file-recycle-drawer.tsx:106>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/user/-components/user-form-drawer.tsx:353](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/user/-components/user-form-drawer.tsx:353>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/menu-list.tsx:272](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/menu/-components/menu-list.tsx:272>)
 
 - [ ] **41 · P3｜空态、错态、加载态与重试入口不统一。** 6 个文件使用 `Empty`，15 张表使用纯 `span` 文案，`DictTable` 又有自定义空态；重试入口有 `Button variant="outline"`、`RetryHint` 的 link、原生下划线 button 三种；mail 还保留英文 `Loading mail...`。建议抽 `QueryState`/`EmptyState`，统一文案和重试规格。  
@@ -137,7 +137,7 @@
 - [ ] **43 · P3｜发票预览滚动定位未节流。** 每次 `scroll` 都调用 `getBoundingClientRect()` 并 `setLayout`，DEV 下还在滚动回调里 `console.log`。建议用 rAF 合并，或改用 `ResizeObserver` 与滚动结束回调。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/dashboard/invoice/-components/use-visible-center-position.ts:19](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/dashboard/invoice/-components/use-visible-center-position.ts:19>)
 
-- [ ] **44 · P3｜部分抽屉关闭按钮没有可访问名称。** file-recycle、user-form、notice-form 的 `DrawerClose` 只有 `<X />`；menu-form、client form 则有 `sr-only` 文本。建议在共享抽屉头里统一处理。  
+- [x] **44 · P3｜部分抽屉关闭按钮没有可访问名称。［已修复 2026-10-22］** 关闭按钮统一由 `EntityDrawer` 渲染：`icon-sm` 幽灵按钮 + `sr-only` 文本「关闭」，26 个抽屉不再各自实现，`aria-label` 的写法一并移除。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/file/-components/file-recycle-drawer.tsx:111](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/file/-components/file-recycle-drawer.tsx:111>)；[user-form-drawer.tsx:358](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/user/-components/user-form-drawer.tsx:358>)；[notice-form-drawer.tsx:221](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/notice/-components/notice-form-drawer.tsx:221>)
 
 - [ ] **45 · P3｜地图加载失败没有界面反馈。** `catch` 只 `console.error`，失败后地图只剩背景色，没有错误态或重试；同时 div/svg/rect 三层使用同一背景色，属于冗余。  

@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react'
 
-import { FileText, X } from 'lucide-react'
+import { FileText } from 'lucide-react'
 
+import { EntityDrawer } from '@/components/entity-drawer'
 import { Button } from '@/components/ui/button'
-import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 
@@ -33,17 +33,13 @@ export function NoticeDetailDrawer({ noticeId, open, onClose }: NoticeDetailDraw
   const detail = detailQuery.data
 
   return (
-    <Drawer open={open} onOpenChange={next => (!next ? onClose() : undefined)} swipeDirection="right">
-      <DrawerContent className="data-[swipe-axis=x]:sm:[--drawer-content-width:40rem]">
-        <DrawerHeader className="flex-row items-center justify-between gap-2 border-b p-4 md:gap-2">
-          <div className="flex items-center gap-2">
-            <FileText className="size-4" />
-            <DrawerTitle>公告详情</DrawerTitle>
-          </div>
-          <DrawerClose render={<Button variant="ghost" size="icon-sm" />}>
-            <X />
-          </DrawerClose>
-        </DrawerHeader>
+    <EntityDrawer
+      open={open}
+      onClose={onClose}
+      title="公告详情"
+      icon={<FileText className="size-4" />}
+      width={40}
+    >
 
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-5">
           {detailQuery.isPending ? (
@@ -90,7 +86,6 @@ export function NoticeDetailDrawer({ noticeId, open, onClose }: NoticeDetailDraw
             </div>
           )}
         </div>
-      </DrawerContent>
-    </Drawer>
+    </EntityDrawer>
   )
 }

@@ -2,8 +2,9 @@ import * as React from 'react'
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { RefreshCw, RotateCcw, Trash2, X } from 'lucide-react'
+import { RefreshCw, RotateCcw, Trash2 } from 'lucide-react'
 
+import { EntityDrawer } from '@/components/entity-drawer'
 import { PaginationArrow } from '@/components/pagination-arrow'
 import {
   AlertDialog,
@@ -17,7 +18,6 @@ import {
   AlertDialogTitle
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
-import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -114,25 +114,7 @@ export function FileRecycleDrawer({ open, onClose }: FileRecycleDrawerProps) {
 
   return (
     <>
-      <Drawer
-        open={open}
-        onOpenChange={nextOpen => {
-          if (!nextOpen) {
-            onClose()
-          }
-        }}
-        swipeDirection="right"
-      >
-        <DrawerContent className="data-[swipe-axis=x]:sm:[--drawer-content-width:40rem]">
-          <DrawerHeader className="flex-row items-center justify-between gap-2 border-b p-4 md:gap-2">
-            <div className="flex items-center gap-2">
-              <Trash2 className="size-4" />
-              <DrawerTitle>回收站</DrawerTitle>
-            </div>
-            <DrawerClose render={<Button variant="ghost" size="icon-sm" />}>
-              <X />
-            </DrawerClose>
-          </DrawerHeader>
+      <EntityDrawer open={open} onClose={onClose} title="回收站" icon={<Trash2 className="size-4" />} width={40}>
 
           <div className="flex items-center justify-between gap-2 border-b px-4 py-2">
             <span className="text-xs text-muted-foreground">共 {total} 项</span>
@@ -265,8 +247,7 @@ export function FileRecycleDrawer({ open, onClose }: FileRecycleDrawerProps) {
               </Pagination>
             </div>
           ) : null}
-        </DrawerContent>
-      </Drawer>
+      </EntityDrawer>
 
       <AlertDialog
         open={action !== null}

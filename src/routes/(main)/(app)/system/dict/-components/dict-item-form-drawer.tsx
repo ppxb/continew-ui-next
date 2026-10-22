@@ -3,15 +3,16 @@ import * as React from 'react'
 import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
 
-import { ListChecks, X } from 'lucide-react'
+import { ListChecks } from 'lucide-react'
 
 import { z } from 'zod'
 
 import { cn } from 'cn'
 
+import { EntityDrawer } from '@/components/entity-drawer'
 import { RequiredMark } from '@/components/required-mark'
 import { Button } from '@/components/ui/button'
-import { Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
+import { DrawerFooter } from '@/components/ui/drawer'
 import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -120,25 +121,14 @@ export function DictItemFormDrawer({ item, dictId, open, onClose, onCompleted }:
   }, [open, item, dictId, form])
 
   return (
-    <Drawer
+    <EntityDrawer
       open={open}
-      onOpenChange={nextOpen => {
-        if (!nextOpen && !form.state.isSubmitting) {
-          onClose()
-        }
-      }}
-      swipeDirection="right"
+      onClose={onClose}
+      title={isEdit ? '修改字典项' : '新增字典项'}
+      icon={<ListChecks className="size-4" />}
+      width={32}
+      canClose={() => !form.state.isSubmitting}
     >
-      <DrawerContent className="data-[swipe-axis=x]:sm:[--drawer-content-width:32rem]">
-        <DrawerHeader className="flex-row items-center justify-between gap-2 border-b p-4 md:gap-2">
-          <div className="flex items-center gap-2">
-            <ListChecks className="size-4" />
-            <DrawerTitle>{isEdit ? '修改字典项' : '新增字典项'}</DrawerTitle>
-          </div>
-          <DrawerClose render={<Button variant="ghost" size="icon-sm" />}>
-            <X />
-          </DrawerClose>
-        </DrawerHeader>
 
         <form
           noValidate
@@ -334,7 +324,6 @@ export function DictItemFormDrawer({ item, dictId, open, onClose, onCompleted }:
             </form.Subscribe>
           </DrawerFooter>
         </form>
-      </DrawerContent>
-    </Drawer>
+    </EntityDrawer>
   )
 }

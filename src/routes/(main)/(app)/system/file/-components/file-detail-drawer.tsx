@@ -2,11 +2,9 @@ import * as React from 'react'
 import type { ReactNode } from 'react'
 
 import { cn } from 'cn'
-import { X } from 'lucide-react'
 
 import { CopyableText } from '@/components/copyable-text'
-import { Button } from '@/components/ui/button'
-import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
+import { EntityDrawer } from '@/components/entity-drawer'
 import type { FileResp } from '@/lib/api/file'
 import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 
@@ -42,25 +40,13 @@ export function FileDetailDrawer({ file, open, onClose }: FileDetailDrawerProps)
   const shownFile = file ?? lastFile
 
   return (
-    <Drawer
+    <EntityDrawer
       open={open}
-      onOpenChange={nextOpen => {
-        if (!nextOpen) {
-          onClose()
-        }
-      }}
-      swipeDirection="right"
+      onClose={onClose}
+      title="文件详情"
+      icon={<FileTypeIcon type={shownFile?.type} className="size-4" />}
+      width={38}
     >
-      <DrawerContent className="data-[swipe-axis=x]:sm:[--drawer-content-width:38rem]">
-        <DrawerHeader className="flex-row items-center justify-between gap-2 border-b p-4 md:gap-2">
-          <div className="flex items-center gap-2">
-            <FileTypeIcon type={shownFile?.type} className="size-4" />
-            <DrawerTitle>文件详情</DrawerTitle>
-          </div>
-          <DrawerClose render={<Button variant="ghost" size="icon-sm" />}>
-            <X />
-          </DrawerClose>
-        </DrawerHeader>
 
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
           {shownFile ? (
@@ -95,7 +81,6 @@ export function FileDetailDrawer({ file, open, onClose }: FileDetailDrawerProps)
             </div>
           ) : null}
         </div>
-      </DrawerContent>
-    </Drawer>
+    </EntityDrawer>
   )
 }

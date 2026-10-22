@@ -3,15 +3,16 @@ import * as React from 'react'
 import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { Megaphone, UserPlus, X } from 'lucide-react'
+import { Megaphone, UserPlus } from 'lucide-react'
 
 import { z } from 'zod'
 
+import { EntityDrawer } from '@/components/entity-drawer'
 import { RequiredMark } from '@/components/required-mark'
 import { RichTextEditor } from '@/components/rich-text-editor'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
+import { DrawerFooter } from '@/components/ui/drawer'
 import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -205,26 +206,15 @@ export function NoticeFormDrawer({ noticeId, open, onClose, onCompleted }: Notic
   }
 
   return (
-    <Drawer
+    <EntityDrawer
       open={open}
-      onOpenChange={nextOpen => {
-        if (!nextOpen && !form.state.isSubmitting) {
-          onClose()
-        }
-      }}
-      swipeDirection="right"
+      onClose={onClose}
+      title={isEdit ? '修改公告' : '新增公告'}
+      icon={<Megaphone className="size-4" />}
+      badge={isEdit && detail ? <NoticeStatusBadge status={detail.status} options={statusOptions} /> : undefined}
+      width={48}
+      canClose={() => !form.state.isSubmitting}
     >
-      <DrawerContent className="data-[swipe-axis=x]:sm:[--drawer-content-width:48rem]">
-        <DrawerHeader className="flex-row items-center justify-between gap-2 border-b p-4 md:gap-2">
-          <div className="flex min-w-0 items-center gap-2">
-            <Megaphone className="size-4 shrink-0" />
-            <DrawerTitle>{isEdit ? '修改公告' : '新增公告'}</DrawerTitle>
-            {isEdit && detail ? <NoticeStatusBadge status={detail.status} options={statusOptions} /> : null}
-          </div>
-          <DrawerClose render={<Button variant="ghost" size="icon-sm" />}>
-            <X />
-          </DrawerClose>
-        </DrawerHeader>
 
         {isEdit && (detailQuery.isPending || detailQuery.fetchStatus !== 'idle') ? (
           <NoticeFormSkeleton onClose={onClose} />
@@ -560,8 +550,7 @@ export function NoticeFormDrawer({ noticeId, open, onClose, onCompleted }: Notic
             setUserPickerOpen(false)
           }}
         />
-      </DrawerContent>
-    </Drawer>
+    </EntityDrawer>
   )
 }
 
