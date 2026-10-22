@@ -3,7 +3,7 @@
 > 最后同步：2026-10-21。原始 35 条全部保留；新增 12 条（36–47）。另有 11、13、27、28、31 按复查结果扩面，不另计条目。  
 > 状态：`[x]` 已修复；`[ ]` 待处理。
 
-共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 11 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
+共 **47 条**：P1 3 条（01、02、03 已修复）、P2 21 条、P3 23 条。当前待处理 10 条。**P1 优先修复，P2 功能或工程风险，P3 维护与样式优化建议。**
 
 本次为静态审计，覆盖业务管理页、共享组件、请求与状态层，以及部分仪表盘页面；未进行运行时性能测试。原生 HTML、必要的异常处理和合理的 `className` 扩展本身不算问题。文件行号对应当前代码。
 
@@ -95,7 +95,7 @@
 - [x] **29 · P3｜业务表格重复添加底层已有的 class。［已修复 2026-10-22］** 业务表格的 `hover:bg-muted/50`、`align-middle`、`whitespace-nowrap` 等重复声明随表壳收敛：`DataTable` 只保留 `py-4`、`font-normal`、`px-4` 这类业务密度，调用处不再重复底层默认值；文件列表里最后一处 `hover:bg-muted/50` 也已删除。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/components/data-table.tsx:66](<E:/ppxb/continew-next/continew-ui-next/src/components/data-table.tsx:66>)；[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/file/-components/file-table.tsx:32](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/file/-components/file-table.tsx:32>)
 
-- [ ] **30 · P3｜通过额外样式重新定义 shadcn Button 尺寸。** “清空”按钮使用 `size="sm"`，又覆盖 `h-6 px-2 text-xs`；本地已有接近该规格的 `size="xs"`。应优先使用已有尺寸变体，减少样式覆盖。  
+- [x] **30 · P3｜通过额外样式重新定义 shadcn Button 尺寸。［已修复 2026-10-22］** `notice-user-picker` 的“清空”按钮从 `size="sm"` + `h-6 px-2 text-xs` 覆盖改为 `size="xs"`；高度/内边距/字号与原效果一致，圆角和图标尺寸回到 `xs` 变体。  
   文件：[E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/notice/-components/notice-user-picker.tsx:150](<E:/ppxb/continew-next/continew-ui-next/src/routes/(main)/(app)/system/notice/-components/notice-user-picker.tsx:150>)
 
 - [ ] **31 · P3｜聊天页单独覆盖共享滚动条宽度。［复查扩面］** 通过深层选择器将滚动条改为 `w-1.5`，与共享 ScrollArea 的 `w-2.5` 规格不同；dict/storage/kanban 又使用 4px/h-1。建议统一滚动条规格，或在 `globals.css` 定义紧凑工具类。  

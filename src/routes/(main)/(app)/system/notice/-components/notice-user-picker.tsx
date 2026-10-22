@@ -156,13 +156,7 @@ export function NoticeUserPicker({ open, selected, onClose, onConfirm }: NoticeU
           <div className="flex items-center justify-between px-1 text-xs text-muted-foreground">
             <span>已选 {selectedIds.size} 名用户</span>
             {selectedIds.size > 0 ? (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="h-6 px-2 text-xs"
-                onClick={() => setSelectedIds(new Set())}
-              >
+              <Button type="button" variant="ghost" size="xs" onClick={() => setSelectedIds(new Set())}>
                 清空
               </Button>
             ) : null}
