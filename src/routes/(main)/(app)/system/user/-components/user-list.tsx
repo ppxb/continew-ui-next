@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { type ColumnVisibilityState, type PaginationState, useTable } from '@tanstack/react-table'
 import { Download, Plus, Upload } from 'lucide-react'
 import { DataTable } from '@/components/data-table'
@@ -59,10 +59,17 @@ export function UserList() {
   const fullscreen = useFullscreenTransition()
   const { isExporting, exportData } = useExport(exportUsers)
 
-  const handleSearch = React.useCallback((next: string) => {
-    setKeyword(next)
+  const resetPage = React.useCallback(() => {
     setPagination(current => (current.pageIndex === 0 ? current : { ...current, pageIndex: 0 }))
   }, [])
+
+  const handleSearch = React.useCallback(
+    (next: string) => {
+      setKeyword(next)
+      resetPage()
+    },
+    [resetPage]
+  )
 
   const queryFilters = { status, deptId, description: keyword || undefined, sort: DEFAULT_SORT }
   const params = { page: pagination.pageIndex + 1, size: pagination.pageSize, ...queryFilters }
@@ -70,7 +77,7 @@ export function UserList() {
   const query = useQuery({
     queryKey: userKeys.list(params),
     queryFn: ({ signal }) => listUsers(params, signal),
-    placeholderData: previous => previous
+    placeholderData: keepPreviousData
   })
 
   useQuery({
@@ -94,10 +101,6 @@ export function UserList() {
       setPagination(current => ({ ...current, pageIndex: maxPageIndex }))
     }
   }, [total, pagination.pageIndex, pagination.pageSize])
-
-  const reportPending = React.useCallback((label: string) => {
-    toast.add({ title: `${label}功能开发中`, type: 'info' })
-  }, [])
 
   const handleRowAction = React.useCallback((action: UserAction, user: UserResp) => {
     if (action === 'detail') {
@@ -140,13 +143,13 @@ export function UserList() {
   })
 
   const handleDeptChange = (value: string) => {
-    setDeptId(value ? value : undefined)
-    setPagination(current => ({ ...current, pageIndex: 0 }))
+    setDeptId(value || undefined)
+    resetPage()
   }
 
   const handleStatusChange = (value: string | null) => {
     setStatus(!value || value === 'all' ? undefined : (Number(value) as UserStatus))
-    setPagination(current => ({ ...current, pageIndex: 0 }))
+    resetPage()
   }
 
   const filters = (
@@ -191,7 +194,7 @@ export function UserList() {
             <Plus />
             新增用户
           </Button>
-          <Button variant="outline" onClick={() => reportPending('导入数据')}>
+          <Button variant="outline" onClick={() => toast.add({ title: '导入数据功能开发中', type: 'info' })}>
             <Upload />
             导入数据
           </Button>
