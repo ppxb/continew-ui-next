@@ -6,6 +6,7 @@ import { z } from 'zod'
 
 import { ShieldCheck } from 'lucide-react'
 
+import { QueryState } from '@/components/query-state'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -19,6 +20,7 @@ import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
+import { useLastRecord } from '@/hooks/use-last-record'
 import { listRoleDict, roleKeys } from '@/lib/api/role'
 import { assignUserRoles, userKeys, type UserResp } from '@/lib/api/user'
 
@@ -52,12 +54,12 @@ function UserAssignRolesSkeleton({ onClose }: { onClose: () => void }) {
 }
 
 interface UserAssignRolesFormProps {
-  readonly user: UserResp
+  readonly userId: string | number
   readonly initialRoleIds: string[]
   readonly onClose: () => void
 }
 
-function UserAssignRolesForm({ user, initialRoleIds, onClose }: UserAssignRolesFormProps) {
+function UserAssignRolesForm({ userId, initialRoleIds, onClose }: UserAssignRolesFormProps) {
   const queryClient = useQueryClient()
 
   const roles = useQuery({
@@ -78,7 +80,7 @@ function UserAssignRolesForm({ user, initialRoleIds, onClose }: UserAssignRolesF
     validators: { onDynamic: formSchema },
     onSubmit: async ({ value }) => {
       try {
-        await assignUserRoles(user.id, {
+        await assignUserRoles(userId, {
           roleIds: value.roleIds.map(selected => roleIdByValue.get(selected) ?? selected)
         })
       } catch {
@@ -113,7 +115,7 @@ function UserAssignRolesForm({ user, initialRoleIds, onClose }: UserAssignRolesF
           const invalid = field.state.meta.errors.length > 0
 
           return (
-            <Field className="gap-1.5" data-invalid={invalid}>
+            <Field data-invalid={invalid}>
               <FieldLabel>角色</FieldLabel>
               <UserRoleSelect
                 value={field.state.value}
@@ -153,24 +155,10 @@ interface UserAssignRolesDialogProps {
   readonly onClose: () => void
 }
 
-/**
- * Replaces one user's role set.
- *
- * Fetches the user's current roles whenever the dialog opens. Saving replaces the whole set,
- * so the selection must not come from a potentially stale list row.
- */
+/** Replaces one user's roles; the current set is fetched when the dialog opens. */
 export function UserAssignRolesDialog({ user, open, onClose }: UserAssignRolesDialogProps) {
   const userId = user?.id ?? null
-  const [lastUser, setLastUser] = React.useState<UserResp | null>(null)
-
-  // Keep the last user during the close animation, matching the delete and reset dialogs.
-  React.useEffect(() => {
-    if (user) {
-      setLastUser(user)
-    }
-  }, [user])
-
-  const shownUser = user ?? lastUser
+  const shownUser = useLastRecord(user)
   const shownLabel = userLabel(shownUser)
 
   // Shares its key with the detail and edit drawers, so all three read one cached record; the hook
@@ -188,32 +176,20 @@ export function UserAssignRolesDialog({ user, open, onClose }: UserAssignRolesDi
         }
       }}
     >
-      <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
+      <DialogContent>
         <DialogHeader>
           <div className="flex items-center gap-2">
             <ShieldCheck className="size-4" />
             <DialogTitle>分配角色</DialogTitle>
           </div>
-          <DialogDescription>
-            {shownUser ? `为用户「${shownLabel}」分配角色` : '为该用户分配角色'}
-          </DialogDescription>
+          <DialogDescription>{shownUser ? `为用户「${shownLabel}」分配角色` : '为该用户分配角色'}</DialogDescription>
         </DialogHeader>
 
         {isDetailLoading ? (
           <UserAssignRolesSkeleton onClose={onClose} />
         ) : detail.isError || !detail.data ? (
           <div className="flex flex-col gap-4">
-            <p className="text-sm text-destructive">
-              用户角色加载失败，
-              <Button
-                type="button"
-                variant="link"
-                className="h-auto p-0 text-sm text-destructive underline"
-                onClick={() => void detail.refetch()}
-              >
-                重试
-              </Button>
-            </p>
+            <QueryState state="error" title="用户角色加载失败" onRetry={() => void detail.refetch()} />
             <DialogFooter>
               <Button type="button" variant="outline" onClick={onClose}>
                 取消
@@ -222,8 +198,8 @@ export function UserAssignRolesDialog({ user, open, onClose }: UserAssignRolesDi
           </div>
         ) : (
           <UserAssignRolesForm
-            key={String(user?.id)}
-            user={user!}
+            key={String(detail.data.id)}
+            userId={detail.data.id}
             initialRoleIds={(detail.data.roleIds ?? []).map(String)}
             onClose={onClose}
           />
