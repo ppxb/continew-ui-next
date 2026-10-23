@@ -16,9 +16,10 @@ function themeBootPlugin(): Plugin {
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd()) as ImportMetaEnv
-  const { VITE_API_BASE_URL, VITE_API_PREFIX, VITE_APP_PORT } = env
+  const { VITE_API_BASE_URL, VITE_API_PREFIX, VITE_APP_PORT, VITE_BASE_PATH } = env
 
   return {
+    base: VITE_BASE_PATH || '/',
     resolve: {
       tsconfigPaths: true
     },
