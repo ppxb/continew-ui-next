@@ -3,13 +3,14 @@ import { useQuery } from '@tanstack/react-query'
 import { type ColumnVisibilityState, type PaginationState, useTable } from '@tanstack/react-table'
 import { Download, Plus, Upload } from 'lucide-react'
 import { DataTable } from '@/components/data-table'
+import { FilterSelect } from '@/components/filter-select'
 import { ListPageCard } from '@/components/list-page-card'
 import { TableSearch } from '@/components/table-search'
 import { TableToolbar } from '@/components/table-toolbar'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
+import { useExport } from '@/hooks/use-export'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
 import { deptKeys, getDeptTree } from '@/lib/api/dept'
 import { listRoleDict, roleKeys } from '@/lib/api/role'
@@ -48,7 +49,6 @@ export function UserList() {
   const [deptId, setDeptId] = React.useState<string | number | undefined>(undefined)
   const [status, setStatus] = React.useState<UserStatus | undefined>(undefined)
   const [keyword, setKeyword] = React.useState('')
-  const [isExporting, setIsExporting] = React.useState(false)
   // One state per overlay: a null value means it is closed, so "which record" and "is it open" can
   // never drift apart. The form drawer holds an object, because a null id there means 新增.
   const [detailUserId, setDetailUserId] = React.useState<string | number | null>(null)
@@ -57,6 +57,7 @@ export function UserList() {
   const [roleUser, setRoleUser] = React.useState<UserResp | null>(null)
   const [deletingUser, setDeletingUser] = React.useState<UserResp | null>(null)
   const fullscreen = useFullscreenTransition()
+  const { isExporting, exportData } = useExport(exportUsers)
 
   const handleSearch = React.useCallback((next: string) => {
     setKeyword(next)
@@ -148,19 +149,6 @@ export function UserList() {
     setPagination(current => ({ ...current, pageIndex: 0 }))
   }
 
-  const handleExport = async () => {
-    setIsExporting(true)
-
-    try {
-      await exportUsers(queryFilters)
-      toast.add({ title: '导出已开始，请留意浏览器下载', type: 'success' })
-    } catch {
-      // The HTTP layer already reported the failure.
-    } finally {
-      setIsExporting(false)
-    }
-  }
-
   const filters = (
     <>
       <TableSearch
@@ -178,27 +166,13 @@ export function UserList() {
         onChange={handleDeptChange}
         className="w-full sm:w-44"
       />
-      <div className="w-full sm:w-32">
-        <Select
-          items={STATUS_OPTIONS}
-          value={status === undefined ? 'all' : String(status)}
-          onValueChange={handleStatusChange}
-        >
-          <SelectTrigger className="w-full">
-            <span className="text-muted-foreground">状态</span>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent align="start" alignItemWithTrigger={false}>
-            <SelectGroup>
-              {STATUS_OPTIONS.map(option => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      </div>
+      <FilterSelect
+        label="状态"
+        options={STATUS_OPTIONS}
+        value={status === undefined ? 'all' : String(status)}
+        onValueChange={handleStatusChange}
+        className="w-full sm:w-32"
+      />
     </>
   )
 
@@ -221,7 +195,7 @@ export function UserList() {
             <Upload />
             导入数据
           </Button>
-          <Button variant="outline" disabled={isExporting} onClick={() => void handleExport()}>
+          <Button variant="outline" disabled={isExporting} onClick={() => void exportData(queryFilters)}>
             {isExporting ? <Spinner /> : <Download />}
             导出
           </Button>
