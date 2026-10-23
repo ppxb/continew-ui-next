@@ -11,14 +11,9 @@ interface UserDetailOptions {
 }
 
 /**
- * One user's record, shared by the detail, edit and role dialogs through a single query key.
- *
- * The drawer stays mounted, so `enabled: open` keeps it idle while closed. Read-only detail uses
- * the short cache; edit and role flows set `refreshOnOpen` so they never initialize from a stale
- * snapshot.
- *
- * A null id means no record is selected yet, which covers a create and a closed dialog. `skipToken`
- * keeps the query idle, so the fetch function never has to guard against a null id.
+ * One user's record shared by the detail, edit and role flows through one query key.
+ * Read-only detail uses the short cache; edit and role flows force a fresh read.
+ * A null id skips the query until a record is selected.
  */
 export function useUserDetail(
   userId: string | number | null,

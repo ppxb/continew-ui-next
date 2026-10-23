@@ -90,47 +90,45 @@ interface UserDetailDrawerProps {
  * sliding out.
  */
 export function UserDetailDrawer({ userId, open, onClose }: UserDetailDrawerProps) {
-  // Fetch on open rather than trust the cache: another admin may have edited the record, and the
-  // client turns off every automatic refetch trigger, so a plain query would keep the first response.
+  // The read-only drawer can reuse the short detail cache; edit and role flows force a fresh read.
   const query = useUserDetail(userId, { enabled: open })
 
   const detail = query.data
 
   return (
     <EntityDrawer open={open} onClose={onClose} title="用户详情" icon={<Eye className="size-4" />} width={32}>
-
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
-          {query.isPending ? (
-            <UserDetailSkeleton />
-          ) : query.isError || !detail ? (
-            <QueryState state="error" onRetry={() => void query.refetch()} />
-          ) : (
-            <DetailGrid>
-              <DetailField label="ID" className="sm:col-span-2">
-                <CopyableText value={String(detail.id)} label="复制 ID" className="break-all" />
-              </DetailField>
-              <DetailField label="用户名">{detail.username}</DetailField>
-              <DetailField label="昵称">{detail.nickname}</DetailField>
-              <DetailField label="性别">{genderLabel(detail.gender)}</DetailField>
-              <DetailField label="状态">
-                <StatusCell status={detail.status} />
-              </DetailField>
-              <DetailField label="手机号">{detail.phone || EMPTY_PLACEHOLDER}</DetailField>
-              <DetailField label="邮箱">{detail.email || EMPTY_PLACEHOLDER}</DetailField>
-              <DetailField label="所属部门">{detail.deptName || EMPTY_PLACEHOLDER}</DetailField>
-              <DetailField label="角色">
-                <RoleCell roleNames={detail.roleNames ?? []} />
-              </DetailField>
-              <DetailField label="描述" className="sm:col-span-2">
-                {detail.description || EMPTY_PLACEHOLDER}
-              </DetailField>
-              <DetailField label="创建人">{detail.createUserString || EMPTY_PLACEHOLDER}</DetailField>
-              <DetailField label="修改人">{detail.updateUserString || EMPTY_PLACEHOLDER}</DetailField>
-              <DetailField label="创建时间">{detail.createTime || EMPTY_PLACEHOLDER}</DetailField>
-              <DetailField label="修改时间">{detail.updateTime || EMPTY_PLACEHOLDER}</DetailField>
-            </DetailGrid>
-          )}
-        </div>
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
+        {query.isPending ? (
+          <UserDetailSkeleton />
+        ) : query.isError || !detail ? (
+          <QueryState state="error" onRetry={() => void query.refetch()} />
+        ) : (
+          <DetailGrid>
+            <DetailField label="ID" className="sm:col-span-2">
+              <CopyableText value={String(detail.id)} label="复制 ID" className="break-all" />
+            </DetailField>
+            <DetailField label="用户名">{detail.username}</DetailField>
+            <DetailField label="昵称">{detail.nickname}</DetailField>
+            <DetailField label="性别">{genderLabel(detail.gender)}</DetailField>
+            <DetailField label="状态">
+              <StatusCell status={detail.status} />
+            </DetailField>
+            <DetailField label="手机号">{detail.phone || EMPTY_PLACEHOLDER}</DetailField>
+            <DetailField label="邮箱">{detail.email || EMPTY_PLACEHOLDER}</DetailField>
+            <DetailField label="所属部门">{detail.deptName || EMPTY_PLACEHOLDER}</DetailField>
+            <DetailField label="角色">
+              <RoleCell roleNames={detail.roleNames ?? []} />
+            </DetailField>
+            <DetailField label="描述" className="sm:col-span-2">
+              {detail.description || EMPTY_PLACEHOLDER}
+            </DetailField>
+            <DetailField label="创建人">{detail.createUserString || EMPTY_PLACEHOLDER}</DetailField>
+            <DetailField label="修改人">{detail.updateUserString || EMPTY_PLACEHOLDER}</DetailField>
+            <DetailField label="创建时间">{detail.createTime || EMPTY_PLACEHOLDER}</DetailField>
+            <DetailField label="修改时间">{detail.updateTime || EMPTY_PLACEHOLDER}</DetailField>
+          </DetailGrid>
+        )}
+      </div>
     </EntityDrawer>
   )
 }
