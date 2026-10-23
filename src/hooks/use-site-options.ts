@@ -22,7 +22,7 @@ export function useSiteOptions() {
 
   return {
     title: read('SITE_TITLE'),
-    logo: read('SITE_LOGO') || '/logo.svg',
+    logo: read('SITE_LOGO') || `${import.meta.env.BASE_URL}logo.svg`,
     copyright: read('SITE_COPYRIGHT'),
     beian: read('SITE_BEIAN')
   }
