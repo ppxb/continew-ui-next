@@ -12,8 +12,6 @@ import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
 import { useExport } from '@/hooks/use-export'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
-import { deptKeys, getDeptTree } from '@/lib/api/dept'
-import { listRoleDict, roleKeys } from '@/lib/api/role'
 import { exportUsers, listUsers, userKeys, type UserResp, type UserStatus } from '@/lib/api/user'
 import { dataTableFeatures } from '@/lib/data-table-features'
 
@@ -80,18 +78,6 @@ export function UserList() {
     placeholderData: keepPreviousData
   })
 
-  useQuery({
-    queryKey: deptKeys.trees(),
-    queryFn: ({ signal }) => getDeptTree(undefined, signal),
-    staleTime: 5 * 60_000
-  })
-
-  useQuery({
-    queryKey: roleKeys.dicts(),
-    queryFn: ({ signal }) => listRoleDict(signal),
-    staleTime: 5 * 60_000
-  })
-
   const total = query.data?.total ?? 0
   const rowOffset = pagination.pageIndex * pagination.pageSize
 
@@ -123,7 +109,9 @@ export function UserList() {
       return
     }
 
-    setDeletingUser(user)
+    if (action === 'delete') {
+      setDeletingUser(user)
+    }
   }, [])
 
   const columns = React.useMemo(() => createUserColumns(handleRowAction, rowOffset), [handleRowAction, rowOffset])
