@@ -15,14 +15,10 @@ const PROVIDERS = [
 ] as const
 
 export function OAuthButtons() {
-  const [pending, setPending] = React.useState<string | null>(null)
+  const [isPending, setIsPending] = React.useState(false)
 
   const start = async (source: string) => {
-    if (pending !== null) {
-      return
-    }
-
-    setPending(source)
+    setIsPending(true)
 
     try {
       const { authorizeUrl } = await socialAuthorize(source)
@@ -31,10 +27,10 @@ export function OAuthButtons() {
         throw new Error('授权地址无效')
       }
 
-      window.location.href = authorizeUrl
+      window.location.assign(authorizeUrl)
     } catch (error) {
       reportError(error, '暂时无法发起登录，请稍后重试')
-      setPending(null)
+      setIsPending(false)
     }
   }
 
@@ -45,8 +41,7 @@ export function OAuthButtons() {
           key={provider.id}
           type="button"
           variant="outline"
-          className="w-full"
-          disabled={pending !== null}
+          disabled={isPending}
           onClick={() => void start(provider.id)}
         >
           <SimpleIcon icon={provider.icon} className="size-4" />
