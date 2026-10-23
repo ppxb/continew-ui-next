@@ -198,7 +198,7 @@ export function HeaderTabs() {
               >
                 <Link<RegisteredRouter, string, string>
                   href={tab.path}
-                  className="flex h-full min-w-0 flex-1 items-center gap-1.5 pl-2.5"
+                  className={cn('flex h-full min-w-0 flex-1 items-center gap-1.5 pl-2.5', isPinned && 'pr-2.5')}
                 >
                   {/* Active indicator dot with emerald green styling */}
                   {isActive && <span className="size-1.5 shrink-0 rounded-full bg-emerald-500" />}
