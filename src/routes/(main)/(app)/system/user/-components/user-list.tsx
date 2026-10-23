@@ -1,10 +1,14 @@
 import * as React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { type ColumnVisibilityState, type PaginationState, useTable } from '@tanstack/react-table'
+import { Download, Plus, Upload } from 'lucide-react'
 import { DataTable } from '@/components/data-table'
 import { ListPageCard } from '@/components/list-page-card'
 import { TableSearch } from '@/components/table-search'
+import { TableToolbar } from '@/components/table-toolbar'
+import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
 import { deptKeys, getDeptTree } from '@/lib/api/dept'
@@ -19,7 +23,6 @@ import { UserDeleteDialog } from './user-delete-dialog'
 import { UserDetailDrawer } from './user-detail-drawer'
 import { UserFormDrawer } from './user-form-drawer'
 import { UserResetPasswordDialog } from './user-reset-password-dialog'
-import { UserToolbar } from './user-toolbar'
 
 const HIDDEN_BY_DEFAULT: ColumnVisibilityState = {
   isSystem: false,
@@ -200,17 +203,30 @@ export function UserList() {
   )
 
   const actions = (
-    <UserToolbar
+    <TableToolbar
       table={table}
+      className="w-full xl:w-auto xl:justify-end"
       isRefreshing={query.isFetching && !query.isPending}
-      isExporting={isExporting}
       isFullscreen={fullscreen.isFullscreen}
-      onCreate={() => setFormTarget({ userId: null })}
-      onImport={() => reportPending('导入数据')}
-      onExport={() => void handleExport()}
       onRefresh={() => void query.refetch()}
       onToggleFullscreen={fullscreen.toggleFullscreen}
       onResetColumns={() => setColumnVisibility(HIDDEN_BY_DEFAULT)}
+      actions={
+        <>
+          <Button className="w-full sm:w-auto" onClick={() => setFormTarget({ userId: null })}>
+            <Plus />
+            新增用户
+          </Button>
+          <Button variant="outline" onClick={() => reportPending('导入数据')}>
+            <Upload />
+            导入数据
+          </Button>
+          <Button variant="outline" disabled={isExporting} onClick={() => void handleExport()}>
+            {isExporting ? <Spinner /> : <Download />}
+            导出
+          </Button>
+        </>
+      }
     />
   )
 

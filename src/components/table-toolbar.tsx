@@ -1,6 +1,8 @@
-import type { ReactTable } from '@tanstack/react-table'
+import type { ReactNode } from 'react'
 
-import { Download, Maximize, Minimize, Plus, RefreshCw, RotateCcw, SlidersHorizontal, Upload } from 'lucide-react'
+import type { ReactTable, RowData } from '@tanstack/react-table'
+import { cn } from 'cn'
+import { Maximize, Minimize, RefreshCw, RotateCcw, SlidersHorizontal } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -14,51 +16,38 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { Spinner } from '@/components/ui/spinner'
-import type { UserResp } from '@/lib/api/user'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 
-interface UserToolbarProps {
-  readonly table: ReactTable<DataTableFeatures, UserResp>
+interface TableToolbarProps<TRow extends RowData> {
+  readonly table: ReactTable<DataTableFeatures, TRow>
+  readonly actions?: ReactNode
   readonly isRefreshing: boolean
-  readonly isExporting: boolean
   readonly isFullscreen: boolean
-  readonly onCreate: () => void
-  readonly onImport: () => void
-  readonly onExport: () => void
   readonly onRefresh: () => void
   readonly onToggleFullscreen: () => void
   readonly onResetColumns: () => void
+  readonly columnLabels?: Readonly<Record<string, string>>
+  readonly className?: string
 }
 
-/** Table actions, placed next to the filters on desktop and below them on mobile. */
-export function UserToolbar({
+/** Shared refresh, column visibility and fullscreen controls for list tables. */
+export function TableToolbar<TRow extends RowData>({
   table,
+  actions,
   isRefreshing,
-  isExporting,
   isFullscreen,
-  onCreate,
-  onImport,
-  onExport,
   onRefresh,
   onToggleFullscreen,
-  onResetColumns
-}: UserToolbarProps) {
+  onResetColumns,
+  columnLabels,
+  className
+}: TableToolbarProps<TRow>) {
   const hideableColumns = table.getAllColumns().filter(column => column.getCanHide())
 
   return (
-    <div className="flex w-full flex-wrap items-center gap-2 xl:w-auto xl:justify-end">
-      <Button className="w-full sm:w-auto" onClick={onCreate}>
-        <Plus />
-        新增用户
-      </Button>
-      <Button variant="outline" onClick={onImport}>
-        <Upload />
-        导入数据
-      </Button>
-      <Button variant="outline" disabled={isExporting} onClick={onExport}>
-        {isExporting ? <Spinner /> : <Download />}
-        导出
-      </Button>
+    <div className={cn('flex flex-wrap items-center gap-2', className)}>
+      {actions}
+
       <Button variant="outline" disabled={isRefreshing} onClick={onRefresh}>
         {isRefreshing ? <Spinner /> : <RefreshCw />}
         刷新
@@ -74,7 +63,9 @@ export function UserToolbar({
             <DropdownMenuLabel>显示的列</DropdownMenuLabel>
             <DropdownMenuSeparator />
             {hideableColumns.map(column => {
-              const label = typeof column.columnDef.header === 'string' ? column.columnDef.header : column.id
+              const label =
+                columnLabels?.[column.id] ??
+                (typeof column.columnDef.header === 'string' ? column.columnDef.header : column.id)
 
               return (
                 <DropdownMenuCheckboxItem
