@@ -74,6 +74,14 @@ function UserDetailSkeleton() {
   )
 }
 
+function TextDetail({ label, value, className }: { label: string; value: string | null; className?: string }) {
+  return (
+    <DetailField label={label} className={className}>
+      {value || EMPTY_PLACEHOLDER}
+    </DetailField>
+  )
+}
+
 interface UserDetailDrawerProps {
   /** The user to show, or `null` before the first one is picked. */
   readonly userId: string | number | null
@@ -81,14 +89,7 @@ interface UserDetailDrawerProps {
   readonly onClose: () => void
 }
 
-/**
- * Read-only detail panel for one user.
- *
- * It renders the same field set as the Vue client's `DetailDrawer.vue`, with this project's
- * components. `open` is separate from `userId` on purpose: clearing the id on close would drop
- * the query back to `pending` and swap the panel's content for a spinner while it is still
- * sliding out.
- */
+/** Read-only user detail panel. */
 export function UserDetailDrawer({ userId, open, onClose }: UserDetailDrawerProps) {
   // The read-only drawer can reuse the short detail cache; edit and role flows force a fresh read.
   const query = useUserDetail(userId, { enabled: open })
@@ -113,19 +114,17 @@ export function UserDetailDrawer({ userId, open, onClose }: UserDetailDrawerProp
             <DetailField label="状态">
               <StatusCell status={detail.status} />
             </DetailField>
-            <DetailField label="手机号">{detail.phone || EMPTY_PLACEHOLDER}</DetailField>
-            <DetailField label="邮箱">{detail.email || EMPTY_PLACEHOLDER}</DetailField>
-            <DetailField label="所属部门">{detail.deptName || EMPTY_PLACEHOLDER}</DetailField>
+            <TextDetail label="手机号" value={detail.phone} />
+            <TextDetail label="邮箱" value={detail.email} />
+            <TextDetail label="所属部门" value={detail.deptName} />
             <DetailField label="角色">
               <RoleCell roleNames={detail.roleNames ?? []} />
             </DetailField>
-            <DetailField label="描述" className="sm:col-span-2">
-              {detail.description || EMPTY_PLACEHOLDER}
-            </DetailField>
-            <DetailField label="创建人">{detail.createUserString || EMPTY_PLACEHOLDER}</DetailField>
-            <DetailField label="修改人">{detail.updateUserString || EMPTY_PLACEHOLDER}</DetailField>
-            <DetailField label="创建时间">{detail.createTime || EMPTY_PLACEHOLDER}</DetailField>
-            <DetailField label="修改时间">{detail.updateTime || EMPTY_PLACEHOLDER}</DetailField>
+            <TextDetail label="描述" value={detail.description} className="sm:col-span-2" />
+            <TextDetail label="创建人" value={detail.createUserString} />
+            <TextDetail label="修改人" value={detail.updateUserString} />
+            <TextDetail label="创建时间" value={detail.createTime} />
+            <TextDetail label="修改时间" value={detail.updateTime} />
           </DetailGrid>
         )}
       </div>

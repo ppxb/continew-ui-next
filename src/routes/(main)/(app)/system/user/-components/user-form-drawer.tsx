@@ -38,34 +38,19 @@ import { genderLabel } from './user-display'
 import { useUserDetail } from './use-user-detail'
 import { UserRoleSelect } from './user-role-select'
 
-/** Mirrors `RegexConstants.USERNAME`: 4-64 chars, letters, digits, underscore, letter first. */
+/** Mirrors the backend username rule: 4-64 chars, letter first, letters/digits/underscore. */
 const USERNAME_PATTERN = /^[a-zA-Z][a-zA-Z0-9_]{3,64}$/
 
-/** Mirrors `RegexConstants.GENERAL_NAME`: 2-30 chars of CJK, letters, digits, `_` or `-`. */
+/** Mirrors the backend name rule: 2-30 CJK/letters/digits/`_`/`-`. */
 const NAME_PATTERN = /^[\u4e00-\u9fa5a-zA-Z0-9_-]{2,30}$/
 
-/**
- * Mirrors Hutool's `RegexPool.MOBILE`, which is what the backend's `@Mobile` matches with.
- *
- * Copying it exactly, rather than writing a looser rule, is what keeps the client from
- * rejecting a number the server would accept.
- */
+/** Mirrors Hutool's `RegexPool.MOBILE`, which the backend's `@Mobile` also uses. */
 const PHONE_PATTERN = /^(?:0|86|\+86)?1[3-9]\d{9}$/
 
-/**
- * Only rejects obviously malformed addresses.
- *
- * The backend uses Hibernate Validator's `@Email`, which accepts single-label domains such
- * as `user@localhost`, so requiring a dot here would block input the server takes.
- */
+/** The backend's `@Email` accepts single-label domains, so only reject malformed input. */
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+$/
 
-/**
- * Mirrors `RegexConstants.PASSWORD`: 8 to 32 characters with at least one digit and one
- * lowercase letter. The profile and password-reset forms enforce the same rule. The backend does
- * not check it when an administrator creates an account, so this is the only thing keeping a new
- * account from being born weaker than one its owner could set for themselves.
- */
+/** Mirrors the backend password policy enforced by the profile and reset flows. */
 const PASSWORD_PATTERN = /^(?=.*\d)(?=.*[a-z]).{8,32}$/
 
 /** Shown under the password field until the value breaks the rule. */
@@ -79,8 +64,7 @@ const GENDER_ITEMS = ([0, 1, 2] as const).map(value => ({ value: String(value), 
 const formSchema = z.object({
   nickname: z.string().regex(NAME_PATTERN, '昵称长度为 2-30 个字符，支持中文、字母、数字、下划线、短横线'),
   username: z.string().regex(USERNAME_PATTERN, '用户名长度为 4-64 个字符，支持大小写字母、数字、下划线，且以字母开头'),
-  // A create requires it and an edit never renders the field, so the rule only has to tolerate the
-  // empty value an edit carries. The create-only rule below rejects an empty one.
+  // Edits carry an empty value; the create-only rule below rejects an empty password.
   password: z.string().refine(value => value === '' || PASSWORD_PATTERN.test(value), PASSWORD_HINT),
   phone: z.string().refine(value => value === '' || PHONE_PATTERN.test(value), '手机号格式不正确'),
   email: z
@@ -101,11 +85,7 @@ type TextFieldName = 'nickname' | 'username' | 'phone' | 'email'
 /** Whether the schema rejects an empty value, which is what the marker tells the user. */
 const isRequired = (field: keyof FormValues) => !formSchema.shape[field].safeParse('').success
 
-/**
- * The password rule a create answers to: the object schema cannot require it, because an edit
- * carries an empty value and never renders the field. Attaching this to the field instead keeps
- * the error on the input, where the user can see it.
- */
+/** Create-only password rule; edit mode carries an empty value but never renders the field. */
 const createPasswordRule = z.string().min(1, '密码不能为空').regex(PASSWORD_PATTERN, PASSWORD_HINT)
 
 const EMPTY_FORM: FormValues = {
@@ -205,11 +185,7 @@ interface UserFormDrawerProps {
 }
 
 /**
- * Create and edit form for one user, built like the detail drawer so they open the same way.
- *
- * One drawer covers both modes, the way the Vue client's `AddDrawer.vue` does. The field set and
- * its order follow that component; `password` is the one field it adds for a create, because the
- * backend only requires it in its create validation group.
+ * Create/edit form for one user; only create mode renders the password field.
  */
 export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
   const queryClient = useQueryClient()
@@ -301,11 +277,7 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
     }
   })
 
-  /**
-   * Validates the whole object before submitting: `handleSubmit` returns as soon as the field
-   * validators report an invalid form, so a rule that only sits on the form would stay hidden until
-   * the other errors were fixed.
-   */
+  /** Run the object validator first; handleSubmit stops at field errors and would hide form-level ones. */
   const submit = async () => {
     await form.validate('submit')
     await form.handleSubmit()
