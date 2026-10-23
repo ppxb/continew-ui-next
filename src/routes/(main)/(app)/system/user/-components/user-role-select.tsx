@@ -1,6 +1,9 @@
+import { useId } from 'react'
+
 import { useQuery } from '@tanstack/react-query'
 import { ChevronDown } from 'lucide-react'
 
+import { QueryState } from '@/components/query-state'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
@@ -30,6 +33,8 @@ export function UserRoleSelect({
   invalid = false,
   enabled = true
 }: UserRoleSelectProps) {
+  const idPrefix = useId()
+
   const roles = useQuery({
     queryKey: roleKeys.dicts(),
     queryFn: ({ signal }) => listRoleDict(signal),
@@ -37,9 +42,9 @@ export function UserRoleSelect({
     enabled
   })
 
-  const selectedRoleNames = (roles.data ?? [])
-    .filter(role => value.includes(String(role.value)))
-    .map(role => role.label)
+  const roleOptions = roles.data ?? []
+
+  const selectedRoleNames = roleOptions.filter(role => value.includes(String(role.value))).map(role => role.label)
 
   return (
     <Popover>
@@ -72,35 +77,26 @@ export function UserRoleSelect({
             <Spinner />
           </div>
         ) : roles.isError ? (
-          <p className="px-2 py-1.5 text-sm text-destructive">
-            角色加载失败，
-            <Button
-              type="button"
-              variant="link"
-              className="h-auto p-0 text-sm text-destructive underline"
-              onClick={() => void roles.refetch()}
-            >
-              重试
-            </Button>
-          </p>
-        ) : (roles.data ?? []).length === 0 ? (
+          <QueryState state="error" title="角色加载失败" onRetry={() => void roles.refetch()} className="p-2" />
+        ) : roleOptions.length === 0 ? (
           <p className="px-2 py-1.5 text-sm text-muted-foreground">暂无可选角色</p>
         ) : (
-          (roles.data ?? []).map(role => {
+          roleOptions.map(role => {
             const roleVal = String(role.value)
             const checked = value.includes(roleVal)
+            const optionId = `${idPrefix}-role-${roleVal}`
 
             return (
               <div key={roleVal} className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-accent">
                 <Checkbox
-                  id={`role-select-${roleVal}`}
+                  id={optionId}
                   checked={checked}
                   disabled={disabled}
                   onCheckedChange={next =>
                     onChange(next ? [...value, roleVal] : value.filter(item => item !== roleVal))
                   }
                 />
-                <Label htmlFor={`role-select-${roleVal}`} className="flex-1 cursor-pointer text-sm font-normal">
+                <Label htmlFor={optionId} className="flex-1 cursor-pointer text-sm font-normal">
                   {role.label}
                 </Label>
               </div>
