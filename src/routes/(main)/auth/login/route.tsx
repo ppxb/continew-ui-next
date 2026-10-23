@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { Separator } from '@/components/ui/separator'
 
+import { AuthPending } from '../-components/auth-pending'
 import { LoginForm } from '../-components/login-form'
 import { OAuthButtons } from '../-components/social-auth/oauth-buttons'
 
@@ -9,6 +10,7 @@ export const Route = createFileRoute('/(main)/auth/login')({
   validateSearch: (search: Record<string, unknown>): { redirect?: string } => ({
     redirect: typeof search.redirect === 'string' ? search.redirect : undefined
   }),
+  pendingComponent: AuthPending,
   component: LoginPage
 })
 

@@ -6,7 +6,10 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Ripple } from '@/components/ui/ripple'
 import { useSiteOptions } from '@/hooks/use-site-options'
 
+import { AuthPending } from './-components/auth-pending'
+
 export const Route = createFileRoute('/(main)/auth')({
+  pendingComponent: AuthPending,
   component: AuthLayout
 })
 
