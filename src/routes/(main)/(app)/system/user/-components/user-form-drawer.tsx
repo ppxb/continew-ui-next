@@ -96,6 +96,8 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>
 
+type TextFieldName = 'nickname' | 'username' | 'phone' | 'email'
+
 /** Whether the schema rejects an empty value, which is what the marker tells the user. */
 const isRequired = (field: keyof FormValues) => !formSchema.shape[field].safeParse('').success
 
@@ -256,6 +258,13 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
     description: values.description?.trim() || undefined
   })
 
+  const finish = (message: string) => {
+    onClose()
+    // One prefix covers both the list and the cached detail.
+    void queryClient.invalidateQueries({ queryKey: userKeys.all })
+    toast.add({ title: message, type: 'success' })
+  }
+
   const form = useForm({
     defaultValues: EMPTY_FORM,
     validationLogic: revalidateLogic(),
@@ -274,9 +283,7 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
         try {
           await createUser({ ...toUserReq(value), password })
 
-          onClose()
-          void queryClient.invalidateQueries({ queryKey: userKeys.all })
-          toast.add({ title: '新增成功', type: 'success' })
+          finish('新增成功')
         } catch {
           // The HTTP layer already reported the failure.
         }
@@ -287,10 +294,7 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
       try {
         await updateUser(userId, toUserReq(value))
 
-        onClose()
-        // One prefix covers both the list and the cached detail.
-        void queryClient.invalidateQueries({ queryKey: userKeys.all })
-        toast.add({ title: '修改成功', type: 'success' })
+        finish('修改成功')
       } catch {
         // The HTTP layer already reported the failure.
       }
@@ -311,6 +315,38 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
       formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
     })
   }
+
+  const renderTextField = (
+    name: TextFieldName,
+    label: string,
+    input: { maxLength: number; placeholder: string; autoComplete?: string }
+  ) => (
+    <form.Field name={name} validators={{ onDynamic: formSchema.shape[name] }}>
+      {field => {
+        const invalid = field.state.meta.errors.length > 0
+
+        return (
+          <Field data-invalid={invalid}>
+            <FieldLabel>
+              {label}
+              {isRequired(name) && <RequiredMark />}
+            </FieldLabel>
+            <Input
+              name={name}
+              value={field.state.value}
+              onChange={event => field.handleChange(event.target.value)}
+              onBlur={field.handleBlur}
+              autoComplete={input.autoComplete}
+              maxLength={input.maxLength}
+              placeholder={input.placeholder}
+              aria-invalid={invalid}
+            />
+            <FieldError errors={field.state.meta.errors} />
+          </Field>
+        )
+      }}
+    </form.Field>
+  )
 
   // Fill the form once per open, and only after the record has settled (see the render guard below).
   // React Query hands back a fresh object on every successful fetch, so without both the gate and
@@ -349,304 +385,227 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
       width={32}
       canClose={() => !form.state.isSubmitting}
     >
-
-        {/* A create has nothing to load, so its form is ready the moment the drawer opens. An edit
+      {/* A create has nothing to load, so its form is ready the moment the drawer opens. An edit
             waits for the record to settle, so the form never renders on a stale base. */}
-        {isCreate || (!detail.isError && detail.data && detail.fetchStatus === 'idle') ? (
-          <form
-            ref={formRef}
-            noValidate
-            className="flex min-h-0 flex-1 flex-col"
-            onSubmit={event => {
-              event.preventDefault()
-              void submit()
-            }}
-          >
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
-              <FieldGroup className="gap-4">
-                <form.Field name="nickname" validators={{ onDynamic: formSchema.shape.nickname }}>
+      {isCreate || (!detail.isError && detail.data && detail.fetchStatus === 'idle') ? (
+        <form
+          ref={formRef}
+          noValidate
+          className="flex min-h-0 flex-1 flex-col"
+          onSubmit={event => {
+            event.preventDefault()
+            void submit()
+          }}
+        >
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
+            <FieldGroup>
+              {renderTextField('nickname', '昵称', { maxLength: 30, placeholder: '请输入昵称' })}
+
+              {renderTextField('username', '用户名', {
+                maxLength: 64,
+                placeholder: '请输入用户名',
+                autoComplete: 'off'
+              })}
+
+              {isCreate ? (
+                <form.Field name="password" validators={{ onDynamic: createPasswordRule }}>
                   {field => {
                     const invalid = field.state.meta.errors.length > 0
 
                     return (
-                      <Field className="gap-1.5" data-invalid={invalid}>
-                        <FieldLabel>昵称{isRequired('nickname') && <RequiredMark />}</FieldLabel>
-                        <Input
-                          name="nickname"
+                      <Field data-invalid={invalid}>
+                        <FieldLabel htmlFor="user-create-password">
+                          密码
+                          <RequiredMark />
+                        </FieldLabel>
+                        <PasswordInput
+                          name="password"
+                          id="user-create-password"
                           value={field.state.value}
                           onChange={event => field.handleChange(event.target.value)}
                           onBlur={field.handleBlur}
-                          maxLength={30}
-                          placeholder="请输入昵称"
+                          maxLength={32}
+                          placeholder="请输入密码"
+                          autoComplete="new-password"
                           aria-invalid={invalid}
                         />
-                        <FieldError errors={field.state.meta.errors} />
-                      </Field>
-                    )
-                  }}
-                </form.Field>
-
-                <form.Field name="username" validators={{ onDynamic: formSchema.shape.username }}>
-                  {field => {
-                    const invalid = field.state.meta.errors.length > 0
-
-                    return (
-                      <Field className="gap-1.5" data-invalid={invalid}>
-                        <FieldLabel>用户名{isRequired('username') && <RequiredMark />}</FieldLabel>
-                        <Input
-                          name="username"
-                          value={field.state.value}
-                          onChange={event => field.handleChange(event.target.value)}
-                          onBlur={field.handleBlur}
-                          maxLength={64}
-                          placeholder="请输入用户名"
-                          autoComplete="off"
-                          aria-invalid={invalid}
-                        />
-                        <FieldError errors={field.state.meta.errors} />
-                      </Field>
-                    )
-                  }}
-                </form.Field>
-
-                {isCreate ? (
-                  <form.Field name="password" validators={{ onDynamic: createPasswordRule }}>
-                    {field => {
-                      const invalid = field.state.meta.errors.length > 0
-
-                      return (
-                        <Field className="gap-1.5" data-invalid={invalid}>
-                          <FieldLabel htmlFor="user-create-password">
-                            密码
-                            <RequiredMark />
-                          </FieldLabel>
-                          <PasswordInput
-                            name="password"
-                            id="user-create-password"
-                            value={field.state.value}
-                            onChange={event => field.handleChange(event.target.value)}
-                            onBlur={field.handleBlur}
-                            maxLength={32}
-                            placeholder="请输入密码"
-                            autoComplete="new-password"
-                            aria-invalid={invalid}
-                          />
-                          {invalid ? (
-                            <FieldError errors={field.state.meta.errors} />
-                          ) : (
-                            <FieldDescription>{PASSWORD_HINT}</FieldDescription>
-                          )}
-                        </Field>
-                      )
-                    }}
-                  </form.Field>
-                ) : null}
-
-                <form.Field name="phone" validators={{ onDynamic: formSchema.shape.phone }}>
-                  {field => {
-                    const invalid = field.state.meta.errors.length > 0
-
-                    return (
-                      <Field className="gap-1.5" data-invalid={invalid}>
-                        <FieldLabel>手机号码</FieldLabel>
-                        <Input
-                          name="phone"
-                          value={field.state.value}
-                          onChange={event => field.handleChange(event.target.value)}
-                          onBlur={field.handleBlur}
-                          maxLength={14}
-                          placeholder="请输入手机号码"
-                          autoComplete="off"
-                          aria-invalid={invalid}
-                        />
-                        <FieldError errors={field.state.meta.errors} />
-                      </Field>
-                    )
-                  }}
-                </form.Field>
-
-                <form.Field name="email" validators={{ onDynamic: formSchema.shape.email }}>
-                  {field => {
-                    const invalid = field.state.meta.errors.length > 0
-
-                    return (
-                      <Field className="gap-1.5" data-invalid={invalid}>
-                        <FieldLabel>邮箱</FieldLabel>
-                        <Input
-                          name="email"
-                          value={field.state.value}
-                          onChange={event => field.handleChange(event.target.value)}
-                          onBlur={field.handleBlur}
-                          maxLength={255}
-                          placeholder="请输入邮箱地址"
-                          autoComplete="off"
-                          aria-invalid={invalid}
-                        />
-                        <FieldError errors={field.state.meta.errors} />
-                      </Field>
-                    )
-                  }}
-                </form.Field>
-
-                <form.Field name="gender" validators={{ onDynamic: formSchema.shape.gender }}>
-                  {field => {
-                    const invalid = field.state.meta.errors.length > 0
-
-                    return (
-                      <Field className="gap-1.5" data-invalid={invalid}>
-                        <FieldLabel>性别</FieldLabel>
-                        <Select
-                          items={GENDER_ITEMS}
-                          value={String(field.state.value)}
-                          onValueChange={value => field.handleChange(value ? Number(value) : field.state.value)}
-                        >
-                          <SelectTrigger className="w-full" aria-invalid={invalid}>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent align="start" alignItemWithTrigger={false}>
-                            <SelectGroup>
-                              {GENDER_ITEMS.map(item => (
-                                <SelectItem key={item.value} value={item.value}>
-                                  {item.label}
-                                </SelectItem>
-                              ))}
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>
-                        <FieldError errors={field.state.meta.errors} />
-                      </Field>
-                    )
-                  }}
-                </form.Field>
-
-                <form.Field name="deptId" validators={{ onDynamic: formSchema.shape.deptId }}>
-                  {field => {
-                    const invalid = field.state.meta.errors.length > 0
-
-                    return (
-                      <Field className="gap-1.5" data-invalid={invalid}>
-                        <FieldLabel>所属部门{isRequired('deptId') && <RequiredMark />}</FieldLabel>
-                        <DeptTreeSelect
-                          data={depts.data}
-                          loading={depts.isPending}
-                          disabled={depts.isPending || depts.isError}
-                          value={field.state.value}
-                          onChange={field.handleChange}
-                          invalid={invalid}
-                          enabled={open}
-                        />
-                        {depts.isError && (
-                          <p className="text-xs text-destructive">
-                            部门加载失败，
-                            <Button
-                              type="button"
-                              variant="link"
-                              className="h-auto p-0 text-xs text-destructive underline"
-                              onClick={() => void depts.refetch()}
-                            >
-                              重试
-                            </Button>
-                          </p>
+                        {invalid ? (
+                          <FieldError errors={field.state.meta.errors} />
+                        ) : (
+                          <FieldDescription>{PASSWORD_HINT}</FieldDescription>
                         )}
-                        <FieldError errors={field.state.meta.errors} />
                       </Field>
                     )
                   }}
                 </form.Field>
+              ) : null}
 
-                <form.Field name="roleIds" validators={{ onDynamic: formSchema.shape.roleIds }}>
-                  {field => {
-                    const invalid = field.state.meta.errors.length > 0
+              {renderTextField('phone', '手机号码', {
+                maxLength: 14,
+                placeholder: '请输入手机号码',
+                autoComplete: 'off'
+              })}
 
-                    return (
-                      <Field className="gap-1.5" data-invalid={invalid}>
-                        <FieldLabel>角色{isRequired('roleIds') && <RequiredMark />}</FieldLabel>
-                        <UserRoleSelect
-                          value={field.state.value}
-                          onChange={field.handleChange}
-                          invalid={invalid}
-                          enabled={open}
+              {renderTextField('email', '邮箱', {
+                maxLength: 255,
+                placeholder: '请输入邮箱地址',
+                autoComplete: 'off'
+              })}
+
+              <form.Field name="gender" validators={{ onDynamic: formSchema.shape.gender }}>
+                {field => {
+                  const invalid = field.state.meta.errors.length > 0
+
+                  return (
+                    <Field data-invalid={invalid}>
+                      <FieldLabel>性别</FieldLabel>
+                      <Select
+                        items={GENDER_ITEMS}
+                        value={String(field.state.value)}
+                        onValueChange={value => field.handleChange(value ? Number(value) : field.state.value)}
+                      >
+                        <SelectTrigger className="w-full" aria-invalid={invalid}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent align="start" alignItemWithTrigger={false}>
+                          <SelectGroup>
+                            {GENDER_ITEMS.map(item => (
+                              <SelectItem key={item.value} value={item.value}>
+                                {item.label}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                      <FieldError errors={field.state.meta.errors} />
+                    </Field>
+                  )
+                }}
+              </form.Field>
+
+              <form.Field name="deptId" validators={{ onDynamic: formSchema.shape.deptId }}>
+                {field => {
+                  const invalid = field.state.meta.errors.length > 0
+
+                  return (
+                    <Field data-invalid={invalid}>
+                      <FieldLabel>所属部门{isRequired('deptId') && <RequiredMark />}</FieldLabel>
+                      <DeptTreeSelect
+                        data={depts.data}
+                        loading={depts.isPending}
+                        disabled={depts.isPending || depts.isError}
+                        value={field.state.value}
+                        onChange={field.handleChange}
+                        invalid={invalid}
+                        enabled={open}
+                      />
+                      {depts.isError && (
+                        <QueryState
+                          state="error"
+                          title="部门加载失败"
+                          onRetry={() => void depts.refetch()}
+                          className="p-2"
                         />
-                        <FieldError errors={field.state.meta.errors} />
-                      </Field>
-                    )
-                  }}
-                </form.Field>
-
-                <form.Field name="description" validators={{ onDynamic: formSchema.shape.description }}>
-                  {field => {
-                    const invalid = field.state.meta.errors.length > 0
-
-                    return (
-                      <Field className="gap-1.5" data-invalid={invalid}>
-                        <FieldLabel>描述</FieldLabel>
-                        <Textarea
-                          name="description"
-                          value={field.state.value}
-                          onChange={event => field.handleChange(event.target.value)}
-                          onBlur={field.handleBlur}
-                          rows={3}
-                          maxLength={200}
-                          placeholder="请输入描述信息"
-                          aria-invalid={invalid}
-                        />
-                        <FieldError errors={field.state.meta.errors} />
-                      </Field>
-                    )
-                  }}
-                </form.Field>
-
-                <form.Field name="status" validators={{ onDynamic: formSchema.shape.status }}>
-                  {field => {
-                    const invalid = field.state.meta.errors.length > 0
-
-                    return (
-                      <Field orientation="horizontal" data-invalid={invalid}>
-                        <FieldContent>
-                          <FieldLabel>状态</FieldLabel>
-                          <FieldDescription>
-                            {field.state.value === 1 ? '启用后该用户可以登录' : '禁用后该用户无法登录'}
-                          </FieldDescription>
-                        </FieldContent>
-                        <Switch
-                          checked={field.state.value === 1}
-                          onCheckedChange={checked => field.handleChange(checked ? 1 : 2)}
-                          aria-invalid={invalid}
-                        />
-                      </Field>
-                    )
-                  }}
-                </form.Field>
-              </FieldGroup>
-            </div>
-
-            <DrawerFooter className="flex-row justify-end gap-2 border-t p-4">
-              <form.Subscribe selector={state => state.isSubmitting}>
-                {isSubmitting => (
-                  <>
-                    <Button type="button" variant="outline" disabled={isSubmitting} onClick={onClose}>
-                      取消
-                    </Button>
-                    <Button type="submit" disabled={isSubmitting}>
-                      {isSubmitting ? (
-                        <>
-                          <Spinner />
-                          保存中
-                        </>
-                      ) : (
-                        '保存'
                       )}
-                    </Button>
-                  </>
-                )}
-              </form.Subscribe>
-            </DrawerFooter>
-          </form>
-        ) : detail.isError ? (
-          <QueryState state="error" className="p-6" onRetry={() => void detail.refetch()} />
-        ) : (
-          <UserFormSkeleton onClose={onClose} />
-        )}
+                      <FieldError errors={field.state.meta.errors} />
+                    </Field>
+                  )
+                }}
+              </form.Field>
+
+              <form.Field name="roleIds" validators={{ onDynamic: formSchema.shape.roleIds }}>
+                {field => {
+                  const invalid = field.state.meta.errors.length > 0
+
+                  return (
+                    <Field data-invalid={invalid}>
+                      <FieldLabel>角色{isRequired('roleIds') && <RequiredMark />}</FieldLabel>
+                      <UserRoleSelect
+                        value={field.state.value}
+                        onChange={field.handleChange}
+                        invalid={invalid}
+                        enabled={open}
+                      />
+                      <FieldError errors={field.state.meta.errors} />
+                    </Field>
+                  )
+                }}
+              </form.Field>
+
+              <form.Field name="description" validators={{ onDynamic: formSchema.shape.description }}>
+                {field => {
+                  const invalid = field.state.meta.errors.length > 0
+
+                  return (
+                    <Field data-invalid={invalid}>
+                      <FieldLabel>描述</FieldLabel>
+                      <Textarea
+                        name="description"
+                        value={field.state.value}
+                        onChange={event => field.handleChange(event.target.value)}
+                        onBlur={field.handleBlur}
+                        rows={3}
+                        maxLength={200}
+                        placeholder="请输入描述信息"
+                        aria-invalid={invalid}
+                      />
+                      <FieldError errors={field.state.meta.errors} />
+                    </Field>
+                  )
+                }}
+              </form.Field>
+
+              <form.Field name="status" validators={{ onDynamic: formSchema.shape.status }}>
+                {field => {
+                  const invalid = field.state.meta.errors.length > 0
+
+                  return (
+                    <Field orientation="horizontal" data-invalid={invalid}>
+                      <FieldContent>
+                        <FieldLabel>状态</FieldLabel>
+                        <FieldDescription>
+                          {field.state.value === 1 ? '启用后该用户可以登录' : '禁用后该用户无法登录'}
+                        </FieldDescription>
+                      </FieldContent>
+                      <Switch
+                        checked={field.state.value === 1}
+                        onCheckedChange={checked => field.handleChange(checked ? 1 : 2)}
+                        aria-invalid={invalid}
+                      />
+                    </Field>
+                  )
+                }}
+              </form.Field>
+            </FieldGroup>
+          </div>
+
+          <DrawerFooter className="flex-row justify-end gap-2 border-t p-4">
+            <form.Subscribe selector={state => state.isSubmitting}>
+              {isSubmitting => (
+                <>
+                  <Button type="button" variant="outline" disabled={isSubmitting} onClick={onClose}>
+                    取消
+                  </Button>
+                  <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? (
+                      <>
+                        <Spinner />
+                        保存中
+                      </>
+                    ) : (
+                      '保存'
+                    )}
+                  </Button>
+                </>
+              )}
+            </form.Subscribe>
+          </DrawerFooter>
+        </form>
+      ) : detail.isError ? (
+        <QueryState state="error" className="p-6" onRetry={() => void detail.refetch()} />
+      ) : (
+        <UserFormSkeleton onClose={onClose} />
+      )}
     </EntityDrawer>
   )
 }
