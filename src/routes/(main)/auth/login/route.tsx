@@ -17,7 +17,7 @@ function LoginPage() {
 
   return (
     <div className="flex flex-col gap-6 p-6 md:p-8">
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col">
         <h1 className="text-2xl font-bold">欢迎回来</h1>
         <p className="text-sm text-balance text-muted-foreground">请输入您的详细信息以登录</p>
       </div>
