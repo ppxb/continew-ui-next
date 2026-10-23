@@ -15,18 +15,18 @@ import { useAuthStore } from '@/stores/auth/auth-provider'
 
 import { CaptchaImage } from './captcha-image'
 
-/** Where the user lands when no redirect target was remembered. */
 const DEFAULT_REDIRECT = '/dashboard'
 
 const formSchema = z.object({
-  username: z.string().min(1, { message: 'Please enter your username.' }),
-  password: z.string().min(1, { message: 'Please enter your password.' }),
+  username: z.string().min(1, { message: '请输入用户名' }),
+  password: z.string().min(1, { message: '请输入密码' }),
   captcha: z.string().optional(),
   remember: z.boolean().optional()
 })
 
 type LoginFormValues = z.infer<typeof formSchema>
 
+// FOR DEMO PURPOSES ONLY: Pre-fill the form with default values to make it easier to log in.
 const DEFAULT_FORM: LoginFormValues = {
   username: 'admin',
   password: 'admin123',
@@ -34,7 +34,6 @@ const DEFAULT_FORM: LoginFormValues = {
   remember: true
 }
 
-/** The captcha is optional in the schema because the backend can turn it off at any time. */
 const requiredCaptchaRule = z.string().min(1, '请输入验证码')
 
 export function LoginForm({ redirectTo }: { readonly redirectTo?: string }) {
@@ -66,7 +65,7 @@ export function LoginForm({ redirectTo }: { readonly redirectTo?: string }) {
         // `login` is a silent request, so this form is the only place that reports the failure.
         // A captcha is single-use, so clear the typed one and fetch a fresh image as well.
         toast.add({
-          title: error instanceof Error ? error.message : 'Login failed, please try again.',
+          title: error instanceof Error ? error.message : '登录失败，请重试',
           type: 'error'
         })
         form.setFieldValue('captcha', '')
@@ -149,7 +148,7 @@ export function LoginForm({ redirectTo }: { readonly redirectTo?: string }) {
         </form.Field>
 
         {isCaptchaEnabled && (
-          <form.Field name="captcha" validators={isCaptchaEnabled ? { onDynamic: requiredCaptchaRule } : undefined}>
+          <form.Field name="captcha" validators={{ onDynamic: requiredCaptchaRule }}>
             {field => {
               const invalid = field.state.meta.errors.length > 0
 
@@ -172,7 +171,7 @@ export function LoginForm({ redirectTo }: { readonly redirectTo?: string }) {
                       img={captcha?.img}
                       isExpired={isCaptchaExpired}
                       isLoading={isCaptchaLoading}
-                      onRefresh={() => void refreshCaptcha()}
+                      onRefresh={refreshCaptcha}
                     />
                   </div>
                   <FieldError errors={field.state.meta.errors} />
@@ -183,28 +182,22 @@ export function LoginForm({ redirectTo }: { readonly redirectTo?: string }) {
         )}
 
         <form.Field name="remember">
-          {field => {
-            const invalid = field.state.meta.errors.length > 0
-
-            return (
-              <Field orientation="horizontal" data-invalid={invalid}>
-                <Checkbox
-                  id="login-remember"
-                  name="remember"
-                  checked={field.state.value}
-                  onCheckedChange={checked => field.handleChange(Boolean(checked))}
-                  disabled={isSubmitting}
-                  aria-invalid={invalid}
-                />
-                <FieldContent>
-                  <FieldLabel htmlFor="login-remember" className="font-normal">
-                    记住我
-                  </FieldLabel>
-                  <FieldError errors={field.state.meta.errors} />
-                </FieldContent>
-              </Field>
-            )
-          }}
+          {field => (
+            <Field orientation="horizontal">
+              <Checkbox
+                id="login-remember"
+                name="remember"
+                checked={field.state.value}
+                onCheckedChange={checked => field.handleChange(Boolean(checked))}
+                disabled={isSubmitting}
+              />
+              <FieldContent>
+                <FieldLabel htmlFor="login-remember" className="font-normal">
+                  记住我
+                </FieldLabel>
+              </FieldContent>
+            </Field>
+          )}
         </form.Field>
       </FieldGroup>
 
@@ -212,7 +205,7 @@ export function LoginForm({ redirectTo }: { readonly redirectTo?: string }) {
         {isSubmitting ? (
           <>
             <Spinner />
-            登陆中
+            登录中
           </>
         ) : (
           '登录'
