@@ -28,6 +28,24 @@ function TextCell({ value }: { value: string | null }) {
   return <span className="text-sm">{value || EMPTY_PLACEHOLDER}</span>
 }
 
+type TextColumnKey =
+  | 'deptName'
+  | 'phone'
+  | 'email'
+  | 'description'
+  | 'createUserString'
+  | 'createTime'
+  | 'updateUserString'
+  | 'updateTime'
+
+function textColumn(key: TextColumnKey, header: string): ColumnDef<DataTableFeatures, UserResp> {
+  return {
+    accessorKey: key,
+    header,
+    cell: ({ row }) => <TextCell value={row.original[key]} />
+  }
+}
+
 function NicknameCell({ user }: { user: UserResp }) {
   const name = user.nickname || user.username
 
@@ -46,7 +64,7 @@ function RowActions({ user, onAction }: { user: UserResp; onAction: (action: Use
   const isLocked = Boolean(user.disabled)
 
   return (
-    <div className="flex items-center justify-center">
+    <div className="flex items-center">
       <DropdownMenu>
         <Tooltip>
           <TooltipTrigger render={<DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />} />}>
@@ -77,12 +95,10 @@ function RowActions({ user, onAction }: { user: UserResp; onAction: (action: Use
             </DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
-          <DropdownMenuGroup>
-            <DropdownMenuItem variant="destructive" disabled={isLocked} onClick={() => onAction('delete', user)}>
-              <Trash2 />
-              删除
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
+          <DropdownMenuItem variant="destructive" disabled={isLocked} onClick={() => onAction('delete', user)}>
+            <Trash2 />
+            删除
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
@@ -90,11 +106,7 @@ function RowActions({ user, onAction }: { user: UserResp; onAction: (action: Use
 }
 
 /**
- * Builds the column set of the user table.
- *
- * `rowOffset` is the index of the first row on the current page, so the serial number
- * column stays continuous across server-side pages. `onAction` receives the action the row
- * raised; the flows that are not implemented yet are reported by the caller.
+ * Builds the user table columns; `rowOffset` keeps the serial number continuous across pages.
  */
 export function createUserColumns(onAction: (action: UserAction, user: UserResp) => void, rowOffset: number) {
   const columns: ColumnDef<DataTableFeatures, UserResp>[] = [
@@ -102,9 +114,7 @@ export function createUserColumns(onAction: (action: UserAction, user: UserResp)
       id: 'index',
       header: '序号',
       enableHiding: false,
-      cell: ({ row }) => (
-        <div className="text-center text-sm text-muted-foreground tabular-nums">{rowOffset + row.index + 1}</div>
-      )
+      cell: ({ row }) => <div className="text-sm text-muted-foreground tabular-nums">{rowOffset + row.index + 1}</div>
     },
     {
       accessorKey: 'nickname',
@@ -119,74 +129,34 @@ export function createUserColumns(onAction: (action: UserAction, user: UserResp)
     {
       accessorKey: 'status',
       header: '状态',
-      cell: ({ row }) => (
-        <div className="text-center">
-          <StatusCell status={row.original.status} />
-        </div>
-      )
+      cell: ({ row }) => <StatusCell status={row.original.status} />
     },
     {
       accessorKey: 'gender',
       header: '性别',
-      cell: ({ row }) => <div className="text-center text-sm">{genderLabel(row.original.gender)}</div>
+      cell: ({ row }) => <span className="text-sm">{genderLabel(row.original.gender)}</span>
     },
-    {
-      accessorKey: 'deptName',
-      header: '所属部门',
-      cell: ({ row }) => <TextCell value={row.original.deptName} />
-    },
+    textColumn('deptName', '所属部门'),
     {
       accessorKey: 'roleNames',
       header: '角色',
-      cell: ({ row }) => <RoleCell roleNames={row.original.roleNames ?? []} max={2} />
+      cell: ({ row }) => <RoleCell roleNames={row.original.roleNames ?? []} max={1} />
     },
-    {
-      accessorKey: 'phone',
-      header: '手机号',
-      cell: ({ row }) => <TextCell value={row.original.phone} />
-    },
-    {
-      accessorKey: 'email',
-      header: '邮箱',
-      cell: ({ row }) => <TextCell value={row.original.email} />
-    },
+    textColumn('phone', '手机号'),
+    textColumn('email', '邮箱'),
     {
       accessorKey: 'isSystem',
       header: '系统内置',
-      cell: ({ row }) => (
-        <div className="text-center">
-          <FlagBadge active={row.original.isSystem} activeLabel="内置" inactiveLabel="自定义" />
-        </div>
-      )
+      cell: ({ row }) => <FlagBadge active={row.original.isSystem} activeLabel="内置" inactiveLabel="自定义" />
     },
-    {
-      accessorKey: 'description',
-      header: '描述',
-      cell: ({ row }) => <TextCell value={row.original.description} />
-    },
-    {
-      accessorKey: 'createUserString',
-      header: '创建人',
-      cell: ({ row }) => <TextCell value={row.original.createUserString} />
-    },
-    {
-      accessorKey: 'createTime',
-      header: '创建时间',
-      cell: ({ row }) => <TextCell value={row.original.createTime} />
-    },
-    {
-      accessorKey: 'updateUserString',
-      header: '修改人',
-      cell: ({ row }) => <TextCell value={row.original.updateUserString} />
-    },
-    {
-      accessorKey: 'updateTime',
-      header: '修改时间',
-      cell: ({ row }) => <TextCell value={row.original.updateTime} />
-    },
+    textColumn('description', '描述'),
+    textColumn('createUserString', '创建人'),
+    textColumn('createTime', '创建时间'),
+    textColumn('updateUserString', '修改人'),
+    textColumn('updateTime', '修改时间'),
     {
       id: 'actions',
-      header: () => <div className="text-center">操作</div>,
+      header: '操作',
       enableHiding: false,
       cell: ({ row }) => <RowActions user={row.original} onAction={onAction} />
     }

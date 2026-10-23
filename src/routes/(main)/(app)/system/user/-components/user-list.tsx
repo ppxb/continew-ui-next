@@ -202,6 +202,7 @@ export function UserList() {
       >
         <DataTable
           table={table}
+          className="min-w-[1600px]"
           isLoading={query.isPending}
           isError={query.isError}
           isShowingPreviousRows={query.isPlaceholderData}
