@@ -6,6 +6,7 @@ import { EntityDrawer } from '@/components/entity-drawer'
 import { QueryState } from '@/components/query-state'
 import { StatusCell } from '@/components/status-cell'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useLastRecord } from '@/hooks/use-last-record'
 import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 
 import { genderLabel, RoleCell } from './user-display'
@@ -94,12 +95,14 @@ export function UserDetailDrawer({ userId, open, onClose }: UserDetailDrawerProp
   // The read-only drawer can reuse the short detail cache; edit and role flows force a fresh read.
   const query = useUserDetail(userId, { enabled: open })
 
-  const detail = query.data
+  // Keep the last detail during the close animation; the query key becomes null first.
+  const lastDetail = useLastRecord(query.data ?? null)
+  const detail = query.data ?? (open ? null : lastDetail)
 
   return (
     <EntityDrawer open={open} onClose={onClose} title="用户详情" icon={<Eye className="size-4" />} width={32}>
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
-        {query.isPending ? (
+        {!detail && query.isPending ? (
           <UserDetailSkeleton />
         ) : query.isError || !detail ? (
           <QueryState state="error" onRetry={() => void query.refetch()} />
