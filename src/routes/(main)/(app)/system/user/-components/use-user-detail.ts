@@ -10,11 +10,7 @@ interface UserDetailOptions {
   readonly refreshOnOpen?: boolean
 }
 
-/**
- * One user's record shared by the detail, edit and role flows through one query key.
- * Read-only detail uses the short cache; edit and role flows force a fresh read.
- * A null id skips the query until a record is selected.
- */
+/** One user's record shared by the detail, edit and role flows; a null id skips the query. */
 export function useUserDetail(
   userId: string | number | null,
   { enabled = true, refreshOnOpen = false }: UserDetailOptions = {}

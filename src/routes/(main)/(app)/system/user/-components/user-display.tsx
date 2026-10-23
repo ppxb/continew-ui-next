@@ -1,7 +1,6 @@
 import { TagList } from '@/components/data-badge'
 import type { UserResp } from '@/lib/api/user'
 
-/** `GenderEnum` arrives as its numeric value. */
 const GENDER_LABELS: Record<number, string> = {
   0: '未知',
   1: '男',
