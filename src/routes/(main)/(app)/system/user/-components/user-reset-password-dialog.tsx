@@ -127,7 +127,7 @@ export function UserResetPasswordDialog({ user, open, onClose }: UserResetPasswo
         }
       }}
     >
-      <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
+      <DialogContent>
         <DialogHeader>
           <div className="flex items-center gap-2">
             <KeyRound className="size-4" />
@@ -147,13 +147,13 @@ export function UserResetPasswordDialog({ user, open, onClose }: UserResetPasswo
             void submit()
           }}
         >
-          <FieldGroup className="gap-4">
+          <FieldGroup>
             <form.Field name="newPassword" validators={{ onDynamic: formSchema.shape.newPassword }}>
               {field => {
                 const invalid = field.state.meta.errors.length > 0
 
                 return (
-                  <Field className="gap-1.5" data-invalid={invalid}>
+                  <Field data-invalid={invalid}>
                     <FieldLabel htmlFor="user-password-new">新密码</FieldLabel>
                     <PasswordInput
                       id="user-password-new"
@@ -179,7 +179,7 @@ export function UserResetPasswordDialog({ user, open, onClose }: UserResetPasswo
                 const invalid = field.state.meta.errors.length > 0
 
                 return (
-                  <Field className="gap-1.5" data-invalid={invalid}>
+                  <Field data-invalid={invalid}>
                     <FieldLabel htmlFor="user-password-confirm">确认密码</FieldLabel>
                     <PasswordInput
                       id="user-password-confirm"

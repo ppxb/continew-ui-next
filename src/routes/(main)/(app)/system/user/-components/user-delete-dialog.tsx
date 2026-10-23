@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
+import { useLastRecord } from '@/hooks/use-last-record'
 import { deleteUser, userKeys, type UserResp } from '@/lib/api/user'
 
 import { userLabel } from './user-display'
@@ -28,29 +29,10 @@ interface UserDeleteDialogProps {
   readonly onClose: () => void
 }
 
-/**
- * Confirms deleting one user.
- *
- * An alert dialog rather than a plain dialog, because the request cannot be undone and should
- * take a deliberate answer instead of a stray click. The wording follows the Vue client's
- * `onDelete`, and the row menu already blocks the action for the accounts the backend protects.
- */
 export function UserDeleteDialog({ user, open, onClose }: UserDeleteDialogProps) {
   const queryClient = useQueryClient()
   const [isDeleting, setIsDeleting] = React.useState(false)
-
-  // The parent clears `user` when the dialog closes, but the exit animation keeps rendering this
-  // copy, so the name would vanish mid-close. Keep the last record around for that window; `user`
-  // still wins while it is set, so opening a second user never shows the previous name.
-  const [lastUser, setLastUser] = React.useState<UserResp | null>(null)
-
-  React.useEffect(() => {
-    if (user) {
-      setLastUser(user)
-    }
-  }, [user])
-
-  const shownUser = user ?? lastUser
+  const shownUser = useLastRecord(user)
   const shownLabel = userLabel(shownUser)
 
   const handleDelete = async () => {
