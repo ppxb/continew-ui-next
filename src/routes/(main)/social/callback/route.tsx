@@ -7,7 +7,7 @@ import { Loader2Icon } from 'lucide-react'
 import { toast } from '@/components/ui/toast'
 import { useAuthStore } from '@/stores/auth/auth-provider'
 
-export const Route = createFileRoute('/(main)/login/social')({
+export const Route = createFileRoute('/(main)/social/callback')({
   validateSearch: (search: Record<string, unknown>) => search,
   component: SocialLoginCallback
 })

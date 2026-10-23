@@ -41,7 +41,7 @@ import { Route as mainDashboardProfileRouteRouteImport } from './routes/(main)/d
 import { Route as mainDashboardRolesRouteRouteImport } from './routes/(main)/dashboard/roles/route'
 import { Route as mainDashboardTasksRouteRouteImport } from './routes/(main)/dashboard/tasks/route'
 import { Route as mainDashboardUsersRouteRouteImport } from './routes/(main)/dashboard/users/route'
-import { Route as mainLoginSocialRouteRouteImport } from './routes/(main)/login/social/route'
+import { Route as mainSocialCallbackRouteRouteImport } from './routes/(main)/social/callback/route'
 import { Route as mainappMonitorLogRouteRouteImport } from './routes/(main)/(app)/monitor/log/route'
 import { Route as mainappMonitorOnlineRouteRouteImport } from './routes/(main)/(app)/monitor/online/route'
 import { Route as mainappOpenAppRouteRouteImport } from './routes/(main)/(app)/open/app/route'
@@ -237,9 +237,9 @@ const mainDashboardUsersRouteRoute = mainDashboardUsersRouteRouteImport.update({
   path: '/users',
   getParentRoute: () => mainDashboardRouteRoute,
 } as any)
-const mainLoginSocialRouteRoute = mainLoginSocialRouteRouteImport.update({
-  id: '/(main)/login/social',
-  path: '/login/social',
+const mainSocialCallbackRouteRoute = mainSocialCallbackRouteRouteImport.update({
+  id: '/(main)/social/callback',
+  path: '/social/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
 const mainappMonitorLogRouteRoute = mainappMonitorLogRouteRouteImport.update({
@@ -382,7 +382,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/roles': typeof mainDashboardRolesRouteRoute
   '/dashboard/tasks': typeof mainDashboardTasksRouteRoute
   '/dashboard/users': typeof mainDashboardUsersRouteRoute
-  '/login/social': typeof mainLoginSocialRouteRoute
+  '/social/callback': typeof mainSocialCallbackRouteRoute
   '/$': typeof mainappSplatRoute
   '/dashboard/$': typeof mainDashboardSplatRoute
   '/dashboard/': typeof mainDashboardIndexRoute
@@ -435,7 +435,7 @@ export interface FileRoutesByTo {
   '/dashboard/roles': typeof mainDashboardRolesRouteRoute
   '/dashboard/tasks': typeof mainDashboardTasksRouteRoute
   '/dashboard/users': typeof mainDashboardUsersRouteRoute
-  '/login/social': typeof mainLoginSocialRouteRoute
+  '/social/callback': typeof mainSocialCallbackRouteRoute
   '/$': typeof mainappSplatRoute
   '/dashboard/$': typeof mainDashboardSplatRoute
   '/dashboard': typeof mainDashboardIndexRoute
@@ -491,7 +491,7 @@ export interface FileRoutesById {
   '/(main)/dashboard/roles': typeof mainDashboardRolesRouteRoute
   '/(main)/dashboard/tasks': typeof mainDashboardTasksRouteRoute
   '/(main)/dashboard/users': typeof mainDashboardUsersRouteRoute
-  '/(main)/login/social': typeof mainLoginSocialRouteRoute
+  '/(main)/social/callback': typeof mainSocialCallbackRouteRoute
   '/(main)/(app)/$': typeof mainappSplatRoute
   '/(main)/dashboard/$': typeof mainDashboardSplatRoute
   '/(main)/dashboard/': typeof mainDashboardIndexRoute
@@ -547,7 +547,7 @@ export interface FileRouteTypes {
     | '/dashboard/roles'
     | '/dashboard/tasks'
     | '/dashboard/users'
-    | '/login/social'
+    | '/social/callback'
     | '/$'
     | '/dashboard/$'
     | '/dashboard/'
@@ -600,7 +600,7 @@ export interface FileRouteTypes {
     | '/dashboard/roles'
     | '/dashboard/tasks'
     | '/dashboard/users'
-    | '/login/social'
+    | '/social/callback'
     | '/$'
     | '/dashboard/$'
     | '/dashboard'
@@ -655,7 +655,7 @@ export interface FileRouteTypes {
     | '/(main)/dashboard/roles'
     | '/(main)/dashboard/tasks'
     | '/(main)/dashboard/users'
-    | '/(main)/login/social'
+    | '/(main)/social/callback'
     | '/(main)/(app)/$'
     | '/(main)/dashboard/$'
     | '/(main)/dashboard/'
@@ -689,7 +689,7 @@ export interface RootRouteChildren {
   mainMailRouteRoute: typeof mainMailRouteRoute
   mainUnauthorizedRoute: typeof mainUnauthorizedRoute
   externalIndexRoute: typeof externalIndexRoute
-  mainLoginSocialRouteRoute: typeof mainLoginSocialRouteRoute
+  mainSocialCallbackRouteRoute: typeof mainSocialCallbackRouteRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -918,11 +918,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof mainDashboardUsersRouteRouteImport
       parentRoute: typeof mainDashboardRouteRoute
     }
-    '/(main)/login/social': {
-      id: '/(main)/login/social'
-      path: '/login/social'
-      fullPath: '/login/social'
-      preLoaderRoute: typeof mainLoginSocialRouteRouteImport
+    '/(main)/social/callback': {
+      id: '/(main)/social/callback'
+      path: '/social/callback'
+      fullPath: '/social/callback'
+      preLoaderRoute: typeof mainSocialCallbackRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/(main)/(app)/monitor/log': {
@@ -1199,7 +1199,7 @@ const rootRouteChildren: RootRouteChildren = {
   mainMailRouteRoute: mainMailRouteRoute,
   mainUnauthorizedRoute: mainUnauthorizedRoute,
   externalIndexRoute: externalIndexRoute,
-  mainLoginSocialRouteRoute: mainLoginSocialRouteRoute,
+  mainSocialCallbackRouteRoute: mainSocialCallbackRouteRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
