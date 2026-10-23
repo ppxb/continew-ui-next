@@ -2,29 +2,25 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 
 import { Lock } from 'lucide-react'
 
+import { Button } from '@/components/ui/button'
+import { StatusPage } from '@/routes/-components/status-page'
+
+/** Shown when an API call is rejected with 403; the HTTP layer navigates here. */
 export const Route = createFileRoute('/(main)/unauthorized')({
-  component: page
+  component: UnauthorizedPage
 })
 
-function page() {
+function UnauthorizedPage() {
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center bg-background px-4 py-12 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-md text-center">
-        <Lock className="mx-auto size-12 text-primary" />
-        <h1 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">Unauthorized Access</h1>
-        <p className="mt-4 text-muted-foreground">
-          You do not have permission to view the requested content. Please contact the site administrator if you believe
-          this is an error.
-        </p>
-        <div className="mt-6">
-          <Link
-            to="/dashboard"
-            className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-xs transition-colors hover:bg-primary/90 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-hidden"
-          >
-            Go to Homepage
-          </Link>
-        </div>
-      </div>
-    </div>
+    <StatusPage
+      icon={Lock}
+      title="无访问权限"
+      description="您没有权限访问该页面。如认为这是错误，请联系系统管理员。"
+      actions={
+        <Button nativeButton={false} render={<Link to="/dashboard" />}>
+          返回首页
+        </Button>
+      }
+    />
   )
 }
