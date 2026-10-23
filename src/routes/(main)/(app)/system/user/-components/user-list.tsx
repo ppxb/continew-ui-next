@@ -126,6 +126,9 @@ export function UserList() {
     getRowId: row => String(row.id)
   })
 
+  // HIDDEN_BY_DEFAULT leaves 12 columns visible; only widen when more are enabled.
+  const hasManyColumns = table.getVisibleLeafColumns().length > 12
+
   const handleDeptChange = (value: string) => {
     setDeptId(value || undefined)
     resetPage()
@@ -202,7 +205,7 @@ export function UserList() {
       >
         <DataTable
           table={table}
-          className="min-w-[1600px]"
+          className={hasManyColumns ? 'min-w-[1600px]' : undefined}
           isLoading={query.isPending}
           isError={query.isError}
           isShowingPreviousRows={query.isPlaceholderData}
