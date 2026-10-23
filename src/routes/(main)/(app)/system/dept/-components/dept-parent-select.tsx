@@ -1,10 +1,9 @@
 import * as React from 'react'
 
-import { Building2 } from 'lucide-react'
-
-import type { TreeKey, TreeNodeData } from '@/components/ui/tree'
+import type { TreeKey } from '@/components/ui/tree'
 import { TreeSelect } from '@/components/ui/tree-select'
 import type { DeptResp } from '@/lib/api/dept'
+import { toDeptNodeData } from '@/lib/dept-tree'
 
 /** Recursively collects the target ID and all its descendant IDs to prevent cyclic parenting. */
 function collectDescendantIds(nodes: DeptResp[], targetId: string | number): Set<string> {
@@ -28,28 +27,6 @@ function collectDescendantIds(nodes: DeptResp[], targetId: string | number): Set
 
   findAndMark(nodes)
   return disabled
-}
-
-/** Transforms dept tree nodes into generic TreeNodeData for TreeSelect. */
-function toDeptNodeData(nodes: DeptResp[], disabledIds: Set<string>): TreeNodeData<DeptResp>[] {
-  const result: TreeNodeData<DeptResp>[] = []
-
-  for (const node of nodes) {
-    const idStr = String(node.id)
-    const isDisabled = disabledIds.has(idStr)
-
-    result.push({
-      id: idStr,
-      parentId: node.parentId ? String(node.parentId) : null,
-      label: node.name,
-      icon: Building2,
-      disabled: isDisabled,
-      data: node,
-      children: node.children && node.children.length > 0 ? toDeptNodeData(node.children, disabledIds) : undefined
-    })
-  }
-
-  return result
 }
 
 interface DeptParentSelectProps {

@@ -1,10 +1,9 @@
 import * as React from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Building2 } from 'lucide-react'
 
 import { TreeSelect } from '@/components/ui/tree-select'
-import type { TreeNodeData } from '@/components/ui/tree'
 import { deptKeys, getDeptTree, type DeptResp } from '@/lib/api/dept'
+import { toDeptNodeData } from '@/lib/dept-tree'
 
 const LOOKUP_STALE_MS = 5 * 60_000
 const EMPTY_NODES: DeptResp[] = []
@@ -15,7 +14,7 @@ export interface DeptTreeSelectProps {
   readonly disabled?: boolean
   readonly invalid?: boolean
   readonly placeholder?: string
-  /** Controlled open flag to enable lazy querying when dialog or drawer opens. */
+  /** Gates the fallback query when external `data` is not available yet. */
   readonly enabled?: boolean
   readonly className?: string
   readonly showPathInTrigger?: boolean
@@ -30,26 +29,7 @@ export interface DeptTreeSelectProps {
   readonly placeholderColor?: 'muted' | 'foreground'
 }
 
-/**
- * Transforms the backend department tree into generic `TreeNodeData`s for `TreeSelect`.
- */
-function toDeptNodeData(nodes: DeptResp[]): TreeNodeData<DeptResp>[] {
-  return nodes.map(node => ({
-    id: String(node.id),
-    parentId: node.parentId ? String(node.parentId) : null,
-    label: node.name,
-    icon: Building2,
-    children: node.children && node.children.length > 0 ? toDeptNodeData(node.children) : undefined,
-    data: node
-  }))
-}
-
-/**
- * High-performance department tree select component for forms and filters.
- *
- * Automatically fetches and caches the department hierarchy using `deptKeys.trees()`,
- * provides instantaneous search, full path display, and single-click expand/collapse.
- */
+/** Department tree select backed by the shared dept query; accepts pre-fetched data for forms. */
 export function DeptTreeSelect({
   value,
   onChange,
@@ -101,10 +81,6 @@ export function DeptTreeSelect({
       placeholder={isLoading ? '部门加载中' : isError ? '部门加载失败' : placeholder}
       searchPlaceholder="搜索部门"
       emptyText="未找到相关部门"
-      clearable
-      searchable
-      showExpandActions
-      showIcons
       showPathInTrigger={showPathInTrigger}
       className={className}
       size={size}
