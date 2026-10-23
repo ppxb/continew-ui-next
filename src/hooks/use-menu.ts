@@ -1,8 +1,9 @@
 import { useMemo } from 'react'
 
-import { isCancelledError, queryOptions, useQuery } from '@tanstack/react-query'
+import { CancelledError, queryOptions, useQuery } from '@tanstack/react-query'
 
 import { getUserRoutes } from '@/lib/api/auth'
+import type { RouteResp } from '@/lib/api/types'
 import { ApiError } from '@/lib/http'
 import { getAccessToken } from '@/lib/auth-session'
 import { getCachedMenu, setCachedMenu } from '@/lib/menu-cache'
@@ -33,7 +34,7 @@ export function useMenuRoutes() {
 }
 
 /**
- * Ensures menu data is present before the shell renders.
+ * Ensures menu data is present before the shell renders and returns it.
  *
  * If cached menu data already exists (from memory or localStorage), this resolves
  * immediately (0ms) so the shell mounts without delay. In the background, it
@@ -42,22 +43,23 @@ export function useMenuRoutes() {
  * Only when there is no cached data at all (first login/cold start) will it await
  * the network request to prevent flashing empty static menus.
  */
-export async function ensureMenuLoaded() {
-  const cached = queryClient.getQueryData(MENU_QUERY_KEY) ?? getCachedMenu()
+export async function ensureMenuLoaded(): Promise<RouteResp[]> {
+  const cached = queryClient.getQueryData<RouteResp[]>(MENU_QUERY_KEY) ?? getCachedMenu()
   if (cached) {
     if (!queryClient.getQueryData(MENU_QUERY_KEY)) {
       queryClient.setQueryData(MENU_QUERY_KEY, cached)
     }
     void queryClient.query({ ...menuQueryOptions, staleTime: 0 }).catch(() => {})
-    return
+    return cached
   }
 
   try {
-    await queryClient.query({ ...menuQueryOptions, staleTime: 'static' })
+    return await queryClient.query({ ...menuQueryOptions, staleTime: 'static' })
   } catch (error) {
-    if (!(error instanceof ApiError) && !isCancelledError(error)) {
+    if (!(error instanceof ApiError) && !(error instanceof CancelledError)) {
       throw error
     }
+    return queryClient.getQueryData<RouteResp[]>(MENU_QUERY_KEY) ?? []
   }
 }
 
