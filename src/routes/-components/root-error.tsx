@@ -23,7 +23,9 @@ export function RootError({ error, reset }: ErrorComponentProps) {
       }
     >
       {import.meta.env.DEV ? (
-        <p className="text-sm break-words text-destructive">{error instanceof Error ? error.message : String(error)}</p>
+        <p className="text-sm wrap-break-word text-destructive">
+          {error instanceof Error ? error.message : String(error)}
+        </p>
       ) : null}
     </StatusPage>
   )
