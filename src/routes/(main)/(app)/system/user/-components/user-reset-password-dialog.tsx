@@ -24,15 +24,13 @@ import { encryptByRsa } from '@/lib/crypto'
 
 import { userLabel } from './user-display'
 
-/**
- * Mirrors the backend default policy (`RegexConstants.PASSWORD`): 8 to 32 characters with at
- * least one digit and one lowercase letter. The profile password form enforces the same rule.
- */
+/** Backend password policy; the profile form uses the same rule. */
 const PASSWORD_PATTERN = /^(?=.*\d)(?=.*[a-z]).{8,32}$/
+const PASSWORD_HINT = '密码长度为 8-32 个字符，且至少包含一个小写字母和一个数字'
 
 const formSchema = z
   .object({
-    newPassword: z.string().regex(PASSWORD_PATTERN, '密码长度为 8-32 个字符，且至少包含一个小写字母和一个数字'),
+    newPassword: z.string().regex(PASSWORD_PATTERN, PASSWORD_HINT),
     confirmPassword: z.string().min(1, '请再次输入新密码')
   })
   .refine(values => values.newPassword === values.confirmPassword, {
@@ -51,13 +49,6 @@ interface UserResetPasswordDialogProps {
   readonly onClose: () => void
 }
 
-/**
- * Admin-side password reset for one user.
- *
- * The new password is RSA encrypted before it is sent, exactly like the login and profile
- * forms. The backend then signs that user out of every device, so the description says so
- * instead of letting the admin be surprised by it.
- */
 export function UserResetPasswordDialog({ user, open, onClose }: UserResetPasswordDialogProps) {
   const queryClient = useQueryClient()
   const [lastUser, setLastUser] = React.useState<UserResp | null>(null)
@@ -102,7 +93,7 @@ export function UserResetPasswordDialog({ user, open, onClose }: UserResetPasswo
       // A reset moves `pwdResetTime`, which only the detail response carries, so that one
       // record is invalidated and the list is left alone.
       void queryClient.invalidateQueries({ queryKey: userKeys.detail(user.id) })
-      toast.add({ title: `密码重置成功`, type: 'success' })
+      toast.add({ title: '密码重置成功', type: 'success' })
     }
   })
 
@@ -176,7 +167,7 @@ export function UserResetPasswordDialog({ user, open, onClose }: UserResetPasswo
                       disabled={isSubmitting}
                       aria-invalid={invalid}
                     />
-                    <FieldDescription>8-32 个字符，至少包含一个字母和一个数字</FieldDescription>
+                    <FieldDescription>{PASSWORD_HINT}</FieldDescription>
                     <FieldError errors={field.state.meta.errors} />
                   </Field>
                 )
