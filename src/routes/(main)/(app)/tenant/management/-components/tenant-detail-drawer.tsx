@@ -37,49 +37,42 @@ export function TenantDetailDrawer({ tenantId, open, onClose }: TenantDetailDraw
   const detail = query.data
 
   return (
-    <EntityDrawer
-      open={open}
-      onClose={onClose}
-      title="租户详情"
-      icon={<Building2 className="size-4" />}
-      width={36}
-    >
-
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
-          {query.isPending ? (
-            <TenantDetailSkeleton />
-          ) : query.isError || !detail ? (
-            <QueryState state="error" onRetry={() => void query.refetch()} />
-          ) : (
-            <DetailGrid>
-              <DetailField label="ID">
-                <CopyableText value={String(detail.id)} />
-              </DetailField>
-              <DetailField label="编码">
-                <CopyableText value={detail.code} />
-              </DetailField>
-              <DetailField label="名称">{detail.name || EMPTY_PLACEHOLDER}</DetailField>
-              <DetailField label="套餐">{detail.packageName || EMPTY_PLACEHOLDER}</DetailField>
-              <DetailField label="域名">
-                <DomainCell domain={detail.domain} />
-              </DetailField>
-              <DetailField label="过期时间">
-                <ExpireTimeCell value={detail.expireTime} />
-              </DetailField>
-              <DetailField label="管理员用户">{detail.adminUsername || EMPTY_PLACEHOLDER}</DetailField>
-              <DetailField label="状态">
-                <StatusCell status={detail.status} />
-              </DetailField>
-              <DetailField label="创建人">{detail.createUserString || EMPTY_PLACEHOLDER}</DetailField>
-              <DetailField label="创建时间">{detail.createTime || EMPTY_PLACEHOLDER}</DetailField>
-              <DetailField label="修改人">{detail.updateUserString || EMPTY_PLACEHOLDER}</DetailField>
-              <DetailField label="修改时间">{detail.updateTime || EMPTY_PLACEHOLDER}</DetailField>
-              <DetailField label="描述" className="sm:col-span-2">
-                {detail.description || EMPTY_PLACEHOLDER}
-              </DetailField>
-            </DetailGrid>
-          )}
-        </div>
+    <EntityDrawer open={open} onClose={onClose} title="租户详情" icon={<Building2 className="size-4" />} width={36}>
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
+        {query.isPending ? (
+          <TenantDetailSkeleton />
+        ) : query.isError || !detail ? (
+          <QueryState state="error" onRetry={() => void query.refetch()} />
+        ) : (
+          <DetailGrid>
+            <DetailField label="ID">
+              <CopyableText value={String(detail.id)} />
+            </DetailField>
+            <DetailField label="编码">
+              <CopyableText value={detail.code} />
+            </DetailField>
+            <DetailField label="名称">{detail.name || EMPTY_PLACEHOLDER}</DetailField>
+            <DetailField label="套餐">{detail.packageName || EMPTY_PLACEHOLDER}</DetailField>
+            <DetailField label="域名">
+              <DomainCell domain={detail.domain} />
+            </DetailField>
+            <DetailField label="过期时间">
+              <ExpireTimeCell value={detail.expireTime} />
+            </DetailField>
+            <DetailField label="管理员用户">{detail.adminUsername || EMPTY_PLACEHOLDER}</DetailField>
+            <DetailField label="状态">
+              <StatusCell status={detail.status} />
+            </DetailField>
+            <DetailField label="创建人">{detail.createUserString || EMPTY_PLACEHOLDER}</DetailField>
+            <DetailField label="创建时间">{detail.createTime || EMPTY_PLACEHOLDER}</DetailField>
+            <DetailField label="修改人">{detail.updateUserString || EMPTY_PLACEHOLDER}</DetailField>
+            <DetailField label="修改时间">{detail.updateTime || EMPTY_PLACEHOLDER}</DetailField>
+            <DetailField label="描述" className="sm:col-span-2">
+              {detail.description || EMPTY_PLACEHOLDER}
+            </DetailField>
+          </DetailGrid>
+        )}
+      </div>
     </EntityDrawer>
   )
 }

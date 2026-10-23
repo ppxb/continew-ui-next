@@ -2,16 +2,7 @@ import * as React from 'react'
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 
-import {
-  ArrowLeft,
-  FolderOpen,
-  FolderPlus,
-  LayoutGrid,
-  List,
-  RefreshCw,
-  Trash2,
-  Upload
-} from 'lucide-react'
+import { ArrowLeft, FolderOpen, FolderPlus, LayoutGrid, List, RefreshCw, Trash2, Upload } from 'lucide-react'
 
 import { cn } from 'cn'
 

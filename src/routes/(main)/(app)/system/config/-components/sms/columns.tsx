@@ -80,11 +80,7 @@ export function createSmsColumns(
       header: () => <div className="text-center">默认</div>,
       cell: ({ row }) => (
         <div className="flex justify-center">
-          {row.original.isDefault ? (
-            <DefaultBadge />
-          ) : (
-            <span className="text-xs text-muted-foreground">否</span>
-          )}
+          {row.original.isDefault ? <DefaultBadge /> : <span className="text-xs text-muted-foreground">否</span>}
         </div>
       )
     },

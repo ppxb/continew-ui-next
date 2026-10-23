@@ -24,7 +24,10 @@ export function AuthStoreProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (getAccessToken()) {
-      void store.getState().loadUser().catch(() => undefined)
+      void store
+        .getState()
+        .loadUser()
+        .catch(() => undefined)
     }
   }, [store])
 

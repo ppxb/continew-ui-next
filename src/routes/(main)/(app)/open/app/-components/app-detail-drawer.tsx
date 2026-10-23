@@ -83,52 +83,51 @@ export function AppDetailDrawer({ appId, open, onClose }: AppDetailDrawerProps) 
       }
       width={32}
     >
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
+        {query.isLoading ? (
+          <AppDetailSkeleton />
+        ) : query.isError ? (
+          <QueryState state="error" onRetry={() => void query.refetch()} />
+        ) : detail ? (
+          <DetailGrid>
+            <DetailField label="应用 ID" className="sm:col-span-2">
+              <CopyableText value={String(detail.id)} label="复制 ID" className="break-all" />
+            </DetailField>
 
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
-          {query.isLoading ? (
-            <AppDetailSkeleton />
-          ) : query.isError ? (
-            <QueryState state="error" onRetry={() => void query.refetch()} />
-          ) : detail ? (
-            <DetailGrid>
-              <DetailField label="应用 ID" className="sm:col-span-2">
-                <CopyableText value={String(detail.id)} label="复制 ID" className="break-all" />
-              </DetailField>
+            <DetailField label="应用名称" className="sm:col-span-2">
+              <span className="font-medium text-foreground">{detail.name}</span>
+            </DetailField>
 
-              <DetailField label="应用名称" className="sm:col-span-2">
-                <span className="font-medium text-foreground">{detail.name}</span>
-              </DetailField>
+            <DetailField label="Access Key" className="sm:col-span-2">
+              <CopyableText
+                value={detail.accessKey}
+                label="复制 Access Key"
+                successMessage="Access Key 已复制到剪贴板"
+                className="break-all"
+              />
+            </DetailField>
 
-              <DetailField label="Access Key" className="sm:col-span-2">
-                <CopyableText
-                  value={detail.accessKey}
-                  label="复制 Access Key"
-                  successMessage="Access Key 已复制到剪贴板"
-                  className="break-all"
-                />
-              </DetailField>
+            <DetailField label="状态">
+              <StatusCell status={detail.status} />
+            </DetailField>
 
-              <DetailField label="状态">
-                <StatusCell status={detail.status} />
-              </DetailField>
+            <DetailField label="失效时间">
+              <ExpireTimeCell expireTime={detail.expireTime} />
+            </DetailField>
 
-              <DetailField label="失效时间">
-                <ExpireTimeCell expireTime={detail.expireTime} />
-              </DetailField>
+            <DetailField label="应用描述" className="sm:col-span-2">
+              <span className="text-sm whitespace-pre-wrap text-muted-foreground">
+                {detail.description || EMPTY_PLACEHOLDER}
+              </span>
+            </DetailField>
 
-              <DetailField label="应用描述" className="sm:col-span-2">
-                <span className="text-sm whitespace-pre-wrap text-muted-foreground">
-                  {detail.description || EMPTY_PLACEHOLDER}
-                </span>
-              </DetailField>
-
-              <DetailField label="创建人">{detail.createUserString || EMPTY_PLACEHOLDER}</DetailField>
-              <DetailField label="创建时间">{detail.createTime || EMPTY_PLACEHOLDER}</DetailField>
-              <DetailField label="修改人">{detail.updateUserString || EMPTY_PLACEHOLDER}</DetailField>
-              <DetailField label="修改时间">{detail.updateTime || EMPTY_PLACEHOLDER}</DetailField>
-            </DetailGrid>
-          ) : null}
-        </div>
+            <DetailField label="创建人">{detail.createUserString || EMPTY_PLACEHOLDER}</DetailField>
+            <DetailField label="创建时间">{detail.createTime || EMPTY_PLACEHOLDER}</DetailField>
+            <DetailField label="修改人">{detail.updateUserString || EMPTY_PLACEHOLDER}</DetailField>
+            <DetailField label="修改时间">{detail.updateTime || EMPTY_PLACEHOLDER}</DetailField>
+          </DetailGrid>
+        ) : null}
+      </div>
     </EntityDrawer>
   )
 }

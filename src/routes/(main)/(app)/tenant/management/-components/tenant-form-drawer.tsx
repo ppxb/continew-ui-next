@@ -246,292 +246,289 @@ export function TenantFormDrawer({ tenantId, open, onClose }: TenantFormDrawerPr
       width={32}
       canClose={() => !form.state.isSubmitting}
     >
+      {isCreate || (!detail.isError && detail.data && detail.fetchStatus === 'idle') ? (
+        <form
+          ref={formRef}
+          noValidate
+          className="flex min-h-0 flex-1 flex-col"
+          onSubmit={event => {
+            event.preventDefault()
+            void submit()
+          }}
+        >
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
+            <FieldGroup className="gap-4">
+              <form.Field name="name" validators={{ onDynamic: formSchema.shape.name }}>
+                {field => {
+                  const invalid = field.state.meta.errors.length > 0
 
-        {isCreate || (!detail.isError && detail.data && detail.fetchStatus === 'idle') ? (
-          <form
-            ref={formRef}
-            noValidate
-            className="flex min-h-0 flex-1 flex-col"
-            onSubmit={event => {
-              event.preventDefault()
-              void submit()
-            }}
-          >
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
-              <FieldGroup className="gap-4">
-                <form.Field name="name" validators={{ onDynamic: formSchema.shape.name }}>
-                  {field => {
-                    const invalid = field.state.meta.errors.length > 0
+                  return (
+                    <Field className="gap-1.5" data-invalid={invalid}>
+                      <FieldLabel>
+                        名称
+                        <RequiredMark />
+                      </FieldLabel>
+                      <Input
+                        name="name"
+                        value={field.state.value}
+                        onChange={event => field.handleChange(event.target.value)}
+                        onBlur={field.handleBlur}
+                        maxLength={30}
+                        placeholder="请输入名称"
+                        aria-invalid={invalid}
+                      />
+                      <FieldError errors={field.state.meta.errors} />
+                    </Field>
+                  )
+                }}
+              </form.Field>
 
-                    return (
-                      <Field className="gap-1.5" data-invalid={invalid}>
-                        <FieldLabel>
-                          名称
-                          <RequiredMark />
-                        </FieldLabel>
-                        <Input
-                          name="name"
+              <form.Field name="domain" validators={{ onDynamic: formSchema.shape.domain }}>
+                {field => {
+                  const invalid = field.state.meta.errors.length > 0
+
+                  return (
+                    <Field className="gap-1.5" data-invalid={invalid}>
+                      <FieldLabel>域名</FieldLabel>
+                      <InputGroup>
+                        <InputGroupAddon align="inline-start">
+                          <span className="text-xs text-muted-foreground">http(s)://</span>
+                        </InputGroupAddon>
+                        <InputGroupInput
+                          name="domain"
                           value={field.state.value}
                           onChange={event => field.handleChange(event.target.value)}
                           onBlur={field.handleBlur}
-                          maxLength={30}
-                          placeholder="请输入名称"
+                          maxLength={255}
+                          placeholder="例如：example.com"
                           aria-invalid={invalid}
                         />
+                      </InputGroup>
+                      <FieldError errors={field.state.meta.errors} />
+                    </Field>
+                  )
+                }}
+              </form.Field>
+
+              <form.Field name="expireTime" validators={{ onDynamic: formSchema.shape.expireTime }}>
+                {field => {
+                  const invalid = field.state.meta.errors.length > 0
+
+                  return (
+                    <Field className="gap-1.5" data-invalid={invalid}>
+                      <FieldLabel>过期时间</FieldLabel>
+                      <TenantExpiryPicker
+                        value={field.state.value}
+                        onChange={field.handleChange}
+                        onBlur={field.handleBlur}
+                        invalid={invalid}
+                      />
+                      {invalid ? (
                         <FieldError errors={field.state.meta.errors} />
-                      </Field>
-                    )
-                  }}
-                </form.Field>
+                      ) : (
+                        <FieldDescription>留空表示永不过期；若设置则必须是未来时间</FieldDescription>
+                      )}
+                    </Field>
+                  )
+                }}
+              </form.Field>
 
-                <form.Field name="domain" validators={{ onDynamic: formSchema.shape.domain }}>
-                  {field => {
-                    const invalid = field.state.meta.errors.length > 0
+              {isCreate ? (
+                <>
+                  <form.Field
+                    name="adminUsername"
+                    validators={{
+                      onBlur: ({ value }) => (USERNAME_PATTERN.test(value) ? undefined : { message: USERNAME_HINT }),
+                      onSubmit: ({ value }) => (USERNAME_PATTERN.test(value) ? undefined : { message: USERNAME_HINT })
+                    }}
+                  >
+                    {field => {
+                      const invalid = field.state.meta.errors.length > 0
 
-                    return (
-                      <Field className="gap-1.5" data-invalid={invalid}>
-                        <FieldLabel>域名</FieldLabel>
-                        <InputGroup>
-                          <InputGroupAddon align="inline-start">
-                            <span className="text-xs text-muted-foreground">http(s)://</span>
-                          </InputGroupAddon>
-                          <InputGroupInput
-                            name="domain"
+                      return (
+                        <Field className="gap-1.5" data-invalid={invalid}>
+                          <FieldLabel>
+                            管理员用户
+                            <RequiredMark />
+                          </FieldLabel>
+                          <Input
+                            name="adminUsername"
                             value={field.state.value}
                             onChange={event => field.handleChange(event.target.value)}
                             onBlur={field.handleBlur}
-                            maxLength={255}
-                            placeholder="例如：example.com"
+                            maxLength={64}
+                            placeholder="请输入管理员用户"
+                            autoComplete="off"
                             aria-invalid={invalid}
                           />
-                        </InputGroup>
-                        <FieldError errors={field.state.meta.errors} />
-                      </Field>
-                    )
-                  }}
-                </form.Field>
-
-                <form.Field name="expireTime" validators={{ onDynamic: formSchema.shape.expireTime }}>
-                  {field => {
-                    const invalid = field.state.meta.errors.length > 0
-
-                    return (
-                      <Field className="gap-1.5" data-invalid={invalid}>
-                        <FieldLabel>过期时间</FieldLabel>
-                        <TenantExpiryPicker
-                          value={field.state.value}
-                          onChange={field.handleChange}
-                          onBlur={field.handleBlur}
-                          invalid={invalid}
-                        />
-                        {invalid ? (
                           <FieldError errors={field.state.meta.errors} />
-                        ) : (
-                          <FieldDescription>留空表示永不过期；若设置则必须是未来时间</FieldDescription>
-                        )}
-                      </Field>
-                    )
-                  }}
-                </form.Field>
+                        </Field>
+                      )
+                    }}
+                  </form.Field>
 
-                {isCreate ? (
-                  <>
-                    <form.Field
-                      name="adminUsername"
-                      validators={{
-                        onBlur: ({ value }) => (USERNAME_PATTERN.test(value) ? undefined : { message: USERNAME_HINT }),
-                        onSubmit: ({ value }) => (USERNAME_PATTERN.test(value) ? undefined : { message: USERNAME_HINT })
-                      }}
-                    >
-                      {field => {
-                        const invalid = field.state.meta.errors.length > 0
+                  <form.Field
+                    name="adminPassword"
+                    validators={{
+                      onBlur: ({ value }) => (PASSWORD_PATTERN.test(value) ? undefined : { message: PASSWORD_HINT }),
+                      onSubmit: ({ value }) => (PASSWORD_PATTERN.test(value) ? undefined : { message: PASSWORD_HINT })
+                    }}
+                  >
+                    {field => {
+                      const invalid = field.state.meta.errors.length > 0
 
-                        return (
-                          <Field className="gap-1.5" data-invalid={invalid}>
-                            <FieldLabel>
-                              管理员用户
-                              <RequiredMark />
-                            </FieldLabel>
-                            <Input
-                              name="adminUsername"
-                              value={field.state.value}
-                              onChange={event => field.handleChange(event.target.value)}
-                              onBlur={field.handleBlur}
-                              maxLength={64}
-                              placeholder="请输入管理员用户"
-                              autoComplete="off"
-                              aria-invalid={invalid}
-                            />
+                      return (
+                        <Field className="gap-1.5" data-invalid={invalid}>
+                          <FieldLabel>
+                            管理员密码
+                            <RequiredMark />
+                          </FieldLabel>
+                          <PasswordInput
+                            name="adminPassword"
+                            value={field.state.value}
+                            onChange={event => field.handleChange(event.target.value)}
+                            onBlur={field.handleBlur}
+                            maxLength={32}
+                            placeholder="请输入管理员密码"
+                            autoComplete="new-password"
+                            aria-invalid={invalid}
+                          />
+                          {invalid ? (
                             <FieldError errors={field.state.meta.errors} />
-                          </Field>
-                        )
-                      }}
-                    </form.Field>
+                          ) : (
+                            <FieldDescription>{PASSWORD_HINT}</FieldDescription>
+                          )}
+                        </Field>
+                      )
+                    }}
+                  </form.Field>
 
-                    <form.Field
-                      name="adminPassword"
-                      validators={{
-                        onBlur: ({ value }) => (PASSWORD_PATTERN.test(value) ? undefined : { message: PASSWORD_HINT }),
-                        onSubmit: ({ value }) => (PASSWORD_PATTERN.test(value) ? undefined : { message: PASSWORD_HINT })
-                      }}
-                    >
-                      {field => {
-                        const invalid = field.state.meta.errors.length > 0
+                  <form.Field
+                    name="packageId"
+                    validators={{
+                      onSubmit: ({ value }) => (value ? undefined : { message: '请选择套餐' })
+                    }}
+                  >
+                    {field => {
+                      const invalid = field.state.meta.errors.length > 0
 
-                        return (
-                          <Field className="gap-1.5" data-invalid={invalid}>
-                            <FieldLabel>
-                              管理员密码
-                              <RequiredMark />
-                            </FieldLabel>
-                            <PasswordInput
-                              name="adminPassword"
+                      return (
+                        <Field className="gap-1.5" data-invalid={invalid}>
+                          <FieldLabel>
+                            套餐
+                            <RequiredMark />
+                          </FieldLabel>
+
+                          {packages.isPending ? (
+                            <Skeleton className="h-8 w-full" />
+                          ) : packageOptions.length > 0 ? (
+                            <Select
+                              items={packageItems}
                               value={field.state.value}
-                              onChange={event => field.handleChange(event.target.value)}
-                              onBlur={field.handleBlur}
-                              maxLength={32}
-                              placeholder="请输入管理员密码"
-                              autoComplete="new-password"
-                              aria-invalid={invalid}
-                            />
-                            {invalid ? (
-                              <FieldError errors={field.state.meta.errors} />
-                            ) : (
-                              <FieldDescription>{PASSWORD_HINT}</FieldDescription>
-                            )}
-                          </Field>
-                        )
-                      }}
-                    </form.Field>
+                              onValueChange={value => field.handleChange(value ?? '')}
+                            >
+                              <SelectTrigger className="w-full" aria-invalid={invalid}>
+                                <SelectValue placeholder="请选择套餐" />
+                              </SelectTrigger>
+                              <SelectContent alignItemWithTrigger={false}>
+                                <SelectGroup>
+                                  {packageItems.map(option => (
+                                    <SelectItem key={option.value} value={option.value}>
+                                      {option.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectGroup>
+                              </SelectContent>
+                            </Select>
+                          ) : (
+                            <Empty className="min-h-28 border border-dashed p-4">
+                              <EmptyHeader>
+                                <EmptyMedia variant="icon">
+                                  <PackageOpen />
+                                </EmptyMedia>
+                                <EmptyTitle>{packages.isError ? '套餐加载失败' : '暂无可用套餐'}</EmptyTitle>
+                                <EmptyDescription>
+                                  {packages.isError ? '请关闭抽屉后重新打开重试' : '请先在「套餐管理」中创建并启用套餐'}
+                                </EmptyDescription>
+                              </EmptyHeader>
+                            </Empty>
+                          )}
 
-                    <form.Field
-                      name="packageId"
-                      validators={{
-                        onSubmit: ({ value }) => (value ? undefined : { message: '请选择套餐' })
-                      }}
-                    >
-                      {field => {
-                        const invalid = field.state.meta.errors.length > 0
+                          {packageOptions.length > 0 ? <FieldError errors={field.state.meta.errors} /> : null}
+                        </Field>
+                      )
+                    }}
+                  </form.Field>
+                </>
+              ) : null}
 
-                        return (
-                          <Field className="gap-1.5" data-invalid={invalid}>
-                            <FieldLabel>
-                              套餐
-                              <RequiredMark />
-                            </FieldLabel>
+              <form.Field name="description" validators={{ onDynamic: formSchema.shape.description }}>
+                {field => {
+                  const invalid = field.state.meta.errors.length > 0
 
-                            {packages.isPending ? (
-                              <Skeleton className="h-8 w-full" />
-                            ) : packageOptions.length > 0 ? (
-                              <Select
-                                items={packageItems}
-                                value={field.state.value}
-                                onValueChange={value => field.handleChange(value ?? '')}
-                              >
-                                <SelectTrigger className="w-full" aria-invalid={invalid}>
-                                  <SelectValue placeholder="请选择套餐" />
-                                </SelectTrigger>
-                                <SelectContent alignItemWithTrigger={false}>
-                                  <SelectGroup>
-                                    {packageItems.map(option => (
-                                      <SelectItem key={option.value} value={option.value}>
-                                        {option.label}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectGroup>
-                                </SelectContent>
-                              </Select>
-                            ) : (
-                              <Empty className="min-h-28 border border-dashed p-4">
-                                <EmptyHeader>
-                                  <EmptyMedia variant="icon">
-                                    <PackageOpen />
-                                  </EmptyMedia>
-                                  <EmptyTitle>{packages.isError ? '套餐加载失败' : '暂无可用套餐'}</EmptyTitle>
-                                  <EmptyDescription>
-                                    {packages.isError
-                                      ? '请关闭抽屉后重新打开重试'
-                                      : '请先在「套餐管理」中创建并启用套餐'}
-                                  </EmptyDescription>
-                                </EmptyHeader>
-                              </Empty>
-                            )}
-
-                            {packageOptions.length > 0 ? <FieldError errors={field.state.meta.errors} /> : null}
-                          </Field>
-                        )
-                      }}
-                    </form.Field>
-                  </>
-                ) : null}
-
-                <form.Field name="description" validators={{ onDynamic: formSchema.shape.description }}>
-                  {field => {
-                    const invalid = field.state.meta.errors.length > 0
-
-                    return (
-                      <Field className="gap-1.5" data-invalid={invalid}>
-                        <FieldLabel>描述</FieldLabel>
-                        <Textarea
-                          name="description"
-                          value={field.state.value}
-                          onChange={event => field.handleChange(event.target.value)}
-                          onBlur={field.handleBlur}
-                          maxLength={200}
-                          rows={3}
-                          placeholder="请输入描述"
-                          aria-invalid={invalid}
-                        />
-                        <FieldError errors={field.state.meta.errors} />
-                      </Field>
-                    )
-                  }}
-                </form.Field>
-
-                <form.Field name="status">
-                  {field => (
-                    <Field orientation="horizontal" className="items-center justify-between">
-                      <FieldContent>
-                        <FieldLabel>状态</FieldLabel>
-                        <FieldDescription>
-                          {field.state.value === 1 ? '启用后该租户可以正常访问' : '禁用后该租户无法访问'}
-                        </FieldDescription>
-                      </FieldContent>
-                      <Switch
-                        checked={field.state.value === 1}
-                        onCheckedChange={checked => field.handleChange(checked ? 1 : 2)}
+                  return (
+                    <Field className="gap-1.5" data-invalid={invalid}>
+                      <FieldLabel>描述</FieldLabel>
+                      <Textarea
+                        name="description"
+                        value={field.state.value}
+                        onChange={event => field.handleChange(event.target.value)}
+                        onBlur={field.handleBlur}
+                        maxLength={200}
+                        rows={3}
+                        placeholder="请输入描述"
+                        aria-invalid={invalid}
                       />
+                      <FieldError errors={field.state.meta.errors} />
                     </Field>
-                  )}
-                </form.Field>
-              </FieldGroup>
-            </div>
+                  )
+                }}
+              </form.Field>
 
-            <DrawerFooter className="shrink-0 flex-row justify-end gap-2 border-t p-4">
-              <Button type="button" variant="outline" disabled={form.state.isSubmitting} onClick={onClose}>
-                取消
-              </Button>
-              <form.Subscribe selector={state => state.isSubmitting}>
-                {isSubmitting => (
-                  <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? (
-                      <>
-                        <Spinner />
-                        保存中
-                      </>
-                    ) : (
-                      '保存'
-                    )}
-                  </Button>
+              <form.Field name="status">
+                {field => (
+                  <Field orientation="horizontal" className="items-center justify-between">
+                    <FieldContent>
+                      <FieldLabel>状态</FieldLabel>
+                      <FieldDescription>
+                        {field.state.value === 1 ? '启用后该租户可以正常访问' : '禁用后该租户无法访问'}
+                      </FieldDescription>
+                    </FieldContent>
+                    <Switch
+                      checked={field.state.value === 1}
+                      onCheckedChange={checked => field.handleChange(checked ? 1 : 2)}
+                    />
+                  </Field>
                 )}
-              </form.Subscribe>
-            </DrawerFooter>
-          </form>
-        ) : detail.isError ? (
-          <QueryState state="error" className="p-6" onRetry={() => void detail.refetch()} />
-        ) : (
-          <TenantFormSkeleton />
-        )}
+              </form.Field>
+            </FieldGroup>
+          </div>
+
+          <DrawerFooter className="shrink-0 flex-row justify-end gap-2 border-t p-4">
+            <Button type="button" variant="outline" disabled={form.state.isSubmitting} onClick={onClose}>
+              取消
+            </Button>
+            <form.Subscribe selector={state => state.isSubmitting}>
+              {isSubmitting => (
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <Spinner />
+                      保存中
+                    </>
+                  ) : (
+                    '保存'
+                  )}
+                </Button>
+              )}
+            </form.Subscribe>
+          </DrawerFooter>
+        </form>
+      ) : detail.isError ? (
+        <QueryState state="error" className="p-6" onRetry={() => void detail.refetch()} />
+      ) : (
+        <TenantFormSkeleton />
+      )}
     </EntityDrawer>
   )
 }

@@ -109,121 +109,120 @@ export function DictFormDrawer({ dict, open, onClose, onCompleted }: DictFormDra
       width={32}
       canClose={() => !form.state.isSubmitting}
     >
+      <form
+        noValidate
+        className="flex min-h-0 flex-1 flex-col"
+        onSubmit={event => {
+          event.preventDefault()
+          event.stopPropagation()
+          void form.handleSubmit()
+        }}
+      >
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
+          <FieldGroup className="grid gap-4 sm:grid-cols-2">
+            <form.Field name="name">
+              {field => {
+                const invalid = field.state.meta.errors.length > 0
 
-        <form
-          noValidate
-          className="flex min-h-0 flex-1 flex-col"
-          onSubmit={event => {
-            event.preventDefault()
-            event.stopPropagation()
-            void form.handleSubmit()
-          }}
-        >
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
-            <FieldGroup className="grid gap-4 sm:grid-cols-2">
-              <form.Field name="name">
-                {field => {
-                  const invalid = field.state.meta.errors.length > 0
+                return (
+                  <Field className="gap-1.5" data-invalid={invalid}>
+                    <FieldLabel>
+                      名称
+                      <RequiredMark />
+                    </FieldLabel>
+                    <Input
+                      name="name"
+                      value={field.state.value}
+                      maxLength={30}
+                      autoComplete="off"
+                      placeholder="请输入字典名称"
+                      aria-invalid={invalid}
+                      onChange={event => field.handleChange(event.target.value)}
+                      onBlur={field.handleBlur}
+                    />
+                    <FieldError errors={field.state.meta.errors} />
+                  </Field>
+                )
+              }}
+            </form.Field>
 
-                  return (
-                    <Field className="gap-1.5" data-invalid={invalid}>
-                      <FieldLabel>
-                        名称
-                        <RequiredMark />
-                      </FieldLabel>
-                      <Input
-                        name="name"
-                        value={field.state.value}
-                        maxLength={30}
-                        autoComplete="off"
-                        placeholder="请输入字典名称"
-                        aria-invalid={invalid}
-                        onChange={event => field.handleChange(event.target.value)}
-                        onBlur={field.handleBlur}
-                      />
-                      <FieldError errors={field.state.meta.errors} />
-                    </Field>
-                  )
-                }}
-              </form.Field>
+            <form.Field name="code">
+              {field => {
+                const invalid = field.state.meta.errors.length > 0
 
-              <form.Field name="code">
-                {field => {
-                  const invalid = field.state.meta.errors.length > 0
+                return (
+                  <Field className="gap-1.5" data-invalid={invalid}>
+                    <FieldLabel>
+                      编码
+                      <RequiredMark />
+                    </FieldLabel>
+                    <Input
+                      name="code"
+                      value={field.state.value}
+                      maxLength={30}
+                      autoComplete="off"
+                      disabled={isEdit}
+                      placeholder="请输入字典编码"
+                      aria-invalid={invalid}
+                      onChange={event => field.handleChange(event.target.value)}
+                      onBlur={field.handleBlur}
+                    />
+                    {isEdit ? <FieldDescription>编码创建后不可修改</FieldDescription> : null}
+                    <FieldError errors={field.state.meta.errors} />
+                  </Field>
+                )
+              }}
+            </form.Field>
 
-                  return (
-                    <Field className="gap-1.5" data-invalid={invalid}>
-                      <FieldLabel>
-                        编码
-                        <RequiredMark />
-                      </FieldLabel>
-                      <Input
-                        name="code"
-                        value={field.state.value}
-                        maxLength={30}
-                        autoComplete="off"
-                        disabled={isEdit}
-                        placeholder="请输入字典编码"
-                        aria-invalid={invalid}
-                        onChange={event => field.handleChange(event.target.value)}
-                        onBlur={field.handleBlur}
-                      />
-                      {isEdit ? <FieldDescription>编码创建后不可修改</FieldDescription> : null}
-                      <FieldError errors={field.state.meta.errors} />
-                    </Field>
-                  )
-                }}
-              </form.Field>
+            <form.Field name="description">
+              {field => {
+                const invalid = field.state.meta.errors.length > 0
 
-              <form.Field name="description">
-                {field => {
-                  const invalid = field.state.meta.errors.length > 0
+                return (
+                  <Field className="gap-1.5 sm:col-span-2" data-invalid={invalid}>
+                    <FieldLabel>描述</FieldLabel>
+                    <Textarea
+                      name="description"
+                      value={field.state.value}
+                      rows={3}
+                      maxLength={200}
+                      placeholder="请输入描述"
+                      aria-invalid={invalid}
+                      onChange={event => field.handleChange(event.target.value)}
+                      onBlur={field.handleBlur}
+                    />
+                    <FieldError errors={field.state.meta.errors} />
+                  </Field>
+                )
+              }}
+            </form.Field>
+          </FieldGroup>
+        </div>
 
-                  return (
-                    <Field className="gap-1.5 sm:col-span-2" data-invalid={invalid}>
-                      <FieldLabel>描述</FieldLabel>
-                      <Textarea
-                        name="description"
-                        value={field.state.value}
-                        rows={3}
-                        maxLength={200}
-                        placeholder="请输入描述"
-                        aria-invalid={invalid}
-                        onChange={event => field.handleChange(event.target.value)}
-                        onBlur={field.handleBlur}
-                      />
-                      <FieldError errors={field.state.meta.errors} />
-                    </Field>
-                  )
-                }}
-              </form.Field>
-            </FieldGroup>
-          </div>
-
-          <DrawerFooter className="flex-row justify-end gap-2 border-t p-4">
-            <form.Subscribe selector={state => state.isSubmitting}>
-              {isSubmitting => (
-                <>
-                  <Button type="button" variant="outline" disabled={isSubmitting} onClick={onClose}>
-                    取消
-                  </Button>
-                  <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? (
-                      <>
-                        <Spinner />
-                        {isEdit ? '保存中' : '创建中'}
-                      </>
-                    ) : isEdit ? (
-                      '保存'
-                    ) : (
-                      '创建'
-                    )}
-                  </Button>
-                </>
-              )}
-            </form.Subscribe>
-          </DrawerFooter>
-        </form>
+        <DrawerFooter className="flex-row justify-end gap-2 border-t p-4">
+          <form.Subscribe selector={state => state.isSubmitting}>
+            {isSubmitting => (
+              <>
+                <Button type="button" variant="outline" disabled={isSubmitting} onClick={onClose}>
+                  取消
+                </Button>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <Spinner />
+                      {isEdit ? '保存中' : '创建中'}
+                    </>
+                  ) : isEdit ? (
+                    '保存'
+                  ) : (
+                    '创建'
+                  )}
+                </Button>
+              </>
+            )}
+          </form.Subscribe>
+        </DrawerFooter>
+      </form>
     </EntityDrawer>
   )
 }

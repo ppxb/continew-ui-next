@@ -2,7 +2,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 
 export function PagePending() {
   return (
-    <div className="motion-safe:animate-in motion-safe:fade-in motion-safe:duration-150 flex flex-col gap-4">
+    <div className="flex flex-col gap-4 motion-safe:animate-in motion-safe:duration-150 motion-safe:fade-in">
       <div className="flex flex-col gap-2">
         <Skeleton className="h-6 w-36" />
         <Skeleton className="h-4 w-64" />

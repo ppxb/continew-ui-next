@@ -243,167 +243,166 @@ export function PackageFormDrawer({ packageId, open, onClose }: PackageFormDrawe
       width={36}
       canClose={() => !form.state.isSubmitting}
     >
+      {isCreate || (!detail.isError && detail.data && detail.fetchStatus === 'idle') ? (
+        <form
+          ref={formRef}
+          noValidate
+          className="flex min-h-0 flex-1 flex-col"
+          onSubmit={event => {
+            event.preventDefault()
+            void submit()
+          }}
+        >
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
+            <FieldGroup className="gap-4">
+              <form.Field name="name" validators={{ onDynamic: formSchema.shape.name }}>
+                {field => {
+                  const invalid = field.state.meta.errors.length > 0
 
-        {isCreate || (!detail.isError && detail.data && detail.fetchStatus === 'idle') ? (
-          <form
-            ref={formRef}
-            noValidate
-            className="flex min-h-0 flex-1 flex-col"
-            onSubmit={event => {
-              event.preventDefault()
-              void submit()
-            }}
-          >
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
-              <FieldGroup className="gap-4">
-                <form.Field name="name" validators={{ onDynamic: formSchema.shape.name }}>
-                  {field => {
-                    const invalid = field.state.meta.errors.length > 0
-
-                    return (
-                      <Field className="gap-1.5" data-invalid={invalid}>
-                        <FieldLabel>
-                          名称
-                          <RequiredMark />
-                        </FieldLabel>
-                        <Input
-                          name="name"
-                          value={field.state.value}
-                          onChange={event => field.handleChange(event.target.value)}
-                          onBlur={field.handleBlur}
-                          maxLength={30}
-                          placeholder="请输入名称"
-                          aria-invalid={invalid}
-                        />
-                        <FieldError errors={field.state.meta.errors} />
-                      </Field>
-                    )
-                  }}
-                </form.Field>
-
-                <form.Field name="sort" validators={{ onDynamic: formSchema.shape.sort }}>
-                  {field => {
-                    const invalid = field.state.meta.errors.length > 0
-
-                    return (
-                      <Field className="gap-1.5" data-invalid={invalid}>
-                        <FieldLabel>排序</FieldLabel>
-                        <Input
-                          type="number"
-                          min={1}
-                          name="sort"
-                          value={field.state.value}
-                          onChange={event => field.handleChange(event.target.value)}
-                          onBlur={field.handleBlur}
-                          placeholder="请输入排序"
-                          aria-invalid={invalid}
-                        />
-                        <FieldError errors={field.state.meta.errors} />
-                      </Field>
-                    )
-                  }}
-                </form.Field>
-
-                <form.Field name="description" validators={{ onDynamic: formSchema.shape.description }}>
-                  {field => {
-                    const invalid = field.state.meta.errors.length > 0
-
-                    return (
-                      <Field className="gap-1.5" data-invalid={invalid}>
-                        <FieldLabel>描述</FieldLabel>
-                        <Textarea
-                          name="description"
-                          value={field.state.value}
-                          onChange={event => field.handleChange(event.target.value)}
-                          onBlur={field.handleBlur}
-                          maxLength={200}
-                          rows={3}
-                          placeholder="请输入描述"
-                          aria-invalid={invalid}
-                        />
-                        <FieldError errors={field.state.meta.errors} />
-                      </Field>
-                    )
-                  }}
-                </form.Field>
-
-                <form.Field name="status">
-                  {field => (
-                    <Field orientation="horizontal" className="items-center justify-between">
-                      <FieldContent>
-                        <FieldLabel>状态</FieldLabel>
-                        <FieldDescription>
-                          {field.state.value === 1 ? '启用后租户可以选择该套餐' : '禁用后租户不能再选择该套餐'}
-                        </FieldDescription>
-                      </FieldContent>
-                      <Switch
-                        checked={field.state.value === 1}
-                        onCheckedChange={checked => field.handleChange(checked ? 1 : 2)}
+                  return (
+                    <Field className="gap-1.5" data-invalid={invalid}>
+                      <FieldLabel>
+                        名称
+                        <RequiredMark />
+                      </FieldLabel>
+                      <Input
+                        name="name"
+                        value={field.state.value}
+                        onChange={event => field.handleChange(event.target.value)}
+                        onBlur={field.handleBlur}
+                        maxLength={30}
+                        placeholder="请输入名称"
+                        aria-invalid={invalid}
                       />
+                      <FieldError errors={field.state.meta.errors} />
                     </Field>
-                  )}
-                </form.Field>
+                  )
+                }}
+              </form.Field>
 
-                <form.Field name="menuCheckStrictly">
-                  {field => (
-                    <Field className="gap-2" data-invalid={Boolean(menuError)}>
-                      <div className="flex items-center justify-between gap-2">
-                        <FieldLabel>
-                          关联菜单
-                          <RequiredMark />
-                        </FieldLabel>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground">父子联动</span>
-                          <Switch checked={field.state.value} onCheckedChange={field.handleChange} />
-                        </div>
-                      </div>
+              <form.Field name="sort" validators={{ onDynamic: formSchema.shape.sort }}>
+                {field => {
+                  const invalid = field.state.meta.errors.length > 0
 
-                      <CheckableTree
-                        data={treeNodes}
-                        checkedKeys={checkedKeys}
-                        onCheckedChange={handleCheckedChange}
-                        checkStrictly={!field.state.value}
-                        loading={menuTree.isPending}
-                        searchPlaceholder="搜索菜单或权限名"
-                        emptyText="暂无菜单"
+                  return (
+                    <Field className="gap-1.5" data-invalid={invalid}>
+                      <FieldLabel>排序</FieldLabel>
+                      <Input
+                        type="number"
+                        min={1}
+                        name="sort"
+                        value={field.state.value}
+                        onChange={event => field.handleChange(event.target.value)}
+                        onBlur={field.handleBlur}
+                        placeholder="请输入排序"
+                        aria-invalid={invalid}
                       />
-
-                      {menuError ? (
-                        <FieldError>{menuError}</FieldError>
-                      ) : (
-                        <FieldDescription>勾选的菜单会授权给该套餐下的所有租户</FieldDescription>
-                      )}
+                      <FieldError errors={field.state.meta.errors} />
                     </Field>
-                  )}
-                </form.Field>
-              </FieldGroup>
-            </div>
+                  )
+                }}
+              </form.Field>
 
-            <DrawerFooter className="shrink-0 flex-row justify-end gap-2 border-t p-4">
-              <Button type="button" variant="outline" disabled={form.state.isSubmitting} onClick={onClose}>
-                取消
-              </Button>
-              <form.Subscribe selector={state => state.isSubmitting}>
-                {isSubmitting => (
-                  <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? (
-                      <>
-                        <Spinner />
-                        保存中
-                      </>
-                    ) : (
-                      '保存'
-                    )}
-                  </Button>
+              <form.Field name="description" validators={{ onDynamic: formSchema.shape.description }}>
+                {field => {
+                  const invalid = field.state.meta.errors.length > 0
+
+                  return (
+                    <Field className="gap-1.5" data-invalid={invalid}>
+                      <FieldLabel>描述</FieldLabel>
+                      <Textarea
+                        name="description"
+                        value={field.state.value}
+                        onChange={event => field.handleChange(event.target.value)}
+                        onBlur={field.handleBlur}
+                        maxLength={200}
+                        rows={3}
+                        placeholder="请输入描述"
+                        aria-invalid={invalid}
+                      />
+                      <FieldError errors={field.state.meta.errors} />
+                    </Field>
+                  )
+                }}
+              </form.Field>
+
+              <form.Field name="status">
+                {field => (
+                  <Field orientation="horizontal" className="items-center justify-between">
+                    <FieldContent>
+                      <FieldLabel>状态</FieldLabel>
+                      <FieldDescription>
+                        {field.state.value === 1 ? '启用后租户可以选择该套餐' : '禁用后租户不能再选择该套餐'}
+                      </FieldDescription>
+                    </FieldContent>
+                    <Switch
+                      checked={field.state.value === 1}
+                      onCheckedChange={checked => field.handleChange(checked ? 1 : 2)}
+                    />
+                  </Field>
                 )}
-              </form.Subscribe>
-            </DrawerFooter>
-          </form>
-        ) : detail.isError ? (
-          <QueryState state="error" className="p-6" onRetry={() => void detail.refetch()} />
-        ) : (
-          <PackageFormSkeleton />
-        )}
+              </form.Field>
+
+              <form.Field name="menuCheckStrictly">
+                {field => (
+                  <Field className="gap-2" data-invalid={Boolean(menuError)}>
+                    <div className="flex items-center justify-between gap-2">
+                      <FieldLabel>
+                        关联菜单
+                        <RequiredMark />
+                      </FieldLabel>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">父子联动</span>
+                        <Switch checked={field.state.value} onCheckedChange={field.handleChange} />
+                      </div>
+                    </div>
+
+                    <CheckableTree
+                      data={treeNodes}
+                      checkedKeys={checkedKeys}
+                      onCheckedChange={handleCheckedChange}
+                      checkStrictly={!field.state.value}
+                      loading={menuTree.isPending}
+                      searchPlaceholder="搜索菜单或权限名"
+                      emptyText="暂无菜单"
+                    />
+
+                    {menuError ? (
+                      <FieldError>{menuError}</FieldError>
+                    ) : (
+                      <FieldDescription>勾选的菜单会授权给该套餐下的所有租户</FieldDescription>
+                    )}
+                  </Field>
+                )}
+              </form.Field>
+            </FieldGroup>
+          </div>
+
+          <DrawerFooter className="shrink-0 flex-row justify-end gap-2 border-t p-4">
+            <Button type="button" variant="outline" disabled={form.state.isSubmitting} onClick={onClose}>
+              取消
+            </Button>
+            <form.Subscribe selector={state => state.isSubmitting}>
+              {isSubmitting => (
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <Spinner />
+                      保存中
+                    </>
+                  ) : (
+                    '保存'
+                  )}
+                </Button>
+              )}
+            </form.Subscribe>
+          </DrawerFooter>
+        </form>
+      ) : detail.isError ? (
+        <QueryState state="error" className="p-6" onRetry={() => void detail.refetch()} />
+      ) : (
+        <PackageFormSkeleton />
+      )}
     </EntityDrawer>
   )
 }

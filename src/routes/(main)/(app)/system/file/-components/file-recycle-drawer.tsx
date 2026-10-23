@@ -115,138 +115,133 @@ export function FileRecycleDrawer({ open, onClose }: FileRecycleDrawerProps) {
   return (
     <>
       <EntityDrawer open={open} onClose={onClose} title="回收站" icon={<Trash2 className="size-4" />} width={40}>
-
-          <div className="flex items-center justify-between gap-2 border-b px-4 py-2">
-            <span className="text-xs text-muted-foreground">共 {total} 项</span>
-            <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between gap-2 border-b px-4 py-2">
+          <span className="text-xs text-muted-foreground">共 {total} 项</span>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={query.isFetching}
+              onClick={() => void query.refetch()}
+            >
+              {query.isFetching ? <Spinner /> : <RefreshCw />}
+              刷新
+            </Button>
+            {canClean ? (
               <Button
                 type="button"
                 size="sm"
-                variant="outline"
-                disabled={query.isFetching}
-                onClick={() => void query.refetch()}
+                variant="destructive"
+                disabled={total === 0 || query.isPending}
+                onClick={() => setAction({ type: 'clean' })}
               >
-                {query.isFetching ? <Spinner /> : <RefreshCw />}
-                刷新
+                <Trash2 />
+                清空回收站
               </Button>
-              {canClean ? (
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="destructive"
-                  disabled={total === 0 || query.isPending}
-                  onClick={() => setAction({ type: 'clean' })}
-                >
+            ) : null}
+          </div>
+        </div>
+
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
+          {query.isPending ? (
+            <div className="flex flex-col gap-2">
+              {Array.from({ length: 3 }, (_, index) => (
+                <div key={index} className="flex flex-col gap-2 rounded-lg border p-3">
+                  <Skeleton className="h-4 w-40" />
+                  <Skeleton className="h-3 w-28" />
+                </div>
+              ))}
+            </div>
+          ) : query.isError ? (
+            <div className="flex h-40 flex-col items-center justify-center gap-2">
+              <span className="text-sm text-muted-foreground">回收站加载失败</span>
+              <Button type="button" variant="outline" size="sm" onClick={() => void query.refetch()}>
+                重新加载
+              </Button>
+            </div>
+          ) : items.length === 0 && total === 0 ? (
+            <Empty className="min-h-48">
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
                   <Trash2 />
-                  清空回收站
-                </Button>
-              ) : null}
-            </div>
-          </div>
-
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
-            {query.isPending ? (
-              <div className="flex flex-col gap-2">
-                {Array.from({ length: 3 }, (_, index) => (
-                  <div key={index} className="flex flex-col gap-2 rounded-lg border p-3">
-                    <Skeleton className="h-4 w-40" />
-                    <Skeleton className="h-3 w-28" />
-                  </div>
-                ))}
-              </div>
-            ) : query.isError ? (
-              <div className="flex h-40 flex-col items-center justify-center gap-2">
-                <span className="text-sm text-muted-foreground">回收站加载失败</span>
-                <Button type="button" variant="outline" size="sm" onClick={() => void query.refetch()}>
-                  重新加载
-                </Button>
-              </div>
-            ) : items.length === 0 && total === 0 ? (
-              <Empty className="min-h-48">
-                <EmptyHeader>
-                  <EmptyMedia variant="icon">
-                    <Trash2 />
-                  </EmptyMedia>
-                  <EmptyTitle>回收站为空</EmptyTitle>
-                  <EmptyDescription>删除的文件会先放到这里，之后可以还原</EmptyDescription>
-                </EmptyHeader>
-              </Empty>
-            ) : (
-              <ul
-                className={`flex flex-col gap-2 ${
-                  query.isPlaceholderData ? 'opacity-60 transition-opacity' : ''
-                }`}
-              >
-                {items.map(file => (
-                  <li key={String(file.id)} className="flex flex-col gap-2 rounded-lg border p-3">
-                    <div className="flex min-w-0 items-start gap-2">
-                      <FileTypeIcon type={file.type} className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm">{file.originalName}</p>
-                        <p className="truncate text-xs text-muted-foreground">
-                          {fileTypeLabel(file.type)}
-                          {file.type === 0 ? '' : ` · ${formatFileSize(file.size)}`}
-                          {file.updateTime ? ` · ${file.updateTime}` : ''}
-                        </p>
-                      </div>
+                </EmptyMedia>
+                <EmptyTitle>回收站为空</EmptyTitle>
+                <EmptyDescription>删除的文件会先放到这里，之后可以还原</EmptyDescription>
+              </EmptyHeader>
+            </Empty>
+          ) : (
+            <ul className={`flex flex-col gap-2 ${query.isPlaceholderData ? 'opacity-60 transition-opacity' : ''}`}>
+              {items.map(file => (
+                <li key={String(file.id)} className="flex flex-col gap-2 rounded-lg border p-3">
+                  <div className="flex min-w-0 items-start gap-2">
+                    <FileTypeIcon type={file.type} className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm">{file.originalName}</p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {fileTypeLabel(file.type)}
+                        {file.type === 0 ? '' : ` · ${formatFileSize(file.size)}`}
+                        {file.updateTime ? ` · ${file.updateTime}` : ''}
+                      </p>
                     </div>
-                    {canRestore || canDelete ? (
-                      <div className="flex justify-end gap-2">
-                        {canRestore ? (
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setAction({ type: 'restore', file })}
-                          >
-                            还原
-                          </Button>
-                        ) : null}
-                        {canDelete ? (
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => setAction({ type: 'delete', file })}
-                          >
-                            删除
-                          </Button>
-                        ) : null}
-                      </div>
-                    ) : null}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+                  </div>
+                  {canRestore || canDelete ? (
+                    <div className="flex justify-end gap-2">
+                      {canRestore ? (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setAction({ type: 'restore', file })}
+                        >
+                          还原
+                        </Button>
+                      ) : null}
+                      {canDelete ? (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => setAction({ type: 'delete', file })}
+                        >
+                          删除
+                        </Button>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
 
-          {total > 0 ? (
-            <div className="flex items-center justify-between gap-3 border-t px-4 py-3">
-              <span className="text-xs text-muted-foreground tabular-nums">
-                第 {page} / {pageCount} 页
-              </span>
-              <Pagination className="mx-0 w-auto">
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationArrow
-                      direction="previous"
-                      text="上一页"
-                      disabled={page <= 1}
-                      onClick={() => setPage(previous => Math.max(previous - 1, 1))}
-                    />
-                  </PaginationItem>
-                  <PaginationItem>
-                    <PaginationArrow
-                      direction="next"
-                      text="下一页"
-                      disabled={page >= pageCount}
-                      onClick={() => setPage(previous => Math.min(previous + 1, pageCount))}
-                    />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
-            </div>
-          ) : null}
+        {total > 0 ? (
+          <div className="flex items-center justify-between gap-3 border-t px-4 py-3">
+            <span className="text-xs text-muted-foreground tabular-nums">
+              第 {page} / {pageCount} 页
+            </span>
+            <Pagination className="mx-0 w-auto">
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationArrow
+                    direction="previous"
+                    text="上一页"
+                    disabled={page <= 1}
+                    onClick={() => setPage(previous => Math.max(previous - 1, 1))}
+                  />
+                </PaginationItem>
+                <PaginationItem>
+                  <PaginationArrow
+                    direction="next"
+                    text="下一页"
+                    disabled={page >= pageCount}
+                    onClick={() => setPage(previous => Math.min(previous + 1, pageCount))}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        ) : null}
       </EntityDrawer>
 
       <AlertDialog

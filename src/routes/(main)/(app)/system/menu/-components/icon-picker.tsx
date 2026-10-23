@@ -469,7 +469,7 @@ function IconGrid({ items, value, onSelect }: IconGridProps) {
   }, [items])
 
   return (
-    <div ref={scrollRef} className="scroll-fade max-h-84 overflow-y-auto overscroll-contain p-2.5">
+    <div ref={scrollRef} className="max-h-84 scroll-fade overflow-y-auto overscroll-contain p-2.5">
       <div className="relative" style={{ height: rowVirtualizer.getTotalSize() }}>
         {rowVirtualizer.getVirtualItems().map(virtualRow => {
           const start = virtualRow.index * columns
@@ -563,7 +563,7 @@ export function IconPicker({ value, onChange, disabled }: IconPickerProps) {
               disabled={disabled}
               className={cn(
                 'h-full min-w-0 flex-1 justify-start gap-2 px-0 text-base font-normal',
-                'hover:bg-transparent dark:hover:bg-transparent aria-expanded:bg-transparent',
+                'hover:bg-transparent aria-expanded:bg-transparent dark:hover:bg-transparent',
                 'focus-visible:border-transparent focus-visible:ring-0 disabled:opacity-100 md:text-sm'
               )}
             />

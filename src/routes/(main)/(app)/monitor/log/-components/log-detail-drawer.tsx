@@ -115,74 +115,67 @@ export function LogDetailDrawer({ logId, open, onClose }: LogDetailDrawerProps) 
   const detail = query.data
 
   return (
-    <EntityDrawer
-      open={open}
-      onClose={onClose}
-      title="日志详情"
-      icon={<ScrollText className="size-4" />}
-      width={40}
-    >
+    <EntityDrawer open={open} onClose={onClose} title="日志详情" icon={<ScrollText className="size-4" />} width={40}>
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
+        {query.isPending ? (
+          <LogDetailSkeleton />
+        ) : query.isError || !detail ? (
+          <QueryState state="error" onRetry={() => void query.refetch()} />
+        ) : (
+          <div className="flex flex-col gap-6">
+            <section className="flex flex-col gap-3">
+              <h3 className="text-sm font-medium text-foreground">基本信息</h3>
+              <DetailGrid>
+                <DetailField label="日志 ID">
+                  <span className="break-all">{detail.id}</span>
+                </DetailField>
+                <DetailField label="Trace ID">
+                  <span className="break-all">{detail.traceId || EMPTY_PLACEHOLDER}</span>
+                </DetailField>
+                <DetailField label="操作人">{detail.createUserString || EMPTY_PLACEHOLDER}</DetailField>
+                <DetailField label="操作时间">{detail.createTime || EMPTY_PLACEHOLDER}</DetailField>
+                <DetailField label="操作内容">{detail.description || EMPTY_PLACEHOLDER}</DetailField>
+                <DetailField label="所属模块">{detail.module || EMPTY_PLACEHOLDER}</DetailField>
+                <DetailField label="操作 IP">{detail.ip || EMPTY_PLACEHOLDER}</DetailField>
+                <DetailField label="操作地点">{detail.address || EMPTY_PLACEHOLDER}</DetailField>
+                <DetailField label="浏览器">{detail.browser || EMPTY_PLACEHOLDER}</DetailField>
+                <DetailField label="终端系统">{detail.os || EMPTY_PLACEHOLDER}</DetailField>
+                <DetailField label="状态">
+                  <LogStatusCell status={detail.status} errorMsg={detail.errorMsg} />
+                </DetailField>
+                <DetailField label="耗时">
+                  <TimeTakenCell timeTaken={detail.timeTaken} />
+                </DetailField>
+                <DetailField label="请求 URI" className="sm:col-span-2">
+                  <span className="break-all">{detail.requestUrl || EMPTY_PLACEHOLDER}</span>
+                </DetailField>
+              </DetailGrid>
+            </section>
 
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
-          {query.isPending ? (
-            <LogDetailSkeleton />
-          ) : query.isError || !detail ? (
-            <QueryState state="error" onRetry={() => void query.refetch()} />
-          ) : (
-            <div className="flex flex-col gap-6">
-              <section className="flex flex-col gap-3">
-                <h3 className="text-sm font-medium text-foreground">基本信息</h3>
-                <DetailGrid>
-                  <DetailField label="日志 ID">
-                    <span className="break-all">{detail.id}</span>
-                  </DetailField>
-                  <DetailField label="Trace ID">
-                    <span className="break-all">{detail.traceId || EMPTY_PLACEHOLDER}</span>
-                  </DetailField>
-                  <DetailField label="操作人">{detail.createUserString || EMPTY_PLACEHOLDER}</DetailField>
-                  <DetailField label="操作时间">{detail.createTime || EMPTY_PLACEHOLDER}</DetailField>
-                  <DetailField label="操作内容">{detail.description || EMPTY_PLACEHOLDER}</DetailField>
-                  <DetailField label="所属模块">{detail.module || EMPTY_PLACEHOLDER}</DetailField>
-                  <DetailField label="操作 IP">{detail.ip || EMPTY_PLACEHOLDER}</DetailField>
-                  <DetailField label="操作地点">{detail.address || EMPTY_PLACEHOLDER}</DetailField>
-                  <DetailField label="浏览器">{detail.browser || EMPTY_PLACEHOLDER}</DetailField>
-                  <DetailField label="终端系统">{detail.os || EMPTY_PLACEHOLDER}</DetailField>
-                  <DetailField label="状态">
-                    <LogStatusCell status={detail.status} errorMsg={detail.errorMsg} />
-                  </DetailField>
-                  <DetailField label="耗时">
-                    <TimeTakenCell timeTaken={detail.timeTaken} />
-                  </DetailField>
-                  <DetailField label="请求 URI" className="sm:col-span-2">
-                    <span className="break-all">{detail.requestUrl || EMPTY_PLACEHOLDER}</span>
-                  </DetailField>
-                </DetailGrid>
-              </section>
+            <section className="flex flex-col gap-3">
+              <h3 className="text-sm font-medium text-foreground">响应信息</h3>
+              <PayloadTabs
+                headers={detail.responseHeaders}
+                body={detail.responseBody}
+                headersLabel="响应头"
+                bodyLabel="响应体"
+                statusCode={detail.statusCode}
+              />
+            </section>
 
-              <section className="flex flex-col gap-3">
-                <h3 className="text-sm font-medium text-foreground">响应信息</h3>
-                <PayloadTabs
-                  headers={detail.responseHeaders}
-                  body={detail.responseBody}
-                  headersLabel="响应头"
-                  bodyLabel="响应体"
-                  statusCode={detail.statusCode}
-                />
-              </section>
-
-              <section className="flex flex-col gap-3">
-                <h3 className="text-sm font-medium text-foreground">请求信息</h3>
-                <PayloadTabs
-                  headers={detail.requestHeaders}
-                  body={detail.requestBody}
-                  headersLabel="请求头"
-                  bodyLabel="请求体"
-                  statusCode={detail.statusCode}
-                />
-              </section>
-            </div>
-          )}
-        </div>
+            <section className="flex flex-col gap-3">
+              <h3 className="text-sm font-medium text-foreground">请求信息</h3>
+              <PayloadTabs
+                headers={detail.requestHeaders}
+                body={detail.requestBody}
+                headersLabel="请求头"
+                bodyLabel="请求体"
+                statusCode={detail.statusCode}
+              />
+            </section>
+          </div>
+        )}
+      </div>
     </EntityDrawer>
   )
 }

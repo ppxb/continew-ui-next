@@ -121,65 +121,64 @@ export function RolePermissionDrawer({ role, open, onClose }: RolePermissionDraw
       closeDisabled={isSubmitting}
       canClose={() => !isSubmitting}
     >
-
-        {isLoading ? (
-          <div className="flex flex-col gap-4 p-4">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-64 w-full" />
-          </div>
-        ) : isLoadError ? (
-          <QueryState
-            state="error"
-            className="p-6"
-            onRetry={() => {
-              void detail.refetch()
-              void permTree.refetch()
-            }}
-          />
-        ) : (
-          <div className="flex min-h-0 flex-1 flex-col">
-            <div className="flex min-h-0 flex-1 flex-col gap-3 p-4">
-              {/* Strictly check setting */}
-              <div className="shrink-0 rounded-md border bg-muted/30 p-3">
-                <Field orientation="horizontal" className="items-center justify-between">
-                  <FieldContent>
-                    <FieldLabel className="text-xs">父子联动</FieldLabel>
-                    <FieldDescription className="text-[11px]">
-                      {menuCheckStrictly ? '已开启独立选择（不联动）' : '勾选上级菜单时自动全选子菜单与操作按钮'}
-                    </FieldDescription>
-                  </FieldContent>
-                  <Switch checked={!menuCheckStrictly} onCheckedChange={checked => setMenuCheckStrictly(!checked)} />
-                </Field>
-              </div>
-
-              {/* Checkable Tree */}
-              <CheckableTree
-                data={treeNodes}
-                checkedKeys={selectedMenuIds}
-                onCheckedChange={setSelectedMenuIds}
-                checkStrictly={menuCheckStrictly}
-                searchPlaceholder="搜索菜单或权限名"
-                fillHeight
-              />
+      {isLoading ? (
+        <div className="flex flex-col gap-4 p-4">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-64 w-full" />
+        </div>
+      ) : isLoadError ? (
+        <QueryState
+          state="error"
+          className="p-6"
+          onRetry={() => {
+            void detail.refetch()
+            void permTree.refetch()
+          }}
+        />
+      ) : (
+        <div className="flex min-h-0 flex-1 flex-col">
+          <div className="flex min-h-0 flex-1 flex-col gap-3 p-4">
+            {/* Strictly check setting */}
+            <div className="shrink-0 rounded-md border bg-muted/30 p-3">
+              <Field orientation="horizontal" className="items-center justify-between">
+                <FieldContent>
+                  <FieldLabel className="text-xs">父子联动</FieldLabel>
+                  <FieldDescription className="text-[11px]">
+                    {menuCheckStrictly ? '已开启独立选择（不联动）' : '勾选上级菜单时自动全选子菜单与操作按钮'}
+                  </FieldDescription>
+                </FieldContent>
+                <Switch checked={!menuCheckStrictly} onCheckedChange={checked => setMenuCheckStrictly(!checked)} />
+              </Field>
             </div>
 
-            <DrawerFooter className="shrink-0 flex-row justify-end gap-2 border-t p-4">
-              <Button type="button" variant="outline" disabled={isSubmitting} onClick={onClose}>
-                取消
-              </Button>
-              <Button type="button" disabled={isSubmitting} onClick={handleSave}>
-                {isSubmitting ? (
-                  <>
-                    <Spinner />
-                    保存中
-                  </>
-                ) : (
-                  '保存'
-                )}
-              </Button>
-            </DrawerFooter>
+            {/* Checkable Tree */}
+            <CheckableTree
+              data={treeNodes}
+              checkedKeys={selectedMenuIds}
+              onCheckedChange={setSelectedMenuIds}
+              checkStrictly={menuCheckStrictly}
+              searchPlaceholder="搜索菜单或权限名"
+              fillHeight
+            />
           </div>
-        )}
+
+          <DrawerFooter className="shrink-0 flex-row justify-end gap-2 border-t p-4">
+            <Button type="button" variant="outline" disabled={isSubmitting} onClick={onClose}>
+              取消
+            </Button>
+            <Button type="button" disabled={isSubmitting} onClick={handleSave}>
+              {isSubmitting ? (
+                <>
+                  <Spinner />
+                  保存中
+                </>
+              ) : (
+                '保存'
+              )}
+            </Button>
+          </DrawerFooter>
+        </div>
+      )}
     </EntityDrawer>
   )
 }

@@ -293,4 +293,3 @@ export const filters = {
   status: ['All', 'Active', 'Pending invite', 'Deactivated', 'Locked', 'Suspended'],
   workspace: ['All', 'Weblabs Studio', 'Sandbox', 'Internal Tools', 'Acme Inc.']
 }
-

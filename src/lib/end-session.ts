@@ -11,13 +11,7 @@ interface EndSessionOptions {
   redirect?: string
 }
 
-export async function endSession({
-  clearAuthSession,
-  queryClient,
-  resetTabs,
-  navigate,
-  redirect
-}: EndSessionOptions) {
+export async function endSession({ clearAuthSession, queryClient, resetTabs, navigate, redirect }: EndSessionOptions) {
   await queryClient.cancelQueries().catch(() => undefined)
   clearAuthSession()
   resetTabs()

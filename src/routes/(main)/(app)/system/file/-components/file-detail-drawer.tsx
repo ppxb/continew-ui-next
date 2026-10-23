@@ -36,40 +36,39 @@ export function FileDetailDrawer({ file, open, onClose }: FileDetailDrawerProps)
       icon={<FileTypeIcon type={shownFile?.type} className="size-4" />}
       width={38}
     >
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
+        {shownFile ? (
+          <div className="flex flex-col gap-4">
+            {shownFile.type === 2 && shownFile.url ? (
+              <img
+                src={shownFile.url}
+                alt={shownFile.originalName}
+                className="max-h-48 w-full rounded-lg border bg-muted/30 object-contain"
+              />
+            ) : null}
 
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
-          {shownFile ? (
-            <div className="flex flex-col gap-4">
-              {shownFile.type === 2 && shownFile.url ? (
-                <img
-                  src={shownFile.url}
-                  alt={shownFile.originalName}
-                  className="max-h-48 w-full rounded-lg border bg-muted/30 object-contain"
-                />
-              ) : null}
-
-              <DetailGrid>
-                <DetailField label="ID">
-                  <CopyableText value={String(shownFile.id)} />
-                </DetailField>
-                <DetailField label="原始名称">{shownFile.originalName || EMPTY_PLACEHOLDER}</DetailField>
-                <DetailField label="类型">{fileTypeLabel(shownFile.type)}</DetailField>
-                <DetailField label="大小">{shownFile.type === 0 ? '—' : formatFileSize(shownFile.size)}</DetailField>
-                <DetailField label="扩展名">{shownFile.extension || EMPTY_PLACEHOLDER}</DetailField>
-                <DetailField label="内容类型">{shownFile.contentType || EMPTY_PLACEHOLDER}</DetailField>
-                <DetailField label="存储">{shownFile.storageName || EMPTY_PLACEHOLDER}</DetailField>
-                <DetailField label="路径">
-                  <CopyableText value={shownFile.path} />
-                </DetailField>
-                <DetailField label="SHA256" className="sm:col-span-2">
-                  {shownFile.sha256 ? <CopyableText value={shownFile.sha256} /> : EMPTY_PLACEHOLDER}
-                </DetailField>
-                <DetailField label="创建时间">{shownFile.createTime || EMPTY_PLACEHOLDER}</DetailField>
-                <DetailField label="修改时间">{shownFile.updateTime || EMPTY_PLACEHOLDER}</DetailField>
-              </DetailGrid>
-            </div>
-          ) : null}
-        </div>
+            <DetailGrid>
+              <DetailField label="ID">
+                <CopyableText value={String(shownFile.id)} />
+              </DetailField>
+              <DetailField label="原始名称">{shownFile.originalName || EMPTY_PLACEHOLDER}</DetailField>
+              <DetailField label="类型">{fileTypeLabel(shownFile.type)}</DetailField>
+              <DetailField label="大小">{shownFile.type === 0 ? '—' : formatFileSize(shownFile.size)}</DetailField>
+              <DetailField label="扩展名">{shownFile.extension || EMPTY_PLACEHOLDER}</DetailField>
+              <DetailField label="内容类型">{shownFile.contentType || EMPTY_PLACEHOLDER}</DetailField>
+              <DetailField label="存储">{shownFile.storageName || EMPTY_PLACEHOLDER}</DetailField>
+              <DetailField label="路径">
+                <CopyableText value={shownFile.path} />
+              </DetailField>
+              <DetailField label="SHA256" className="sm:col-span-2">
+                {shownFile.sha256 ? <CopyableText value={shownFile.sha256} /> : EMPTY_PLACEHOLDER}
+              </DetailField>
+              <DetailField label="创建时间">{shownFile.createTime || EMPTY_PLACEHOLDER}</DetailField>
+              <DetailField label="修改时间">{shownFile.updateTime || EMPTY_PLACEHOLDER}</DetailField>
+            </DetailGrid>
+          </div>
+        ) : null}
+      </div>
     </EntityDrawer>
   )
 }

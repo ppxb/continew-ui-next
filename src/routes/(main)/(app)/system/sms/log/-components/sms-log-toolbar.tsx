@@ -66,7 +66,11 @@ export function SmsLogFilters({
         onSearch={onPhoneSearch}
       />
       <div className="w-full sm:w-32">
-        <Select items={STATUS_OPTIONS} value={status === undefined ? 'all' : String(status)} onValueChange={onStatusChange}>
+        <Select
+          items={STATUS_OPTIONS}
+          value={status === undefined ? 'all' : String(status)}
+          onValueChange={onStatusChange}
+        >
           <SelectTrigger className="w-full">
             <span className="text-muted-foreground">状态</span>
             <SelectValue />

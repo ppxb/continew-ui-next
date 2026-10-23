@@ -129,201 +129,200 @@ export function DictItemFormDrawer({ item, dictId, open, onClose, onCompleted }:
       width={32}
       canClose={() => !form.state.isSubmitting}
     >
+      <form
+        noValidate
+        className="flex min-h-0 flex-1 flex-col"
+        onSubmit={event => {
+          event.preventDefault()
+          event.stopPropagation()
+          void form.handleSubmit()
+        }}
+      >
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
+          <FieldGroup className="grid gap-4 sm:grid-cols-2">
+            <form.Field name="label">
+              {field => {
+                const invalid = field.state.meta.errors.length > 0
 
-        <form
-          noValidate
-          className="flex min-h-0 flex-1 flex-col"
-          onSubmit={event => {
-            event.preventDefault()
-            event.stopPropagation()
-            void form.handleSubmit()
-          }}
-        >
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
-            <FieldGroup className="grid gap-4 sm:grid-cols-2">
-              <form.Field name="label">
-                {field => {
-                  const invalid = field.state.meta.errors.length > 0
-
-                  return (
-                    <Field className="gap-1.5" data-invalid={invalid}>
-                      <FieldLabel>
-                        标签
-                        <RequiredMark />
-                      </FieldLabel>
-                      <Input
-                        name="label"
-                        value={field.state.value}
-                        maxLength={30}
-                        autoComplete="off"
-                        placeholder="请输入标签"
-                        aria-invalid={invalid}
-                        onChange={event => field.handleChange(event.target.value)}
-                        onBlur={field.handleBlur}
-                      />
-                      <FieldError errors={field.state.meta.errors} />
-                    </Field>
-                  )
-                }}
-              </form.Field>
-
-              <form.Field name="value">
-                {field => {
-                  const invalid = field.state.meta.errors.length > 0
-
-                  return (
-                    <Field className="gap-1.5" data-invalid={invalid}>
-                      <FieldLabel>
-                        值
-                        <RequiredMark />
-                      </FieldLabel>
-                      <Input
-                        name="value"
-                        value={field.state.value}
-                        maxLength={30}
-                        autoComplete="off"
-                        placeholder="请输入值"
-                        aria-invalid={invalid}
-                        onChange={event => field.handleChange(event.target.value)}
-                        onBlur={field.handleBlur}
-                      />
-                      <FieldError errors={field.state.meta.errors} />
-                    </Field>
-                  )
-                }}
-              </form.Field>
-
-              <form.Field name="color">
-                {field => (
-                  <Field className="gap-1.5">
-                    <FieldLabel>颜色</FieldLabel>
-                    <Select
-                      items={DICT_COLOR_OPTIONS}
+                return (
+                  <Field className="gap-1.5" data-invalid={invalid}>
+                    <FieldLabel>
+                      标签
+                      <RequiredMark />
+                    </FieldLabel>
+                    <Input
+                      name="label"
                       value={field.state.value}
-                      onValueChange={value => field.handleChange(value ?? 'none')}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="请选择颜色" />
-                      </SelectTrigger>
-                      <SelectContent alignItemWithTrigger={false}>
-                        <SelectGroup>
-                          {DICT_COLOR_OPTIONS.map(option => (
-                            <SelectItem key={option.value} value={option.value}>
-                              {option.value === 'none' ? (
-                                option.label
-                              ) : (
-                                <span className="flex items-center gap-2">
-                                  <span className={cn('size-2 rounded-full', DICT_COLOR_DOT_CLASSES[option.value])} />
-                                  {option.label}
-                                </span>
-                              )}
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                    <FieldDescription>仅影响列表里标签的展示颜色</FieldDescription>
+                      maxLength={30}
+                      autoComplete="off"
+                      placeholder="请输入标签"
+                      aria-invalid={invalid}
+                      onChange={event => field.handleChange(event.target.value)}
+                      onBlur={field.handleBlur}
+                    />
+                    <FieldError errors={field.state.meta.errors} />
                   </Field>
-                )}
-              </form.Field>
+                )
+              }}
+            </form.Field>
 
-              <form.Field name="sort">
-                {field => {
-                  const invalid = field.state.meta.errors.length > 0
+            <form.Field name="value">
+              {field => {
+                const invalid = field.state.meta.errors.length > 0
 
-                  return (
-                    <Field className="gap-1.5" data-invalid={invalid}>
-                      <FieldLabel>
-                        排序
-                        <RequiredMark />
-                      </FieldLabel>
-                      <Input
-                        name="sort"
-                        type="number"
-                        min={1}
-                        step={1}
-                        value={field.state.value}
-                        aria-invalid={invalid}
-                        onChange={event => field.handleChange(event.target.value)}
-                        onBlur={field.handleBlur}
-                      />
-                      <FieldError errors={field.state.meta.errors} />
-                    </Field>
-                  )
-                }}
-              </form.Field>
+                return (
+                  <Field className="gap-1.5" data-invalid={invalid}>
+                    <FieldLabel>
+                      值
+                      <RequiredMark />
+                    </FieldLabel>
+                    <Input
+                      name="value"
+                      value={field.state.value}
+                      maxLength={30}
+                      autoComplete="off"
+                      placeholder="请输入值"
+                      aria-invalid={invalid}
+                      onChange={event => field.handleChange(event.target.value)}
+                      onBlur={field.handleBlur}
+                    />
+                    <FieldError errors={field.state.meta.errors} />
+                  </Field>
+                )
+              }}
+            </form.Field>
 
-              <form.Field name="description">
-                {field => {
-                  const invalid = field.state.meta.errors.length > 0
-
-                  return (
-                    <Field className="gap-1.5 sm:col-span-2" data-invalid={invalid}>
-                      <FieldLabel>描述</FieldLabel>
-                      <Textarea
-                        name="description"
-                        value={field.state.value}
-                        rows={3}
-                        maxLength={200}
-                        placeholder="请输入描述"
-                        aria-invalid={invalid}
-                        onChange={event => field.handleChange(event.target.value)}
-                        onBlur={field.handleBlur}
-                      />
-                      <FieldError errors={field.state.meta.errors} />
-                    </Field>
-                  )
-                }}
-              </form.Field>
-
-              <form.Field name="status" validators={{ onDynamic: formSchema.shape.status }}>
-                {field => {
-                  const invalid = field.state.meta.errors.length > 0
-
-                  return (
-                    <Field className="gap-1.5 sm:col-span-2" orientation="horizontal" data-invalid={invalid}>
-                      <FieldContent>
-                        <FieldLabel>状态</FieldLabel>
-                        <FieldDescription>
-                          {field.state.value === 1 ? '启用后该字典项会返回给前端' : '禁用后该字典项不会返回给前端'}
-                        </FieldDescription>
-                      </FieldContent>
-                      <Switch
-                        checked={field.state.value === 1}
-                        onCheckedChange={checked => field.handleChange(checked ? 1 : 2)}
-                        aria-invalid={invalid}
-                      />
-                    </Field>
-                  )
-                }}
-              </form.Field>
-            </FieldGroup>
-          </div>
-
-          <DrawerFooter className="flex-row justify-end gap-2 border-t p-4">
-            <form.Subscribe selector={state => state.isSubmitting}>
-              {isSubmitting => (
-                <>
-                  <Button type="button" variant="outline" disabled={isSubmitting} onClick={onClose}>
-                    取消
-                  </Button>
-                  <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? (
-                      <>
-                        <Spinner />
-                        {isEdit ? '保存中' : '创建中'}
-                      </>
-                    ) : isEdit ? (
-                      '保存'
-                    ) : (
-                      '创建'
-                    )}
-                  </Button>
-                </>
+            <form.Field name="color">
+              {field => (
+                <Field className="gap-1.5">
+                  <FieldLabel>颜色</FieldLabel>
+                  <Select
+                    items={DICT_COLOR_OPTIONS}
+                    value={field.state.value}
+                    onValueChange={value => field.handleChange(value ?? 'none')}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="请选择颜色" />
+                    </SelectTrigger>
+                    <SelectContent alignItemWithTrigger={false}>
+                      <SelectGroup>
+                        {DICT_COLOR_OPTIONS.map(option => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.value === 'none' ? (
+                              option.label
+                            ) : (
+                              <span className="flex items-center gap-2">
+                                <span className={cn('size-2 rounded-full', DICT_COLOR_DOT_CLASSES[option.value])} />
+                                {option.label}
+                              </span>
+                            )}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                  <FieldDescription>仅影响列表里标签的展示颜色</FieldDescription>
+                </Field>
               )}
-            </form.Subscribe>
-          </DrawerFooter>
-        </form>
+            </form.Field>
+
+            <form.Field name="sort">
+              {field => {
+                const invalid = field.state.meta.errors.length > 0
+
+                return (
+                  <Field className="gap-1.5" data-invalid={invalid}>
+                    <FieldLabel>
+                      排序
+                      <RequiredMark />
+                    </FieldLabel>
+                    <Input
+                      name="sort"
+                      type="number"
+                      min={1}
+                      step={1}
+                      value={field.state.value}
+                      aria-invalid={invalid}
+                      onChange={event => field.handleChange(event.target.value)}
+                      onBlur={field.handleBlur}
+                    />
+                    <FieldError errors={field.state.meta.errors} />
+                  </Field>
+                )
+              }}
+            </form.Field>
+
+            <form.Field name="description">
+              {field => {
+                const invalid = field.state.meta.errors.length > 0
+
+                return (
+                  <Field className="gap-1.5 sm:col-span-2" data-invalid={invalid}>
+                    <FieldLabel>描述</FieldLabel>
+                    <Textarea
+                      name="description"
+                      value={field.state.value}
+                      rows={3}
+                      maxLength={200}
+                      placeholder="请输入描述"
+                      aria-invalid={invalid}
+                      onChange={event => field.handleChange(event.target.value)}
+                      onBlur={field.handleBlur}
+                    />
+                    <FieldError errors={field.state.meta.errors} />
+                  </Field>
+                )
+              }}
+            </form.Field>
+
+            <form.Field name="status" validators={{ onDynamic: formSchema.shape.status }}>
+              {field => {
+                const invalid = field.state.meta.errors.length > 0
+
+                return (
+                  <Field className="gap-1.5 sm:col-span-2" orientation="horizontal" data-invalid={invalid}>
+                    <FieldContent>
+                      <FieldLabel>状态</FieldLabel>
+                      <FieldDescription>
+                        {field.state.value === 1 ? '启用后该字典项会返回给前端' : '禁用后该字典项不会返回给前端'}
+                      </FieldDescription>
+                    </FieldContent>
+                    <Switch
+                      checked={field.state.value === 1}
+                      onCheckedChange={checked => field.handleChange(checked ? 1 : 2)}
+                      aria-invalid={invalid}
+                    />
+                  </Field>
+                )
+              }}
+            </form.Field>
+          </FieldGroup>
+        </div>
+
+        <DrawerFooter className="flex-row justify-end gap-2 border-t p-4">
+          <form.Subscribe selector={state => state.isSubmitting}>
+            {isSubmitting => (
+              <>
+                <Button type="button" variant="outline" disabled={isSubmitting} onClick={onClose}>
+                  取消
+                </Button>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <Spinner />
+                      {isEdit ? '保存中' : '创建中'}
+                    </>
+                  ) : isEdit ? (
+                    '保存'
+                  ) : (
+                    '创建'
+                  )}
+                </Button>
+              </>
+            )}
+          </form.Subscribe>
+        </DrawerFooter>
+      </form>
     </EntityDrawer>
   )
 }

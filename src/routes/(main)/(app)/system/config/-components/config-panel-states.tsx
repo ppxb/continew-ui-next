@@ -53,7 +53,5 @@ interface ConfigPanelErrorProps {
 }
 
 export function ConfigPanelError({ onRetry }: ConfigPanelErrorProps) {
-  return (
-    <QueryState state="error" className="rounded-xl border border-solid bg-card p-10" onRetry={onRetry} />
-  )
+  return <QueryState state="error" className="rounded-xl border border-solid bg-card p-10" onRetry={onRetry} />
 }

@@ -30,67 +30,60 @@ interface JobDetailDrawerProps {
 /** Read-only detail panel for one job, with the field order of the Vue client's drawer. */
 export function JobDetailDrawer({ job, open, onClose }: JobDetailDrawerProps) {
   return (
-    <EntityDrawer
-      open={open}
-      onClose={onClose}
-      title="任务详情"
-      icon={<ListChecks className="size-4" />}
-      width={36}
-    >
-
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
-          {job ? (
-            <DetailGrid>
-              <DetailField label="ID" className="sm:col-span-2">
-                <CopyableText value={String(job.id)} />
+    <EntityDrawer open={open} onClose={onClose} title="任务详情" icon={<ListChecks className="size-4" />} width={36}>
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
+        {job ? (
+          <DetailGrid>
+            <DetailField label="ID" className="sm:col-span-2">
+              <CopyableText value={String(job.id)} />
+            </DetailField>
+            <DetailField label="任务组">{job.groupName || EMPTY_PLACEHOLDER}</DetailField>
+            <DetailField label="任务名称">{job.jobName || EMPTY_PLACEHOLDER}</DetailField>
+            <DetailField label="触发类型">
+              <LabelBadge>{JOB_TRIGGER_TYPE_LABELS[job.triggerType] ?? EMPTY_PLACEHOLDER}</LabelBadge>
+            </DetailField>
+            {job.triggerType === 3 ? (
+              <DetailField label="Cron">{job.triggerInterval || EMPTY_PLACEHOLDER}</DetailField>
+            ) : job.triggerType === 2 ? (
+              <DetailField label="间隔时长">
+                {job.triggerInterval ? `${job.triggerInterval} 秒` : EMPTY_PLACEHOLDER}
               </DetailField>
-              <DetailField label="任务组">{job.groupName || EMPTY_PLACEHOLDER}</DetailField>
-              <DetailField label="任务名称">{job.jobName || EMPTY_PLACEHOLDER}</DetailField>
-              <DetailField label="触发类型">
-                <LabelBadge>{JOB_TRIGGER_TYPE_LABELS[job.triggerType] ?? EMPTY_PLACEHOLDER}</LabelBadge>
-              </DetailField>
-              {job.triggerType === 3 ? (
-                <DetailField label="Cron">{job.triggerInterval || EMPTY_PLACEHOLDER}</DetailField>
-              ) : job.triggerType === 2 ? (
-                <DetailField label="间隔时长">
-                  {job.triggerInterval ? `${job.triggerInterval} 秒` : EMPTY_PLACEHOLDER}
-                </DetailField>
-              ) : (
-                <div />
-              )}
-              <DetailField label="任务类型">
-                <LabelBadge>{JOB_TASK_TYPE_LABELS[job.taskType] ?? EMPTY_PLACEHOLDER}</LabelBadge>
-              </DetailField>
-              <DetailField label="执行器名称">{job.executorInfo || EMPTY_PLACEHOLDER}</DetailField>
-              <DetailField label="任务参数">{job.argsStr || EMPTY_PLACEHOLDER}</DetailField>
-              <DetailField label="路由策略">
-                <LabelBadge>{JOB_ROUTE_KEY_LABELS[job.routeKey] ?? EMPTY_PLACEHOLDER}</LabelBadge>
-              </DetailField>
-              <DetailField label="阻塞策略">
-                <LabelBadge>{JOB_BLOCK_STRATEGY_LABELS[job.blockStrategy] ?? EMPTY_PLACEHOLDER}</LabelBadge>
-              </DetailField>
-              <DetailField label="超时时间">
-                {job.executorTimeout === null || job.executorTimeout === undefined
-                  ? EMPTY_PLACEHOLDER
-                  : `${job.executorTimeout} 秒`}
-              </DetailField>
-              <DetailField label="最大重试次数">{job.maxRetryTimes ?? EMPTY_PLACEHOLDER}</DetailField>
-              <DetailField label="重试间隔">
-                {job.retryInterval === null || job.retryInterval === undefined
-                  ? EMPTY_PLACEHOLDER
-                  : `${job.retryInterval} 秒`}
-              </DetailField>
-              <DetailField label="并行数">{job.parallelNum ?? EMPTY_PLACEHOLDER}</DetailField>
-              <DetailField label="任务状态">
-                <StatusCell status={job.jobStatus === 1 ? 1 : 2} />
-              </DetailField>
+            ) : (
               <div />
-              <DetailField label="描述" className="sm:col-span-2">
-                {job.description || EMPTY_PLACEHOLDER}
-              </DetailField>
-            </DetailGrid>
-          ) : null}
-        </div>
+            )}
+            <DetailField label="任务类型">
+              <LabelBadge>{JOB_TASK_TYPE_LABELS[job.taskType] ?? EMPTY_PLACEHOLDER}</LabelBadge>
+            </DetailField>
+            <DetailField label="执行器名称">{job.executorInfo || EMPTY_PLACEHOLDER}</DetailField>
+            <DetailField label="任务参数">{job.argsStr || EMPTY_PLACEHOLDER}</DetailField>
+            <DetailField label="路由策略">
+              <LabelBadge>{JOB_ROUTE_KEY_LABELS[job.routeKey] ?? EMPTY_PLACEHOLDER}</LabelBadge>
+            </DetailField>
+            <DetailField label="阻塞策略">
+              <LabelBadge>{JOB_BLOCK_STRATEGY_LABELS[job.blockStrategy] ?? EMPTY_PLACEHOLDER}</LabelBadge>
+            </DetailField>
+            <DetailField label="超时时间">
+              {job.executorTimeout === null || job.executorTimeout === undefined
+                ? EMPTY_PLACEHOLDER
+                : `${job.executorTimeout} 秒`}
+            </DetailField>
+            <DetailField label="最大重试次数">{job.maxRetryTimes ?? EMPTY_PLACEHOLDER}</DetailField>
+            <DetailField label="重试间隔">
+              {job.retryInterval === null || job.retryInterval === undefined
+                ? EMPTY_PLACEHOLDER
+                : `${job.retryInterval} 秒`}
+            </DetailField>
+            <DetailField label="并行数">{job.parallelNum ?? EMPTY_PLACEHOLDER}</DetailField>
+            <DetailField label="任务状态">
+              <StatusCell status={job.jobStatus === 1 ? 1 : 2} />
+            </DetailField>
+            <div />
+            <DetailField label="描述" className="sm:col-span-2">
+              {job.description || EMPTY_PLACEHOLDER}
+            </DetailField>
+          </DetailGrid>
+        ) : null}
+      </div>
     </EntityDrawer>
   )
 }

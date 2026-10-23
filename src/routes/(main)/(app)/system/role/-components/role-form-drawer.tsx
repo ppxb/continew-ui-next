@@ -205,225 +205,224 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
       closeDisabled={isSubmitting}
       canClose={() => !isSubmitting}
     >
+      {isLoading ? (
+        <div className="flex min-h-0 flex-1 flex-col gap-4 p-4">
+          <Skeleton className="h-9 w-full" />
+          <Skeleton className="h-9 w-full" />
+          <Skeleton className="h-9 w-full" />
+          <Skeleton className="h-9 w-full" />
+          <Skeleton className="h-20 w-full" />
+        </div>
+      ) : isDetailError ? (
+        <QueryState state="error" className="p-6" onRetry={() => void detail.refetch()} />
+      ) : (
+        <form
+          ref={formRef}
+          noValidate
+          className="flex min-h-0 flex-1 flex-col"
+          onSubmit={event => {
+            event.preventDefault()
+            void submit()
+          }}
+        >
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
+            <FieldGroup className="gap-4">
+              <form.Field name="name" validators={{ onDynamic: formSchema.shape.name }}>
+                {field => {
+                  const invalid = field.state.meta.errors.length > 0
 
-        {isLoading ? (
-          <div className="flex min-h-0 flex-1 flex-col gap-4 p-4">
-            <Skeleton className="h-9 w-full" />
-            <Skeleton className="h-9 w-full" />
-            <Skeleton className="h-9 w-full" />
-            <Skeleton className="h-9 w-full" />
-            <Skeleton className="h-20 w-full" />
-          </div>
-        ) : isDetailError ? (
-          <QueryState state="error" className="p-6" onRetry={() => void detail.refetch()} />
-        ) : (
-          <form
-            ref={formRef}
-            noValidate
-            className="flex min-h-0 flex-1 flex-col"
-            onSubmit={event => {
-              event.preventDefault()
-              void submit()
-            }}
-          >
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
-              <FieldGroup className="gap-4">
-                <form.Field name="name" validators={{ onDynamic: formSchema.shape.name }}>
-                  {field => {
-                    const invalid = field.state.meta.errors.length > 0
+                  return (
+                    <Field className="gap-1.5" data-invalid={invalid}>
+                      <FieldLabel>角色名称</FieldLabel>
+                      <Input
+                        name="name"
+                        value={field.state.value}
+                        onChange={event => field.handleChange(event.target.value)}
+                        onBlur={field.handleBlur}
+                        maxLength={30}
+                        disabled={isSubmitting}
+                        placeholder="请输入角色名称（如：系统运维管理员）"
+                        aria-invalid={invalid}
+                      />
+                      <FieldError errors={field.state.meta.errors} />
+                    </Field>
+                  )
+                }}
+              </form.Field>
 
-                    return (
-                      <Field className="gap-1.5" data-invalid={invalid}>
-                        <FieldLabel>角色名称</FieldLabel>
-                        <Input
-                          name="name"
-                          value={field.state.value}
-                          onChange={event => field.handleChange(event.target.value)}
-                          onBlur={field.handleBlur}
-                          maxLength={30}
+              <form.Field name="code" validators={{ onDynamic: formSchema.shape.code }}>
+                {field => {
+                  const invalid = field.state.meta.errors.length > 0
+
+                  return (
+                    <Field className="gap-1.5" data-invalid={invalid}>
+                      <FieldLabel>角色编码</FieldLabel>
+                      <Input
+                        name="code"
+                        value={field.state.value}
+                        onChange={event => field.handleChange(event.target.value)}
+                        onBlur={field.handleBlur}
+                        disabled={isSubmitting || (!isCreate && detail.data?.isSystem)}
+                        maxLength={30}
+                        placeholder="请输入角色编码（如：ops_admin）"
+                        aria-invalid={invalid}
+                      />
+                      <FieldError errors={field.state.meta.errors} />
+                    </Field>
+                  )
+                }}
+              </form.Field>
+
+              <form.Field name="sort" validators={{ onDynamic: formSchema.shape.sort }}>
+                {field => {
+                  const invalid = field.state.meta.errors.length > 0
+
+                  return (
+                    <Field className="gap-1.5" data-invalid={invalid}>
+                      <FieldLabel>排序</FieldLabel>
+                      <Input
+                        name="sort"
+                        type="number"
+                        min={1}
+                        value={field.state.value}
+                        onChange={event => field.handleChange(event.target.valueAsNumber || 1)}
+                        onBlur={field.handleBlur}
+                        disabled={isSubmitting}
+                        placeholder="数值越小越靠前"
+                        aria-invalid={invalid}
+                      />
+                      <FieldError errors={field.state.meta.errors} />
+                    </Field>
+                  )
+                }}
+              </form.Field>
+
+              <form.Field name="dataScope" validators={{ onDynamic: formSchema.shape.dataScope }}>
+                {field => {
+                  const invalid = field.state.meta.errors.length > 0
+
+                  return (
+                    <Field className="gap-1.5" data-invalid={invalid}>
+                      <FieldLabel>数据权限</FieldLabel>
+                      <Select
+                        items={DATA_SCOPE_ITEMS}
+                        value={String(field.state.value)}
+                        onValueChange={val => field.handleChange(Number(val) as DataScope)}
+                      >
+                        <SelectTrigger aria-invalid={invalid} disabled={isSubmitting}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent align="start" alignItemWithTrigger={false}>
+                          <SelectGroup>
+                            {DATA_SCOPE_ITEMS.map(item => (
+                              <SelectItem key={item.value} value={item.value}>
+                                {item.label}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                      <FieldError errors={field.state.meta.errors} />
+                    </Field>
+                  )
+                }}
+              </form.Field>
+
+              {/* Conditional Department Tree for Custom Data Scope */}
+              {dataScope === 5 && (
+                <div className="flex flex-col gap-3 rounded-lg border bg-muted/20 p-3">
+                  <form.Field name="deptCheckStrictly">
+                    {field => (
+                      <Field orientation="horizontal" className="items-center justify-between">
+                        <FieldContent>
+                          <FieldLabel className="text-xs">父子联动</FieldLabel>
+                          <FieldDescription className="text-[11px]">
+                            {field.state.value ? '已开启独立选择（不联动）' : '勾选父部门时自动勾选全部子部门'}
+                          </FieldDescription>
+                        </FieldContent>
+                        <Switch
+                          checked={!field.state.value}
+                          onCheckedChange={checked => field.handleChange(!checked)}
                           disabled={isSubmitting}
-                          placeholder="请输入角色名称（如：系统运维管理员）"
-                          aria-invalid={invalid}
                         />
-                        <FieldError errors={field.state.meta.errors} />
                       </Field>
-                    )
-                  }}
-                </form.Field>
+                    )}
+                  </form.Field>
 
-                <form.Field name="code" validators={{ onDynamic: formSchema.shape.code }}>
-                  {field => {
-                    const invalid = field.state.meta.errors.length > 0
+                  <form.Field name="deptIds" validators={{ onDynamic: formSchema.shape.deptIds }}>
+                    {field => {
+                      const invalid = field.state.meta.errors.length > 0
 
-                    return (
-                      <Field className="gap-1.5" data-invalid={invalid}>
-                        <FieldLabel>角色编码</FieldLabel>
-                        <Input
-                          name="code"
-                          value={field.state.value}
-                          onChange={event => field.handleChange(event.target.value)}
-                          onBlur={field.handleBlur}
-                          disabled={isSubmitting || (!isCreate && detail.data?.isSystem)}
-                          maxLength={30}
-                          placeholder="请输入角色编码（如：ops_admin）"
-                          aria-invalid={invalid}
-                        />
-                        <FieldError errors={field.state.meta.errors} />
-                      </Field>
-                    )
-                  }}
-                </form.Field>
-
-                <form.Field name="sort" validators={{ onDynamic: formSchema.shape.sort }}>
-                  {field => {
-                    const invalid = field.state.meta.errors.length > 0
-
-                    return (
-                      <Field className="gap-1.5" data-invalid={invalid}>
-                        <FieldLabel>排序</FieldLabel>
-                        <Input
-                          name="sort"
-                          type="number"
-                          min={1}
-                          value={field.state.value}
-                          onChange={event => field.handleChange(event.target.valueAsNumber || 1)}
-                          onBlur={field.handleBlur}
-                          disabled={isSubmitting}
-                          placeholder="数值越小越靠前"
-                          aria-invalid={invalid}
-                        />
-                        <FieldError errors={field.state.meta.errors} />
-                      </Field>
-                    )
-                  }}
-                </form.Field>
-
-                <form.Field name="dataScope" validators={{ onDynamic: formSchema.shape.dataScope }}>
-                  {field => {
-                    const invalid = field.state.meta.errors.length > 0
-
-                    return (
-                      <Field className="gap-1.5" data-invalid={invalid}>
-                        <FieldLabel>数据权限</FieldLabel>
-                        <Select
-                          items={DATA_SCOPE_ITEMS}
-                          value={String(field.state.value)}
-                          onValueChange={val => field.handleChange(Number(val) as DataScope)}
-                        >
-                          <SelectTrigger aria-invalid={invalid} disabled={isSubmitting}>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent align="start" alignItemWithTrigger={false}>
-                            <SelectGroup>
-                              {DATA_SCOPE_ITEMS.map(item => (
-                                <SelectItem key={item.value} value={item.value}>
-                                  {item.label}
-                                </SelectItem>
-                              ))}
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>
-                        <FieldError errors={field.state.meta.errors} />
-                      </Field>
-                    )
-                  }}
-                </form.Field>
-
-                {/* Conditional Department Tree for Custom Data Scope */}
-                {dataScope === 5 && (
-                  <div className="flex flex-col gap-3 rounded-lg border bg-muted/20 p-3">
-                    <form.Field name="deptCheckStrictly">
-                      {field => (
-                        <Field orientation="horizontal" className="items-center justify-between">
-                          <FieldContent>
-                            <FieldLabel className="text-xs">父子联动</FieldLabel>
-                            <FieldDescription className="text-[11px]">
-                              {field.state.value ? '已开启独立选择（不联动）' : '勾选父部门时自动勾选全部子部门'}
-                            </FieldDescription>
-                          </FieldContent>
-                          <Switch
-                            checked={!field.state.value}
-                            onCheckedChange={checked => field.handleChange(!checked)}
-                            disabled={isSubmitting}
-                          />
-                        </Field>
-                      )}
-                    </form.Field>
-
-                    <form.Field name="deptIds" validators={{ onDynamic: formSchema.shape.deptIds }}>
-                      {field => {
-                        const invalid = field.state.meta.errors.length > 0
-
-                        return (
-                          <Field className="gap-1.5" data-invalid={invalid}>
-                            <FieldLabel className="text-xs">选择权限部门</FieldLabel>
-                            {/* The tree has no `disabled` prop of its own, so `inert` blocks both the
+                      return (
+                        <Field className="gap-1.5" data-invalid={invalid}>
+                          <FieldLabel className="text-xs">选择权限部门</FieldLabel>
+                          {/* The tree has no `disabled` prop of its own, so `inert` blocks both the
                                 pointer and the keyboard while a save is in flight. */}
-                            <div
-                              inert={isSubmitting}
-                              className={isSubmitting ? 'pointer-events-none opacity-50' : undefined}
-                            >
-                              <CheckableTree
-                                data={deptTreeData}
-                                checkedKeys={field.state.value}
-                                onCheckedChange={field.handleChange}
-                                checkStrictly={deptCheckStrictly}
-                                loading={depts.isPending}
-                                searchPlaceholder="搜索部门"
-                                emptyText="未找到相关部门"
-                              />
-                            </div>
-                            <FieldError errors={field.state.meta.errors} />
-                          </Field>
-                        )
-                      }}
-                    </form.Field>
-                  </div>
-                )}
+                          <div
+                            inert={isSubmitting}
+                            className={isSubmitting ? 'pointer-events-none opacity-50' : undefined}
+                          >
+                            <CheckableTree
+                              data={deptTreeData}
+                              checkedKeys={field.state.value}
+                              onCheckedChange={field.handleChange}
+                              checkStrictly={deptCheckStrictly}
+                              loading={depts.isPending}
+                              searchPlaceholder="搜索部门"
+                              emptyText="未找到相关部门"
+                            />
+                          </div>
+                          <FieldError errors={field.state.meta.errors} />
+                        </Field>
+                      )
+                    }}
+                  </form.Field>
+                </div>
+              )}
 
-                <form.Field name="description" validators={{ onDynamic: formSchema.shape.description }}>
-                  {field => {
-                    const invalid = field.state.meta.errors.length > 0
+              <form.Field name="description" validators={{ onDynamic: formSchema.shape.description }}>
+                {field => {
+                  const invalid = field.state.meta.errors.length > 0
 
-                    return (
-                      <Field className="gap-1.5" data-invalid={invalid}>
-                        <FieldLabel>描述</FieldLabel>
-                        <Textarea
-                          name="description"
-                          value={field.state.value ?? ''}
-                          onChange={event => field.handleChange(event.target.value)}
-                          onBlur={field.handleBlur}
-                          disabled={isSubmitting}
-                          maxLength={200}
-                          rows={3}
-                          placeholder="请输入角色描述信息（选填）"
-                          aria-invalid={invalid}
-                        />
-                        <FieldError errors={field.state.meta.errors} />
-                      </Field>
-                    )
-                  }}
-                </form.Field>
-              </FieldGroup>
-            </div>
+                  return (
+                    <Field className="gap-1.5" data-invalid={invalid}>
+                      <FieldLabel>描述</FieldLabel>
+                      <Textarea
+                        name="description"
+                        value={field.state.value ?? ''}
+                        onChange={event => field.handleChange(event.target.value)}
+                        onBlur={field.handleBlur}
+                        disabled={isSubmitting}
+                        maxLength={200}
+                        rows={3}
+                        placeholder="请输入角色描述信息（选填）"
+                        aria-invalid={invalid}
+                      />
+                      <FieldError errors={field.state.meta.errors} />
+                    </Field>
+                  )
+                }}
+              </form.Field>
+            </FieldGroup>
+          </div>
 
-            <DrawerFooter className="flex-row justify-end gap-2 border-t p-4">
-              <Button type="button" variant="outline" disabled={isSubmitting} onClick={onClose}>
-                取消
-              </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <>
-                    <Spinner />
-                    保存中
-                  </>
-                ) : (
-                  '保存'
-                )}
-              </Button>
-            </DrawerFooter>
-          </form>
-        )}
+          <DrawerFooter className="flex-row justify-end gap-2 border-t p-4">
+            <Button type="button" variant="outline" disabled={isSubmitting} onClick={onClose}>
+              取消
+            </Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Spinner />
+                  保存中
+                </>
+              ) : (
+                '保存'
+              )}
+            </Button>
+          </DrawerFooter>
+        </form>
+      )}
     </EntityDrawer>
   )
 }

@@ -68,10 +68,7 @@ export function DataTable<TRow extends RowData>({
               {headerGroup.headers.map(header => (
                 <TableHead
                   key={header.id}
-                  className={cn(
-                    'py-4 font-normal',
-                    stickyHeader && 'sticky top-0 z-10 border-b bg-background'
-                  )}
+                  className={cn('py-4 font-normal', stickyHeader && 'sticky top-0 z-10 border-b bg-background')}
                 >
                   {header.isPlaceholder ? null : <table.FlexRender header={header} />}
                 </TableHead>

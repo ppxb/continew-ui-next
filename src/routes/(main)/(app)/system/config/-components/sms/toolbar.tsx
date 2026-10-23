@@ -87,11 +87,7 @@ export function SmsToolbar({
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <Button
-          variant="outline"
-          onClick={onToggleFullscreen}
-          aria-label={isFullscreen ? '退出全屏' : '全屏'}
-        >
+        <Button variant="outline" onClick={onToggleFullscreen} aria-label={isFullscreen ? '退出全屏' : '全屏'}>
           {isFullscreen ? <Minimize /> : <Maximize />}
         </Button>
       </div>

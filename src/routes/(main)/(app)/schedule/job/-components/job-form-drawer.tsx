@@ -359,119 +359,94 @@ export function JobFormDrawer({ job, open, onClose, defaultGroupName }: JobFormD
       width={40}
       canClose={() => !form.state.isSubmitting}
     >
+      <form
+        ref={formRef}
+        noValidate
+        className="flex min-h-0 flex-1 flex-col"
+        onSubmit={event => {
+          event.preventDefault()
+          void submit()
+        }}
+      >
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
+          <div className="flex flex-col gap-6">
+            <section className="flex flex-col gap-4">
+              <h3 className="text-sm font-medium text-foreground">基础配置</h3>
 
-        <form
-          ref={formRef}
-          noValidate
-          className="flex min-h-0 flex-1 flex-col"
-          onSubmit={event => {
-            event.preventDefault()
-            void submit()
-          }}
-        >
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
-            <div className="flex flex-col gap-6">
-              <section className="flex flex-col gap-4">
-                <h3 className="text-sm font-medium text-foreground">基础配置</h3>
-
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <form.Field name="groupName" validators={{ onDynamic: formSchema.shape.groupName }}>
-                    {field => {
-                      const invalid = field.state.meta.errors.length > 0
-
-                      return (
-                        <Field className="gap-1.5" data-invalid={invalid}>
-                          <FieldLabel>
-                            任务组
-                            <RequiredMark />
-                          </FieldLabel>
-
-                          {groups.isPending && groupOptions.length === 0 ? (
-                            <Skeleton className="h-8 w-full" />
-                          ) : (
-                            <Select
-                              items={groupItems}
-                              value={field.state.value}
-                              onValueChange={value => field.handleChange(value ?? '')}
-                            >
-                              <SelectTrigger className="w-full" aria-invalid={invalid}>
-                                <SelectValue placeholder="请选择任务组" />
-                              </SelectTrigger>
-                              <SelectContent alignItemWithTrigger={false}>
-                                {groupOptions.length > 0 ? (
-                                  <SelectGroup>
-                                    {groupItems.map(option => (
-                                      <SelectItem key={option.value} value={option.value}>
-                                        {option.label}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectGroup>
-                                ) : (
-                                  <Empty className="p-3">
-                                    <EmptyHeader>
-                                      <EmptyMedia variant="icon">
-                                        <Layers />
-                                      </EmptyMedia>
-                                      <EmptyTitle>{groups.isError ? '任务组加载失败' : '暂无可用任务组'}</EmptyTitle>
-                                      <EmptyDescription>
-                                        {groups.isError
-                                          ? '请关闭抽屉后重新打开重试'
-                                          : '请确认调度执行器已注册任务组后再试'}
-                                      </EmptyDescription>
-                                    </EmptyHeader>
-                                  </Empty>
-                                )}
-                              </SelectContent>
-                            </Select>
-                          )}
-
-                          {groupOptions.length > 0 ? <FieldError errors={field.state.meta.errors} /> : null}
-                        </Field>
-                      )
-                    }}
-                  </form.Field>
-
-                  <form.Field name="jobName" validators={{ onDynamic: formSchema.shape.jobName }}>
-                    {field => {
-                      const invalid = field.state.meta.errors.length > 0
-
-                      return (
-                        <Field className="gap-1.5" data-invalid={invalid}>
-                          <FieldLabel>
-                            任务名称
-                            <RequiredMark />
-                          </FieldLabel>
-                          <Input
-                            name="jobName"
-                            value={field.state.value}
-                            onChange={event => field.handleChange(event.target.value)}
-                            onBlur={field.handleBlur}
-                            maxLength={64}
-                            placeholder="请输入任务名称"
-                            aria-invalid={invalid}
-                          />
-                          <FieldError errors={field.state.meta.errors} />
-                        </Field>
-                      )
-                    }}
-                  </form.Field>
-                </div>
-
-                <form.Field name="description" validators={{ onDynamic: formSchema.shape.description }}>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <form.Field name="groupName" validators={{ onDynamic: formSchema.shape.groupName }}>
                   {field => {
                     const invalid = field.state.meta.errors.length > 0
 
                     return (
                       <Field className="gap-1.5" data-invalid={invalid}>
-                        <FieldLabel>描述</FieldLabel>
-                        <Textarea
-                          name="description"
+                        <FieldLabel>
+                          任务组
+                          <RequiredMark />
+                        </FieldLabel>
+
+                        {groups.isPending && groupOptions.length === 0 ? (
+                          <Skeleton className="h-8 w-full" />
+                        ) : (
+                          <Select
+                            items={groupItems}
+                            value={field.state.value}
+                            onValueChange={value => field.handleChange(value ?? '')}
+                          >
+                            <SelectTrigger className="w-full" aria-invalid={invalid}>
+                              <SelectValue placeholder="请选择任务组" />
+                            </SelectTrigger>
+                            <SelectContent alignItemWithTrigger={false}>
+                              {groupOptions.length > 0 ? (
+                                <SelectGroup>
+                                  {groupItems.map(option => (
+                                    <SelectItem key={option.value} value={option.value}>
+                                      {option.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectGroup>
+                              ) : (
+                                <Empty className="p-3">
+                                  <EmptyHeader>
+                                    <EmptyMedia variant="icon">
+                                      <Layers />
+                                    </EmptyMedia>
+                                    <EmptyTitle>{groups.isError ? '任务组加载失败' : '暂无可用任务组'}</EmptyTitle>
+                                    <EmptyDescription>
+                                      {groups.isError
+                                        ? '请关闭抽屉后重新打开重试'
+                                        : '请确认调度执行器已注册任务组后再试'}
+                                    </EmptyDescription>
+                                  </EmptyHeader>
+                                </Empty>
+                              )}
+                            </SelectContent>
+                          </Select>
+                        )}
+
+                        {groupOptions.length > 0 ? <FieldError errors={field.state.meta.errors} /> : null}
+                      </Field>
+                    )
+                  }}
+                </form.Field>
+
+                <form.Field name="jobName" validators={{ onDynamic: formSchema.shape.jobName }}>
+                  {field => {
+                    const invalid = field.state.meta.errors.length > 0
+
+                    return (
+                      <Field className="gap-1.5" data-invalid={invalid}>
+                        <FieldLabel>
+                          任务名称
+                          <RequiredMark />
+                        </FieldLabel>
+                        <Input
+                          name="jobName"
                           value={field.state.value}
                           onChange={event => field.handleChange(event.target.value)}
                           onBlur={field.handleBlur}
-                          maxLength={200}
-                          rows={3}
-                          placeholder="请输入描述"
+                          maxLength={64}
+                          placeholder="请输入任务名称"
                           aria-invalid={invalid}
                         />
                         <FieldError errors={field.state.meta.errors} />
@@ -479,346 +454,370 @@ export function JobFormDrawer({ job, open, onClose, defaultGroupName }: JobFormD
                     )
                   }}
                 </form.Field>
-              </section>
+              </div>
 
-              <section className="flex flex-col gap-4 border-t pt-4">
-                <h3 className="text-sm font-medium text-foreground">调度配置</h3>
+              <form.Field name="description" validators={{ onDynamic: formSchema.shape.description }}>
+                {field => {
+                  const invalid = field.state.meta.errors.length > 0
 
-                <form.Subscribe selector={state => state.values.triggerType}>
-                  {triggerType => (
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <form.Field name="triggerType">
-                        {field => (
-                          <Field className="gap-1.5">
-                            <FieldLabel>
-                              触发类型
-                              <RequiredMark />
-                            </FieldLabel>
-                            <Select
-                              items={JOB_TRIGGER_TYPE_OPTIONS}
-                              value={field.state.value}
-                              onValueChange={value => {
-                                const next = value === '3' ? ('3' as const) : ('2' as const)
-                                if (next === field.state.value) {
-                                  return
-                                }
-                                field.handleChange(next)
-                                form.setFieldValue('triggerInterval', next === '2' ? '60' : '0 * * * * ?')
-                                setTriggerError(null)
-                              }}
-                            >
-                              <SelectTrigger className="w-full">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent alignItemWithTrigger={false}>
-                                <SelectGroup>
-                                  {JOB_TRIGGER_TYPE_OPTIONS.map(option => (
-                                    <SelectItem key={option.value} value={option.value}>
-                                      {option.label}
-                                    </SelectItem>
-                                  ))}
-                                </SelectGroup>
-                              </SelectContent>
-                            </Select>
-                          </Field>
-                        )}
-                      </form.Field>
+                  return (
+                    <Field className="gap-1.5" data-invalid={invalid}>
+                      <FieldLabel>描述</FieldLabel>
+                      <Textarea
+                        name="description"
+                        value={field.state.value}
+                        onChange={event => field.handleChange(event.target.value)}
+                        onBlur={field.handleBlur}
+                        maxLength={200}
+                        rows={3}
+                        placeholder="请输入描述"
+                        aria-invalid={invalid}
+                      />
+                      <FieldError errors={field.state.meta.errors} />
+                    </Field>
+                  )
+                }}
+              </form.Field>
+            </section>
 
-                      <form.Field name="triggerInterval" validators={{ onDynamic: formSchema.shape.triggerInterval }}>
-                        {field => {
-                          const invalid = Boolean(triggerError) || field.state.meta.errors.length > 0
+            <section className="flex flex-col gap-4 border-t pt-4">
+              <h3 className="text-sm font-medium text-foreground">调度配置</h3>
 
-                          return (
-                            <Field className="gap-1.5" data-invalid={invalid}>
-                              <FieldLabel>
-                                {triggerType === '2' ? '间隔时长' : 'Cron 表达式'}
-                                <RequiredMark />
-                              </FieldLabel>
-                              {triggerType === '2' ? (
-                                <InputGroup>
-                                  <InputGroupInput
-                                    type="number"
-                                    min={1}
-                                    value={field.state.value}
-                                    onChange={event => {
-                                      field.handleChange(event.target.value)
-                                      setTriggerError(null)
-                                    }}
-                                    onBlur={field.handleBlur}
-                                    placeholder="请输入间隔时长"
-                                    aria-invalid={invalid}
-                                  />
-                                  <InputGroupAddon align="inline-end">秒</InputGroupAddon>
-                                </InputGroup>
-                              ) : (
-                                <div className="flex gap-2">
-                                  <Input
-                                    value={field.state.value}
-                                    onChange={event => {
-                                      field.handleChange(event.target.value)
-                                      setTriggerError(null)
-                                    }}
-                                    onBlur={field.handleBlur}
-                                    placeholder="0 * * * * ?"
-                                    aria-invalid={invalid}
-                                  />
-                                  <DropdownMenu>
-                                    <DropdownMenuTrigger
-                                      render={<Button type="button" variant="outline" className="shrink-0" />}
-                                    >
-                                      常用表达式
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end" className="w-52">
-                                      {CRON_PRESETS.map(preset => (
-                                        <DropdownMenuItem
-                                          key={preset.value}
-                                          onClick={() => {
-                                            field.handleChange(preset.value)
-                                            setTriggerError(null)
-                                          }}
-                                        >
-                                          <span className="flex flex-col">
-                                            <span>{preset.label}</span>
-                                            <span className="text-xs text-muted-foreground">{preset.value}</span>
-                                          </span>
-                                        </DropdownMenuItem>
-                                      ))}
-                                    </DropdownMenuContent>
-                                  </DropdownMenu>
-                                </div>
-                              )}
-                              {triggerError ? (
-                                <FieldError>{triggerError}</FieldError>
-                              ) : (
-                                <FieldError errors={field.state.meta.errors} />
-                              )}
-                            </Field>
-                          )
-                        }}
-                      </form.Field>
-                    </div>
-                  )}
-                </form.Subscribe>
-              </section>
-
-              <section className="flex flex-col gap-4 border-t pt-4">
-                <h3 className="text-sm font-medium text-foreground">任务配置</h3>
-
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <form.Field name="taskType">
-                    {field => (
-                      <Field className="gap-1.5">
-                        <FieldLabel>
-                          任务类型
-                          <RequiredMark />
-                        </FieldLabel>
-                        <Select
-                          items={JOB_TASK_TYPE_OPTIONS}
-                          value={field.state.value}
-                          onValueChange={value => {
-                            field.handleChange(
-                              (value === '2' ? '2' : value === '3' ? '3' : '1') as FormValues['taskType']
-                            )
-                            setArgsError(null)
-                          }}
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent alignItemWithTrigger={false}>
-                            <SelectGroup>
-                              {JOB_TASK_TYPE_OPTIONS.map(option => (
-                                <SelectItem key={option.value} value={option.value}>
-                                  {option.label}
-                                </SelectItem>
-                              ))}
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>
-                      </Field>
-                    )}
-                  </form.Field>
-
-                  <form.Field name="executorInfo" validators={{ onDynamic: formSchema.shape.executorInfo }}>
-                    {field => {
-                      const invalid = field.state.meta.errors.length > 0
-
-                      return (
-                        <Field className="gap-1.5" data-invalid={invalid}>
+              <form.Subscribe selector={state => state.values.triggerType}>
+                {triggerType => (
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <form.Field name="triggerType">
+                      {field => (
+                        <Field className="gap-1.5">
                           <FieldLabel>
-                            执行器名称
+                            触发类型
                             <RequiredMark />
                           </FieldLabel>
-                          <Input
-                            name="executorInfo"
+                          <Select
+                            items={JOB_TRIGGER_TYPE_OPTIONS}
+                            value={field.state.value}
+                            onValueChange={value => {
+                              const next = value === '3' ? ('3' as const) : ('2' as const)
+                              if (next === field.state.value) {
+                                return
+                              }
+                              field.handleChange(next)
+                              form.setFieldValue('triggerInterval', next === '2' ? '60' : '0 * * * * ?')
+                              setTriggerError(null)
+                            }}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent alignItemWithTrigger={false}>
+                              <SelectGroup>
+                                {JOB_TRIGGER_TYPE_OPTIONS.map(option => (
+                                  <SelectItem key={option.value} value={option.value}>
+                                    {option.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectGroup>
+                            </SelectContent>
+                          </Select>
+                        </Field>
+                      )}
+                    </form.Field>
+
+                    <form.Field name="triggerInterval" validators={{ onDynamic: formSchema.shape.triggerInterval }}>
+                      {field => {
+                        const invalid = Boolean(triggerError) || field.state.meta.errors.length > 0
+
+                        return (
+                          <Field className="gap-1.5" data-invalid={invalid}>
+                            <FieldLabel>
+                              {triggerType === '2' ? '间隔时长' : 'Cron 表达式'}
+                              <RequiredMark />
+                            </FieldLabel>
+                            {triggerType === '2' ? (
+                              <InputGroup>
+                                <InputGroupInput
+                                  type="number"
+                                  min={1}
+                                  value={field.state.value}
+                                  onChange={event => {
+                                    field.handleChange(event.target.value)
+                                    setTriggerError(null)
+                                  }}
+                                  onBlur={field.handleBlur}
+                                  placeholder="请输入间隔时长"
+                                  aria-invalid={invalid}
+                                />
+                                <InputGroupAddon align="inline-end">秒</InputGroupAddon>
+                              </InputGroup>
+                            ) : (
+                              <div className="flex gap-2">
+                                <Input
+                                  value={field.state.value}
+                                  onChange={event => {
+                                    field.handleChange(event.target.value)
+                                    setTriggerError(null)
+                                  }}
+                                  onBlur={field.handleBlur}
+                                  placeholder="0 * * * * ?"
+                                  aria-invalid={invalid}
+                                />
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger
+                                    render={<Button type="button" variant="outline" className="shrink-0" />}
+                                  >
+                                    常用表达式
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end" className="w-52">
+                                    {CRON_PRESETS.map(preset => (
+                                      <DropdownMenuItem
+                                        key={preset.value}
+                                        onClick={() => {
+                                          field.handleChange(preset.value)
+                                          setTriggerError(null)
+                                        }}
+                                      >
+                                        <span className="flex flex-col">
+                                          <span>{preset.label}</span>
+                                          <span className="text-xs text-muted-foreground">{preset.value}</span>
+                                        </span>
+                                      </DropdownMenuItem>
+                                    ))}
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </div>
+                            )}
+                            {triggerError ? (
+                              <FieldError>{triggerError}</FieldError>
+                            ) : (
+                              <FieldError errors={field.state.meta.errors} />
+                            )}
+                          </Field>
+                        )
+                      }}
+                    </form.Field>
+                  </div>
+                )}
+              </form.Subscribe>
+            </section>
+
+            <section className="flex flex-col gap-4 border-t pt-4">
+              <h3 className="text-sm font-medium text-foreground">任务配置</h3>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <form.Field name="taskType">
+                  {field => (
+                    <Field className="gap-1.5">
+                      <FieldLabel>
+                        任务类型
+                        <RequiredMark />
+                      </FieldLabel>
+                      <Select
+                        items={JOB_TASK_TYPE_OPTIONS}
+                        value={field.state.value}
+                        onValueChange={value => {
+                          field.handleChange(
+                            (value === '2' ? '2' : value === '3' ? '3' : '1') as FormValues['taskType']
+                          )
+                          setArgsError(null)
+                        }}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent alignItemWithTrigger={false}>
+                          <SelectGroup>
+                            {JOB_TASK_TYPE_OPTIONS.map(option => (
+                              <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    </Field>
+                  )}
+                </form.Field>
+
+                <form.Field name="executorInfo" validators={{ onDynamic: formSchema.shape.executorInfo }}>
+                  {field => {
+                    const invalid = field.state.meta.errors.length > 0
+
+                    return (
+                      <Field className="gap-1.5" data-invalid={invalid}>
+                        <FieldLabel>
+                          执行器名称
+                          <RequiredMark />
+                        </FieldLabel>
+                        <Input
+                          name="executorInfo"
+                          value={field.state.value}
+                          onChange={event => field.handleChange(event.target.value)}
+                          onBlur={field.handleBlur}
+                          maxLength={255}
+                          placeholder="请输入执行器名称"
+                          aria-invalid={invalid}
+                        />
+                        <FieldError errors={field.state.meta.errors} />
+                      </Field>
+                    )
+                  }}
+                </form.Field>
+              </div>
+
+              <form.Subscribe selector={state => state.values.taskType}>
+                {taskType =>
+                  taskType === '3' ? (
+                    <Field className="gap-1.5" data-invalid={Boolean(argsError)}>
+                      <FieldLabel>任务参数</FieldLabel>
+                      <div className="flex flex-col gap-2">
+                        {args.map((arg, index) => (
+                          <div key={index} className="flex items-center gap-2">
+                            <Input
+                              value={arg}
+                              onChange={event => updateArg(index, event.target.value)}
+                              placeholder={`请输入分片参数 ${index + 1}`}
+                              aria-invalid={Boolean(argsError)}
+                            />
+                            <Tooltip>
+                              <TooltipTrigger
+                                render={
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="icon-sm"
+                                    onClick={() => removeArg(index)}
+                                  />
+                                }
+                              >
+                                <Trash2 />
+                              </TooltipTrigger>
+                              <TooltipContent side="top">删除该参数</TooltipContent>
+                            </Tooltip>
+                          </div>
+                        ))}
+                        <Button type="button" size="sm" variant="outline" onClick={addArg}>
+                          <Plus />
+                          添加分片参数
+                        </Button>
+                      </div>
+                      {argsError ? (
+                        <FieldError>{argsError}</FieldError>
+                      ) : (
+                        <FieldDescription>静态切片任务会把每个参数分给一个执行器</FieldDescription>
+                      )}
+                    </Field>
+                  ) : (
+                    <form.Field name="argsStr">
+                      {field => (
+                        <Field className="gap-1.5">
+                          <FieldLabel>任务参数</FieldLabel>
+                          <Textarea
+                            name="argsStr"
                             value={field.state.value}
                             onChange={event => field.handleChange(event.target.value)}
                             onBlur={field.handleBlur}
-                            maxLength={255}
-                            placeholder="请输入执行器名称"
-                            aria-invalid={invalid}
+                            rows={3}
+                            placeholder="请输入任务参数"
                           />
-                          <FieldError errors={field.state.meta.errors} />
                         </Field>
-                      )
-                    }}
-                  </form.Field>
-                </div>
+                      )}
+                    </form.Field>
+                  )
+                }
+              </form.Subscribe>
+            </section>
 
-                <form.Subscribe selector={state => state.values.taskType}>
-                  {taskType =>
-                    taskType === '3' ? (
-                      <Field className="gap-1.5" data-invalid={Boolean(argsError)}>
-                        <FieldLabel>任务参数</FieldLabel>
-                        <div className="flex flex-col gap-2">
-                          {args.map((arg, index) => (
-                            <div key={index} className="flex items-center gap-2">
-                              <Input
-                                value={arg}
-                                onChange={event => updateArg(index, event.target.value)}
-                                placeholder={`请输入分片参数 ${index + 1}`}
-                                aria-invalid={Boolean(argsError)}
-                              />
-                              <Tooltip>
-                                <TooltipTrigger
-                                  render={
-                                    <Button
-                                      type="button"
-                                      variant="outline"
-                                      size="icon-sm"
-                                      onClick={() => removeArg(index)}
-                                    />
-                                  }
-                                >
-                                  <Trash2 />
-                                </TooltipTrigger>
-                                <TooltipContent side="top">删除该参数</TooltipContent>
-                              </Tooltip>
-                            </div>
-                          ))}
-                          <Button type="button" size="sm" variant="outline" onClick={addArg}>
-                            <Plus />
-                            添加分片参数
-                          </Button>
-                        </div>
-                        {argsError ? (
-                          <FieldError>{argsError}</FieldError>
-                        ) : (
-                          <FieldDescription>静态切片任务会把每个参数分给一个执行器</FieldDescription>
-                        )}
-                      </Field>
-                    ) : (
-                      <form.Field name="argsStr">
-                        {field => (
-                          <Field className="gap-1.5">
-                            <FieldLabel>任务参数</FieldLabel>
-                            <Textarea
-                              name="argsStr"
-                              value={field.state.value}
-                              onChange={event => field.handleChange(event.target.value)}
-                              onBlur={field.handleBlur}
-                              rows={3}
-                              placeholder="请输入任务参数"
-                            />
-                          </Field>
-                        )}
-                      </form.Field>
-                    )
-                  }
-                </form.Subscribe>
-              </section>
+            <section className="flex flex-col gap-4 border-t pt-4">
+              <h3 className="text-sm font-medium text-foreground">高级配置</h3>
 
-              <section className="flex flex-col gap-4 border-t pt-4">
-                <h3 className="text-sm font-medium text-foreground">高级配置</h3>
-
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <form.Field name="routeKey">
-                    {field => (
-                      <Field className="gap-1.5">
-                        <FieldLabel>
-                          路由策略
-                          <RequiredMark />
-                        </FieldLabel>
-                        <Select
-                          items={JOB_ROUTE_KEY_OPTIONS}
-                          value={field.state.value}
-                          onValueChange={value => field.handleChange((value ?? '4') as FormValues['routeKey'])}
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent alignItemWithTrigger={false}>
-                            <SelectGroup>
-                              {JOB_ROUTE_KEY_OPTIONS.map(option => (
-                                <SelectItem key={option.value} value={option.value}>
-                                  {option.label}
-                                </SelectItem>
-                              ))}
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>
-                      </Field>
-                    )}
-                  </form.Field>
-
-                  <form.Field name="blockStrategy">
-                    {field => (
-                      <Field className="gap-1.5">
-                        <FieldLabel>
-                          阻塞策略
-                          <RequiredMark />
-                        </FieldLabel>
-                        <Select
-                          items={JOB_BLOCK_STRATEGY_OPTIONS}
-                          value={field.state.value}
-                          onValueChange={value => field.handleChange((value ?? '1') as FormValues['blockStrategy'])}
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent alignItemWithTrigger={false}>
-                            <SelectGroup>
-                              {JOB_BLOCK_STRATEGY_OPTIONS.map(option => (
-                                <SelectItem key={option.value} value={option.value}>
-                                  {option.label}
-                                </SelectItem>
-                              ))}
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>
-                      </Field>
-                    )}
-                  </form.Field>
-
-                  {renderNumberField('executorTimeout', '超时时间', 1, '秒')}
-                  {renderNumberField('maxRetryTimes', '最大重试次数', 0)}
-                  {renderNumberField('retryInterval', '重试间隔', 1, '秒')}
-                  {renderNumberField('parallelNum', '并行数', 1)}
-                </div>
-              </section>
-            </div>
-          </div>
-
-          <DrawerFooter className="shrink-0 flex-row justify-end gap-2 border-t p-4">
-            <Button type="button" variant="outline" disabled={form.state.isSubmitting} onClick={onClose}>
-              取消
-            </Button>
-            <form.Subscribe selector={state => state.isSubmitting}>
-              {isSubmitting => (
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? (
-                    <>
-                      <Spinner />
-                      保存中
-                    </>
-                  ) : (
-                    '保存'
+              <div className="grid gap-4 sm:grid-cols-2">
+                <form.Field name="routeKey">
+                  {field => (
+                    <Field className="gap-1.5">
+                      <FieldLabel>
+                        路由策略
+                        <RequiredMark />
+                      </FieldLabel>
+                      <Select
+                        items={JOB_ROUTE_KEY_OPTIONS}
+                        value={field.state.value}
+                        onValueChange={value => field.handleChange((value ?? '4') as FormValues['routeKey'])}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent alignItemWithTrigger={false}>
+                          <SelectGroup>
+                            {JOB_ROUTE_KEY_OPTIONS.map(option => (
+                              <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    </Field>
                   )}
-                </Button>
-              )}
-            </form.Subscribe>
-          </DrawerFooter>
-        </form>
+                </form.Field>
+
+                <form.Field name="blockStrategy">
+                  {field => (
+                    <Field className="gap-1.5">
+                      <FieldLabel>
+                        阻塞策略
+                        <RequiredMark />
+                      </FieldLabel>
+                      <Select
+                        items={JOB_BLOCK_STRATEGY_OPTIONS}
+                        value={field.state.value}
+                        onValueChange={value => field.handleChange((value ?? '1') as FormValues['blockStrategy'])}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent alignItemWithTrigger={false}>
+                          <SelectGroup>
+                            {JOB_BLOCK_STRATEGY_OPTIONS.map(option => (
+                              <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    </Field>
+                  )}
+                </form.Field>
+
+                {renderNumberField('executorTimeout', '超时时间', 1, '秒')}
+                {renderNumberField('maxRetryTimes', '最大重试次数', 0)}
+                {renderNumberField('retryInterval', '重试间隔', 1, '秒')}
+                {renderNumberField('parallelNum', '并行数', 1)}
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <DrawerFooter className="shrink-0 flex-row justify-end gap-2 border-t p-4">
+          <Button type="button" variant="outline" disabled={form.state.isSubmitting} onClick={onClose}>
+            取消
+          </Button>
+          <form.Subscribe selector={state => state.isSubmitting}>
+            {isSubmitting => (
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Spinner />
+                    保存中
+                  </>
+                ) : (
+                  '保存'
+                )}
+              </Button>
+            )}
+          </form.Subscribe>
+        </DrawerFooter>
+      </form>
     </EntityDrawer>
   )
 }

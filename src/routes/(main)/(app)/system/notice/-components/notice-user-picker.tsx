@@ -59,10 +59,7 @@ export function NoticeUserPicker({ open, selected, onClose, onConfirm }: NoticeU
     }
   }, [open, selected])
 
-  const users = React.useMemo(
-    () => usersQuery.data?.pages.flatMap(page => page.list) ?? EMPTY_USERS,
-    [usersQuery.data]
-  )
+  const users = React.useMemo(() => usersQuery.data?.pages.flatMap(page => page.list) ?? EMPTY_USERS, [usersQuery.data])
 
   const toggleSelect = (id: string) => {
     setSelectedIds(prev => {
