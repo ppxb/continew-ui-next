@@ -56,7 +56,8 @@ export interface CaptchaResp {
   uuid: string
   /** Data URI, for example `data:image/png;base64,...`. */
   img: string
-  expireTime: number
+  /** Omitted when the captcha is disabled. */
+  expireTime?: number
   isEnabled: boolean
 }
 

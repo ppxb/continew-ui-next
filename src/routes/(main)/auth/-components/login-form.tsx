@@ -40,7 +40,13 @@ const requiredCaptchaRule = z.string().min(1, '请输入验证码')
 export function LoginForm({ redirectTo }: { readonly redirectTo?: string }) {
   const navigate = useNavigate()
   const login = useAuthStore(state => state.login)
-  const { captcha, isEnabled: isCaptchaEnabled, isLoading: isCaptchaLoading, refresh: refreshCaptcha } = useCaptcha()
+  const {
+    captcha,
+    isEnabled: isCaptchaEnabled,
+    isExpired: isCaptchaExpired,
+    isLoading: isCaptchaLoading,
+    refresh: refreshCaptcha
+  } = useCaptcha()
   const formRef = React.useRef<HTMLFormElement>(null)
 
   const form = useForm({
@@ -143,10 +149,7 @@ export function LoginForm({ redirectTo }: { readonly redirectTo?: string }) {
         </form.Field>
 
         {isCaptchaEnabled && (
-          <form.Field
-            name="captcha"
-            validators={isCaptchaEnabled ? { onDynamic: requiredCaptchaRule } : undefined}
-          >
+          <form.Field name="captcha" validators={isCaptchaEnabled ? { onDynamic: requiredCaptchaRule } : undefined}>
             {field => {
               const invalid = field.state.meta.errors.length > 0
 
@@ -167,7 +170,7 @@ export function LoginForm({ redirectTo }: { readonly redirectTo?: string }) {
                     />
                     <CaptchaImage
                       img={captcha?.img}
-                      isEnabled={isCaptchaEnabled}
+                      isExpired={isCaptchaExpired}
                       isLoading={isCaptchaLoading}
                       onRefresh={() => void refreshCaptcha()}
                     />
