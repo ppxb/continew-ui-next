@@ -50,7 +50,8 @@
   --type-teal-foreground: oklch(0.6 0.118 184.704);
   --type-amber: oklch(0.769 0.188 70.08);
   --type-amber-foreground: oklch(0.666 0.179 58.318);
-  --radius: 0.625rem;
+  --radius-scale: 1;
+  --radius: calc(0.625rem * var(--radius-scale));
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);
@@ -59,6 +60,23 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+}
+
+/* Radius preference: a share of the base corner, so 0 squares every control and 1 is the default. */
+:root[data-radius='0'] {
+  --radius-scale: 0;
+}
+
+:root[data-radius='0.25'] {
+  --radius-scale: 0.25;
+}
+
+:root[data-radius='0.5'] {
+  --radius-scale: 0.5;
+}
+
+:root[data-radius='0.75'] {
+  --radius-scale: 0.75;
 }
 
 @theme inline {

@@ -9,6 +9,7 @@
 import {
   CONTENT_LAYOUT_VALUES,
   NAVBAR_STYLE_VALUES,
+  RADIUS_VALUES,
   SIDEBAR_COLLAPSIBLE_VALUES,
   SIDEBAR_VARIANT_VALUES
 } from './layout'
@@ -90,6 +91,13 @@ export const PREFERENCE_REGISTRY = {
     defaultValue: 'icon',
     persistence: 'client-cookie',
     attribute: 'data-sidebar-collapsible'
+  }),
+
+  radius: defineBootPreference({
+    values: RADIUS_VALUES,
+    defaultValue: '1',
+    persistence: 'client-cookie',
+    attribute: 'data-radius'
   })
 } as const
 

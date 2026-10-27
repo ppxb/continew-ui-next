@@ -7,7 +7,14 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import type { ContentLayout, NavbarStyle, SidebarCollapsible, SidebarVariant } from '@/lib/preferences/layout'
+import {
+  type ContentLayout,
+  type NavbarStyle,
+  type Radius,
+  RADIUS_OPTIONS,
+  type SidebarCollapsible,
+  type SidebarVariant
+} from '@/lib/preferences/layout'
 import { THEME_COLOR_OPTIONS, type ThemeColor, type ThemeMode } from '@/lib/preferences/theme'
 import { usePreferencesStore } from '@/stores/preferences/preferences-provider'
 
@@ -27,7 +34,8 @@ export function LayoutControls() {
     content_layout: contentLayout,
     navbar_style: navbarStyle,
     sidebar_variant: variant,
-    sidebar_collapsible: collapsible
+    sidebar_collapsible: collapsible,
+    radius
   } = values
 
   const themeColorItems = THEME_COLOR_OPTIONS.map(color => ({
@@ -201,6 +209,26 @@ export function LayoutControls() {
                 <ToggleGroupItem value="offcanvas" aria-label="抽屉折叠">
                   抽屉
                 </ToggleGroupItem>
+              </ToggleGroup>
+            </div>
+
+            <div className="space-y-1">
+              <Label className="text-xs font-medium">圆角</Label>
+              <ToggleGroup
+                size="sm"
+                spacing={0}
+                variant="outline"
+                value={[radius]}
+                onValueChange={([nextRadius]) => {
+                  if (!nextRadius) return
+                  setPreference('radius', nextRadius as Radius)
+                }}
+              >
+                {RADIUS_OPTIONS.map(option => (
+                  <ToggleGroupItem key={option.value} value={option.value}>
+                    {option.label}
+                  </ToggleGroupItem>
+                ))}
               </ToggleGroup>
             </div>
 

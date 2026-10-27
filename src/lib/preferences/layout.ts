@@ -30,3 +30,14 @@ const NAVBAR_STYLE_OPTIONS = [
 ] as const
 export const NAVBAR_STYLE_VALUES = NAVBAR_STYLE_OPTIONS.map(v => v.value)
 export type NavbarStyle = (typeof NAVBAR_STYLE_VALUES)[number]
+
+// Radius, as a share of the default corner token: 0 squares everything, 1 keeps the design default.
+export const RADIUS_OPTIONS = [
+  { label: '0', value: '0' },
+  { label: '25%', value: '0.25' },
+  { label: '50%', value: '0.5' },
+  { label: '75%', value: '0.75' },
+  { label: '100%', value: '1' }
+] as const
+export const RADIUS_VALUES = RADIUS_OPTIONS.map(v => v.value)
+export type Radius = (typeof RADIUS_VALUES)[number]
