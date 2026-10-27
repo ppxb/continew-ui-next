@@ -9,6 +9,7 @@ import { Shield } from 'lucide-react'
 import { type CheckableTreeNode, CheckableTree } from '@/components/checkable-tree'
 import { EntityDrawer } from '@/components/entity-drawer'
 import { QueryState } from '@/components/query-state'
+import { RequiredMark } from '@/components/required-mark'
 import { Button } from '@/components/ui/button'
 import { DrawerFooter } from '@/components/ui/drawer'
 import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
@@ -72,7 +73,7 @@ function toCheckableDeptNodes(nodes: DeptResp[]): CheckableTreeNode[] {
     id: String(node.id),
     parentId: node.parentId ? String(node.parentId) : null,
     label: node.name,
-    children: node.children && node.children.length > 0 ? toCheckableDeptNodes(node.children) : undefined
+    children: node.children?.length ? toCheckableDeptNodes(node.children) : undefined
   }))
 }
 
@@ -87,7 +88,7 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
   const isCreate = roleId === null
   const formRef = React.useRef<HTMLFormElement>(null)
 
-  const detail = useRoleDetail(roleId, { enabled: open && !isCreate, refreshOnOpen: true })
+  const detail = useRoleDetail(roleId, { enabled: open, refreshOnOpen: !isCreate })
 
   const depts = useQuery({
     queryKey: deptKeys.trees(),
@@ -96,9 +97,7 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
     enabled: open
   })
 
-  const deptTreeData = React.useMemo(() => {
-    return toCheckableDeptNodes(depts.data ?? [])
-  }, [depts.data])
+  const deptTreeData = React.useMemo(() => toCheckableDeptNodes(depts.data ?? []), [depts.data])
 
   const form = useForm({
     defaultValues: EMPTY_FORM,
@@ -109,7 +108,7 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
         name: value.name.trim(),
         code: value.code.trim(),
         sort: value.sort,
-        dataScope: value.dataScope as DataScope,
+        dataScope: value.dataScope,
         deptIds: value.dataScope === 5 ? value.deptIds : [],
         deptCheckStrictly: value.dataScope === 5 ? value.deptCheckStrictly : false,
         description: value.description ? value.description.trim() : null
@@ -167,10 +166,10 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
       {
         name: detail.data.name,
         code: detail.data.code,
-        sort: detail.data.sort ?? 1,
-        dataScope: (detail.data.dataScope as DataScope) ?? 1,
-        deptIds: (detail.data.deptIds ?? []).map(String),
-        deptCheckStrictly: Boolean(detail.data.deptCheckStrictly),
+        sort: detail.data.sort,
+        dataScope: detail.data.dataScope,
+        deptIds: detail.data.deptIds.map(String),
+        deptCheckStrictly: detail.data.deptCheckStrictly,
         description: detail.data.description ?? ''
       },
       { keepDefaultValues: true }
@@ -192,6 +191,38 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
     })
   }
 
+  const renderTextField = (
+    name: 'name' | 'code',
+    label: string,
+    input: { placeholder: string; disabled?: boolean }
+  ) => (
+    <form.Field name={name} validators={{ onDynamic: formSchema.shape[name] }}>
+      {field => {
+        const invalid = field.state.meta.errors.length > 0
+
+        return (
+          <Field data-invalid={invalid}>
+            <FieldLabel>
+              {label}
+              <RequiredMark />
+            </FieldLabel>
+            <Input
+              name={name}
+              value={field.state.value}
+              onChange={event => field.handleChange(event.target.value)}
+              onBlur={field.handleBlur}
+              maxLength={30}
+              disabled={isSubmitting || input.disabled}
+              placeholder={input.placeholder}
+              aria-invalid={invalid}
+            />
+            <FieldError errors={field.state.meta.errors} />
+          </Field>
+        )
+      }}
+    </form.Field>
+  )
+
   const isLoading = !isCreate && (detail.isPending || detail.fetchStatus !== 'idle')
   const isDetailError = !isCreate && !isLoading && detail.isError
 
@@ -203,7 +234,6 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
       icon={<Shield className="size-4" />}
       width={32}
       closeDisabled={isSubmitting}
-      canClose={() => !isSubmitting}
     >
       {isLoading ? (
         <div className="flex min-h-0 flex-1 flex-col gap-4 p-4">
@@ -226,59 +256,20 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
           }}
         >
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
-            <FieldGroup className="gap-4">
-              <form.Field name="name" validators={{ onDynamic: formSchema.shape.name }}>
-                {field => {
-                  const invalid = field.state.meta.errors.length > 0
+            <FieldGroup>
+              {renderTextField('name', '角色名称', { placeholder: '请输入角色名称（如：系统运维管理员）' })}
 
-                  return (
-                    <Field className="gap-1.5" data-invalid={invalid}>
-                      <FieldLabel>角色名称</FieldLabel>
-                      <Input
-                        name="name"
-                        value={field.state.value}
-                        onChange={event => field.handleChange(event.target.value)}
-                        onBlur={field.handleBlur}
-                        maxLength={30}
-                        disabled={isSubmitting}
-                        placeholder="请输入角色名称（如：系统运维管理员）"
-                        aria-invalid={invalid}
-                      />
-                      <FieldError errors={field.state.meta.errors} />
-                    </Field>
-                  )
-                }}
-              </form.Field>
-
-              <form.Field name="code" validators={{ onDynamic: formSchema.shape.code }}>
-                {field => {
-                  const invalid = field.state.meta.errors.length > 0
-
-                  return (
-                    <Field className="gap-1.5" data-invalid={invalid}>
-                      <FieldLabel>角色编码</FieldLabel>
-                      <Input
-                        name="code"
-                        value={field.state.value}
-                        onChange={event => field.handleChange(event.target.value)}
-                        onBlur={field.handleBlur}
-                        disabled={isSubmitting || (!isCreate && detail.data?.isSystem)}
-                        maxLength={30}
-                        placeholder="请输入角色编码（如：ops_admin）"
-                        aria-invalid={invalid}
-                      />
-                      <FieldError errors={field.state.meta.errors} />
-                    </Field>
-                  )
-                }}
-              </form.Field>
+              {renderTextField('code', '角色编码', {
+                placeholder: '请输入角色编码（如：ops_admin）',
+                disabled: !isCreate && Boolean(detail.data?.isSystem)
+              })}
 
               <form.Field name="sort" validators={{ onDynamic: formSchema.shape.sort }}>
                 {field => {
                   const invalid = field.state.meta.errors.length > 0
 
                   return (
-                    <Field className="gap-1.5" data-invalid={invalid}>
+                    <Field data-invalid={invalid}>
                       <FieldLabel>排序</FieldLabel>
                       <Input
                         name="sort"
@@ -302,7 +293,7 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
                   const invalid = field.state.meta.errors.length > 0
 
                   return (
-                    <Field className="gap-1.5" data-invalid={invalid}>
+                    <Field data-invalid={invalid}>
                       <FieldLabel>数据权限</FieldLabel>
                       <Select
                         items={DATA_SCOPE_ITEMS}
@@ -335,8 +326,8 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
                     {field => (
                       <Field orientation="horizontal" className="items-center justify-between">
                         <FieldContent>
-                          <FieldLabel className="text-xs">父子联动</FieldLabel>
-                          <FieldDescription className="text-[11px]">
+                          <FieldLabel>父子联动</FieldLabel>
+                          <FieldDescription>
                             {field.state.value ? '已开启独立选择（不联动）' : '勾选父部门时自动勾选全部子部门'}
                           </FieldDescription>
                         </FieldContent>
@@ -354,8 +345,11 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
                       const invalid = field.state.meta.errors.length > 0
 
                       return (
-                        <Field className="gap-1.5" data-invalid={invalid}>
-                          <FieldLabel className="text-xs">选择权限部门</FieldLabel>
+                        <Field data-invalid={invalid}>
+                          <FieldLabel>
+                            选择权限部门
+                            <RequiredMark />
+                          </FieldLabel>
                           {/* The tree has no `disabled` prop of its own, so `inert` blocks both the
                                 pointer and the keyboard while a save is in flight. */}
                           <div
@@ -385,7 +379,7 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
                   const invalid = field.state.meta.errors.length > 0
 
                   return (
-                    <Field className="gap-1.5" data-invalid={invalid}>
+                    <Field data-invalid={invalid}>
                       <FieldLabel>描述</FieldLabel>
                       <Textarea
                         name="description"
