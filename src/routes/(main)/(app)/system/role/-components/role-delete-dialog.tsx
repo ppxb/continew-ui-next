@@ -20,33 +20,31 @@ import { toast } from '@/components/ui/toast'
 import { deleteRoles, roleKeys, type RoleResp } from '@/lib/api/role'
 
 interface RoleDeleteDialogProps {
+  /** The role being deleted, or `null` before the first one is picked. */
   readonly role: RoleResp | null
   readonly open: boolean
   readonly onClose: () => void
-  readonly onSuccess?: () => void
 }
 
-export function RoleDeleteDialog({ role, open, onClose, onSuccess }: RoleDeleteDialogProps) {
+export function RoleDeleteDialog({ role, open, onClose }: RoleDeleteDialogProps) {
   const queryClient = useQueryClient()
   const [isDeleting, setIsDeleting] = React.useState(false)
 
-  const isSystem = Boolean(role?.isSystem)
-
   const handleDelete = async () => {
-    if (!role || isSystem) return
+    if (!role) {
+      return
+    }
 
     setIsDeleting(true)
+
     try {
       await deleteRoles([role.id])
-      toast.add({
-        title: '删除角色成功',
-        type: 'success'
-      })
+
+      toast.add({ title: '删除角色成功', type: 'success' })
       onClose()
-      onSuccess?.()
       void queryClient.invalidateQueries({ queryKey: roleKeys.all })
     } catch {
-      // Handled by HTTP layer
+      // The HTTP layer already reported the failure.
     } finally {
       setIsDeleting(false)
     }
@@ -56,6 +54,7 @@ export function RoleDeleteDialog({ role, open, onClose, onSuccess }: RoleDeleteD
     <AlertDialog
       open={open}
       onOpenChange={nextOpen => {
+        // Closing mid-delete would leave the request in flight with no way to report it.
         if (!nextOpen && !isDeleting) {
           onClose()
         }
@@ -68,21 +67,13 @@ export function RoleDeleteDialog({ role, open, onClose, onSuccess }: RoleDeleteD
           </AlertDialogMedia>
           <AlertDialogTitle>删除角色</AlertDialogTitle>
           <AlertDialogDescription>
-            {isSystem ? (
-              <span className="font-medium text-destructive">系统内置角色不可删除。</span>
-            ) : (
-              `确定要删除角色「${role?.name ?? ''}」吗？删除后该角色下关联的用户权限将失效，操作不可撤回。`
-            )}
+            {`确定要删除角色「${role?.name ?? ''}」吗？删除后该角色下关联的用户权限将失效，操作不可撤回。`}
           </AlertDialogDescription>
         </AlertDialogHeader>
 
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isDeleting}>取消</AlertDialogCancel>
-          <AlertDialogAction
-            variant="destructive"
-            disabled={isDeleting || isSystem || !role}
-            onClick={() => void handleDelete()}
-          >
+          <AlertDialogAction variant="destructive" disabled={isDeleting || !role} onClick={() => void handleDelete()}>
             {isDeleting ? (
               <>
                 <Spinner />
