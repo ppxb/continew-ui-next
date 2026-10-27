@@ -15,8 +15,10 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { DATA_SCOPE_MAP, type DataScope, type RoleResp } from '@/lib/api/role'
+import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 
+/** The row actions the table raises. */
 export type RoleAction = 'edit' | 'permission' | 'members' | 'delete'
 
 const DATA_SCOPE_TONES: Record<DataScope, TypeTone> = {
@@ -27,52 +29,63 @@ const DATA_SCOPE_TONES: Record<DataScope, TypeTone> = {
   5: 'violet'
 }
 
-function DataScopeBadge({ scope }: { scope: RoleResp['dataScope'] }) {
-  return <TypeBadge tone={DATA_SCOPE_TONES[scope] ?? 'neutral'} label={DATA_SCOPE_MAP[scope] ?? '未知'} />
+function DataScopeBadge({ scope }: { scope: DataScope }) {
+  return <TypeBadge tone={DATA_SCOPE_TONES[scope]} label={DATA_SCOPE_MAP[scope]} />
+}
+
+type TextColumnKey = 'description' | 'createUserString' | 'createTime' | 'updateUserString' | 'updateTime'
+
+function textColumn(
+  key: TextColumnKey,
+  header: string,
+  className = 'text-sm'
+): ColumnDef<DataTableFeatures, RoleResp> {
+  return {
+    accessorKey: key,
+    header,
+    cell: ({ row }) => <span className={className}>{row.original[key] || EMPTY_PLACEHOLDER}</span>
+  }
 }
 
 function RowActions({ role, onAction }: { role: RoleResp; onAction: (action: RoleAction, role: RoleResp) => void }) {
   const isSystem = Boolean(role.isSystem)
 
   return (
-    <div className="flex items-center justify-center">
-      <DropdownMenu>
-        <Tooltip>
-          <TooltipTrigger render={<DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />} />}>
-            <MoreHorizontal className="size-4" />
-          </TooltipTrigger>
-          <TooltipContent side="top" sideOffset={8}>
-            更多操作
-          </TooltipContent>
-        </Tooltip>
-        <DropdownMenuContent align="end" className="w-36">
-          <DropdownMenuGroup>
-            <DropdownMenuItem disabled={isSystem} onClick={() => onAction('edit', role)}>
-              <PenLine />
-              修改角色
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onAction('permission', role)}>
-              <KeyRound />
-              功能权限
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onAction('members', role)}>
-              <Users />
-              关联用户
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-          <DropdownMenuSeparator />
-          <DropdownMenuGroup>
-            <DropdownMenuItem variant="destructive" disabled={isSystem} onClick={() => onAction('delete', role)}>
-              <Trash2 />
-              删除
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
+    <DropdownMenu>
+      <Tooltip>
+        <TooltipTrigger render={<DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />} />}>
+          <MoreHorizontal />
+        </TooltipTrigger>
+        <TooltipContent side="top">更多操作</TooltipContent>
+      </Tooltip>
+      <DropdownMenuContent align="end" className="w-36">
+        <DropdownMenuGroup>
+          <DropdownMenuItem disabled={isSystem} onClick={() => onAction('edit', role)}>
+            <PenLine />
+            修改角色
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onAction('permission', role)}>
+            <KeyRound />
+            功能权限
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onAction('members', role)}>
+            <Users />
+            关联用户
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem variant="destructive" disabled={isSystem} onClick={() => onAction('delete', role)}>
+          <Trash2 />
+          删除
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
 
+/**
+ * Builds the role table columns; `rowOffset` keeps the serial number continuous across pages.
+ */
 export function createRoleColumns(
   onAction: (action: RoleAction, role: RoleResp) => void,
   rowOffset: number
@@ -87,15 +100,12 @@ export function createRoleColumns(
     {
       accessorKey: 'name',
       header: '角色名称',
-      cell: ({ row }) => {
-        const isSystem = row.original.isSystem
-        return (
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-foreground">{row.original.name}</span>
-            <FlagBadge active={isSystem} activeLabel="内置" icon={<ShieldCheck />} />
-          </div>
-        )
-      }
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-foreground">{row.original.name}</span>
+          <FlagBadge active={row.original.isSystem} activeLabel="内置" icon={<ShieldCheck />} />
+        </div>
+      )
     },
     {
       accessorKey: 'code',
@@ -110,44 +120,16 @@ export function createRoleColumns(
     {
       accessorKey: 'sort',
       header: '排序',
-      cell: ({ row }) => <span className="text-sm text-muted-foreground tabular-nums">{row.original.sort}</span>
+      cell: ({ row }) => <span className="text-sm tabular-nums">{row.original.sort}</span>
     },
-    {
-      accessorKey: 'description',
-      header: '描述',
-      cell: ({ row }) => (
-        <span className="inline-block max-w-50 truncate text-sm text-muted-foreground">
-          {row.original.description || '-'}
-        </span>
-      )
-    },
-    {
-      accessorKey: 'createUserString',
-      header: '创建人',
-      cell: ({ row }) => <span className="text-sm">{row.original.createUserString || '-'}</span>
-    },
-    {
-      accessorKey: 'createTime',
-      header: '创建时间',
-      cell: ({ row }) => (
-        <span className="text-sm text-muted-foreground tabular-nums">{row.original.createTime || '-'}</span>
-      )
-    },
-    {
-      accessorKey: 'updateUserString',
-      header: '修改人',
-      cell: ({ row }) => <span className="text-sm">{row.original.updateUserString || '-'}</span>
-    },
-    {
-      accessorKey: 'updateTime',
-      header: '修改时间',
-      cell: ({ row }) => (
-        <span className="text-sm text-muted-foreground tabular-nums">{row.original.updateTime || '-'}</span>
-      )
-    },
+    textColumn('description', '描述', 'inline-block max-w-50 truncate text-sm'),
+    textColumn('createUserString', '创建人'),
+    textColumn('createTime', '创建时间', 'text-sm tabular-nums'),
+    textColumn('updateUserString', '修改人'),
+    textColumn('updateTime', '修改时间', 'text-sm tabular-nums'),
     {
       id: 'actions',
-      header: () => <div className="text-center">操作</div>,
+      header: '操作',
       enableHiding: false,
       cell: ({ row }) => <RowActions role={row.original} onAction={onAction} />
     }
