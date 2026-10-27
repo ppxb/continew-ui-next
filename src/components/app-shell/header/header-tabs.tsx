@@ -3,6 +3,7 @@ import * as React from 'react'
 import { Link, useRouter, useRouterState, type RegisteredRouter } from '@tanstack/react-router'
 import { cn } from 'cn'
 import { Ban, Layers, RotateCw, X } from 'lucide-react'
+import { motion } from 'motion/react'
 
 import {
   ContextMenu,
@@ -104,6 +105,13 @@ function isKnownPath(path: string, menuRoutes: Parameters<typeof findMenuByPath>
   return resolveRouteInfo(path, menuRoutes, path in router.routesByPath) !== null
 }
 
+type TabIndicatorRect = {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
 export function HeaderTabs() {
   const router = useRouter()
   const pathname = useRouterState({ select: s => s.location.pathname })
@@ -117,6 +125,54 @@ export function HeaderTabs() {
   const pruneTabs = useTabsStore(s => s.pruneTabs)
 
   const visibleTabs = tabs.filter(tab => isKnownPath(tab.path, menuRoutes ?? [], router))
+  const navRef = React.useRef<HTMLElement | null>(null)
+  const tabRefs = React.useRef(new Map<string, HTMLDivElement>())
+  const [indicator, setIndicator] = React.useState<TabIndicatorRect | null>(null)
+
+  React.useLayoutEffect(() => {
+    const nav = navRef.current
+    const tab = tabRefs.current.get(pathname)
+
+    if (!nav) {
+      setIndicator(null)
+      return
+    }
+
+    // The tab store may add the active route after this render; keep the current
+    // indicator so the next measurement can animate from it.
+    if (!tab) {
+      return
+    }
+
+    const measure = () => {
+      const navRect = nav.getBoundingClientRect()
+      const tabRect = tab.getBoundingClientRect()
+      const next = {
+        x: tabRect.left - navRect.left - nav.clientLeft + nav.scrollLeft,
+        y: tabRect.top - navRect.top - nav.clientTop,
+        width: tabRect.width,
+        height: tabRect.height
+      }
+
+      setIndicator(current =>
+        current &&
+        current.x === next.x &&
+        current.y === next.y &&
+        current.width === next.width &&
+        current.height === next.height
+          ? current
+          : next
+      )
+    }
+
+    measure()
+
+    const observer = new ResizeObserver(measure)
+    observer.observe(nav)
+    observer.observe(tab)
+
+    return () => observer.disconnect()
+  }, [pathname, tabs, menuRoutes])
 
   // Synchronize router location with tabs
   React.useEffect(() => {
@@ -177,9 +233,24 @@ export function HeaderTabs() {
 
   return (
     <nav
+      ref={navRef}
       data-slot="header-tabs"
-      className="inline-flex h-8 max-w-full scrollbar-none items-center gap-1 overflow-x-auto rounded-lg border border-border/70 p-0.5 select-none"
+      className="relative inline-flex h-8 max-w-full scrollbar-none items-center gap-1 overflow-x-auto rounded-lg border border-border/70 p-0.5 select-none"
     >
+      {indicator && (
+        <motion.span
+          className="pointer-events-none absolute top-0 left-0 z-0 rounded-md border border-border/80 bg-accent"
+          initial={false}
+          animate={{
+            x: indicator.x,
+            y: indicator.y,
+            width: indicator.width,
+            height: indicator.height
+          }}
+          transition={{ type: 'spring', stiffness: 420, damping: 32 }}
+        />
+      )}
+
       {visibleTabs.map(tab => {
         const isActive = tab.path === pathname
         const isPinned = !tab.closable
@@ -189,16 +260,26 @@ export function HeaderTabs() {
           <ContextMenu key={tab.id}>
             <ContextMenuTrigger render={<div className="min-w-0 shrink" />}>
               <div
+                ref={node => {
+                  if (node) {
+                    tabRefs.current.set(tab.path, node)
+                  } else {
+                    tabRefs.current.delete(tab.path)
+                  }
+                }}
                 className={cn(
-                  'group relative flex h-7 max-w-[130px] min-w-0 shrink items-center rounded-md text-xs transition-all duration-150',
+                  'group relative flex h-7 max-w-[130px] min-w-0 shrink items-center rounded-md border border-transparent text-xs transition-colors duration-150',
                   isActive
-                    ? 'border border-border/80'
-                    : 'border border-transparent text-muted-foreground hover:bg-accent-foreground/5 hover:text-foreground'
+                    ? 'text-foreground'
+                    : 'text-muted-foreground hover:bg-accent-foreground/5 hover:text-foreground'
                 )}
               >
                 <Link<RegisteredRouter, string, string>
                   href={tab.path}
-                  className={cn('flex h-full min-w-0 flex-1 items-center gap-1.5 pl-2.5', isPinned && 'pr-2.5')}
+                  className={cn(
+                    'relative z-10 flex h-full min-w-0 flex-1 items-center gap-1.5 pl-2.5',
+                    isPinned && 'pr-2.5'
+                  )}
                 >
                   {/* Active indicator dot with emerald green styling */}
                   {isActive && <span className="size-1.5 shrink-0 rounded-full bg-emerald-500" />}
@@ -220,7 +301,7 @@ export function HeaderTabs() {
                     type="button"
                     onClick={() => handleCloseTab(tab)}
                     className={cn(
-                      'mr-1 ml-1.5 flex size-3.5 shrink-0 items-center justify-center rounded-xs transition-all hover:bg-muted-foreground/15 hover:text-foreground',
+                      'relative z-10 mr-1 ml-1.5 flex size-3.5 shrink-0 items-center justify-center rounded-xs transition-all hover:bg-muted-foreground/15 hover:text-foreground',
                       isActive
                         ? 'opacity-50 hover:opacity-100'
                         : 'opacity-0 group-hover:opacity-50 group-hover:hover:opacity-100'
