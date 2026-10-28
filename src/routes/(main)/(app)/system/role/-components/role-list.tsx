@@ -1,15 +1,17 @@
 import * as React from 'react'
 
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { type ColumnVisibilityState, type PaginationState, useTable } from '@tanstack/react-table'
 
-import { Search } from 'lucide-react'
+import { Plus } from 'lucide-react'
 
 import { DataTable } from '@/components/data-table'
 import { ListPageCard } from '@/components/list-page-card'
-import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
-import { useDebouncedValue } from '@/hooks/use-debounced-value'
+import { TableSearch } from '@/components/table-search'
+import { TableToolbar } from '@/components/table-toolbar'
+import { Button } from '@/components/ui/button'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
+import { usePageClamp } from '@/hooks/use-page-clamp'
 import { listRoles, roleKeys, type RoleResp } from '@/lib/api/role'
 import { dataTableFeatures } from '@/lib/data-table-features'
 
@@ -17,7 +19,6 @@ import { createRoleColumns, type RoleAction } from './role-columns'
 import { RoleDeleteDialog } from './role-delete-dialog'
 import { RoleFormDrawer } from './role-form-drawer'
 import { RolePermissionDrawer } from './role-permission-drawer'
-import { RoleToolbar } from './role-toolbar'
 import { RoleUserDrawer } from './role-user-drawer'
 
 const HIDDEN_BY_DEFAULT: ColumnVisibilityState = {
@@ -32,8 +33,7 @@ const EMPTY_ROWS: RoleResp[] = []
 export function RoleList() {
   const [pagination, setPagination] = React.useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
   const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>(HIDDEN_BY_DEFAULT)
-  const [searchInput, setSearchInput] = React.useState('')
-  const keyword = useDebouncedValue(searchInput).trim()
+  const [keyword, setKeyword] = React.useState('')
 
   // Drawer & Dialog states
   const [formRoleId, setFormRoleId] = React.useState<string | number | null>(null)
@@ -50,37 +50,23 @@ export function RoleList() {
 
   const fullscreen = useFullscreenTransition()
 
-  React.useEffect(() => {
-    setPagination(current => (current.pageIndex === 0 ? current : { ...current, pageIndex: 0 }))
-  }, [keyword])
+  const queryParams = { description: keyword || undefined, sort: DEFAULT_SORT }
 
   const query = useQuery({
-    queryKey: roleKeys.list({
-      description: keyword || undefined,
-      sort: DEFAULT_SORT
-    }),
-    queryFn: ({ signal }) =>
-      listRoles(
-        {
-          description: keyword || undefined,
-          sort: DEFAULT_SORT
-        },
-        signal
-      ),
-    placeholderData: previous => previous
+    queryKey: roleKeys.list(queryParams),
+    queryFn: ({ signal }) => listRoles(queryParams, signal),
+    placeholderData: keepPreviousData
   })
 
   const roles = query.data ?? EMPTY_ROWS
-  const total = roles.length
   const rowOffset = pagination.pageIndex * pagination.pageSize
 
-  // Fallback pagination if total reduces out of bounds
-  React.useEffect(() => {
-    if (total > 0 && pagination.pageIndex * pagination.pageSize >= total) {
-      const maxPageIndex = Math.max(0, Math.ceil(total / pagination.pageSize) - 1)
-      setPagination(current => ({ ...current, pageIndex: maxPageIndex }))
-    }
-  }, [total, pagination.pageIndex, pagination.pageSize])
+  usePageClamp(roles.length, pagination, setPagination)
+
+  const handleSearch = (next: string) => {
+    setKeyword(next)
+    setPagination(current => (current.pageIndex === 0 ? current : { ...current, pageIndex: 0 }))
+  }
 
   const handleRowAction = React.useCallback((action: RoleAction, role: RoleResp) => {
     if (action === 'edit') {
@@ -125,29 +111,22 @@ export function RoleList() {
     setIsFormOpen(true)
   }
 
-  const filters = (
-    <InputGroup className="w-full md:w-64">
-      <InputGroupAddon align="inline-start">
-        <Search className="size-3.5" />
-      </InputGroupAddon>
-      <InputGroupInput
-        className="text-sm"
-        placeholder="搜索角色名称、编码"
-        value={searchInput}
-        onChange={event => setSearchInput(event.target.value)}
-      />
-    </InputGroup>
-  )
+  const filters = <TableSearch className="h-8" placeholder="搜索角色名称、编码" onSearch={handleSearch} />
 
   const actions = (
-    <RoleToolbar
+    <TableToolbar
       table={table}
-      isRefreshing={query.isFetching}
+      isRefreshing={query.isFetching && !query.isPending}
       isFullscreen={fullscreen.isFullscreen}
-      onCreate={handleCreate}
       onRefresh={() => void query.refetch()}
       onToggleFullscreen={fullscreen.toggleFullscreen}
       onResetColumns={() => setColumnVisibility(HIDDEN_BY_DEFAULT)}
+      actions={
+        <Button onClick={handleCreate}>
+          <Plus />
+          新增角色
+        </Button>
+      }
     />
   )
 
