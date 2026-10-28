@@ -3,26 +3,24 @@ import * as React from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { type ColumnDef, type PaginationState, type RowSelectionState, useTable } from '@tanstack/react-table'
 
-import { Plus, Search, Trash2, Users, UserX } from 'lucide-react'
+import { Plus, Trash2, Users } from 'lucide-react'
 
 import { EntityDrawer } from '@/components/entity-drawer'
 import { PaginationArrow } from '@/components/pagination-arrow'
 import { QueryState } from '@/components/query-state'
 import { StatusCell } from '@/components/status-cell'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { TableSearch } from '@/components/table-search'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { DrawerFooter } from '@/components/ui/drawer'
-import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { toast } from '@/components/ui/toast'
-import { useDebouncedValue } from '@/hooks/use-debounced-value'
 import { listRoleUsers, roleKeys, type RoleResp, type RoleUserResp, unassignRoleFromUsers } from '@/lib/api/role'
+import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 import { dataTableFeatures, type DataTableFeatures } from '@/lib/data-table-features'
-import { getInitials } from '@/lib/utils'
 
 import { RoleUserAddDialog } from './role-user-add-dialog'
 
@@ -34,47 +32,109 @@ interface RoleUserDrawerProps {
   readonly onClose: () => void
 }
 
+interface MemberColumnOptions {
+  readonly isUnassigning: boolean
+  readonly onUnassign: (member: RoleUserResp) => void
+}
+
+function createMemberColumns({
+  isUnassigning,
+  onUnassign
+}: MemberColumnOptions): ColumnDef<DataTableFeatures, RoleUserResp>[] {
+  return [
+    {
+      id: 'select',
+      header: ({ table }) => {
+        const isAll = table.getIsAllPageRowsSelected()
+        const isSome = table.getIsSomePageRowsSelected()
+
+        return (
+          <div className="flex items-center justify-center">
+            <Checkbox
+              checked={isAll}
+              indeterminate={!isAll && isSome}
+              onCheckedChange={value => table.toggleAllPageRowsSelected(Boolean(value))}
+            />
+          </div>
+        )
+      },
+      cell: ({ row }) => (
+        <div className="flex items-center justify-center">
+          <Checkbox checked={row.getIsSelected()} onCheckedChange={value => row.toggleSelected(Boolean(value))} />
+        </div>
+      ),
+      enableSorting: false,
+      size: 36
+    },
+    {
+      accessorKey: 'nickname',
+      header: '用户',
+      cell: ({ row }) => {
+        const user = row.original
+        const name = user.nickname || user.username
+
+        return (
+          <div className="flex flex-col leading-tight">
+            <span>{name}</span>
+            <span>{user.username}</span>
+          </div>
+        )
+      }
+    },
+    {
+      accessorKey: 'deptName',
+      header: '所属部门',
+      cell: ({ row }) => <span>{row.original.deptName || EMPTY_PLACEHOLDER}</span>
+    },
+    {
+      accessorKey: 'status',
+      header: '状态',
+      cell: ({ row }) => <StatusCell status={row.original.status} />
+    },
+    {
+      id: 'actions',
+      header: () => <div className="text-center">操作</div>,
+      cell: ({ row }) => (
+        <div className="flex items-center justify-center">
+          <Button variant="destructive" size="sm" disabled={isUnassigning} onClick={() => onUnassign(row.original)}>
+            取消授权
+          </Button>
+        </div>
+      )
+    }
+  ]
+}
+
 export function RoleUserDrawer({ role, open, onClose }: RoleUserDrawerProps) {
   const queryClient = useQueryClient()
   const roleId = role?.id ?? null
 
   const [pagination, setPagination] = React.useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({})
-  const [searchInput, setSearchInput] = React.useState('')
-  const keyword = useDebouncedValue(searchInput).trim()
+  const [keyword, setKeyword] = React.useState('')
   const [isAddOpen, setIsAddOpen] = React.useState(false)
   const [isUnassigning, setIsUnassigning] = React.useState(false)
 
+  // Reset on close, so reopening never starts from a stale keyword, page or selection.
   React.useEffect(() => {
-    setPagination(prev => (prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }))
-  }, [keyword])
+    if (open) return
 
-  // Reset pagination & selection on open
-  React.useEffect(() => {
-    if (open) {
-      setPagination({ pageIndex: 0, pageSize: 10 })
-      setRowSelection({})
-      setSearchInput('')
-    }
-  }, [open, roleId])
+    setPagination({ pageIndex: 0, pageSize: 10 })
+    setRowSelection({})
+    setKeyword('')
+  }, [open])
+
+  const memberParams = {
+    page: pagination.pageIndex + 1,
+    size: pagination.pageSize,
+    description: keyword || undefined
+  }
 
   const query = useQuery({
-    queryKey: roleKeys.users(roleId, {
-      page: pagination.pageIndex + 1,
-      size: pagination.pageSize,
-      description: keyword || undefined
-    }),
+    queryKey: roleKeys.users(roleId, memberParams),
     queryFn: ({ signal }) => {
       if (!roleId) return Promise.resolve({ list: [], total: 0 })
-      return listRoleUsers(
-        roleId,
-        {
-          page: pagination.pageIndex + 1,
-          size: pagination.pageSize,
-          description: keyword || undefined
-        },
-        signal
-      )
+      return listRoleUsers(roleId, memberParams, signal)
     },
     enabled: open && roleId !== null
   })
@@ -82,21 +142,26 @@ export function RoleUserDrawer({ role, open, onClose }: RoleUserDrawerProps) {
   const total = query.data?.total ?? 0
   const pageCount = Math.max(Math.ceil(total / pagination.pageSize), 1)
 
+  /** One refresh covers the member list, the cached ids and the "already in the role" marks. */
+  const refreshMembers = React.useCallback(() => {
+    void queryClient.invalidateQueries({ queryKey: roleKeys.usersRoot(roleId) })
+    void queryClient.invalidateQueries({ queryKey: roleKeys.userIds(roleId) })
+  }, [queryClient, roleId])
+
   const handleUnassignSingle = React.useCallback(
     async (member: RoleUserResp) => {
       setIsUnassigning(true)
       try {
         await unassignRoleFromUsers([member.id])
         toast.add({ title: '已取消成员角色授权', type: 'success' })
-        void queryClient.invalidateQueries({ queryKey: roleKeys.usersRoot(roleId) })
-        void queryClient.invalidateQueries({ queryKey: roleKeys.userIds(roleId) })
+        refreshMembers()
       } catch {
-        // Handled by HTTP layer
+        // The HTTP layer already reported the failure.
       } finally {
         setIsUnassigning(false)
       }
     },
-    [queryClient, roleId]
+    [refreshMembers]
   )
 
   const handleUnassignBatch = async () => {
@@ -108,95 +173,23 @@ export function RoleUserDrawer({ role, open, onClose }: RoleUserDrawerProps) {
       await unassignRoleFromUsers(selectedIds)
       toast.add({ title: `已批量取消 ${selectedIds.length} 名成员授权`, type: 'success' })
       setRowSelection({})
-      void queryClient.invalidateQueries({ queryKey: roleKeys.usersRoot(roleId) })
-      void queryClient.invalidateQueries({ queryKey: roleKeys.userIds(roleId) })
+      refreshMembers()
     } catch {
-      // Handled by HTTP layer
+      // The HTTP layer already reported the failure.
     } finally {
       setIsUnassigning(false)
     }
   }
 
-  const columns = React.useMemo<ColumnDef<DataTableFeatures, RoleUserResp>[]>(() => {
-    return [
-      {
-        id: 'select',
-        header: ({ table }) => {
-          const isAll = table.getIsAllPageRowsSelected()
-          const isSome = table.getIsSomePageRowsSelected()
-          return (
-            <div className="flex items-center justify-center">
-              <Checkbox
-                checked={isAll}
-                indeterminate={!isAll && isSome}
-                onCheckedChange={value => table.toggleAllPageRowsSelected(Boolean(value))}
-                aria-label="全选"
-                className="size-3.5"
-              />
-            </div>
-          )
-        },
-        cell: ({ row }) => (
-          <div className="flex items-center justify-center">
-            <Checkbox
-              checked={row.getIsSelected()}
-              onCheckedChange={value => row.toggleSelected(Boolean(value))}
-              aria-label="选择"
-              className="size-3.5"
-            />
-          </div>
-        ),
-        enableSorting: false,
-        size: 36
-      },
-      {
-        accessorKey: 'nickname',
-        header: '用户',
-        cell: ({ row }) => {
-          const user = row.original
-          const name = user.nickname || user.username
-          return (
-            <div className="flex items-center gap-2.5">
-              <Avatar className="size-7">
-                <AvatarFallback className="text-xs">{getInitials(name)}</AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col leading-tight">
-                <span className="text-xs font-medium text-foreground">{name}</span>
-                <span className="text-[11px] text-muted-foreground">{user.username}</span>
-              </div>
-            </div>
-          )
-        }
-      },
-      {
-        accessorKey: 'deptName',
-        header: '所属部门',
-        cell: ({ row }) => <span className="text-xs text-muted-foreground">{row.original.deptName || '-'}</span>
-      },
-      {
-        accessorKey: 'status',
-        header: '状态',
-        cell: ({ row }) => <StatusCell status={row.original.status} />
-      },
-      {
-        id: 'actions',
-        header: () => <div className="text-center">操作</div>,
-        cell: ({ row }) => (
-          <div className="flex items-center justify-center">
-            <Button
-              variant="destructive"
-              size="sm"
-              disabled={isUnassigning}
-              onClick={() => handleUnassignSingle(row.original)}
-            >
-              <UserX />
-              取消授权
-            </Button>
-          </div>
-        )
-      }
-    ]
-  }, [handleUnassignSingle, isUnassigning])
+  const handleSearch = (next: string) => {
+    setKeyword(next)
+    setPagination(current => (current.pageIndex === 0 ? current : { ...current, pageIndex: 0 }))
+  }
+
+  const columns = React.useMemo(
+    () => createMemberColumns({ isUnassigning, onUnassign: handleUnassignSingle }),
+    [isUnassigning, handleUnassignSingle]
+  )
 
   const table = useTable({
     features: dataTableFeatures,
@@ -223,51 +216,37 @@ export function RoleUserDrawer({ role, open, onClose }: RoleUserDrawerProps) {
         title="角色成员管理"
         icon={<Users className="size-4" />}
         badge={role ? <Badge variant="secondary">{role.name}</Badge> : undefined}
-        description="维护属于该角色的用户成员"
         width={40}
       >
         <div className="flex min-h-0 flex-1 flex-col gap-3 p-4">
-          {/* Toolbar */}
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="w-56">
-              <InputGroup>
-                <InputGroupAddon>
-                  <Search className="size-3.5 text-muted-foreground" />
-                </InputGroupAddon>
-                <InputGroupInput
-                  placeholder="搜索用户名"
-                  value={searchInput}
-                  onChange={e => setSearchInput(e.target.value)}
-                />
-              </InputGroup>
+              <TableSearch className="h-8 md:w-full" placeholder="搜索用户名" onSearch={handleSearch} />
             </div>
 
             <div className="flex items-center gap-2">
-              <Button size="sm" onClick={() => setIsAddOpen(true)}>
+              <Button onClick={() => setIsAddOpen(true)}>
                 <Plus />
                 添加成员
               </Button>
               <Button
-                size="sm"
                 variant="destructive"
                 disabled={selectedCount === 0 || isUnassigning}
                 onClick={handleUnassignBatch}
               >
                 <Trash2 />
                 批量取消授权
-                {selectedCount > 0 && <span className="ml-1 text-xs">({selectedCount})</span>}
               </Button>
             </div>
           </div>
 
-          {/* Member Table */}
           <div className="min-h-0 flex-1 overflow-y-auto rounded-md border">
             <Table>
               <TableHeader>
                 {table.getHeaderGroups().map(headerGroup => (
                   <TableRow key={headerGroup.id}>
                     {headerGroup.headers.map(header => (
-                      <TableHead key={header.id} className="py-2.5 text-xs">
+                      <TableHead key={header.id}>
                         {header.isPlaceholder ? null : <table.FlexRender header={header} />}
                       </TableHead>
                     ))}
@@ -287,22 +266,22 @@ export function RoleUserDrawer({ role, open, onClose }: RoleUserDrawerProps) {
                     </TableRow>
                   ))
                 ) : query.isPending ? (
-                  Array.from({ length: 4 }).map((_, i) => (
-                    <TableRow key={i}>
-                      <TableCell colSpan={5} className="py-3">
+                  Array.from({ length: 4 }).map((_, index) => (
+                    <TableRow key={index}>
+                      <TableCell colSpan={columns.length} className="py-3">
                         <Skeleton className="h-4 w-full" />
                       </TableCell>
                     </TableRow>
                   ))
                 ) : query.isError ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="h-32">
+                    <TableCell colSpan={columns.length} className="h-32">
                       <QueryState state="error" onRetry={() => void query.refetch()} />
                     </TableCell>
                   </TableRow>
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={5} className="h-32">
+                    <TableCell colSpan={columns.length} className="h-32">
                       <QueryState state="empty" title="暂无成员数据" />
                     </TableCell>
                   </TableRow>
@@ -311,7 +290,6 @@ export function RoleUserDrawer({ role, open, onClose }: RoleUserDrawerProps) {
             </Table>
           </div>
 
-          {/* Pagination footer */}
           {total > 0 && (
             <div className="flex items-center justify-between pt-1 text-xs text-muted-foreground">
               <span>共 {total} 名成员</span>
@@ -325,7 +303,7 @@ export function RoleUserDrawer({ role, open, onClose }: RoleUserDrawerProps) {
                       onClick={() => table.previousPage()}
                     />
                   </PaginationItem>
-                  <span className="px-2 text-xs tabular-nums">
+                  <span className="tabular-nums">
                     {pagination.pageIndex + 1} / {pageCount}
                   </span>
                   <PaginationItem>
@@ -343,21 +321,13 @@ export function RoleUserDrawer({ role, open, onClose }: RoleUserDrawerProps) {
         </div>
 
         <DrawerFooter className="flex-row justify-end border-t p-4">
-          <Button variant="outline" size="sm" onClick={onClose}>
+          <Button variant="outline" onClick={onClose}>
             关闭
           </Button>
         </DrawerFooter>
       </EntityDrawer>
 
-      <RoleUserAddDialog
-        role={role}
-        open={isAddOpen}
-        onClose={() => setIsAddOpen(false)}
-        onSuccess={() => {
-          void queryClient.invalidateQueries({ queryKey: roleKeys.usersRoot(roleId) })
-          void queryClient.invalidateQueries({ queryKey: roleKeys.userIds(roleId) })
-        }}
-      />
+      <RoleUserAddDialog role={role} open={isAddOpen} onClose={() => setIsAddOpen(false)} onSuccess={refreshMembers} />
     </>
   )
 }
