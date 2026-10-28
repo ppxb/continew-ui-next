@@ -2,6 +2,7 @@ import * as React from 'react'
 
 import { useNavigate } from '@tanstack/react-router'
 
+import { useScrollFade } from '@animate-ui/react/primitives/effects/scroll-fade'
 import { Search } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -61,6 +62,19 @@ function groupBy(items: SearchItem[]) {
     group,
     items: items.filter(item => item.group === group)
   }))
+}
+
+/**
+ * The result list is the scroll container, so the fade is attached to it. A component of its own
+ * keeps the hook mounting together with the dialog: while the palette is closed the list is not in
+ * the DOM and the fade would never attach.
+ */
+function FadingCommandList({ children }: { children: React.ReactNode }) {
+  const listRef = React.useRef<HTMLDivElement>(null)
+
+  useScrollFade(listRef, { blur: 4 })
+
+  return <CommandList ref={listRef}>{children}</CommandList>
 }
 
 export function SearchDialog() {
@@ -135,10 +149,10 @@ export function SearchDialog() {
       <CommandDialog open={open} onOpenChange={handleOpenChange}>
         <Command>
           <CommandInput placeholder="搜索目录" value={query} onValueChange={setQuery} />
-          <CommandList>
+          <FadingCommandList>
             <CommandEmpty>没有找到结果</CommandEmpty>
             {renderGroups(searchItems)}
-          </CommandList>
+          </FadingCommandList>
         </Command>
       </CommandDialog>
     </>
