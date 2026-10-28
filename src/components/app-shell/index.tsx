@@ -4,6 +4,7 @@ import { cn } from 'cn'
 
 import { Separator } from '@/components/ui/separator'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
+import { PageTransition } from '@/components/ui/page-transition'
 import { ensureMenuLoaded } from '@/hooks/use-menu'
 import { requireAuth } from '@/lib/auth-guard'
 import { getClientCookie } from '@/lib/cookie'
@@ -117,7 +118,8 @@ export function AppShell({ defaultOpen, variant, collapsible, children }: ShellP
               hasBreadcrumb ? 'pt-1.5 md:pt-2' : 'pt-4 md:pt-6'
             )}
           >
-            {children}
+            {/* The bleed keeps a page's outer 1px `ring` inside the view-transition snapshot. */}
+            <PageTransition className="-m-0.5 p-0.5">{children}</PageTransition>
           </div>
         </div>
       </SidebarInset>

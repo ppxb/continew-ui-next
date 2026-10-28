@@ -29,7 +29,7 @@
     "@shadcn/react": "^0.3.1",
     "@tanstack/react-form": "^1.33.5",
     "@tanstack/react-query": "^5.104.2",
-    "@tanstack/react-router": "latest",
+    "@tanstack/react-router": "^1.170.46",
     "@tanstack/react-table": "^9.3.1",
     "@tanstack/react-virtual": "^3.14.21",
     "@tiptap/pm": "^3.32.0",
@@ -58,7 +58,7 @@
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
-    "@tanstack/router-plugin": "^1.168.43",
+    "@tanstack/router-plugin": "^1.168.48",
     "@types/d3-geo": "^3.1.1",
     "@types/node": "^22.20.5",
     "@types/react": "^19.3.0",

@@ -13,7 +13,10 @@ export function getRouter() {
     defaultPreload: 'intent',
     defaultPendingComponent: PagePending,
     defaultPendingMs: 150,
-    defaultPendingMinMs: 300
+    defaultPendingMinMs: 300,
+    // Wraps every navigation in `document.startViewTransition`; the page transition
+    // component animates the content area from there.
+    defaultViewTransition: true
   })
 }
 
