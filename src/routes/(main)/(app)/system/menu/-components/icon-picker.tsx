@@ -1,5 +1,6 @@
-import * as React from 'react'
+import { createElement, useEffect, useMemo, useRef, useState } from 'react'
 
+import { ScrollFade } from '@animate-ui/react/primitives/effects/scroll-fade'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { Check, Search, X, icons, type LucideIcon } from 'lucide-react'
 
@@ -14,7 +15,6 @@ import {
 } from '@/components/ui/dialog'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { resolveMenuIcon } from '@/navigation/menu-icons'
 import { cn } from 'cn'
 
@@ -367,39 +367,25 @@ interface LucideIconMeta {
   categories: Set<string>
 }
 
-const CATEGORY_COUNTS: Record<string, number> = { all: 0 }
-for (const category of ICON_CATEGORIES) {
-  CATEGORY_COUNTS[category.key] = 0
-}
-
-const ALL_LUCIDE_ICONS: LucideIconMeta[] = []
-
-for (const [pascal, component] of Object.entries(icons)) {
+/** Every Lucide icon tagged with the categories its kebab-case name matches. */
+const ALL_ICONS: LucideIconMeta[] = Object.entries(icons).map(([pascal, component]) => {
   const kebab = toKebabCase(pascal)
-  const categories = new Set<string>()
+  const matchedCategories = ICON_CATEGORIES.filter(category => category.keywords.some(key => kebab.includes(key)))
 
-  for (const category of ICON_CATEGORIES) {
-    if (category.keywords.some(keyword => kebab.includes(keyword))) {
-      categories.add(category.key)
-      CATEGORY_COUNTS[category.key] += 1
-    }
-  }
-
-  CATEGORY_COUNTS.all += 1
-  ALL_LUCIDE_ICONS.push({
+  return {
     pascal,
     pascalLower: pascal.toLowerCase(),
     kebab,
     component,
-    categories
-  })
-}
+    categories: new Set(matchedCategories.map(category => category.key))
+  }
+})
 
 const CATEGORY_ITEMS = [
-  { value: 'all', label: `全部 (${CATEGORY_COUNTS.all})` },
+  { value: 'all', label: `全部 (${ALL_ICONS.length})` },
   ...ICON_CATEGORIES.map(category => ({
     value: category.key,
-    label: `${category.label} (${CATEGORY_COUNTS[category.key]})`
+    label: `${category.label} (${ALL_ICONS.filter(icon => icon.categories.has(category.key)).length})`
   }))
 ]
 
@@ -416,8 +402,8 @@ interface IconGridItemProps {
   readonly onSelect: (name: string) => void
 }
 
-const IconGridItem = React.memo(function IconGridItem({ item, selected, onSelect }: IconGridItemProps) {
-  const IconComponent = item.component
+function IconGridItem({ item, selected, onSelect }: IconGridItemProps) {
+  const Icon = item.component
 
   return (
     <button
@@ -430,7 +416,7 @@ const IconGridItem = React.memo(function IconGridItem({ item, selected, onSelect
           : 'border-border/60 bg-background text-muted-foreground hover:text-foreground'
       )}
     >
-      <IconComponent className="size-5 shrink-0 transition-transform group-hover:scale-110" />
+      <Icon className="size-5 shrink-0 transition-transform group-hover:scale-110" />
       <span className="w-full truncate text-center text-[11px] leading-tight text-foreground/80">{item.kebab}</span>
       {selected && (
         <span className="absolute top-1 right-1 flex size-3 items-center justify-center rounded-full bg-primary text-primary-foreground">
@@ -439,7 +425,7 @@ const IconGridItem = React.memo(function IconGridItem({ item, selected, onSelect
       )}
     </button>
   )
-})
+}
 
 interface IconGridProps {
   readonly items: LucideIconMeta[]
@@ -448,62 +434,55 @@ interface IconGridProps {
 }
 
 function IconGrid({ items, value, onSelect }: IconGridProps) {
-  const [columns, setColumns] = React.useState(getGridColumns)
-  const scrollRef = React.useRef<HTMLDivElement>(null)
-  const rowCount = Math.ceil(items.length / columns)
+  const [columns, setColumns] = useState(getGridColumns)
+  const scrollRef = useRef<HTMLDivElement>(null)
   const rowVirtualizer = useVirtualizer({
-    count: rowCount,
+    count: Math.ceil(items.length / columns),
     getScrollElement: () => scrollRef.current,
     estimateSize: () => 64,
     overscan: 3
   })
 
-  React.useEffect(() => {
+  useEffect(() => {
     const updateColumns = () => setColumns(getGridColumns())
     window.addEventListener('resize', updateColumns)
     return () => window.removeEventListener('resize', updateColumns)
   }, [])
 
-  React.useEffect(() => {
+  useEffect(() => {
     scrollRef.current?.scrollTo({ top: 0 })
   }, [items])
 
   return (
-    <div ref={scrollRef} className="max-h-84 scroll-fade overflow-y-auto overscroll-contain p-2.5">
+    <ScrollFade ref={scrollRef} shrink={0} blur={4} className="max-h-84 overscroll-contain p-2.5">
       <div className="relative" style={{ height: rowVirtualizer.getTotalSize() }}>
-        {rowVirtualizer.getVirtualItems().map(virtualRow => {
-          const start = virtualRow.index * columns
+        {rowVirtualizer.getVirtualItems().map(row => {
+          const start = row.index * columns
 
           return (
             <div
-              key={virtualRow.key}
+              key={row.key}
               ref={rowVirtualizer.measureElement}
-              data-index={virtualRow.index}
+              data-index={row.index}
               className="absolute inset-x-0 top-0 grid gap-2 pb-2"
               style={{
-                transform: `translateY(${virtualRow.start}px)`,
+                transform: `translateY(${row.start}px)`,
                 gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`
               }}
             >
-              {Array.from({ length: columns }, (_, columnIndex) => {
-                const item = items[start + columnIndex]
-
-                return item ? (
-                  <IconGridItem
-                    key={item.kebab}
-                    item={item}
-                    selected={value === item.kebab || value === item.pascal}
-                    onSelect={onSelect}
-                  />
-                ) : (
-                  <div key={`empty-${columnIndex}`} />
-                )
-              })}
+              {items.slice(start, start + columns).map(item => (
+                <IconGridItem
+                  key={item.kebab}
+                  item={item}
+                  selected={value === item.kebab || value === item.pascal}
+                  onSelect={onSelect}
+                />
+              ))}
             </div>
           )
         })}
       </div>
-    </div>
+    </ScrollFade>
   )
 }
 
@@ -513,67 +492,42 @@ interface IconPickerProps {
   readonly disabled?: boolean
 }
 
-export function IconPicker({ value, onChange, disabled }: IconPickerProps) {
-  const [open, setOpen] = React.useState(false)
-  const [search, setSearch] = React.useState('')
-  const [activeCategory, setActiveCategory] = React.useState('common')
+export function IconPicker({ value, onChange, disabled = false }: IconPickerProps) {
+  const [open, setOpen] = useState(false)
+  const [search, setSearch] = useState('')
+  const [category, setCategory] = useState('common')
 
-  const handleCategoryChange = React.useCallback((key: string) => {
-    setActiveCategory(key)
-  }, [])
+  /** Keep the identity stable, otherwise the grid resets its scroll position on unrelated renders. */
+  const filteredIcons = useMemo(() => {
+    const keyword = search.trim().toLowerCase()
+    const byCategory = category === 'all' ? ALL_ICONS : ALL_ICONS.filter(icon => icon.categories.has(category))
 
-  const handleSearchChange = React.useCallback((val: string) => {
-    setSearch(val)
-  }, [])
+    return keyword
+      ? byCategory.filter(icon => icon.kebab.includes(keyword) || icon.pascalLower.includes(keyword))
+      : byCategory
+  }, [category, search])
 
-  const filteredIcons = React.useMemo(() => {
-    let list = ALL_LUCIDE_ICONS
-    if (activeCategory !== 'all') {
-      list = list.filter(item => item.categories.has(activeCategory))
-    }
-    if (search.trim()) {
-      const q = search.trim().toLowerCase()
-      list = list.filter(item => item.kebab.includes(q) || item.pascalLower.includes(q))
-    }
-    return list
-  }, [activeCategory, search])
-
-  const handleSelect = React.useCallback(
-    (kebabName: string) => {
-      onChange(kebabName)
-      setOpen(false)
-    },
-    [onChange]
-  )
+  function selectIcon(kebab: string) {
+    onChange(kebab)
+    setOpen(false)
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <div
-        className={cn(
-          'flex h-8 w-full items-center gap-1 rounded-lg border border-input bg-transparent px-2.5 transition-colors dark:bg-input/30',
-          'has-[:focus-visible]:border-ring has-[:focus-visible]:ring-3 has-[:focus-visible]:ring-ring/50',
-          disabled && 'bg-input/50 opacity-50 dark:bg-input/80'
-        )}
-      >
+      <div className="relative w-full">
         <DialogTrigger
           render={
             <Button
               type="button"
-              variant="ghost"
+              variant="outline"
               disabled={disabled}
-              className={cn(
-                'h-full min-w-0 flex-1 justify-start gap-2 px-0 text-base font-normal',
-                'hover:bg-transparent aria-expanded:bg-transparent dark:hover:bg-transparent',
-                'focus-visible:border-transparent focus-visible:ring-0 disabled:opacity-100 md:text-sm'
-              )}
+              className="h-8 w-full justify-start gap-2 pr-8 font-normal"
             />
           }
         >
           {value ? (
             <>
-              {React.createElement(resolveMenuIcon(value), {
-                className: 'size-4 shrink-0 text-foreground'
-              })}
+              {createElement(resolveMenuIcon(value), { className: 'size-4 shrink-0' })}
               <span className="truncate">{value}</span>
             </>
           ) : (
@@ -581,22 +535,15 @@ export function IconPicker({ value, onChange, disabled }: IconPickerProps) {
           )}
         </DialogTrigger>
         {value && !disabled && (
-          <Tooltip>
-            <TooltipTrigger
-              render={
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon-xs"
-                  className="shrink-0 text-muted-foreground hover:text-foreground"
-                  onClick={() => onChange(null)}
-                />
-              }
-            >
-              <X />
-            </TooltipTrigger>
-            <TooltipContent side="top">清除图标</TooltipContent>
-          </Tooltip>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-xs"
+            className="absolute top-1/2 right-1 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            onClick={() => onChange(null)}
+          >
+            <X />
+          </Button>
         )}
       </div>
 
@@ -607,27 +554,20 @@ export function IconPicker({ value, onChange, disabled }: IconPickerProps) {
         </DialogHeader>
 
         <div className="space-y-3 pt-1">
-          {/* 搜索与分类筛选栏 */}
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <InputGroup className="h-9 flex-1">
+            <InputGroup className="flex-1">
               <InputGroupAddon>
                 <Search className="size-4 text-muted-foreground" />
               </InputGroupAddon>
               <InputGroupInput
                 placeholder="搜索图标名称"
                 value={search}
-                onChange={e => handleSearchChange(e.target.value)}
+                onChange={event => setSearch(event.target.value)}
                 autoFocus
               />
               {search && (
                 <InputGroupAddon align="inline-end">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-xs"
-                    aria-label="清空搜索"
-                    onClick={() => handleSearchChange('')}
-                  >
+                  <Button type="button" variant="ghost" size="icon-xs" onClick={() => setSearch('')}>
                     <X className="size-3.5" />
                   </Button>
                 </InputGroupAddon>
@@ -635,9 +575,9 @@ export function IconPicker({ value, onChange, disabled }: IconPickerProps) {
             </InputGroup>
 
             <Select
-              value={activeCategory}
-              onValueChange={val => {
-                if (val) handleCategoryChange(val)
+              value={category}
+              onValueChange={nextValue => {
+                if (nextValue) setCategory(nextValue)
               }}
               items={CATEGORY_ITEMS}
             >
@@ -660,12 +600,12 @@ export function IconPicker({ value, onChange, disabled }: IconPickerProps) {
             {filteredIcons.length === 0 ? (
               <div className="flex h-40 flex-col items-center justify-center gap-1.5 p-2.5 text-xs text-muted-foreground">
                 <span>未找到匹配的图标</span>
-                {activeCategory !== 'all' && (
+                {category !== 'all' && (
                   <Button
                     type="button"
                     variant="link"
                     size="sm"
-                    onClick={() => handleCategoryChange('all')}
+                    onClick={() => setCategory('all')}
                     className="h-auto p-0 text-xs text-primary"
                   >
                     切换至「全部」分类继续搜索
@@ -673,7 +613,7 @@ export function IconPicker({ value, onChange, disabled }: IconPickerProps) {
                 )}
               </div>
             ) : (
-              <IconGrid items={filteredIcons} value={value} onSelect={handleSelect} />
+              <IconGrid items={filteredIcons} value={value} onSelect={selectIcon} />
             )}
           </div>
         </div>
