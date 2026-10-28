@@ -124,7 +124,10 @@ export function HeaderTabs() {
   const closeAllTabs = useTabsStore(s => s.closeAllTabs)
   const pruneTabs = useTabsStore(s => s.pruneTabs)
 
-  const visibleTabs = tabs.filter(tab => isKnownPath(tab.path, menuRoutes ?? [], router))
+  const visibleTabs = React.useMemo(
+    () => tabs.filter(tab => isKnownPath(tab.path, menuRoutes ?? [], router)),
+    [tabs, menuRoutes, router]
+  )
   const navRef = React.useRef<HTMLElement | null>(null)
   const tabRefs = React.useRef(new Map<string, HTMLDivElement>())
   const [indicator, setIndicator] = React.useState<TabIndicatorRect | null>(null)
@@ -167,15 +170,27 @@ export function HeaderTabs() {
 
     measure()
 
-    const observer = new ResizeObserver(measure)
+    // Resize callbacks can fire more than once per frame; measure once per frame instead.
+    let frame = 0
+    const observer = new ResizeObserver(() => {
+      if (frame) return
+      frame = requestAnimationFrame(() => {
+        frame = 0
+        measure()
+      })
+    })
     observer.observe(nav)
     observer.observe(tab)
 
-    return () => observer.disconnect()
-  }, [pathname, tabs, menuRoutes])
+    return () => {
+      observer.disconnect()
+      if (frame) cancelAnimationFrame(frame)
+    }
+  }, [pathname, tabs])
 
-  // Synchronize router location with tabs
-  React.useEffect(() => {
+  // Synchronize router location with tabs. A layout effect keeps the new tab in the same
+  // frame as the page it belongs to, instead of one paint later.
+  React.useLayoutEffect(() => {
     if (!pathname || pathname.startsWith('/auth') || pathname === '/unauthorized') {
       return
     }
@@ -281,9 +296,6 @@ export function HeaderTabs() {
                     isPinned && 'pr-2.5'
                   )}
                 >
-                  {/* Active indicator dot with emerald green styling */}
-                  {isActive && <span className="size-1.5 shrink-0 rounded-full bg-emerald-500" />}
-
                   {/* Menu Lucide Icon */}
                   <Icon
                     className={cn(

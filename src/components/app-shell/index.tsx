@@ -1,10 +1,10 @@
 import type { CSSProperties, ReactNode } from 'react'
 
+import { useRouterState } from '@tanstack/react-router'
 import { cn } from 'cn'
 
 import { Separator } from '@/components/ui/separator'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
-import { PageTransition } from '@/components/ui/page-transition'
 import { ensureMenuLoaded } from '@/hooks/use-menu'
 import { requireAuth } from '@/lib/auth-guard'
 import { getClientCookie } from '@/lib/cookie'
@@ -56,6 +56,7 @@ export async function loadAppShell({ location }: ShellLoaderContext): Promise<Sh
 /** Application shell shared by every authenticated section. */
 export function AppShell({ defaultOpen, variant, collapsible, children }: ShellPreferences & { children: ReactNode }) {
   const hasBreadcrumb = useBreadcrumbTrail().length > 0
+  const pathname = useRouterState({ select: state => state.location.pathname })
 
   return (
     <SidebarProvider
@@ -118,8 +119,13 @@ export function AppShell({ defaultOpen, variant, collapsible, children }: ShellP
               hasBreadcrumb ? 'pt-1.5 md:pt-2' : 'pt-4 md:pt-6'
             )}
           >
-            {/* The bleed keeps a page's outer 1px `ring` inside the view-transition snapshot. */}
-            <PageTransition className="-m-0.5 p-0.5">{children}</PageTransition>
+            {/* Content-only entrance, so the sidebar and header keep rendering live. */}
+            <div
+              key={pathname}
+              className="motion-safe:animate-in motion-safe:duration-150 motion-safe:blur-in-4 motion-safe:fade-in motion-safe:slide-in-from-bottom-1"
+            >
+              {children}
+            </div>
           </div>
         </div>
       </SidebarInset>
