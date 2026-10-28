@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
+import { useLastRecord } from '@/hooks/use-last-record'
 import { deleteMenu, menuKeys, type MenuResp } from '@/lib/api/menu'
 import { reportError } from '@/lib/http'
 
@@ -25,8 +26,9 @@ interface MenuDeleteDialogProps {
 
 export function MenuDeleteDialog({ menu, open, onClose }: MenuDeleteDialogProps) {
   const queryClient = useQueryClient()
+  const shownMenu = useLastRecord(menu)
 
-  const childCount = menu?.children?.length ?? 0
+  const childCount = shownMenu?.children?.length ?? 0
   const hasChildren = childCount > 0
 
   const mutation = useMutation({
@@ -55,14 +57,14 @@ export function MenuDeleteDialog({ menu, open, onClose }: MenuDeleteDialogProps)
             {hasChildren ? (
               <span className="block space-y-1">
                 <span className="font-medium text-destructive">
-                  菜单「{menu?.title}」下包含 {childCount} 个子菜单或按钮，无法直接删除。
+                  菜单「{shownMenu?.title}」下包含 {childCount} 个子菜单或按钮，无法直接删除。
                 </span>
                 <span className="block text-xs text-muted-foreground">
                   请先删除或转移其所有下级菜单和按钮节点后，再执行删除操作。
                 </span>
               </span>
             ) : (
-              `确定要删除菜单「${menu?.title ?? ''}」吗？删除后配置将立即失效，此操作不可撤回。`
+              `确定要删除菜单「${shownMenu?.title ?? ''}」吗？删除后配置将立即失效，此操作不可撤回。`
             )}
           </AlertDialogDescription>
         </AlertDialogHeader>

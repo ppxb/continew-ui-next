@@ -32,39 +32,21 @@ function filterMenuTree(nodes: MenuResp[], keyword: string): MenuResp[] {
   if (!q) return nodes
 
   function filterNode(node: MenuResp): MenuResp | null {
-    const matchesKeyword =
+    const matches =
       node.title.toLowerCase().includes(q) ||
-      (node.path && node.path.toLowerCase().includes(q)) ||
-      (node.permission && node.permission.toLowerCase().includes(q))
+      Boolean(node.path?.toLowerCase().includes(q)) ||
+      Boolean(node.permission?.toLowerCase().includes(q))
+    const children = (node.children ?? []).flatMap(child => filterNode(child) ?? [])
 
-    const filteredChildren: MenuResp[] = []
-    if (node.children && node.children.length > 0) {
-      for (const child of node.children) {
-        const matchingChild = filterNode(child)
-        if (matchingChild) {
-          filteredChildren.push(matchingChild)
-        }
-      }
-    }
-
-    if (matchesKeyword || filteredChildren.length > 0) {
-      return {
-        ...node,
-        children: filteredChildren
-      }
-    }
-
-    return null
+    return matches || children.length > 0 ? { ...node, children } : null
   }
 
-  const result: MenuResp[] = []
-  for (const node of nodes) {
-    const filtered = filterNode(node)
-    if (filtered) {
-      result.push(filtered)
-    }
-  }
-  return result
+  return nodes.flatMap(node => filterNode(node) ?? [])
+}
+
+interface FormTarget {
+  readonly menuId: string | number | null
+  readonly parentId: string | number | null
 }
 
 export function MenuList() {
@@ -74,25 +56,18 @@ export function MenuList() {
   const hasCreatePermission = hasPermission('system:menu:create')
   const hasClearCachePermission = hasPermission('system:menu:clearCache')
 
-  // Search state
   const [searchInput, setSearchInput] = React.useState('')
   const keyword = searchInput.trim()
 
-  // Table state
   const [expanded, setExpanded] = React.useState<ExpandedState>({})
   const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>(DEFAULT_COLUMN_VISIBILITY)
 
-  // Drawer & Dialog states
-  const [formMenuId, setFormMenuId] = React.useState<string | number | null>(null)
-  const [defaultParentId, setDefaultParentId] = React.useState<string | number | null>(null)
-  const [isFormOpen, setIsFormOpen] = React.useState(false)
-
+  // One state per overlay: a null value means closed, so "which record" and "is it open" cannot drift apart.
+  const [formTarget, setFormTarget] = React.useState<FormTarget | null>(null)
   const [deletingMenu, setDeletingMenu] = React.useState<MenuResp | null>(null)
-  const [isDeleteOpen, setIsDeleteOpen] = React.useState(false)
 
   const fullscreen = useFullscreenTransition()
 
-  // Fetch menu tree
   const query = useQuery({
     queryKey: menuKeys.trees(),
     queryFn: ({ signal }) => getMenuTree(undefined, signal)
@@ -100,15 +75,8 @@ export function MenuList() {
 
   const rawTree = query.data ?? EMPTY_TREE
 
-  // Filter tree based on keyword search
-  const filteredTree = React.useMemo(() => {
-    if (!keyword) {
-      return rawTree
-    }
-    return filterMenuTree(rawTree, keyword)
-  }, [rawTree, keyword])
+  const filteredTree = React.useMemo(() => filterMenuTree(rawTree, keyword), [rawTree, keyword])
 
-  // Automatically expand all matching branches when searching
   React.useEffect(() => {
     if (keyword) {
       setExpanded(true)
@@ -117,23 +85,17 @@ export function MenuList() {
 
   const handleRowAction = React.useCallback((action: MenuAction, menu: MenuResp) => {
     if (action === 'edit') {
-      setFormMenuId(menu.id)
-      setDefaultParentId(null)
-      setIsFormOpen(true)
+      setFormTarget({ menuId: menu.id, parentId: null })
       return
     }
 
     if (action === 'add-child') {
-      setFormMenuId(null)
-      setDefaultParentId(menu.id)
-      setIsFormOpen(true)
+      setFormTarget({ menuId: null, parentId: menu.id })
       return
     }
 
     if (action === 'delete') {
       setDeletingMenu(menu)
-      setIsDeleteOpen(true)
-      return
     }
   }, [])
 
@@ -154,7 +116,6 @@ export function MenuList() {
     onColumnVisibilityChange: setColumnVisibility
   })
 
-  // Clear cache mutation
   const clearCacheMutation = useMutation({
     mutationFn: () => clearMenuCache(),
     onSuccess: () => {
@@ -164,21 +125,8 @@ export function MenuList() {
     onError: error => reportError(error, '清除缓存失败，请重试')
   })
 
-  const handleCreateNew = () => {
-    setFormMenuId(null)
-    setDefaultParentId(null)
-    setIsFormOpen(true)
-  }
-
-  const handleToggleExpandAll = () => {
-    if (expanded === true || (typeof expanded === 'object' && Object.keys(expanded).length > 0)) {
-      setExpanded({})
-    } else {
-      setExpanded(true)
-    }
-  }
-
   const isAllExpanded = expanded === true || (typeof expanded === 'object' && Object.keys(expanded).length > 0)
+  const handleToggleExpandAll = () => setExpanded(isAllExpanded ? {} : true)
 
   const filters = (
     <InputGroup className="w-full md:w-64">
@@ -210,7 +158,7 @@ export function MenuList() {
       isClearingCache={clearCacheMutation.isPending}
       hasCreatePermission={hasCreatePermission}
       hasClearCachePermission={hasClearCachePermission}
-      onCreate={handleCreateNew}
+      onCreate={() => setFormTarget({ menuId: null, parentId: null })}
       onRefresh={() => void query.refetch()}
       onToggleExpandAll={handleToggleExpandAll}
       onClearCache={() => clearCacheMutation.mutate()}
@@ -246,17 +194,15 @@ export function MenuList() {
         />
       </ListPageCard>
 
-      {/* Form Drawer */}
       <MenuFormDrawer
-        menuId={formMenuId}
-        defaultParentId={defaultParentId}
-        open={isFormOpen}
-        onClose={() => setIsFormOpen(false)}
+        menuId={formTarget?.menuId ?? null}
+        defaultParentId={formTarget?.parentId ?? null}
+        open={formTarget !== null}
+        onClose={() => setFormTarget(null)}
         menuTree={rawTree}
       />
 
-      {/* Delete Dialog */}
-      <MenuDeleteDialog menu={deletingMenu} open={isDeleteOpen} onClose={() => setIsDeleteOpen(false)} />
+      <MenuDeleteDialog menu={deletingMenu} open={deletingMenu !== null} onClose={() => setDeletingMenu(null)} />
     </>
   )
 }
