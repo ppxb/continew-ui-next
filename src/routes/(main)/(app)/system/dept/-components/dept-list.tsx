@@ -3,12 +3,16 @@ import * as React from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { type ColumnVisibilityState, type ExpandedState, useTable } from '@tanstack/react-table'
 
-import { Search, X } from 'lucide-react'
+import { ChevronsDownUp, ChevronsUpDown, Download, Plus, Search, X } from 'lucide-react'
 
 import { DataTable } from '@/components/data-table'
 import { ListPageCard } from '@/components/list-page-card'
+import { TableToolbar } from '@/components/table-toolbar'
+import { Button } from '@/components/ui/button'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
+import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
+import { useAvailableHeight } from '@/hooks/use-available-height'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
 import { usePermission } from '@/hooks/use-permission'
 import { deptKeys, exportDept, getDeptTree, type DeptResp } from '@/lib/api/dept'
@@ -19,7 +23,6 @@ import { cn } from 'cn'
 import { createDeptColumns, type DeptAction } from './dept-columns'
 import { DeptDeleteDialog } from './dept-delete-dialog'
 import { DeptFormDrawer } from './dept-form-drawer'
-import { DeptToolbar } from './dept-toolbar'
 
 const DEFAULT_COLUMN_VISIBILITY: ColumnVisibilityState = {
   createUserString: false,
@@ -35,66 +38,41 @@ function filterDeptTree(nodes: DeptResp[], keyword: string): DeptResp[] {
   if (!q) return nodes
 
   function filterNode(node: DeptResp): DeptResp | null {
-    const matchesKeyword =
-      node.name.toLowerCase().includes(q) || Boolean(node.description && node.description.toLowerCase().includes(q))
+    const matches = node.name.toLowerCase().includes(q) || Boolean(node.description?.toLowerCase().includes(q))
+    const children = (node.children ?? []).flatMap(child => filterNode(child) ?? [])
 
-    const filteredChildren: DeptResp[] = []
-    if (node.children && node.children.length > 0) {
-      for (const child of node.children) {
-        const matchingChild = filterNode(child)
-        if (matchingChild) {
-          filteredChildren.push(matchingChild)
-        }
-      }
-    }
-
-    if (matchesKeyword || filteredChildren.length > 0) {
-      return {
-        ...node,
-        children: filteredChildren
-      }
-    }
-
-    return null
+    return matches || children.length > 0 ? { ...node, children } : null
   }
 
-  const result: DeptResp[] = []
-  for (const node of nodes) {
-    const filtered = filterNode(node)
-    if (filtered) {
-      result.push(filtered)
-    }
-  }
-  return result
+  return nodes.flatMap(node => filterNode(node) ?? [])
+}
+
+interface FormTarget {
+  readonly deptId: string | number | null
+  readonly parentId: string | number | null
 }
 
 export function DeptList() {
   const { hasPermission } = usePermission()
 
   const hasCreatePermission = hasPermission('system:dept:create')
-  const hasUpdatePermission = hasPermission('system:dept:update')
-  const hasDeletePermission = hasPermission('system:dept:delete')
   const hasExportPermission = hasPermission('system:dept:export')
 
-  // Search state
   const [searchInput, setSearchInput] = React.useState('')
   const keyword = searchInput.trim()
 
-  // Table state
   const [expanded, setExpanded] = React.useState<ExpandedState>({})
   const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>(DEFAULT_COLUMN_VISIBILITY)
 
-  // Drawer & Dialog states
-  const [formDeptId, setFormDeptId] = React.useState<string | number | null>(null)
-  const [defaultParentId, setDefaultParentId] = React.useState<string | number | null>(null)
-  const [isFormOpen, setIsFormOpen] = React.useState(false)
-
+  // One state per overlay: a null value means closed, so "which record" and "is it open" cannot drift apart.
+  const [formTarget, setFormTarget] = React.useState<FormTarget | null>(null)
   const [deletingDept, setDeletingDept] = React.useState<DeptResp | null>(null)
-  const [isDeleteOpen, setIsDeleteOpen] = React.useState(false)
 
   const fullscreen = useFullscreenTransition()
 
-  // Fetch department tree
+  const tableAreaRef = React.useRef<HTMLDivElement>(null)
+  useAvailableHeight(tableAreaRef, '--table-available-height')
+
   const query = useQuery({
     queryKey: deptKeys.trees(),
     queryFn: ({ signal }) => getDeptTree(undefined, signal)
@@ -102,15 +80,8 @@ export function DeptList() {
 
   const rawTree = query.data ?? EMPTY_TREE
 
-  // Filter tree based on keyword search
-  const filteredTree = React.useMemo(() => {
-    if (!keyword) {
-      return rawTree
-    }
-    return filterDeptTree(rawTree, keyword)
-  }, [rawTree, keyword])
+  const filteredTree = React.useMemo(() => filterDeptTree(rawTree, keyword), [rawTree, keyword])
 
-  // Automatically expand all matching branches when searching
   React.useEffect(() => {
     if (keyword) {
       setExpanded(true)
@@ -119,42 +90,29 @@ export function DeptList() {
 
   const handleRowAction = React.useCallback((action: DeptAction, dept: DeptResp) => {
     if (action === 'edit') {
-      setFormDeptId(dept.id)
-      setDefaultParentId(null)
-      setIsFormOpen(true)
+      setFormTarget({ deptId: dept.id, parentId: null })
       return
     }
 
     if (action === 'add-child') {
-      setFormDeptId(null)
-      setDefaultParentId(dept.id)
-      setIsFormOpen(true)
+      setFormTarget({ deptId: null, parentId: dept.id })
       return
     }
 
     if (action === 'delete') {
       setDeletingDept(dept)
-      setIsDeleteOpen(true)
-      return
     }
   }, [])
 
-  const columns = React.useMemo(
-    () =>
-      createDeptColumns({
-        onAction: handleRowAction,
-        hasCreatePermission,
-        hasUpdatePermission,
-        hasDeletePermission
-      }),
-    [handleRowAction, hasCreatePermission, hasUpdatePermission, hasDeletePermission]
-  )
+  const columns = React.useMemo(() => createDeptColumns(handleRowAction), [handleRowAction])
 
   const table = useTable({
     features: dataTableFeatures,
     data: filteredTree,
     columns,
     getSubRows: (row: DeptResp) => row.children,
+    // Real IDs, so expanding or filtering keeps row identity and does not remount every row.
+    getRowId: row => String(row.id),
     state: {
       expanded,
       columnVisibility
@@ -165,32 +123,16 @@ export function DeptList() {
     onColumnVisibilityChange: setColumnVisibility
   })
 
-  // Export mutation
   const exportMutation = useMutation({
-    mutationFn: async () => {
-      await exportDept({ description: keyword || undefined })
-    },
+    mutationFn: () => exportDept({ description: keyword || undefined }),
     onSuccess: () => {
       toast.add({ title: '部门数据导出成功', type: 'success' })
     },
     onError: error => reportError(error, '导出失败，请重试')
   })
 
-  const handleCreateNew = () => {
-    setFormDeptId(null)
-    setDefaultParentId(null)
-    setIsFormOpen(true)
-  }
-
-  const handleToggleExpandAll = () => {
-    if (expanded === true || (typeof expanded === 'object' && Object.keys(expanded).length > 0)) {
-      setExpanded({})
-    } else {
-      setExpanded(true)
-    }
-  }
-
   const isAllExpanded = expanded === true || (typeof expanded === 'object' && Object.keys(expanded).length > 0)
+  const handleToggleExpandAll = () => setExpanded(isAllExpanded ? {} : true)
 
   const filters = (
     <InputGroup className="w-full sm:w-64">
@@ -201,40 +143,48 @@ export function DeptList() {
         className="text-sm"
         placeholder="搜索部门名称或描述"
         value={searchInput}
-        onChange={e => setSearchInput(e.target.value)}
+        onChange={event => setSearchInput(event.target.value)}
       />
       {searchInput && (
         <InputGroupAddon align="inline-end">
-          <button
-            type="button"
-            onClick={() => {
-              setSearchInput('')
-            }}
-            className="cursor-pointer text-muted-foreground transition-colors hover:text-foreground"
-            title="清空搜索"
-          >
+          <Button type="button" variant="ghost" size="icon-xs" onClick={() => setSearchInput('')}>
             <X className="size-3.5" />
-          </button>
+          </Button>
         </InputGroupAddon>
       )}
     </InputGroup>
   )
 
   const actions = (
-    <DeptToolbar
+    <TableToolbar
       table={table}
-      isRefreshing={query.isFetching}
-      isExporting={exportMutation.isPending}
+      isRefreshing={query.isFetching && !query.isPending}
       isFullscreen={fullscreen.isFullscreen}
-      isAllExpanded={isAllExpanded}
-      hasCreatePermission={hasCreatePermission}
-      hasExportPermission={hasExportPermission}
-      onCreate={handleCreateNew}
-      onExport={() => exportMutation.mutate()}
       onRefresh={() => void query.refetch()}
-      onToggleExpandAll={handleToggleExpandAll}
       onToggleFullscreen={fullscreen.toggleFullscreen}
       onResetColumns={() => setColumnVisibility(DEFAULT_COLUMN_VISIBILITY)}
+      actions={
+        <>
+          {hasCreatePermission && (
+            <Button onClick={() => setFormTarget({ deptId: null, parentId: null })}>
+              <Plus />
+              新增部门
+            </Button>
+          )}
+
+          {hasExportPermission && (
+            <Button variant="outline" disabled={exportMutation.isPending} onClick={() => exportMutation.mutate()}>
+              {exportMutation.isPending ? <Spinner /> : <Download />}
+              导出
+            </Button>
+          )}
+
+          <Button variant="outline" onClick={handleToggleExpandAll}>
+            {isAllExpanded ? <ChevronsDownUp /> : <ChevronsUpDown />}
+            {isAllExpanded ? '折叠全部' : '展开全部'}
+          </Button>
+        </>
+      }
     />
   )
 
@@ -247,40 +197,37 @@ export function DeptList() {
         actions={actions}
         fullscreen={fullscreen}
       >
-        <DataTable
-          table={table}
-          isLoading={query.isPending}
-          isError={query.isError}
-          isShowingPreviousRows={query.isPlaceholderData}
-          onRetry={() => void query.refetch()}
-          stickyHeader
-          showPagination={false}
-          skeletonWidths={['w-48', 'w-12', 'w-20']}
-          containerClassName={cn(
-            '*:data-[slot=table-container]:overflow-auto',
-            fullscreen.isFullscreen
-              ? '*:data-[slot=table-container]:h-[calc(100vh-6.5rem)] *:data-[slot=table-container]:max-h-[calc(100vh-6.5rem)]'
-              : '*:data-[slot=table-container]:max-h-[calc(100vh-17rem)] md:*:data-[slot=table-container]:max-h-[calc(100dvh-17rem)]'
-          )}
-        />
+        <div ref={tableAreaRef} className="flex min-h-0 flex-1 flex-col">
+          <DataTable
+            table={table}
+            isLoading={query.isPending}
+            isError={query.isError}
+            isShowingPreviousRows={query.isPlaceholderData}
+            onRetry={() => void query.refetch()}
+            stickyHeader
+            showPagination={false}
+            skeletonWidths={['w-48', 'w-12', 'w-20']}
+            containerClassName={cn(
+              // The table fills the measured height, so it does not need the footer stand-in padding.
+              'pb-0',
+              '*:data-[slot=table-container]:overflow-auto',
+              fullscreen.isFullscreen
+                ? '*:data-[slot=table-container]:h-[calc(100vh-6.5rem)] *:data-[slot=table-container]:max-h-[calc(100vh-6.5rem)]'
+                : '*:data-[slot=table-container]:max-h-[var(--table-available-height)]'
+            )}
+          />
+        </div>
       </ListPageCard>
 
-      {/* Form Drawer */}
       <DeptFormDrawer
-        deptId={formDeptId}
-        defaultParentId={defaultParentId}
-        open={isFormOpen}
+        deptId={formTarget?.deptId ?? null}
+        defaultParentId={formTarget?.parentId ?? null}
+        open={formTarget !== null}
         deptTree={rawTree}
-        onClose={() => setIsFormOpen(false)}
+        onClose={() => setFormTarget(null)}
       />
 
-      {/* Delete Dialog */}
-      <DeptDeleteDialog
-        dept={deletingDept}
-        open={isDeleteOpen}
-        onClose={() => setIsDeleteOpen(false)}
-        onSuccess={() => setDeletingDept(null)}
-      />
+      <DeptDeleteDialog dept={deletingDept} open={deletingDept !== null} onClose={() => setDeletingDept(null)} />
     </>
   )
 }

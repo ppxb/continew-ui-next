@@ -5,8 +5,8 @@ import { TreeSelect } from '@/components/ui/tree-select'
 import type { DeptResp } from '@/lib/api/dept'
 import { toDeptNodeData } from '@/lib/dept-tree'
 
-/** Recursively collects the target ID and all its descendant IDs to prevent cyclic parenting. */
-function collectDescendantIds(nodes: DeptResp[], targetId: string | number): Set<string> {
+/** Collects the target node and its descendants, so a department can never become its own child. */
+function collectSubtreeIds(nodes: DeptResp[], targetId: string | number): Set<string> {
   const disabled = new Set<string>()
   const targetIdStr = String(targetId)
 
@@ -48,7 +48,7 @@ export function DeptParentSelect({
 }: DeptParentSelectProps) {
   const disabledIds = React.useMemo(() => {
     if (!currentDeptId) return new Set<string>()
-    return collectDescendantIds(deptTree, currentDeptId)
+    return collectSubtreeIds(deptTree, currentDeptId)
   }, [deptTree, currentDeptId])
 
   const treeData = React.useMemo(() => {
@@ -60,10 +60,12 @@ export function DeptParentSelect({
   const handleChange = (nextKey: TreeKey | null) => {
     if (nextKey === null || nextKey === '') {
       onChange(null)
-    } else {
-      const num = Number(nextKey)
-      onChange(Number.isNaN(num) ? nextKey : num)
+      return
     }
+
+    // Tree keys are strings; keep numeric department IDs numeric for the API.
+    const numeric = Number(nextKey)
+    onChange(Number.isNaN(numeric) ? nextKey : numeric)
   }
 
   return (

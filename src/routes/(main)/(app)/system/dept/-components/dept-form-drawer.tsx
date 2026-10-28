@@ -7,6 +7,7 @@ import { z } from 'zod'
 import { Building2 } from 'lucide-react'
 
 import { EntityDrawer } from '@/components/entity-drawer'
+import { QueryState } from '@/components/query-state'
 import { RequiredMark } from '@/components/required-mark'
 import { Button } from '@/components/ui/button'
 import { DrawerFooter } from '@/components/ui/drawer'
@@ -27,7 +28,7 @@ const formSchema = z.object({
     .refine(val => val !== null && val !== undefined && val !== '', '请选择上级部门'),
   name: z.string().trim().min(1, '部门名称不能为空').max(30, '部门名称长度不能超过 30 个字符'),
   sort: z.number().int().min(1, '排序最小值为 1'),
-  status: z.number().int().min(1).max(2),
+  status: z.union([z.literal(1), z.literal(2)]),
   description: z.string().max(200, '描述长度不能超过 200 个字符')
 })
 
@@ -39,43 +40,6 @@ const EMPTY_FORM: FormValues = {
   sort: 999,
   status: 1,
   description: ''
-}
-
-function DeptFormSkeleton() {
-  return (
-    <div className="flex min-h-0 flex-1 flex-col p-4">
-      <div className="flex flex-col gap-4">
-        {/* Parent Dept */}
-        <div className="flex flex-col gap-1.5">
-          <Skeleton className="h-4 w-16" />
-          <Skeleton className="h-9 w-full" />
-        </div>
-        {/* Name */}
-        <div className="flex flex-col gap-1.5">
-          <Skeleton className="h-4 w-16" />
-          <Skeleton className="h-9 w-full" />
-        </div>
-        {/* Sort */}
-        <div className="flex flex-col gap-1.5">
-          <Skeleton className="h-4 w-12" />
-          <Skeleton className="h-9 w-full" />
-        </div>
-        {/* Status */}
-        <div className="flex items-center justify-between py-1">
-          <div className="flex flex-col gap-1">
-            <Skeleton className="h-4 w-16" />
-            <Skeleton className="h-3.5 w-48" />
-          </div>
-          <Skeleton className="h-5 w-9 rounded-full" />
-        </div>
-        {/* Description */}
-        <div className="flex flex-col gap-1.5">
-          <Skeleton className="h-4 w-16" />
-          <Skeleton className="h-20 w-full" />
-        </div>
-      </div>
-    </div>
-  )
 }
 
 interface DeptFormDrawerProps {
@@ -106,7 +70,7 @@ export function DeptFormDrawer({ deptId, defaultParentId, open, deptTree, onClos
         parentId: value.parentId,
         name: value.name,
         sort: value.sort,
-        status: value.status as 1 | 2,
+        status: value.status,
         description: value.description || undefined
       }
 
@@ -191,23 +155,27 @@ export function DeptFormDrawer({ deptId, defaultParentId, open, deptTree, onClos
   }
 
   const isLoadingDetail = isEdit && detailQuery.isLoading
+  const isDetailError = isEdit && detailQuery.isError
 
   return (
     <EntityDrawer
       open={open}
       onClose={onClose}
       title={isEdit ? '修改部门' : '新增部门'}
-      icon={
-        <div className="flex size-7 items-center justify-center rounded-md bg-primary/10 text-primary">
-          <Building2 className="size-4" />
-        </div>
-      }
+      icon={<Building2 className="size-4" />}
       width={30}
       closeDisabled={isSubmitting}
-      canClose={() => !isSubmitting}
     >
       {isLoadingDetail ? (
-        <DeptFormSkeleton />
+        <div className="flex min-h-0 flex-1 flex-col gap-4 p-4">
+          <Skeleton className="h-9 w-full" />
+          <Skeleton className="h-9 w-full" />
+          <Skeleton className="h-9 w-full" />
+          <Skeleton className="h-9 w-full" />
+          <Skeleton className="h-20 w-full" />
+        </div>
+      ) : isDetailError ? (
+        <QueryState state="error" className="p-6" onRetry={() => void detailQuery.refetch()} />
       ) : (
         <form
           ref={formRef}
@@ -220,14 +188,13 @@ export function DeptFormDrawer({ deptId, defaultParentId, open, deptTree, onClos
         >
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
             <FieldGroup className="gap-4">
-              {/* Parent Department */}
               {!isRootDept ? (
                 <form.Field name="parentId" validators={{ onDynamic: formSchema.shape.parentId }}>
                   {field => {
                     const invalid = field.state.meta.errors.length > 0
 
                     return (
-                      <Field className="gap-1.5" data-invalid={invalid}>
+                      <Field data-invalid={invalid}>
                         <FieldLabel>
                           上级部门
                           <RequiredMark />
@@ -246,20 +213,19 @@ export function DeptFormDrawer({ deptId, defaultParentId, open, deptTree, onClos
                   }}
                 </form.Field>
               ) : (
-                <Field className="gap-1.5">
+                <Field>
                   <FieldLabel>上级部门</FieldLabel>
                   <Input value="顶级部门（根机构）" disabled readOnly />
                   <FieldDescription>根机构部门不支持变更上级部门</FieldDescription>
                 </Field>
               )}
 
-              {/* Department Name */}
               <form.Field name="name" validators={{ onDynamic: formSchema.shape.name }}>
                 {field => {
                   const invalid = field.state.meta.errors.length > 0
 
                   return (
-                    <Field className="gap-1.5" data-invalid={invalid}>
+                    <Field data-invalid={invalid}>
                       <FieldLabel htmlFor="dept-name">
                         部门名称
                         <RequiredMark />
@@ -280,13 +246,12 @@ export function DeptFormDrawer({ deptId, defaultParentId, open, deptTree, onClos
                 }}
               </form.Field>
 
-              {/* Sort */}
               <form.Field name="sort" validators={{ onDynamic: formSchema.shape.sort }}>
                 {field => {
                   const invalid = field.state.meta.errors.length > 0
 
                   return (
-                    <Field className="gap-1.5" data-invalid={invalid}>
+                    <Field data-invalid={invalid}>
                       <FieldLabel htmlFor="dept-sort">
                         排序
                         <RequiredMark />
@@ -309,7 +274,6 @@ export function DeptFormDrawer({ deptId, defaultParentId, open, deptTree, onClos
                 }}
               </form.Field>
 
-              {/* Status Switch */}
               <form.Field name="status" validators={{ onDynamic: formSchema.shape.status }}>
                 {field => {
                   const invalid = field.state.meta.errors.length > 0
@@ -335,13 +299,12 @@ export function DeptFormDrawer({ deptId, defaultParentId, open, deptTree, onClos
                 }}
               </form.Field>
 
-              {/* Description */}
               <form.Field name="description" validators={{ onDynamic: formSchema.shape.description }}>
                 {field => {
                   const invalid = field.state.meta.errors.length > 0
 
                   return (
-                    <Field className="gap-1.5" data-invalid={invalid}>
+                    <Field data-invalid={invalid}>
                       <FieldLabel htmlFor="dept-description">部门描述</FieldLabel>
                       <Textarea
                         id="dept-description"
@@ -362,22 +325,20 @@ export function DeptFormDrawer({ deptId, defaultParentId, open, deptTree, onClos
             </FieldGroup>
           </div>
 
-          <DrawerFooter className="border-t p-4">
-            <div className="flex items-center justify-end gap-2">
-              <Button type="button" variant="outline" disabled={isSubmitting} onClick={onClose}>
-                取消
-              </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <>
-                    <Spinner />
-                    保存中
-                  </>
-                ) : (
-                  '保存'
-                )}
-              </Button>
-            </div>
+          <DrawerFooter className="flex-row justify-end gap-2 border-t p-4">
+            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
+              取消
+            </Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Spinner />
+                  保存中
+                </>
+              ) : (
+                '保存'
+              )}
+            </Button>
           </DrawerFooter>
         </form>
       )}
