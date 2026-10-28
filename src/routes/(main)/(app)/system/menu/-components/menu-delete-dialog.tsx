@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { TriangleAlert } from 'lucide-react'
 
 import {
   AlertDialog,
@@ -8,6 +9,7 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
+  AlertDialogMedia,
   AlertDialogTitle
 } from '@/components/ui/alert-dialog'
 import { Spinner } from '@/components/ui/spinner'
@@ -19,40 +21,41 @@ interface MenuDeleteDialogProps {
   readonly menu: MenuResp | null
   readonly open: boolean
   readonly onClose: () => void
-  readonly onSuccess?: () => void
 }
 
-export function MenuDeleteDialog({ menu, open, onClose, onSuccess }: MenuDeleteDialogProps) {
+export function MenuDeleteDialog({ menu, open, onClose }: MenuDeleteDialogProps) {
   const queryClient = useQueryClient()
 
-  const hasChildren = Boolean(menu?.children && menu.children.length > 0)
+  const childCount = menu?.children?.length ?? 0
+  const hasChildren = childCount > 0
 
   const mutation = useMutation({
-    mutationFn: (id: string | number) => deleteMenu(id),
-    onSuccess: () => {
-      toast.add({ title: `菜单「${menu?.title ?? ''}」已删除`, type: 'success' })
+    mutationFn: (target: MenuResp) => deleteMenu(target.id),
+    onSuccess: (_result, target) => {
+      toast.add({ title: `菜单「${target.title}」已删除`, type: 'success' })
       void queryClient.invalidateQueries({ queryKey: menuKeys.trees() })
-      onSuccess?.()
       onClose()
     },
     onError: error => reportError(error, '删除失败，请重试')
   })
 
   const handleDelete = () => {
-    if (!menu?.id) return
-    mutation.mutate(menu.id)
+    if (menu) mutation.mutate(menu)
   }
 
   return (
     <AlertDialog open={open} onOpenChange={val => !val && !mutation.isPending && onClose()}>
       <AlertDialogContent>
         <AlertDialogHeader>
+          <AlertDialogMedia className="bg-destructive/10 text-destructive">
+            <TriangleAlert />
+          </AlertDialogMedia>
           <AlertDialogTitle>删除菜单</AlertDialogTitle>
           <AlertDialogDescription>
             {hasChildren ? (
               <span className="block space-y-1">
                 <span className="font-medium text-destructive">
-                  菜单「{menu?.title}」下包含 {menu?.children?.length} 个子菜单或按钮，无法直接删除。
+                  菜单「{menu?.title}」下包含 {childCount} 个子菜单或按钮，无法直接删除。
                 </span>
                 <span className="block text-xs text-muted-foreground">
                   请先删除或转移其所有下级菜单和按钮节点后，再执行删除操作。
@@ -69,11 +72,11 @@ export function MenuDeleteDialog({ menu, open, onClose, onSuccess }: MenuDeleteD
             <AlertDialogAction variant="destructive" onClick={handleDelete} disabled={mutation.isPending}>
               {mutation.isPending ? (
                 <>
-                  <Spinner className="mr-1.5 size-3.5" />
-                  删除中…
+                  <Spinner />
+                  删除中
                 </>
               ) : (
-                '确认删除'
+                '删除'
               )}
             </AlertDialogAction>
           )}

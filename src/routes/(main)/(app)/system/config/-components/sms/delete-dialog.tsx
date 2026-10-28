@@ -77,7 +77,7 @@ export function SmsDeleteDialog({ sms, open, onClose }: SmsDeleteDialogProps) {
                 删除中
               </>
             ) : (
-              '确定删除'
+              '删除'
             )}
           </AlertDialogAction>
         </AlertDialogFooter>

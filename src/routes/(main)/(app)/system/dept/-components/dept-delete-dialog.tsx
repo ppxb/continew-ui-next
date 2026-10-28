@@ -77,11 +77,11 @@ export function DeptDeleteDialog({ dept, open, onClose, onSuccess }: DeptDeleteD
             <AlertDialogAction variant="destructive" onClick={handleDelete} disabled={mutation.isPending}>
               {mutation.isPending ? (
                 <>
-                  <Spinner className="mr-1.5 size-3.5" />
-                  删除中…
+                  <Spinner />
+                  删除中
                 </>
               ) : (
-                '确认删除'
+                '删除'
               )}
             </AlertDialogAction>
           )}

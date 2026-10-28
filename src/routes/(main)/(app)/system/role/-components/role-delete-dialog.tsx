@@ -84,7 +84,7 @@ export function RoleDeleteDialog({ role, open, onClose }: RoleDeleteDialogProps)
                 删除中
               </>
             ) : (
-              '确定删除'
+              '删除'
             )}
           </AlertDialogAction>
         </AlertDialogFooter>
