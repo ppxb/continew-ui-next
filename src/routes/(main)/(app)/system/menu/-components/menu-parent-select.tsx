@@ -7,8 +7,8 @@ import type { TreeKey, TreeNodeData } from '@/components/ui/tree'
 import type { MenuResp } from '@/lib/api/menu'
 import { resolveMenuIcon } from '@/navigation/menu-icons'
 
-/** Recursively collects the target ID and all its descendant IDs to prevent cyclic parenting. */
-function collectDescendantIds(nodes: MenuResp[], targetId: string | number): Set<string> {
+/** Collects the target node and its descendants, so a menu can never become its own child. */
+function collectSubtreeIds(nodes: MenuResp[], targetId: string | number): Set<string> {
   const disabled = new Set<string>()
   const targetIdStr = String(targetId)
 
@@ -33,28 +33,18 @@ function collectDescendantIds(nodes: MenuResp[], targetId: string | number): Set
 
 /** Transforms menu tree nodes into generic TreeNodeData for TreeSelect. */
 function toMenuTreeNodeData(nodes: MenuResp[], disabledIds: Set<string>): TreeNodeData<MenuResp>[] {
-  const result: TreeNodeData<MenuResp>[] = []
-
-  for (const node of nodes) {
-    // Buttons (type 3) cannot have child menus
-    if (node.type === 3) continue
-
-    const idStr = String(node.id)
-    const isDisabled = disabledIds.has(idStr)
-    const iconComponent = node.icon ? resolveMenuIcon(node.icon) : node.type === 1 ? Folder : FileText
-
-    result.push({
-      id: idStr,
+  // Buttons (type 3) cannot have child menus
+  return nodes
+    .filter(node => node.type !== 3)
+    .map(node => ({
+      id: String(node.id),
       parentId: node.parentId ? String(node.parentId) : null,
       label: node.title,
-      icon: iconComponent,
-      disabled: isDisabled,
+      icon: node.icon ? resolveMenuIcon(node.icon) : node.type === 1 ? Folder : FileText,
+      disabled: disabledIds.has(String(node.id)),
       data: node,
-      children: node.children && node.children.length > 0 ? toMenuTreeNodeData(node.children, disabledIds) : undefined
-    })
-  }
-
-  return result
+      children: node.children?.length ? toMenuTreeNodeData(node.children, disabledIds) : undefined
+    }))
 }
 
 interface MenuParentSelectProps {
@@ -76,7 +66,7 @@ export function MenuParentSelect({
 }: MenuParentSelectProps) {
   const disabledIds = React.useMemo(() => {
     if (!currentMenuId) return new Set<string>()
-    return collectDescendantIds(menuTree, currentMenuId)
+    return collectSubtreeIds(menuTree, currentMenuId)
   }, [menuTree, currentMenuId])
 
   const treeData = React.useMemo(() => {
@@ -88,11 +78,12 @@ export function MenuParentSelect({
   const handleChange = (nextKey: TreeKey | null) => {
     if (nextKey === null || nextKey === '') {
       onChange(null)
-    } else {
-      // Preserve numeric ID if original ID was a number
-      const num = Number(nextKey)
-      onChange(Number.isNaN(num) ? nextKey : num)
+      return
     }
+
+    // Tree keys are strings; keep numeric menu IDs numeric for the API.
+    const numeric = Number(nextKey)
+    onChange(Number.isNaN(numeric) ? nextKey : numeric)
   }
 
   return (
