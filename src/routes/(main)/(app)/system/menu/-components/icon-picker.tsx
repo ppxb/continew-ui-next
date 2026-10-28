@@ -18,13 +18,13 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { resolveMenuIcon } from '@/navigation/menu-icons'
 import { cn } from 'cn'
 
-export interface IconCategory {
+interface IconCategory {
   key: string
   label: string
   keywords: string[]
 }
 
-export const ICON_CATEGORIES: IconCategory[] = [
+const ICON_CATEGORIES: IconCategory[] = [
   {
     key: 'common',
     label: '常用推荐',

@@ -3,12 +3,14 @@ import * as React from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { type ColumnVisibilityState, type ExpandedState, useTable } from '@tanstack/react-table'
 
-import { Search, X } from 'lucide-react'
+import { ChevronsDownUp, ChevronsUpDown, Plus, Search, Trash2, X } from 'lucide-react'
 
 import { DataTable } from '@/components/data-table'
 import { ListPageCard } from '@/components/list-page-card'
+import { TableToolbar } from '@/components/table-toolbar'
 import { Button } from '@/components/ui/button'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
+import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
 import { usePermission } from '@/hooks/use-permission'
@@ -20,7 +22,6 @@ import { cn } from 'cn'
 import { createMenuColumns, type MenuAction } from './menu-columns'
 import { MenuDeleteDialog } from './menu-delete-dialog'
 import { MenuFormDrawer } from './menu-form-drawer'
-import { MenuToolbar } from './menu-toolbar'
 
 const DEFAULT_COLUMN_VISIBILITY: ColumnVisibilityState = {}
 
@@ -150,20 +151,40 @@ export function MenuList() {
   )
 
   const actions = (
-    <MenuToolbar
+    <TableToolbar
       table={table}
-      isRefreshing={query.isFetching}
+      isRefreshing={query.isFetching && !query.isPending}
       isFullscreen={fullscreen.isFullscreen}
-      isAllExpanded={isAllExpanded}
-      isClearingCache={clearCacheMutation.isPending}
-      hasCreatePermission={hasCreatePermission}
-      hasClearCachePermission={hasClearCachePermission}
-      onCreate={() => setFormTarget({ menuId: null, parentId: null })}
       onRefresh={() => void query.refetch()}
-      onToggleExpandAll={handleToggleExpandAll}
-      onClearCache={() => clearCacheMutation.mutate()}
       onToggleFullscreen={fullscreen.toggleFullscreen}
       onResetColumns={() => setColumnVisibility(DEFAULT_COLUMN_VISIBILITY)}
+      actions={
+        <>
+          {hasCreatePermission && (
+            <Button onClick={() => setFormTarget({ menuId: null, parentId: null })}>
+              <Plus />
+              新增菜单
+            </Button>
+          )}
+
+          {hasClearCachePermission && (
+            <Button
+              variant="outline"
+              disabled={clearCacheMutation.isPending}
+              onClick={() => clearCacheMutation.mutate()}
+              className="text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300"
+            >
+              {clearCacheMutation.isPending ? <Spinner /> : <Trash2 />}
+              清除缓存
+            </Button>
+          )}
+
+          <Button variant="outline" onClick={handleToggleExpandAll}>
+            {isAllExpanded ? <ChevronsDownUp /> : <ChevronsUpDown />}
+            {isAllExpanded ? '折叠全部' : '展开全部'}
+          </Button>
+        </>
+      }
     />
   )
 

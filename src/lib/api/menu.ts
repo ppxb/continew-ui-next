@@ -8,12 +8,6 @@ export const MENU_TYPE_MAP: Record<MenuType, string> = {
   3: '按钮'
 }
 
-export const MENU_TYPE_OPTIONS = [
-  { value: 1 as const, label: '目录' },
-  { value: 2 as const, label: '菜单' },
-  { value: 3 as const, label: '按钮' }
-] as const
-
 /** One row/node in `GET /system/menu/tree`. */
 export interface MenuResp {
   id: string | number
