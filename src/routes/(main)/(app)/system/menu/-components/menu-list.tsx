@@ -72,8 +72,6 @@ export function MenuList() {
   const { hasPermission } = usePermission()
 
   const hasCreatePermission = hasPermission('system:menu:create')
-  const hasUpdatePermission = hasPermission('system:menu:update')
-  const hasDeletePermission = hasPermission('system:menu:delete')
   const hasClearCachePermission = hasPermission('system:menu:clearCache')
 
   // Search state
@@ -139,16 +137,7 @@ export function MenuList() {
     }
   }, [])
 
-  const columns = React.useMemo(
-    () =>
-      createMenuColumns({
-        onAction: handleRowAction,
-        hasCreatePermission,
-        hasUpdatePermission,
-        hasDeletePermission
-      }),
-    [handleRowAction, hasCreatePermission, hasUpdatePermission, hasDeletePermission]
-  )
+  const columns = React.useMemo(() => createMenuColumns(handleRowAction), [handleRowAction])
 
   const table = useTable({
     features: dataTableFeatures,
@@ -204,7 +193,7 @@ export function MenuList() {
       />
       {searchInput ? (
         <InputGroupAddon align="inline-end">
-          <Button type="button" variant="ghost" size="icon-xs" aria-label="清空搜索" onClick={() => setSearchInput('')}>
+          <Button type="button" variant="ghost" size="icon-xs" onClick={() => setSearchInput('')}>
             <X className="size-3" />
           </Button>
         </InputGroupAddon>

@@ -25,7 +25,9 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { usePermission } from '@/hooks/use-permission'
 import { MENU_TYPE_MAP, type MenuResp, type MenuType } from '@/lib/api/menu'
+import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 import { resolveMenuIcon } from '@/navigation/menu-icons'
 import { cn } from 'cn'
@@ -42,19 +44,18 @@ function MenuTypeBadge({ type }: { type: MenuType }) {
   return <TypeBadge tone={MENU_TYPE_TONES[type]} label={MENU_TYPE_MAP[type]} />
 }
 
-function RowActions({
-  menu,
-  onAction,
-  hasCreatePermission,
-  hasUpdatePermission,
-  hasDeletePermission
-}: {
-  menu: MenuResp
-  onAction: (action: MenuAction, menu: MenuResp) => void
-  hasCreatePermission: boolean
-  hasUpdatePermission: boolean
-  hasDeletePermission: boolean
-}) {
+type TextColumnKey = 'path' | 'name' | 'component'
+
+function textColumn(key: TextColumnKey, header: string): ColumnDef<DataTableFeatures, MenuResp> {
+  return {
+    accessorKey: key,
+    header,
+    cell: ({ row }) => <span>{row.original[key] || EMPTY_PLACEHOLDER}</span>
+  }
+}
+
+function RowActions({ menu, onAction }: { menu: MenuResp; onAction: (action: MenuAction, menu: MenuResp) => void }) {
+  const { hasPermission } = usePermission()
   const canAddChild = menu.type === 1 || menu.type === 2
 
   return (
@@ -70,20 +71,20 @@ function RowActions({
         </Tooltip>
         <DropdownMenuContent align="end" className="w-36">
           <DropdownMenuGroup>
-            {hasUpdatePermission && (
+            {hasPermission('system:menu:update') && (
               <DropdownMenuItem onClick={() => onAction('edit', menu)}>
                 <PenLine />
                 修改菜单
               </DropdownMenuItem>
             )}
-            {hasCreatePermission && canAddChild && (
+            {hasPermission('system:menu:create') && canAddChild && (
               <DropdownMenuItem onClick={() => onAction('add-child', menu)}>
                 <Plus />
                 添加下级
               </DropdownMenuItem>
             )}
           </DropdownMenuGroup>
-          {hasDeletePermission && (
+          {hasPermission('system:menu:delete') && (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
@@ -100,19 +101,9 @@ function RowActions({
   )
 }
 
-interface CreateMenuColumnsOptions {
+export function createMenuColumns(
   onAction: (action: MenuAction, menu: MenuResp) => void
-  hasUpdatePermission: boolean
-  hasCreatePermission: boolean
-  hasDeletePermission: boolean
-}
-
-export function createMenuColumns({
-  onAction,
-  hasUpdatePermission,
-  hasCreatePermission,
-  hasDeletePermission
-}: CreateMenuColumnsOptions): ColumnDef<DataTableFeatures, MenuResp>[] {
+): ColumnDef<DataTableFeatures, MenuResp>[] {
   return [
     {
       accessorKey: 'title',
@@ -135,7 +126,6 @@ export function createMenuColumns({
                   row.toggleExpanded()
                 }}
                 className="flex size-5 shrink-0 items-center justify-center rounded-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                aria-label={isExpanded ? '折叠' : '展开'}
               >
                 <ChevronRight
                   className={cn('size-4 transition-transform duration-200', isExpanded && 'rotate-90 text-foreground')}
@@ -166,37 +156,23 @@ export function createMenuColumns({
       header: '类型',
       cell: ({ row }) => <MenuTypeBadge type={row.original.type} />
     },
-    {
-      accessorKey: 'path',
-      header: '路由地址',
-      cell: ({ row }) => <span className="text-sm text-muted-foreground">{row.original.path || '-'}</span>
-    },
-    {
-      accessorKey: 'name',
-      header: '组件名称',
-      cell: ({ row }) => <span className="text-sm text-foreground">{row.original.name || '-'}</span>
-    },
-    {
-      accessorKey: 'component',
-      header: '组件路径',
-      cell: ({ row }) => <span className="text-sm text-muted-foreground">{row.original.component || '-'}</span>
-    },
+    textColumn('path', '路由地址'),
+    textColumn('name', '组件名称'),
+    textColumn('component', '组件路径'),
     {
       accessorKey: 'permission',
       header: '权限标识',
       cell: ({ row }) =>
         row.original.permission ? (
-          <Badge variant="secondary" className="font-normal">
-            {row.original.permission}
-          </Badge>
+          <Badge variant="secondary">{row.original.permission}</Badge>
         ) : (
-          <span className="text-sm text-muted-foreground">-</span>
+          <span>{EMPTY_PLACEHOLDER}</span>
         )
     },
     {
       accessorKey: 'sort',
       header: '排序',
-      cell: ({ row }) => <span className="text-sm text-muted-foreground tabular-nums">{row.original.sort}</span>
+      cell: ({ row }) => <span>{row.original.sort}</span>
     },
     {
       accessorKey: 'status',
@@ -222,15 +198,7 @@ export function createMenuColumns({
       id: 'actions',
       header: () => <div className="text-center">操作</div>,
       enableHiding: false,
-      cell: ({ row }) => (
-        <RowActions
-          menu={row.original}
-          onAction={onAction}
-          hasCreatePermission={hasCreatePermission}
-          hasUpdatePermission={hasUpdatePermission}
-          hasDeletePermission={hasDeletePermission}
-        />
-      )
+      cell: ({ row }) => <RowActions menu={row.original} onAction={onAction} />
     }
   ]
 }
