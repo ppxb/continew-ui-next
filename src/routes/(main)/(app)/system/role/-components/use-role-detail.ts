@@ -1,30 +1,24 @@
-import { useQuery } from '@tanstack/react-query'
+import { skipToken, useQuery } from '@tanstack/react-query'
 
 import { getRole, roleKeys } from '@/lib/api/role'
 import { DETAIL_STALE_TIME_MS } from '@/lib/query-client'
 
 interface RoleDetailOptions {
-  /** Keep the query inactive until the caller needs the record, instead of as soon as it has an id. */
+  /** Whether the caller is showing the record; closed drawers stay idle. */
   readonly enabled?: boolean
-  /** Force a fresh read before initializing an edit or permission form. */
+  /** Force a fresh read when an edit or permission flow opens. */
   readonly refreshOnOpen?: boolean
 }
 
-/** One role's detailed record (including menuIds, deptIds, checkStrictly settings). */
+/** One role's detailed record (menuIds, deptIds and the two checkStrictly settings); a null id skips it. */
 export function useRoleDetail(
   roleId: string | number | null,
   { enabled = true, refreshOnOpen = false }: RoleDetailOptions = {}
 ) {
   return useQuery({
     queryKey: roleKeys.detail(roleId),
-    queryFn: ({ signal }) => {
-      if (roleId === null) {
-        throw new Error('A role detail was requested without an id')
-      }
-
-      return getRole(roleId, signal)
-    },
-    enabled: enabled && roleId !== null,
+    queryFn: roleId === null ? skipToken : ({ signal }) => getRole(roleId, signal),
+    enabled,
     staleTime: refreshOnOpen ? 0 : DETAIL_STALE_TIME_MS
   })
 }
