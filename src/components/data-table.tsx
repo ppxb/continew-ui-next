@@ -70,13 +70,15 @@ export function DataTable<TRow extends RowData>({
                 <TableHead
                   key={header.id}
                   className={cn(
-                    'py-4 font-normal',
+                    // A tinted band separates the header from the rows; `bg-background` would match
+                    // the card in light mode, where `--card` and `--background` are the same colour.
+                    'bg-muted py-4 font-normal',
                     // A collapsed table paints its borders as one grid below the sticky cell, so the
                     // header draws its edges itself: the bottom one sits on the collapsed border it
                     // replaces, the top one just inside the cell where the scroll port cannot clip it.
                     stickyHeader &&
                       cn(
-                        'sticky top-0 z-10 bg-background',
+                        'sticky top-0 z-10',
                         "before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-border before:content-['']",
                         "after:absolute after:inset-x-0 after:-bottom-px after:h-px after:bg-border after:content-['']"
                       )
@@ -94,7 +96,7 @@ export function DataTable<TRow extends RowData>({
             rows.map(row => (
               <TableRow key={row.id} className={cn(row.getIsSelected() && 'bg-muted/30')}>
                 {row.getVisibleCells().map(cell => (
-                  <TableCell key={cell.id} className="py-4">
+                  <TableCell key={cell.id} className="py-3.5">
                     <table.FlexRender cell={cell} />
                   </TableCell>
                 ))}

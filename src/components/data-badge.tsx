@@ -91,15 +91,11 @@ export function TagList({ items, max, className }: TagListProps) {
   return (
     <div className={cn('flex flex-wrap gap-1', className)}>
       {visibleItems.map(item => (
-        <Badge key={item} variant="secondary" className="font-normal">
+        <Badge key={item} variant="secondary">
           {item}
         </Badge>
       ))}
-      {hiddenCount > 0 ? (
-        <Badge variant="secondary" className="font-normal">
-          +{hiddenCount}
-        </Badge>
-      ) : null}
+      {hiddenCount > 0 ? <Badge variant="secondary">+{hiddenCount}</Badge> : null}
     </div>
   )
 }

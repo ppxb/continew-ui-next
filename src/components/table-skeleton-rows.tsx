@@ -34,7 +34,7 @@ export function TableSkeletonRows<TRow extends RowData>({
       {Array.from({ length: rowCount }).map((_, rowIndex) => (
         <TableRow key={rowIndex} className="hover:bg-transparent">
           {Array.from({ length: columnCount }).map((_, colIndex) => (
-            <TableCell key={colIndex} className="py-4 align-middle">
+            <TableCell key={colIndex} className="py-3.5 align-middle">
               <Skeleton className={cn('h-4', widths[colIndex] ?? fallbackWidth)} />
             </TableCell>
           ))}
