@@ -25,7 +25,7 @@ import { genderLabel, RoleCell } from './user-display'
 export type UserAction = 'detail' | 'edit' | 'resetPassword' | 'assignRoles' | 'delete'
 
 function TextCell({ value }: { value: string | null }) {
-  return <span className="text-sm">{value || EMPTY_PLACEHOLDER}</span>
+  return <span>{value || EMPTY_PLACEHOLDER}</span>
 }
 
 type TextColumnKey =
@@ -55,7 +55,7 @@ function NicknameCell({ user }: { user: UserResp }) {
         <AvatarImage src={user.avatar ?? undefined} alt="" />
         <AvatarFallback>{getInitials(name)}</AvatarFallback>
       </Avatar>
-      <span className="truncate text-sm font-medium text-foreground">{name}</span>
+      <span className="truncate">{name}</span>
     </div>
   )
 }
@@ -114,7 +114,7 @@ export function createUserColumns(onAction: (action: UserAction, user: UserResp)
       id: 'index',
       header: '序号',
       enableHiding: false,
-      cell: ({ row }) => <div className="text-sm text-muted-foreground tabular-nums">{rowOffset + row.index + 1}</div>
+      cell: ({ row }) => <div className="tabular-nums">{rowOffset + row.index + 1}</div>
     },
     {
       accessorKey: 'nickname',
@@ -124,7 +124,7 @@ export function createUserColumns(onAction: (action: UserAction, user: UserResp)
     {
       accessorKey: 'username',
       header: '用户名',
-      cell: ({ row }) => <span className="text-sm">{row.original.username}</span>
+      cell: ({ row }) => <span>{row.original.username}</span>
     },
     {
       accessorKey: 'status',
@@ -134,7 +134,7 @@ export function createUserColumns(onAction: (action: UserAction, user: UserResp)
     {
       accessorKey: 'gender',
       header: '性别',
-      cell: ({ row }) => <span className="text-sm">{genderLabel(row.original.gender)}</span>
+      cell: ({ row }) => <span>{genderLabel(row.original.gender)}</span>
     },
     textColumn('deptName', '所属部门'),
     {

@@ -35,11 +35,7 @@ function DataScopeBadge({ scope }: { scope: DataScope }) {
 
 type TextColumnKey = 'description' | 'createUserString' | 'createTime' | 'updateUserString' | 'updateTime'
 
-function textColumn(
-  key: TextColumnKey,
-  header: string,
-  className = 'text-sm'
-): ColumnDef<DataTableFeatures, RoleResp> {
+function textColumn(key: TextColumnKey, header: string, className = 'text-sm'): ColumnDef<DataTableFeatures, RoleResp> {
   return {
     accessorKey: key,
     header,
@@ -95,14 +91,14 @@ export function createRoleColumns(
       id: 'index',
       header: '序号',
       enableHiding: false,
-      cell: ({ row }) => <span className="text-sm text-muted-foreground tabular-nums">{rowOffset + row.index + 1}</span>
+      cell: ({ row }) => <span className="tabular-nums">{rowOffset + row.index + 1}</span>
     },
     {
       accessorKey: 'name',
       header: '角色名称',
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-foreground">{row.original.name}</span>
+          <span>{row.original.name}</span>
           <FlagBadge active={row.original.isSystem} activeLabel="内置" icon={<ShieldCheck />} />
         </div>
       )
@@ -120,13 +116,13 @@ export function createRoleColumns(
     {
       accessorKey: 'sort',
       header: '排序',
-      cell: ({ row }) => <span className="text-sm tabular-nums">{row.original.sort}</span>
+      cell: ({ row }) => <span className="tabular-nums">{row.original.sort}</span>
     },
     textColumn('description', '描述', 'inline-block max-w-50 truncate text-sm'),
     textColumn('createUserString', '创建人'),
-    textColumn('createTime', '创建时间', 'text-sm tabular-nums'),
+    textColumn('createTime', '创建时间', 'tabular-nums'),
     textColumn('updateUserString', '修改人'),
-    textColumn('updateTime', '修改时间', 'text-sm tabular-nums'),
+    textColumn('updateTime', '修改时间', 'tabular-nums'),
     {
       id: 'actions',
       header: '操作',
