@@ -35,18 +35,12 @@ export function RoleList() {
   const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>(HIDDEN_BY_DEFAULT)
   const [keyword, setKeyword] = React.useState('')
 
-  // Drawer & Dialog states
-  const [formRoleId, setFormRoleId] = React.useState<string | number | null>(null)
-  const [isFormOpen, setIsFormOpen] = React.useState(false)
-
+  // One state per overlay: a null value means it is closed, so "which record" and "is it open" can
+  // never drift apart. The form drawer holds an object, because a null id there means 新增.
+  const [formTarget, setFormTarget] = React.useState<{ roleId: string | number | null } | null>(null)
   const [permissionRole, setPermissionRole] = React.useState<RoleResp | null>(null)
-  const [isPermissionOpen, setIsPermissionOpen] = React.useState(false)
-
   const [userRole, setUserRole] = React.useState<RoleResp | null>(null)
-  const [isUserOpen, setIsUserOpen] = React.useState(false)
-
   const [deletingRole, setDeletingRole] = React.useState<RoleResp | null>(null)
-  const [isDeleteOpen, setIsDeleteOpen] = React.useState(false)
 
   const fullscreen = useFullscreenTransition()
 
@@ -70,26 +64,22 @@ export function RoleList() {
 
   const handleRowAction = React.useCallback((action: RoleAction, role: RoleResp) => {
     if (action === 'edit') {
-      setFormRoleId(role.id)
-      setIsFormOpen(true)
+      setFormTarget({ roleId: role.id })
       return
     }
 
     if (action === 'permission') {
       setPermissionRole(role)
-      setIsPermissionOpen(true)
       return
     }
 
     if (action === 'members') {
       setUserRole(role)
-      setIsUserOpen(true)
       return
     }
 
     if (action === 'delete') {
       setDeletingRole(role)
-      setIsDeleteOpen(true)
     }
   }, [])
 
@@ -106,11 +96,6 @@ export function RoleList() {
     getRowId: row => String(row.id)
   })
 
-  const handleCreate = () => {
-    setFormRoleId(null)
-    setIsFormOpen(true)
-  }
-
   const filters = <TableSearch className="h-8" placeholder="搜索角色名称、编码" onSearch={handleSearch} />
 
   const actions = (
@@ -122,7 +107,7 @@ export function RoleList() {
       onToggleFullscreen={fullscreen.toggleFullscreen}
       onResetColumns={() => setColumnVisibility(HIDDEN_BY_DEFAULT)}
       actions={
-        <Button onClick={handleCreate}>
+        <Button onClick={() => setFormTarget({ roleId: null })}>
           <Plus />
           新增角色
         </Button>
@@ -149,17 +134,18 @@ export function RoleList() {
         />
       </ListPageCard>
 
-      {/* Add / Edit Drawer */}
-      <RoleFormDrawer roleId={formRoleId} open={isFormOpen} onClose={() => setIsFormOpen(false)} />
-
-      {/* Functional Permission Tree Drawer */}
-      <RolePermissionDrawer role={permissionRole} open={isPermissionOpen} onClose={() => setIsPermissionOpen(false)} />
-
-      {/* Member Management Drawer */}
-      <RoleUserDrawer role={userRole} open={isUserOpen} onClose={() => setIsUserOpen(false)} />
-
-      {/* Delete Confirmation Dialog */}
-      <RoleDeleteDialog role={deletingRole} open={isDeleteOpen} onClose={() => setIsDeleteOpen(false)} />
+      <RoleFormDrawer
+        roleId={formTarget?.roleId ?? null}
+        open={formTarget !== null}
+        onClose={() => setFormTarget(null)}
+      />
+      <RolePermissionDrawer
+        role={permissionRole}
+        open={permissionRole !== null}
+        onClose={() => setPermissionRole(null)}
+      />
+      <RoleUserDrawer role={userRole} open={userRole !== null} onClose={() => setUserRole(null)} />
+      <RoleDeleteDialog role={deletingRole} open={deletingRole !== null} onClose={() => setDeletingRole(null)} />
     </>
   )
 }

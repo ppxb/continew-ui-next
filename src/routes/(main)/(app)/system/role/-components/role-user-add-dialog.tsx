@@ -22,6 +22,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
 import { useDebouncedValue } from '@/hooks/use-debounced-value'
+import { useLastRecord } from '@/hooks/use-last-record'
 import { assignRoleToUsers, listRoleUserIds, roleKeys, type RoleResp } from '@/lib/api/role'
 import { listUsers, userKeys, type UserResp } from '@/lib/api/user'
 import { getInitials } from '@/lib/utils'
@@ -105,7 +106,8 @@ export function RoleUserAddDialog({ role, open, onClose, onSuccess }: RoleUserAd
   const [selectedUserIds, setSelectedUserIds] = React.useState<Set<string | number>>(new Set())
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
-  const roleId = role?.id ?? null
+  const shownRole = useLastRecord(role)
+  const roleId = shownRole?.id ?? null
   const keyword = useDebouncedValue(search).trim()
 
   // The ids already in the role, so the list can grey them out instead of offering them again.
@@ -181,7 +183,7 @@ export function RoleUserAddDialog({ role, open, onClose, onSuccess }: RoleUserAd
           <div className="flex items-center gap-2">
             <UserPlus className="size-4" />
             <DialogTitle>添加角色成员</DialogTitle>
-            {role && <Badge variant="secondary">{role.name}</Badge>}
+            {shownRole && <Badge variant="secondary">{shownRole.name}</Badge>}
           </div>
           <DialogDescription>选择系统中现有用户分配到该角色中</DialogDescription>
         </DialogHeader>

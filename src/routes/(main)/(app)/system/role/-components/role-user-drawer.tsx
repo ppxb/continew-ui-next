@@ -18,6 +18,7 @@ import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/p
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { toast } from '@/components/ui/toast'
+import { useLastRecord } from '@/hooks/use-last-record'
 import { listRoleUsers, roleKeys, type RoleResp, type RoleUserResp, unassignRoleFromUsers } from '@/lib/api/role'
 import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 import { dataTableFeatures, type DataTableFeatures } from '@/lib/data-table-features'
@@ -107,7 +108,8 @@ function createMemberColumns({
 
 export function RoleUserDrawer({ role, open, onClose }: RoleUserDrawerProps) {
   const queryClient = useQueryClient()
-  const roleId = role?.id ?? null
+  const shownRole = useLastRecord(role)
+  const roleId = shownRole?.id ?? null
 
   const [pagination, setPagination] = React.useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({})
@@ -215,7 +217,7 @@ export function RoleUserDrawer({ role, open, onClose }: RoleUserDrawerProps) {
         onClose={onClose}
         title="角色成员管理"
         icon={<Users className="size-4" />}
-        badge={role ? <Badge variant="secondary">{role.name}</Badge> : undefined}
+        badge={shownRole ? <Badge variant="secondary">{shownRole.name}</Badge> : undefined}
         width={40}
       >
         <div className="flex min-h-0 flex-1 flex-col gap-3 p-4">

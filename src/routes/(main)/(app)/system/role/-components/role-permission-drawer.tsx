@@ -15,6 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
 import { Switch } from '@/components/ui/switch'
 import { toast } from '@/components/ui/toast'
+import { useLastRecord } from '@/hooks/use-last-record'
 import {
   listRolePermissionTree,
   roleKeys,
@@ -55,7 +56,8 @@ function toCheckablePermissionNodes(nodes: RolePermissionResp[]): CheckableTreeN
 
 export function RolePermissionDrawer({ role, open, onClose }: RolePermissionDrawerProps) {
   const queryClient = useQueryClient()
-  const roleId = role?.id ?? null
+  const shownRole = useLastRecord(role)
+  const roleId = shownRole?.id ?? null
 
   const detail = useRoleDetail(roleId, { enabled: open, refreshOnOpen: true })
 
@@ -121,7 +123,7 @@ export function RolePermissionDrawer({ role, open, onClose }: RolePermissionDraw
       onClose={onClose}
       title="分配功能权限"
       icon={<KeyRound className="size-4" />}
-      badge={role ? <Badge variant="secondary">{role.name}</Badge> : undefined}
+      badge={shownRole ? <Badge variant="secondary">{shownRole.name}</Badge> : undefined}
       width={36}
       closeDisabled={isSubmitting}
     >

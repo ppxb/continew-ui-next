@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
+import { useLastRecord } from '@/hooks/use-last-record'
 import { deleteRoles, roleKeys, type RoleResp } from '@/lib/api/role'
 
 interface RoleDeleteDialogProps {
@@ -29,6 +30,7 @@ interface RoleDeleteDialogProps {
 export function RoleDeleteDialog({ role, open, onClose }: RoleDeleteDialogProps) {
   const queryClient = useQueryClient()
   const [isDeleting, setIsDeleting] = React.useState(false)
+  const shownRole = useLastRecord(role)
 
   const handleDelete = async () => {
     if (!role) {
@@ -67,7 +69,9 @@ export function RoleDeleteDialog({ role, open, onClose }: RoleDeleteDialogProps)
           </AlertDialogMedia>
           <AlertDialogTitle>删除角色</AlertDialogTitle>
           <AlertDialogDescription>
-            {`确定要删除角色「${role?.name ?? ''}」吗？删除后该角色下关联的用户权限将失效，操作不可撤回。`}
+            {shownRole
+              ? `确定要删除角色「${shownRole.name}」吗？删除后该角色下关联的用户权限将失效，操作不可撤回。`
+              : '确定要删除该角色吗？删除后不可撤回。'}
           </AlertDialogDescription>
         </AlertDialogHeader>
 
