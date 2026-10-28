@@ -7,6 +7,7 @@ import { z } from 'zod'
 import { FileText, Folder, MousePointerClick } from 'lucide-react'
 
 import { EntityDrawer } from '@/components/entity-drawer'
+import { QueryState } from '@/components/query-state'
 import { RequiredMark } from '@/components/required-mark'
 import { Button } from '@/components/ui/button'
 import { DrawerFooter } from '@/components/ui/drawer'
@@ -43,15 +44,12 @@ const formSchema = z
     isHidden: z.boolean()
   })
   .superRefine((data, ctx) => {
-    // 菜单类型必须填写路由地址
-    if (data.type === 2) {
-      if (!data.path || !data.path.trim()) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ['path'],
-          message: '菜单类型必须填写路由地址'
-        })
-      }
+    if (data.type === 2 && !data.path?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['path'],
+        message: '菜单类型必须填写路由地址'
+      })
     }
 
     if (data.isExternal && data.path && !/^https?:\/\//i.test(data.path)) {
@@ -64,6 +62,8 @@ const formSchema = z
   })
 
 type FormValues = z.infer<typeof formSchema>
+type TextFieldName = 'path' | 'name' | 'component' | 'redirect' | 'permission'
+type SwitchFieldName = 'isHidden' | 'isExternal' | 'isCache'
 
 const DEFAULT_FORM_VALUES: FormValues = {
   type: 2,
@@ -171,8 +171,12 @@ export function MenuFormDrawer({ menuId, defaultParentId, open, onClose, menuTre
   const isExternal = useSelector(form.store, state => state.values.isExternal)
   const isSubmitting = useSelector(form.store, state => state.isSubmitting)
 
-  // Fetch menu details when editing
-  const { data: menuDetail, isLoading: isLoadingDetail } = useQuery({
+  const {
+    data: menuDetail,
+    isLoading: isLoadingDetail,
+    isError: isDetailError,
+    refetch: refetchDetail
+  } = useQuery({
     queryKey: menuKeys.detail(menuId),
     queryFn: ({ signal }) => getMenu(menuId!, signal),
     enabled: open && isEdit
@@ -239,6 +243,50 @@ export function MenuFormDrawer({ menuId, defaultParentId, open, onClose, menuTre
     })
   }
 
+  const renderTextField = (
+    name: TextFieldName,
+    label: React.ReactNode,
+    options: { placeholder: string; description?: string }
+  ) => (
+    <form.Field name={name} validators={{ onDynamic: formSchema.shape[name] }}>
+      {field => {
+        const invalid = field.state.meta.errors.length > 0
+
+        return (
+          <Field data-invalid={invalid}>
+            <FieldLabel htmlFor={`menu-${name}`}>{label}</FieldLabel>
+            <Input
+              id={`menu-${name}`}
+              name={name}
+              value={field.state.value ?? ''}
+              onChange={event => field.handleChange(event.target.value)}
+              onBlur={field.handleBlur}
+              placeholder={options.placeholder}
+              disabled={isSubmitting}
+              aria-invalid={invalid}
+            />
+            {options.description && <FieldDescription>{options.description}</FieldDescription>}
+            <FieldError errors={field.state.meta.errors} />
+          </Field>
+        )
+      }}
+    </form.Field>
+  )
+
+  const renderSwitchField = (name: SwitchFieldName, label: string, description: (checked: boolean) => string) => (
+    <form.Field name={name}>
+      {field => (
+        <Field orientation="horizontal" className="items-center justify-between">
+          <FieldContent>
+            <FieldLabel>{label}</FieldLabel>
+            <FieldDescription>{description(field.state.value)}</FieldDescription>
+          </FieldContent>
+          <Switch checked={field.state.value} onCheckedChange={field.handleChange} disabled={isSubmitting} />
+        </Field>
+      )}
+    </form.Field>
+  )
+
   return (
     <EntityDrawer
       open={open}
@@ -246,7 +294,6 @@ export function MenuFormDrawer({ menuId, defaultParentId, open, onClose, menuTre
       title={isEdit ? '修改菜单' : '新增菜单'}
       width={32}
       closeDisabled={isSubmitting}
-      canClose={() => !isSubmitting}
     >
       {isEdit && isLoadingDetail ? (
         <div className="flex min-h-0 flex-1 flex-col gap-4 p-4">
@@ -256,6 +303,8 @@ export function MenuFormDrawer({ menuId, defaultParentId, open, onClose, menuTre
           <Skeleton className="h-9 w-full" />
           <Skeleton className="h-9 w-full" />
         </div>
+      ) : isEdit && isDetailError ? (
+        <QueryState state="error" className="p-6" onRetry={() => void refetchDetail()} />
       ) : (
         <form
           ref={formRef}
@@ -268,13 +317,12 @@ export function MenuFormDrawer({ menuId, defaultParentId, open, onClose, menuTre
         >
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
             <FieldGroup className="gap-4">
-              {/* Type Switcher (Disabled in Edit Mode) */}
               <form.Field name="type">
                 {field => {
                   const isTypeDisabled = isEdit || isSubmitting
 
                   return (
-                    <Field className="gap-1.5">
+                    <Field>
                       <FieldLabel>菜单类型</FieldLabel>
                       <RadioGroup
                         value={String(field.state.value)}
@@ -311,13 +359,12 @@ export function MenuFormDrawer({ menuId, defaultParentId, open, onClose, menuTre
                 }}
               </form.Field>
 
-              {/* Parent Menu */}
               <form.Field name="parentId">
                 {field => {
                   const invalid = field.state.meta.errors.length > 0
 
                   return (
-                    <Field className="gap-1.5" data-invalid={invalid}>
+                    <Field data-invalid={invalid}>
                       <FieldLabel>上级菜单</FieldLabel>
                       <MenuParentSelect
                         value={field.state.value}
@@ -333,14 +380,13 @@ export function MenuFormDrawer({ menuId, defaultParentId, open, onClose, menuTre
                 }}
               </form.Field>
 
-              {/* Required Fields Upfront: Title & Sort (2 columns on PC) */}
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <form.Field name="title" validators={{ onDynamic: formSchema.shape.title }}>
                   {field => {
                     const invalid = field.state.meta.errors.length > 0
 
                     return (
-                      <Field className="gap-1.5" data-invalid={invalid}>
+                      <Field data-invalid={invalid}>
                         <FieldLabel htmlFor="menu-title">
                           {menuType === 3 ? '按钮名称' : '菜单名称'}
                           <RequiredMark />
@@ -366,7 +412,7 @@ export function MenuFormDrawer({ menuId, defaultParentId, open, onClose, menuTre
                     const invalid = field.state.meta.errors.length > 0
 
                     return (
-                      <Field className="gap-1.5" data-invalid={invalid}>
+                      <Field data-invalid={invalid}>
                         <FieldLabel htmlFor="menu-sort">
                           排序
                           <RequiredMark />
@@ -390,43 +436,18 @@ export function MenuFormDrawer({ menuId, defaultParentId, open, onClose, menuTre
                 </form.Field>
               </div>
 
-              {/* Route Path & Menu Icon on the same row on PC (DIR & MENU) */}
               {menuType !== 3 && (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <form.Field name="path" validators={{ onDynamic: formSchema.shape.path }}>
-                    {field => {
-                      const invalid = field.state.meta.errors.length > 0
-
-                      return (
-                        <Field className="gap-1.5" data-invalid={invalid}>
-                          <FieldLabel htmlFor="menu-path">
-                            路由地址
-                            {menuType === 2 && <RequiredMark />}
-                          </FieldLabel>
-                          <Input
-                            id="menu-path"
-                            name="path"
-                            value={field.state.value ?? ''}
-                            onChange={event => field.handleChange(event.target.value)}
-                            onBlur={field.handleBlur}
-                            placeholder={isExternal ? 'https://example.com' : '/system/user'}
-                            disabled={isSubmitting}
-                            aria-invalid={invalid}
-                          />
-                          <FieldDescription>
-                            {isExternal
-                              ? '外部网页完整链接，以 http:// 或 https:// 开头'
-                              : '访问的前端路由路径，以 / 开头'}
-                          </FieldDescription>
-                          <FieldError errors={field.state.meta.errors} />
-                        </Field>
-                      )
-                    }}
-                  </form.Field>
+                  {renderTextField('path', <>路由地址{menuType === 2 && <RequiredMark />}</>, {
+                    placeholder: isExternal ? 'https://example.com' : '/system/user',
+                    description: isExternal
+                      ? '外部网页完整链接，以 http:// 或 https:// 开头'
+                      : '访问的前端路由路径，以 / 开头'
+                  })}
 
                   <form.Field name="icon">
                     {field => (
-                      <Field className="gap-1.5">
+                      <Field>
                         <FieldLabel>菜单图标</FieldLabel>
                         <React.Suspense fallback={<Skeleton className="h-9 w-full" />}>
                           <IconPicker value={field.state.value} onChange={field.handleChange} disabled={isSubmitting} />
@@ -437,126 +458,23 @@ export function MenuFormDrawer({ menuId, defaultParentId, open, onClose, menuTre
                 </div>
               )}
 
-              {/* Button specific: Permission code */}
-              {menuType === 3 && (
-                <form.Field name="permission" validators={{ onDynamic: formSchema.shape.permission }}>
-                  {field => (
-                    <Field className="gap-1.5">
-                      <FieldLabel htmlFor="menu-permission">权限标识</FieldLabel>
-                      <Input
-                        id="menu-permission"
-                        name="permission"
-                        value={field.state.value ?? ''}
-                        onChange={event => field.handleChange(event.target.value)}
-                        onBlur={field.handleBlur}
-                        placeholder="例如：system:user:create"
-                        disabled={isSubmitting}
-                      />
-                      <FieldDescription>接口鉴权代码</FieldDescription>
-                    </Field>
-                  )}
-                </form.Field>
-              )}
+              {menuType === 3 &&
+                renderTextField('permission', '权限标识', {
+                  placeholder: '请输入权限标识',
+                  description: '接口鉴权代码'
+                })}
 
-              {/* Menu specific fields: Name & Component (2 columns on PC) */}
               {menuType === 2 && (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <form.Field name="name" validators={{ onDynamic: formSchema.shape.name }}>
-                    {field => (
-                      <Field className="gap-1.5">
-                        <FieldLabel htmlFor="menu-name">组件名称</FieldLabel>
-                        <Input
-                          id="menu-name"
-                          name="name"
-                          value={field.state.value ?? ''}
-                          onChange={event => field.handleChange(event.target.value)}
-                          onBlur={field.handleBlur}
-                          placeholder="例如：SystemUser"
-                          disabled={isSubmitting}
-                        />
-                      </Field>
-                    )}
-                  </form.Field>
-
-                  <form.Field name="component" validators={{ onDynamic: formSchema.shape.component }}>
-                    {field => (
-                      <Field className="gap-1.5">
-                        <FieldLabel htmlFor="menu-component">组件路径</FieldLabel>
-                        <Input
-                          id="menu-component"
-                          name="component"
-                          value={field.state.value ?? ''}
-                          onChange={event => field.handleChange(event.target.value)}
-                          onBlur={field.handleBlur}
-                          placeholder="例如：system/user/index"
-                          disabled={isSubmitting}
-                        />
-                      </Field>
-                    )}
-                  </form.Field>
+                  {renderTextField('name', '组件名称', { placeholder: '请输入组件名称' })}
+                  {renderTextField('component', '组件路径', { placeholder: '请输入组件路径' })}
+                  {renderTextField('permission', '权限标识', { placeholder: '请输入权限标识' })}
+                  {renderTextField('redirect', '重定向地址', { placeholder: '请输入重定向地址' })}
                 </div>
               )}
 
-              {/* Menu specific fields: Permission & Redirect (2 columns on PC) */}
-              {menuType === 2 && (
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <form.Field name="permission" validators={{ onDynamic: formSchema.shape.permission }}>
-                    {field => (
-                      <Field className="gap-1.5">
-                        <FieldLabel htmlFor="menu-permission">权限标识</FieldLabel>
-                        <Input
-                          id="menu-permission"
-                          name="permission"
-                          value={field.state.value ?? ''}
-                          onChange={event => field.handleChange(event.target.value)}
-                          onBlur={field.handleBlur}
-                          placeholder="例如：system:user:list（选填）"
-                          disabled={isSubmitting}
-                        />
-                      </Field>
-                    )}
-                  </form.Field>
+              {menuType === 1 && renderTextField('redirect', '重定向地址', { placeholder: '请输入重定向地址' })}
 
-                  <form.Field name="redirect" validators={{ onDynamic: formSchema.shape.redirect }}>
-                    {field => (
-                      <Field className="gap-1.5">
-                        <FieldLabel htmlFor="menu-redirect">重定向地址</FieldLabel>
-                        <Input
-                          id="menu-redirect"
-                          name="redirect"
-                          value={field.state.value ?? ''}
-                          onChange={event => field.handleChange(event.target.value)}
-                          onBlur={field.handleBlur}
-                          placeholder="例如：/system/user（选填）"
-                          disabled={isSubmitting}
-                        />
-                      </Field>
-                    )}
-                  </form.Field>
-                </div>
-              )}
-
-              {/* Directory specific field: Redirect address */}
-              {menuType === 1 && (
-                <form.Field name="redirect" validators={{ onDynamic: formSchema.shape.redirect }}>
-                  {field => (
-                    <Field className="gap-1.5">
-                      <FieldLabel htmlFor="menu-redirect">重定向地址</FieldLabel>
-                      <Input
-                        id="menu-redirect"
-                        name="redirect"
-                        value={field.state.value ?? ''}
-                        onChange={event => field.handleChange(event.target.value)}
-                        onBlur={field.handleBlur}
-                        placeholder="例如：/system/user（选填）"
-                        disabled={isSubmitting}
-                      />
-                    </Field>
-                  )}
-                </form.Field>
-              )}
-
-              {/* Switches - One per line, no card wrapper */}
               <form.Field name="status">
                 {field => (
                   <Field orientation="horizontal" className="items-center justify-between">
@@ -577,65 +495,20 @@ export function MenuFormDrawer({ menuId, defaultParentId, open, onClose, menuTre
                 )}
               </form.Field>
 
-              {menuType !== 3 && (
-                <form.Field name="isHidden">
-                  {field => (
-                    <Field orientation="horizontal" className="items-center justify-between">
-                      <FieldContent>
-                        <FieldLabel>隐藏菜单</FieldLabel>
-                        <FieldDescription>
-                          {field.state.value ? '已隐藏，不会在侧边栏导航中展示' : '正常在侧边栏导航中展示'}
-                        </FieldDescription>
-                      </FieldContent>
-                      <Switch
-                        checked={field.state.value}
-                        onCheckedChange={field.handleChange}
-                        disabled={isSubmitting}
-                      />
-                    </Field>
-                  )}
-                </form.Field>
-              )}
+              {menuType !== 3 &&
+                renderSwitchField('isHidden', '隐藏菜单', hidden =>
+                  hidden ? '已隐藏，不会在侧边栏导航中展示' : '正常在侧边栏导航中展示'
+                )}
 
-              {menuType !== 3 && (
-                <form.Field name="isExternal">
-                  {field => (
-                    <Field orientation="horizontal" className="items-center justify-between">
-                      <FieldContent>
-                        <FieldLabel>是否外链</FieldLabel>
-                        <FieldDescription>
-                          {field.state.value ? '开启后点击将通过新标签页打开外部链接' : '内部前端路由页面'}
-                        </FieldDescription>
-                      </FieldContent>
-                      <Switch
-                        checked={field.state.value}
-                        onCheckedChange={field.handleChange}
-                        disabled={isSubmitting}
-                      />
-                    </Field>
-                  )}
-                </form.Field>
-              )}
+              {menuType !== 3 &&
+                renderSwitchField('isExternal', '是否外链', external =>
+                  external ? '开启后点击将通过新标签页打开外部链接' : '内部前端路由页面'
+                )}
 
-              {menuType === 2 && (
-                <form.Field name="isCache">
-                  {field => (
-                    <Field orientation="horizontal" className="items-center justify-between">
-                      <FieldContent>
-                        <FieldLabel>是否缓存</FieldLabel>
-                        <FieldDescription>
-                          {field.state.value ? '开启 KeepAlive 缓存，切换路由时保持页面状态' : '不缓存页面'}
-                        </FieldDescription>
-                      </FieldContent>
-                      <Switch
-                        checked={field.state.value}
-                        onCheckedChange={field.handleChange}
-                        disabled={isSubmitting}
-                      />
-                    </Field>
-                  )}
-                </form.Field>
-              )}
+              {menuType === 2 &&
+                renderSwitchField('isCache', '是否缓存', cache =>
+                  cache ? '开启 KeepAlive 缓存，切换路由时保持页面状态' : '不缓存页面'
+                )}
             </FieldGroup>
           </div>
 
@@ -646,7 +519,7 @@ export function MenuFormDrawer({ menuId, defaultParentId, open, onClose, menuTre
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? (
                 <>
-                  <Spinner className="mr-1.5 size-3.5" />
+                  <Spinner />
                   保存中
                 </>
               ) : (
