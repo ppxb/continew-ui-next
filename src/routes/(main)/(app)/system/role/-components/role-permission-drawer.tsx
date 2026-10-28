@@ -31,28 +31,23 @@ interface RolePermissionDrawerProps {
   readonly onClose: () => void
 }
 
+const PERMISSION_TYPE_LABELS: Readonly<Record<number, string | undefined>> = {
+  1: '目录',
+  2: '菜单',
+  3: '按钮'
+}
+
 function toCheckablePermissionNodes(nodes: RolePermissionResp[]): CheckableTreeNode[] {
   return nodes.map(node => {
-    const isDir = Number(node.type) === 1
-    const isMenu = Number(node.type) === 2
-    const isBtn = Number(node.type) === 3
-    const typeLabel = isDir ? '目录' : isMenu ? '菜单' : isBtn ? '按钮' : null
+    const typeLabel = PERMISSION_TYPE_LABELS[Number(node.type)]
 
     return {
       id: String(node.id),
       parentId: node.parentId ? String(node.parentId) : null,
       label: node.title,
       searchTerms: node.permission ?? '',
-      tag: typeLabel ? (
-        <Badge variant="secondary" className="font-normal">
-          {typeLabel}
-        </Badge>
-      ) : null,
-      subtitle: node.permission ? (
-        <Badge variant="secondary" className="text-[11px] font-normal">
-          {node.permission}
-        </Badge>
-      ) : null,
+      tag: typeLabel ? <Badge variant="secondary">{typeLabel}</Badge> : null,
+      subtitle: node.permission ? <Badge variant="secondary">{node.permission}</Badge> : null,
       children: node.children?.length ? toCheckablePermissionNodes(node.children) : undefined
     }
   })
@@ -72,23 +67,32 @@ export function RolePermissionDrawer({ role, open, onClose }: RolePermissionDraw
   })
 
   const [selectedMenuIds, setSelectedMenuIds] = React.useState<Array<string | number>>([])
-  const [menuCheckStrictly, setMenuCheckStrictly] = React.useState<boolean>(false)
-  const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false)
+  const [menuCheckStrictly, setMenuCheckStrictly] = React.useState(false)
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
 
-  // Initialize selected menu IDs and checkStrictly mode when detail data arrives
+  // Fill the tree once per open, and only after the record has settled: a refetch while the drawer
+  // is open hands back a fresh object, which must not overwrite what the user has just checked.
+  const filledForRef = React.useRef<string | null>(null)
   React.useEffect(() => {
-    if (open && detail.data) {
-      setSelectedMenuIds((detail.data.menuIds ?? []).map(String))
-      setMenuCheckStrictly(Boolean(detail.data.menuCheckStrictly))
+    if (!open) {
+      filledForRef.current = null
+      return
     }
-  }, [open, detail.data])
 
-  const treeNodes = React.useMemo(() => {
-    return toCheckablePermissionNodes(permTree.data ?? [])
-  }, [permTree.data])
+    if (!detail.data) return
+
+    const key = `${String(roleId)}:${detail.dataUpdatedAt}`
+    if (filledForRef.current === key) return
+    filledForRef.current = key
+
+    setSelectedMenuIds(detail.data.menuIds.map(String))
+    setMenuCheckStrictly(detail.data.menuCheckStrictly)
+  }, [open, roleId, detail.data, detail.dataUpdatedAt])
+
+  const treeNodes = React.useMemo(() => toCheckablePermissionNodes(permTree.data ?? []), [permTree.data])
 
   const handleSave = async () => {
-    if (!roleId) return
+    if (roleId === null) return
 
     setIsSubmitting(true)
     try {
@@ -117,9 +121,9 @@ export function RolePermissionDrawer({ role, open, onClose }: RolePermissionDraw
       onClose={onClose}
       title="分配功能权限"
       icon={<KeyRound className="size-4" />}
+      badge={role ? <Badge variant="secondary">{role.name}</Badge> : undefined}
       width={36}
       closeDisabled={isSubmitting}
-      canClose={() => !isSubmitting}
     >
       {isLoading ? (
         <div className="flex flex-col gap-4 p-4">
@@ -138,20 +142,16 @@ export function RolePermissionDrawer({ role, open, onClose }: RolePermissionDraw
       ) : (
         <div className="flex min-h-0 flex-1 flex-col">
           <div className="flex min-h-0 flex-1 flex-col gap-3 p-4">
-            {/* Strictly check setting */}
-            <div className="shrink-0 rounded-md border bg-muted/30 p-3">
-              <Field orientation="horizontal" className="items-center justify-between">
-                <FieldContent>
-                  <FieldLabel className="text-xs">父子联动</FieldLabel>
-                  <FieldDescription className="text-[11px]">
-                    {menuCheckStrictly ? '已开启独立选择（不联动）' : '勾选上级菜单时自动全选子菜单与操作按钮'}
-                  </FieldDescription>
-                </FieldContent>
-                <Switch checked={!menuCheckStrictly} onCheckedChange={checked => setMenuCheckStrictly(!checked)} />
-              </Field>
-            </div>
+            <Field orientation="horizontal">
+              <FieldContent>
+                <FieldLabel>父子联动</FieldLabel>
+                <FieldDescription>
+                  {menuCheckStrictly ? '已开启独立选择' : '勾选上级菜单时自动全选子菜单与操作按钮'}
+                </FieldDescription>
+              </FieldContent>
+              <Switch checked={!menuCheckStrictly} onCheckedChange={checked => setMenuCheckStrictly(!checked)} />
+            </Field>
 
-            {/* Checkable Tree */}
             <CheckableTree
               data={treeNodes}
               checkedKeys={selectedMenuIds}
