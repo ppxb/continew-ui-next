@@ -3,7 +3,6 @@ import type { ColumnDef } from '@tanstack/react-table'
 import { KeyRound, MoreHorizontal, PenLine, ShieldCheck, Trash2, Users } from 'lucide-react'
 
 import { FlagBadge, TypeBadge, type TypeTone } from '@/components/data-badge'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -106,7 +105,7 @@ export function createRoleColumns(
     {
       accessorKey: 'code',
       header: '角色编码',
-      cell: ({ row }) => <Badge variant="secondary">{row.original.code}</Badge>
+      cell: ({ row }) => <span>{row.original.code}</span>
     },
     {
       accessorKey: 'dataScope',

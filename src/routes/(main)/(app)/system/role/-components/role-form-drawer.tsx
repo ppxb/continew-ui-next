@@ -168,7 +168,9 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
         code: detail.data.code,
         sort: detail.data.sort,
         dataScope: detail.data.dataScope,
-        deptIds: detail.data.deptIds.map(String),
+        // `deptIds` is assembled from the role's department rows, so a role outside the custom scope
+        // comes back without it even though `RoleDetailResp` types it as a required array.
+        deptIds: (detail.data.deptIds ?? []).map(String),
         deptCheckStrictly: detail.data.deptCheckStrictly,
         description: detail.data.description ?? ''
       },
@@ -257,10 +259,10 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
         >
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
             <FieldGroup>
-              {renderTextField('name', '角色名称', { placeholder: '请输入角色名称（如：系统运维管理员）' })}
+              {renderTextField('name', '角色名称', { placeholder: '请输入角色名称' })}
 
               {renderTextField('code', '角色编码', {
-                placeholder: '请输入角色编码（如：ops_admin）',
+                placeholder: '请输入角色编码',
                 disabled: !isCreate && Boolean(detail.data?.isSystem)
               })}
 
