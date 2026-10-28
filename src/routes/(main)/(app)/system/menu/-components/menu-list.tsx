@@ -214,6 +214,8 @@ export function MenuList() {
             showPagination={false}
             skeletonWidths={['w-48', 'w-12', 'w-20']}
             containerClassName={cn(
+              // The table fills the measured height, so it does not need the footer stand-in padding.
+              'pb-0',
               '*:data-[slot=table-container]:overflow-auto',
               fullscreen.isFullscreen
                 ? '*:data-[slot=table-container]:h-[calc(100vh-6.5rem)] *:data-[slot=table-container]:max-h-[calc(100vh-6.5rem)]'

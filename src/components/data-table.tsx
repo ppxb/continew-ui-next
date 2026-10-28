@@ -62,13 +62,25 @@ export function DataTable<TRow extends RowData>({
           className
         )}
       >
-        <TableHeader className="[&_tr]:border-t">
+        {/* The sticky cells below draw their own top edge, so the row must not add one. */}
+        <TableHeader className={cn(!stickyHeader && '[&_tr]:border-t')}>
           {table.getHeaderGroups().map(headerGroup => (
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map(header => (
                 <TableHead
                   key={header.id}
-                  className={cn('py-4 font-normal', stickyHeader && 'sticky top-0 z-10 border-b bg-background')}
+                  className={cn(
+                    'py-4 font-normal',
+                    // A collapsed table paints its borders as one grid below the sticky cell, so the
+                    // header draws its edges itself: the bottom one sits on the collapsed border it
+                    // replaces, the top one just inside the cell where the scroll port cannot clip it.
+                    stickyHeader &&
+                      cn(
+                        'sticky top-0 z-10 bg-background',
+                        "before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-border before:content-['']",
+                        "after:absolute after:inset-x-0 after:-bottom-px after:h-px after:bg-border after:content-['']"
+                      )
+                  )}
                 >
                   {header.isPlaceholder ? null : <table.FlexRender header={header} />}
                 </TableHead>
