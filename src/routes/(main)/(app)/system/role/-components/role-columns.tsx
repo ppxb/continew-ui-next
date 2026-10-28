@@ -34,7 +34,7 @@ function DataScopeBadge({ scope }: { scope: DataScope }) {
 
 type TextColumnKey = 'description' | 'createUserString' | 'createTime' | 'updateUserString' | 'updateTime'
 
-function textColumn(key: TextColumnKey, header: string, className = 'text-sm'): ColumnDef<DataTableFeatures, RoleResp> {
+function textColumn(key: TextColumnKey, header: string, className?: string): ColumnDef<DataTableFeatures, RoleResp> {
   return {
     accessorKey: key,
     header,
@@ -117,7 +117,7 @@ export function createRoleColumns(
       header: '排序',
       cell: ({ row }) => <span className="tabular-nums">{row.original.sort}</span>
     },
-    textColumn('description', '描述', 'inline-block max-w-50 truncate text-sm'),
+    textColumn('description', '描述', 'inline-block max-w-50 truncate'),
     textColumn('createUserString', '创建人'),
     textColumn('createTime', '创建时间', 'tabular-nums'),
     textColumn('updateUserString', '修改人'),
