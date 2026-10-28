@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
+import { useAvailableHeight } from '@/hooks/use-available-height'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
 import { usePermission } from '@/hooks/use-permission'
 import { clearMenuCache, getMenuTree, menuKeys, type MenuResp } from '@/lib/api/menu'
@@ -69,6 +70,9 @@ export function MenuList() {
 
   const fullscreen = useFullscreenTransition()
 
+  const tableAreaRef = React.useRef<HTMLDivElement>(null)
+  useAvailableHeight(tableAreaRef, '--table-available-height')
+
   const query = useQuery({
     queryKey: menuKeys.trees(),
     queryFn: ({ signal }) => getMenuTree(undefined, signal)
@@ -107,6 +111,8 @@ export function MenuList() {
     data: filteredTree,
     columns,
     getSubRows: (row: MenuResp) => row.children,
+    // Real IDs, so expanding or filtering keeps row identity and does not remount every row.
+    getRowId: row => String(row.id),
     state: {
       expanded,
       columnVisibility
@@ -197,22 +203,24 @@ export function MenuList() {
         actions={actions}
         fullscreen={fullscreen}
       >
-        <DataTable
-          table={table}
-          isLoading={query.isPending}
-          isError={query.isError}
-          isShowingPreviousRows={query.isPlaceholderData}
-          onRetry={() => void query.refetch()}
-          stickyHeader
-          showPagination={false}
-          skeletonWidths={['w-48', 'w-12', 'w-20']}
-          containerClassName={cn(
-            '*:data-[slot=table-container]:overflow-auto',
-            fullscreen.isFullscreen
-              ? '*:data-[slot=table-container]:h-[calc(100vh-6.5rem)] *:data-[slot=table-container]:max-h-[calc(100vh-6.5rem)]'
-              : '*:data-[slot=table-container]:max-h-[calc(100vh-17rem)] md:*:data-[slot=table-container]:max-h-[calc(100dvh-17rem)]'
-          )}
-        />
+        <div ref={tableAreaRef} className="flex min-h-0 flex-1 flex-col">
+          <DataTable
+            table={table}
+            isLoading={query.isPending}
+            isError={query.isError}
+            isShowingPreviousRows={query.isPlaceholderData}
+            onRetry={() => void query.refetch()}
+            stickyHeader
+            showPagination={false}
+            skeletonWidths={['w-48', 'w-12', 'w-20']}
+            containerClassName={cn(
+              '*:data-[slot=table-container]:overflow-auto',
+              fullscreen.isFullscreen
+                ? '*:data-[slot=table-container]:h-[calc(100vh-6.5rem)] *:data-[slot=table-container]:max-h-[calc(100vh-6.5rem)]'
+                : '*:data-[slot=table-container]:max-h-[var(--table-available-height)]'
+            )}
+          />
+        </div>
       </ListPageCard>
 
       <MenuFormDrawer
