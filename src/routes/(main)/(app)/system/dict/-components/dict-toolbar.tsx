@@ -15,7 +15,7 @@ interface DictToolbarProps {
   readonly onToggleFullscreen: () => void
 }
 
-/** Actions on the left, table tools on the right, mirroring the menu and storage screens. */
+/** The dictionary page's actions, rendered in the list card's toolbar slot. */
 export function DictToolbar({
   canCreate,
   canClearCache,
@@ -28,41 +28,35 @@ export function DictToolbar({
   onToggleFullscreen
 }: DictToolbarProps) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 px-4">
-      <div className="flex flex-wrap items-center gap-2">
-        {canCreate ? (
-          <Button type="button" size="sm" onClick={onCreate}>
-            <Plus />
-            新增字典
-          </Button>
-        ) : null}
-
-        {canClearCache ? (
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            disabled={isClearingCache}
-            onClick={onClearCache}
-            className="text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300"
-          >
-            {isClearingCache ? <Spinner /> : <Trash2 />}
-            清除缓存
-          </Button>
-        ) : null}
-      </div>
-
-      <div className="flex flex-wrap items-center gap-2">
-        <Button type="button" size="sm" variant="outline" disabled={isRefreshing} onClick={onRefresh}>
-          {isRefreshing ? <Spinner /> : <RefreshCw />}
-          刷新
+    <>
+      {canCreate && (
+        <Button className="w-full sm:w-auto" onClick={onCreate}>
+          <Plus />
+          新增字典
         </Button>
+      )}
 
-        <Button type="button" size="sm" variant="outline" onClick={onToggleFullscreen}>
-          {isFullscreen ? <Minimize /> : <Maximize />}
-          表格全屏
+      {canClearCache && (
+        <Button
+          variant="outline"
+          disabled={isClearingCache}
+          onClick={onClearCache}
+          className="text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300"
+        >
+          {isClearingCache ? <Spinner /> : <Trash2 />}
+          清除缓存
         </Button>
-      </div>
-    </div>
+      )}
+
+      <Button variant="outline" disabled={isRefreshing} onClick={onRefresh}>
+        {isRefreshing ? <Spinner /> : <RefreshCw />}
+        刷新
+      </Button>
+
+      <Button variant="outline" onClick={onToggleFullscreen}>
+        {isFullscreen ? <Minimize /> : <Maximize />}
+        表格全屏
+      </Button>
+    </>
   )
 }

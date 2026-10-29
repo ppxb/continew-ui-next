@@ -2,14 +2,12 @@ import * as React from 'react'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { Bookmark, RefreshCw, Search } from 'lucide-react'
+import { Bookmark } from 'lucide-react'
 
-import { cn } from 'cn'
-
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { ListPageCard } from '@/components/list-page-card'
+import { QueryState } from '@/components/query-state'
+import { TableSearch } from '@/components/table-search'
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
-import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from '@/components/ui/toast'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
@@ -27,20 +25,25 @@ interface ItemFormTarget {
   readonly item: DictItemResp | null
 }
 
+interface DictFormTarget {
+  /** The dictionary being edited, or `null` to create one. */
+  readonly dict: DictResp | null
+}
+
 /** Stable empty array, so the filter memo does not re-evaluate while the query is pending. */
 const EMPTY_DICTS: DictResp[] = []
 
 function DictGroupSkeleton() {
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col">
       {Array.from({ length: 3 }, (_, index) => (
-        <div key={index} className="rounded-xl border bg-card p-4">
+        <div key={index} className="flex flex-col gap-3 border-t px-5 py-3">
           <div className="flex items-center gap-2">
             <Skeleton className="size-4 rounded" />
             <Skeleton className="h-4 w-32" />
             <Skeleton className="h-3 w-20" />
           </div>
-          <div className="mt-3 flex flex-col gap-2 border-t pt-3">
+          <div className="flex flex-col gap-1.5">
             <Skeleton className="h-3 w-full" />
             <Skeleton className="h-3 w-2/3" />
           </div>
@@ -61,12 +64,13 @@ export function DictManager() {
   const canCreateItem = hasPermission('system:dictItem:create')
   const canUpdateItem = hasPermission('system:dictItem:update')
   const canDeleteItem = hasPermission('system:dictItem:delete')
-  const { isFullscreen, reservedHeight, fullscreenRef, spacerRef, toggleFullscreen } = useFullscreenTransition()
+  const fullscreen = useFullscreenTransition()
 
-  const [searchInput, setSearchInput] = React.useState('')
+  const [keyword, setKeyword] = React.useState('')
 
-  const [dictFormOpen, setDictFormOpen] = React.useState(false)
-  const [editingDict, setEditingDict] = React.useState<DictResp | null>(null)
+  // One state per overlay: a null value means closed, and a null `dict` inside the form target
+  // means 新增.
+  const [dictFormTarget, setDictFormTarget] = React.useState<DictFormTarget | null>(null)
   const [itemFormTarget, setItemFormTarget] = React.useState<ItemFormTarget | null>(null)
   const [deleteTarget, setDeleteTarget] = React.useState<DictDeleteTarget | null>(null)
 
@@ -87,127 +91,102 @@ export function DictManager() {
   })
 
   const filteredDicts = React.useMemo(() => {
-    const keyword = searchInput.trim().toLowerCase()
-    if (!keyword) {
+    const needle = keyword.trim().toLowerCase()
+    if (!needle) {
       return dicts
     }
 
     return dicts.filter(dict =>
-      [dict.name, dict.code, dict.description ?? ''].some(value => value.toLowerCase().includes(keyword))
+      [dict.name, dict.code, dict.description ?? ''].some(value => value.toLowerCase().includes(needle))
     )
-  }, [dicts, searchInput])
-
-  const hasActiveFilters = searchInput.trim() !== ''
-
-  const handleResetFilters = React.useCallback(() => {
-    setSearchInput('')
-  }, [])
+  }, [dicts, keyword])
 
   const handleRefresh = React.useCallback(() => {
     void query.refetch()
     void queryClient.invalidateQueries({ queryKey: dictKeys.items() })
   }, [query, queryClient])
 
+  const filters = (
+    <TableSearch
+      className="col-span-2 h-8 w-full sm:w-64"
+      placeholder="搜索名称、编码、描述"
+      onSearch={setKeyword}
+      clearable
+    />
+  )
+
+  const actions = (
+    <DictToolbar
+      canCreate={canCreateDict}
+      canClearCache={canClearCache && dicts.length > 0}
+      isClearingCache={clearCacheMutation.isPending}
+      isRefreshing={query.isFetching && !query.isPending}
+      isFullscreen={fullscreen.isFullscreen}
+      onCreate={() => setDictFormTarget({ dict: null })}
+      onClearCache={() => clearCacheMutation.mutate(dicts.map(dict => dict.code))}
+      onRefresh={handleRefresh}
+      onToggleFullscreen={fullscreen.toggleFullscreen}
+    />
+  )
+
   return (
     <>
-      <Card>
-        <CardHeader className="border-b">
-          <CardTitle className="text-xl leading-none">字典管理</CardTitle>
-          <CardDescription className="max-w-sm leading-snug">
-            维护系统字典和字典项，支持搜索、启停与清除缓存
-          </CardDescription>
-        </CardHeader>
-
-        <CardContent className="flex flex-col gap-4 px-0">
-          {isFullscreen ? <div ref={spacerRef} style={{ height: reservedHeight }} /> : null}
-
-          <div ref={fullscreenRef} className={cn('flex flex-col gap-4', isFullscreen && 'bg-background')}>
-            <div className="flex flex-wrap items-center gap-3 px-4">
-              <InputGroup className="h-8 w-full md:w-64">
-                <InputGroupAddon align="inline-start">
-                  <Search className="size-3.5" />
-                </InputGroupAddon>
-                <InputGroupInput
-                  className="h-8"
-                  placeholder="搜索名称、编码、描述"
-                  value={searchInput}
-                  onChange={event => setSearchInput(event.target.value)}
-                />
-              </InputGroup>
-
-              {hasActiveFilters ? (
-                <Button size="sm" variant="ghost" className="h-8 px-2 text-xs" onClick={handleResetFilters}>
-                  <RefreshCw className="size-3.5" />
-                  重置
-                </Button>
-              ) : null}
-            </div>
-
-            <DictToolbar
-              canCreate={canCreateDict}
-              canClearCache={canClearCache && dicts.length > 0}
-              isClearingCache={clearCacheMutation.isPending}
-              isRefreshing={query.isFetching && !query.isPending}
-              isFullscreen={isFullscreen}
-              onCreate={() => {
-                setEditingDict(null)
-                setDictFormOpen(true)
-              }}
-              onClearCache={() => clearCacheMutation.mutate(dicts.map(dict => dict.code))}
-              onRefresh={handleRefresh}
-              onToggleFullscreen={toggleFullscreen}
+      <ListPageCard
+        title="字典管理"
+        description="维护系统字典和字典项，支持搜索、启停与清除缓存"
+        filters={filters}
+        actions={actions}
+        fullscreen={fullscreen}
+      >
+        <div className="flex flex-col">
+          {query.isPending ? (
+            <DictGroupSkeleton />
+          ) : query.isError ? (
+            <QueryState
+              state="error"
+              title="字典加载失败"
+              onRetry={() => void query.refetch()}
+              className="min-h-40 rounded-none"
             />
+          ) : filteredDicts.length === 0 ? (
+            <Empty className="min-h-48 rounded-none">
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <Bookmark />
+                </EmptyMedia>
+                <EmptyTitle>{dicts.length === 0 ? '暂无字典' : '没有匹配的字典'}</EmptyTitle>
+                <EmptyDescription>
+                  {dicts.length === 0 ? '新增字典后即可维护字典项' : '试试其他关键词或筛选条件'}
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
+          ) : (
+            filteredDicts.map(dict => (
+              <DictGroup
+                key={String(dict.id)}
+                dict={dict}
+                defaultOpen
+                canCreateItem={canCreateItem}
+                canUpdateItem={canUpdateItem}
+                canDeleteItem={canDeleteItem}
+                canUpdateDict={canUpdateDict}
+                canDeleteDict={canDeleteDict}
+                onCreateItem={target => setItemFormTarget({ dict: target, item: null })}
+                onEditItem={(target, item) => setItemFormTarget({ dict: target, item })}
+                onDeleteItem={item => setDeleteTarget({ type: 'item', item })}
+                onEditDict={target => setDictFormTarget({ dict: target })}
+                onDeleteDict={target => setDeleteTarget({ type: 'dict', dict: target })}
+              />
+            ))
+          )}
+        </div>
+      </ListPageCard>
 
-            <div className="flex flex-col gap-4 px-4">
-              {query.isPending ? (
-                <DictGroupSkeleton />
-              ) : query.isError ? (
-                <div className="flex min-h-40 flex-col items-center justify-center gap-2 rounded-xl border bg-card">
-                  <span className="text-sm text-muted-foreground">字典加载失败</span>
-                  <Button type="button" variant="outline" size="sm" onClick={() => void query.refetch()}>
-                    重新加载
-                  </Button>
-                </div>
-              ) : filteredDicts.length === 0 ? (
-                <Empty className="min-h-48 rounded-xl border bg-card">
-                  <EmptyHeader>
-                    <EmptyMedia variant="icon">
-                      <Bookmark />
-                    </EmptyMedia>
-                    <EmptyTitle>{dicts.length === 0 ? '暂无字典' : '没有匹配的字典'}</EmptyTitle>
-                    <EmptyDescription>
-                      {dicts.length === 0 ? '新增字典后即可维护字典项' : '试试其他关键词或筛选条件'}
-                    </EmptyDescription>
-                  </EmptyHeader>
-                </Empty>
-              ) : (
-                filteredDicts.map(dict => (
-                  <DictGroup
-                    key={String(dict.id)}
-                    dict={dict}
-                    defaultOpen
-                    canCreateItem={canCreateItem}
-                    canUpdateItem={canUpdateItem}
-                    canDeleteItem={canDeleteItem}
-                    canUpdateDict={canUpdateDict}
-                    canDeleteDict={canDeleteDict}
-                    onCreateItem={target => setItemFormTarget({ dict: target, item: null })}
-                    onEditItem={(target, item) => setItemFormTarget({ dict: target, item })}
-                    onDeleteItem={item => setDeleteTarget({ type: 'item', item })}
-                    onEditDict={target => {
-                      setEditingDict(target)
-                      setDictFormOpen(true)
-                    }}
-                    onDeleteDict={target => setDeleteTarget({ type: 'dict', dict: target })}
-                  />
-                ))
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <DictFormDrawer dict={editingDict} open={dictFormOpen} onClose={() => setDictFormOpen(false)} />
+      <DictFormDrawer
+        dict={dictFormTarget?.dict ?? null}
+        open={dictFormTarget !== null}
+        onClose={() => setDictFormTarget(null)}
+      />
       <DictItemFormDrawer
         item={itemFormTarget?.item ?? null}
         dictId={itemFormTarget?.dict.id ?? ''}

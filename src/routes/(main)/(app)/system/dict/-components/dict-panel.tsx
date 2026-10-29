@@ -100,12 +100,8 @@ export function DictGroup({
   const items = query.data?.list ?? []
 
   return (
-    <Collapsible
-      open={open}
-      onOpenChange={setOpen}
-      className="flex flex-col overflow-hidden rounded-xl border bg-card py-3 text-card-foreground data-open:gap-3 data-open:pb-0"
-    >
-      <div className="flex flex-col gap-2 px-4 sm:flex-row sm:items-center">
+    <Collapsible open={open} onOpenChange={setOpen} className="flex flex-col border-t">
+      <div className="flex flex-col gap-2 px-5 py-3 sm:flex-row sm:items-center">
         <CollapsibleTrigger
           render={
             <Button
@@ -183,7 +179,7 @@ export function DictGroup({
           onRetry={() => void query.refetch()}
         />
         {pageCount > 1 ? (
-          <div className="flex flex-wrap items-center justify-between gap-2 border-t px-4 py-2 text-xs text-muted-foreground">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t px-5 py-2 text-xs text-muted-foreground">
             <span>共 {total} 项</span>
             <Pagination className="mx-0 w-auto">
               <PaginationContent>
