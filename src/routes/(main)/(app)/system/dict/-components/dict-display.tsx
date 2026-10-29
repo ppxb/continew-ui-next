@@ -12,7 +12,7 @@ export const DICT_COLOR_OPTIONS = [
   { value: 'default', label: '默认' }
 ] as const
 
-export const DICT_COLOR_BADGE_CLASSES: Record<string, string> = {
+const DICT_COLOR_BADGE_CLASSES: Record<string, string> = {
   primary: 'bg-primary/10 text-primary',
   success: 'bg-status-success/10 text-status-success-foreground',
   warning: 'bg-status-warning/10 text-status-warning-foreground',
@@ -27,11 +27,6 @@ export const DICT_COLOR_DOT_CLASSES: Record<string, string> = {
   error: 'bg-destructive',
   default: 'bg-muted-foreground'
 }
-
-export const DICT_STATUS_OPTIONS = [
-  { value: '1', label: '启用' },
-  { value: '2', label: '禁用' }
-] as const
 
 /** A label rendered with the color saved on the dictionary item, if any. */
 export function DictLabelBadge({ label, color }: { label: string; color?: string | null }) {
