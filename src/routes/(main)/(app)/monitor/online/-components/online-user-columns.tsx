@@ -7,6 +7,9 @@ import type { OnlineUserResp } from '@/lib/api/online'
 import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 
+type OnlineUserColumn = ColumnDef<DataTableFeatures, OnlineUserResp>
+type TextColumnKey = 'ip' | 'address' | 'browser' | 'os' | 'loginTime' | 'lastRefreshTime'
+
 interface OnlineUserColumnOptions {
   /** The index of the first row on the current page, so 序号 stays continuous. */
   readonly rowOffset: number
@@ -18,17 +21,24 @@ interface OnlineUserColumnOptions {
 }
 
 function TextCell({ value }: { value: string }) {
-  return <span className="text-sm">{value || EMPTY_PLACEHOLDER}</span>
+  return <span>{value || EMPTY_PLACEHOLDER}</span>
+}
+
+function textColumn(key: TextColumnKey, header: string): OnlineUserColumn {
+  return {
+    accessorKey: key,
+    header,
+    cell: ({ row }) => <TextCell value={row.original[key]} />
+  }
 }
 
 function UserCell({ user }: { user: OnlineUserResp }) {
   const name = user.nickname || user.username
-  const showUsername = Boolean(user.username) && user.username !== name
 
   return (
     <div className="flex flex-col">
-      <span className="truncate text-sm font-medium text-foreground">{name || EMPTY_PLACEHOLDER}</span>
-      {showUsername ? <span className="truncate text-xs text-muted-foreground">{user.username}</span> : null}
+      <span className="truncate">{name || EMPTY_PLACEHOLDER}</span>
+      {user.username !== '' && user.username !== name ? <span className="truncate">{user.username}</span> : null}
     </div>
   )
 }
@@ -45,11 +55,9 @@ function KickoutCell({
   return (
     <div className="flex items-center justify-center">
       {isCurrentSession(user.sessionId) ? (
-        <Badge variant="secondary" className="font-normal">
-          当前会话
-        </Badge>
+        <Badge variant="secondary">当前会话</Badge>
       ) : (
-        <Button variant="destructive" size="sm" onClick={() => onKickout(user)}>
+        <Button variant="destructive" onClick={() => onKickout(user)}>
           <LogOut />
           强退
         </Button>
@@ -58,62 +66,30 @@ function KickoutCell({
   )
 }
 
-/**
- * Builds the column set of the online-user table.
- *
- * The fields follow the Vue client's `monitor/online` page: the account, the address the
- * session came from, its browser and OS, and both timestamps the backend records.
- */
 export function createOnlineUserColumns({
   rowOffset,
   canKickout,
   isCurrentSession,
   onKickout
 }: OnlineUserColumnOptions) {
-  const columns: ColumnDef<DataTableFeatures, OnlineUserResp>[] = [
+  const columns: OnlineUserColumn[] = [
     {
       id: 'index',
       header: '序号',
       enableHiding: false,
-      cell: ({ row }) => (
-        <div className="text-center text-sm text-muted-foreground tabular-nums">{rowOffset + row.index + 1}</div>
-      )
+      cell: ({ row }) => <div>{rowOffset + row.index + 1}</div>
     },
     {
       id: 'user',
       header: '用户昵称',
       cell: ({ row }) => <UserCell user={row.original} />
     },
-    {
-      accessorKey: 'ip',
-      header: '登录 IP',
-      cell: ({ row }) => <TextCell value={row.original.ip} />
-    },
-    {
-      accessorKey: 'address',
-      header: '登录地点',
-      cell: ({ row }) => <TextCell value={row.original.address} />
-    },
-    {
-      accessorKey: 'browser',
-      header: '浏览器',
-      cell: ({ row }) => <TextCell value={row.original.browser} />
-    },
-    {
-      accessorKey: 'os',
-      header: '终端系统',
-      cell: ({ row }) => <TextCell value={row.original.os} />
-    },
-    {
-      accessorKey: 'loginTime',
-      header: '登录时间',
-      cell: ({ row }) => <TextCell value={row.original.loginTime} />
-    },
-    {
-      accessorKey: 'lastRefreshTime',
-      header: '最后刷新时间',
-      cell: ({ row }) => <TextCell value={row.original.lastRefreshTime} />
-    }
+    textColumn('ip', '登录 IP'),
+    textColumn('address', '登录地点'),
+    textColumn('browser', '浏览器'),
+    textColumn('os', '终端系统'),
+    textColumn('loginTime', '登录时间'),
+    textColumn('lastRefreshTime', '最后刷新时间')
   ]
 
   if (canKickout) {

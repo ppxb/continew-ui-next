@@ -27,7 +27,6 @@ interface LogTableProps {
   readonly onRetry?: () => void
 }
 
-/** The operation log table: only its skeleton shapes are screen-specific. */
 export function LogTable({ table, ...rest }: LogTableProps) {
   return (
     <DataTable

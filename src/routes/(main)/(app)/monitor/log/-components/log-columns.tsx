@@ -2,110 +2,72 @@ import type { ColumnDef } from '@tanstack/react-table'
 
 import { Button } from '@/components/ui/button'
 import type { LogResp } from '@/lib/api/log'
+import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 
-import { LogStatusCell, TextCell, TimeTakenCell } from './log-display'
+import { LogStatusCell, TimeTakenCell } from './log-display'
 
-interface OperationColumnOptions {
-  /** The index of the first row on the current page, so 序号 stays continuous. */
-  readonly rowOffset: number
-  /** Opening a detail needs `monitor:log:get`; without it the time stays plain text. */
-  readonly canViewDetail: boolean
-  readonly onDetail: (log: LogResp) => void
-}
+type LogColumn = ColumnDef<DataTableFeatures, LogResp>
+type TextColumnKey = 'createTime' | 'createUserString' | 'description' | 'ip' | 'address' | 'browser' | 'os'
 
-/**
- * The labels of the columns whose header renders a centered node.
- *
- * The hide-columns menu reads `columnDef.header` for its entries, and a rendered node
- * cannot supply text, so it falls back to this map.
- */
+/** Labels for the columns whose header is a node, which the hide-columns menu cannot read. */
 export const LOG_COLUMN_LABELS: Record<string, string> = {
   status: '状态',
   module: '所属模块',
   timeTaken: '耗时'
 }
 
-function indexColumn(rowOffset: number): ColumnDef<DataTableFeatures, LogResp> {
+interface OperationColumnOptions {
+  /** The index of the first row on the current page, so 序号 stays continuous. */
+  readonly rowOffset: number
+  readonly canViewDetail: boolean
+  readonly onDetail: (log: LogResp) => void
+}
+
+function TextCell({ value }: { value: string | null }) {
+  return <span>{value || EMPTY_PLACEHOLDER}</span>
+}
+
+function textColumn(key: TextColumnKey, header: string): LogColumn {
+  return {
+    accessorKey: key,
+    header,
+    cell: ({ row }) => <TextCell value={row.original[key]} />
+  }
+}
+
+function indexColumn(rowOffset: number): LogColumn {
   return {
     id: 'index',
     header: '序号',
     enableHiding: false,
-    cell: ({ row }) => (
-      <div className="text-center text-sm text-muted-foreground tabular-nums">{rowOffset + row.index + 1}</div>
-    )
+    cell: ({ row }) => <div>{rowOffset + row.index + 1}</div>
   }
 }
 
-function statusColumn(): ColumnDef<DataTableFeatures, LogResp> {
+function statusColumn(): LogColumn {
   return {
     id: 'status',
-    header: () => <div className="text-center">状态</div>,
-    cell: ({ row }) => (
-      <div className="flex justify-center">
-        <LogStatusCell status={row.original.status} errorMsg={row.original.errorMsg} />
-      </div>
-    )
+    header: () => <div>状态</div>,
+    cell: ({ row }) => <LogStatusCell status={row.original.status} errorMsg={row.original.errorMsg} />
   }
 }
 
-function ipColumns(ipHeader: string, addressHeader: string): ColumnDef<DataTableFeatures, LogResp>[] {
-  return [
-    {
-      accessorKey: 'ip',
-      header: ipHeader,
-      cell: ({ row }) => <TextCell value={row.original.ip} />
-    },
-    {
-      accessorKey: 'address',
-      header: addressHeader,
-      cell: ({ row }) => <TextCell value={row.original.address} />
-    }
-  ]
-}
-
-function clientColumns(): ColumnDef<DataTableFeatures, LogResp>[] {
-  return [
-    {
-      accessorKey: 'browser',
-      header: '浏览器',
-      cell: ({ row }) => <TextCell value={row.original.browser} />
-    },
-    {
-      accessorKey: 'os',
-      header: '终端系统',
-      cell: ({ row }) => <TextCell value={row.original.os} />
-    }
-  ]
-}
-
-/** Login rows: who signed in, what they did and where the request came from. */
-export function createLoginLogColumns(rowOffset: number) {
+export function createLoginLogColumns(rowOffset: number): LogColumn[] {
   return [
     indexColumn(rowOffset),
-    {
-      accessorKey: 'createTime',
-      header: '登录时间',
-      cell: ({ row }) => <TextCell value={row.original.createTime} />
-    },
-    {
-      accessorKey: 'createUserString',
-      header: '用户昵称',
-      cell: ({ row }) => <TextCell value={row.original.createUserString} />
-    },
-    {
-      accessorKey: 'description',
-      header: '登录行为',
-      cell: ({ row }) => <TextCell value={row.original.description} />
-    },
+    textColumn('createTime', '登录时间'),
+    textColumn('createUserString', '用户昵称'),
+    textColumn('description', '登录行为'),
     statusColumn(),
-    ...ipColumns('登录 IP', '登录地点'),
-    ...clientColumns()
-  ] satisfies ColumnDef<DataTableFeatures, LogResp>[]
+    textColumn('ip', '登录 IP'),
+    textColumn('address', '登录地点'),
+    textColumn('browser', '浏览器'),
+    textColumn('os', '终端系统')
+  ]
 }
 
-/** Operation rows add the module and the request duration, and open a detail drawer. */
-export function createOperationLogColumns({ rowOffset, canViewDetail, onDetail }: OperationColumnOptions) {
+export function createOperationLogColumns({ rowOffset, canViewDetail, onDetail }: OperationColumnOptions): LogColumn[] {
   return [
     indexColumn(rowOffset),
     {
@@ -113,43 +75,37 @@ export function createOperationLogColumns({ rowOffset, canViewDetail, onDetail }
       header: '操作时间',
       cell: ({ row }) =>
         canViewDetail ? (
-          <Button variant="link" className="h-auto p-0 text-sm font-normal" onClick={() => onDetail(row.original)}>
+          <Button
+            variant="link"
+            className="h-auto border-0 p-0 text-sm font-normal"
+            onClick={() => onDetail(row.original)}
+          >
             {row.original.createTime}
           </Button>
         ) : (
           <TextCell value={row.original.createTime} />
         )
     },
-    {
-      accessorKey: 'createUserString',
-      header: '操作人',
-      cell: ({ row }) => <TextCell value={row.original.createUserString} />
-    },
-    {
-      accessorKey: 'description',
-      header: '操作内容',
-      cell: ({ row }) => <TextCell value={row.original.description} />
-    },
+    textColumn('createUserString', '操作人'),
+    textColumn('description', '操作内容'),
     {
       accessorKey: 'module',
-      header: () => <div className="text-center">所属模块</div>,
+      header: () => <div>所属模块</div>,
       cell: ({ row }) => (
-        <div className="text-center">
+        <div>
           <TextCell value={row.original.module} />
         </div>
       )
     },
     statusColumn(),
-    ...ipColumns('操作 IP', '操作地点'),
+    textColumn('ip', '操作 IP'),
+    textColumn('address', '操作地点'),
     {
       accessorKey: 'timeTaken',
-      header: () => <div className="text-center">耗时</div>,
-      cell: ({ row }) => (
-        <div className="text-center">
-          <TimeTakenCell timeTaken={row.original.timeTaken} />
-        </div>
-      )
+      header: () => <div>耗时</div>,
+      cell: ({ row }) => <TimeTakenCell timeTaken={row.original.timeTaken} />
     },
-    ...clientColumns()
-  ] satisfies ColumnDef<DataTableFeatures, LogResp>[]
+    textColumn('browser', '浏览器'),
+    textColumn('os', '终端系统')
+  ]
 }

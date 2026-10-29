@@ -1,3 +1,4 @@
+import { skipToken, useQuery } from '@tanstack/react-query'
 import { cn } from 'cn'
 import { ScrollText } from 'lucide-react'
 
@@ -7,10 +8,11 @@ import { JsonViewer, type JsonValue } from '@/components/json-viewer/json-viewer
 import { QueryState } from '@/components/query-state'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { getLog, logKeys } from '@/lib/api/log'
 import { EMPTY_PLACEHOLDER } from '@/lib/constants'
+import { DETAIL_STALE_TIME_MS } from '@/lib/query-client'
 
 import { LogStatusCell, TimeTakenCell } from './log-display'
-import { useLogDetail } from './use-log-detail'
 
 const RAW_PAYLOAD_CLASS = cn(
   'max-h-72 overflow-auto overscroll-contain rounded-lg border bg-muted/40 p-3',
@@ -21,7 +23,7 @@ type ParsedPayload =
   | { readonly kind: 'json'; readonly data: JsonValue }
   | { readonly kind: 'text'; readonly text: string }
 
-/** Parses a captured payload; a body that is not JSON stays readable as plain text. */
+/** A captured payload; a body that is not JSON stays readable as plain text. */
 function parsePayload(raw: string | null): ParsedPayload | null {
   if (!raw) {
     return null
@@ -48,7 +50,6 @@ function Payload({ value, statusCode }: { value: string | null; statusCode?: num
   return <JsonViewer data={payload.data} statusCode={statusCode} />
 }
 
-/** The 响应信息 and 请求信息 blocks: the Vue drawer keeps the headers and the body in tabs. */
 function PayloadTabs({
   headers,
   body,
@@ -96,6 +97,14 @@ function LogDetailSkeleton() {
   )
 }
 
+function TextDetail({ label, value, className }: { label: string; value: string | null; className?: string }) {
+  return (
+    <DetailField label={label} className={className}>
+      {value || EMPTY_PLACEHOLDER}
+    </DetailField>
+  )
+}
+
 interface LogDetailDrawerProps {
   /** The log to show, or `null` before the first one is picked. */
   readonly logId: string | number | null
@@ -103,15 +112,14 @@ interface LogDetailDrawerProps {
   readonly onClose: () => void
 }
 
-/**
- * Read-only detail panel for one operation log.
- *
- * The fields and their order follow the Vue client's `OperationLogDetailDrawer.vue`: basic
- * info first (日志 ID and Trace ID share a row on wider screens), then the response, then
- * the request, each with its headers and body in tabs.
- */
+/** Read-only detail panel for one operation log. */
 export function LogDetailDrawer({ logId, open, onClose }: LogDetailDrawerProps) {
-  const query = useLogDetail(logId, { enabled: open })
+  const query = useQuery({
+    queryKey: logKeys.detail(logId),
+    queryFn: logId === null ? skipToken : ({ signal }) => getLog(logId, signal),
+    enabled: open,
+    staleTime: DETAIL_STALE_TIME_MS
+  })
   const detail = query.data
 
   return (
@@ -132,14 +140,14 @@ export function LogDetailDrawer({ logId, open, onClose }: LogDetailDrawerProps) 
                 <DetailField label="Trace ID">
                   <span className="break-all">{detail.traceId || EMPTY_PLACEHOLDER}</span>
                 </DetailField>
-                <DetailField label="操作人">{detail.createUserString || EMPTY_PLACEHOLDER}</DetailField>
-                <DetailField label="操作时间">{detail.createTime || EMPTY_PLACEHOLDER}</DetailField>
-                <DetailField label="操作内容">{detail.description || EMPTY_PLACEHOLDER}</DetailField>
-                <DetailField label="所属模块">{detail.module || EMPTY_PLACEHOLDER}</DetailField>
-                <DetailField label="操作 IP">{detail.ip || EMPTY_PLACEHOLDER}</DetailField>
-                <DetailField label="操作地点">{detail.address || EMPTY_PLACEHOLDER}</DetailField>
-                <DetailField label="浏览器">{detail.browser || EMPTY_PLACEHOLDER}</DetailField>
-                <DetailField label="终端系统">{detail.os || EMPTY_PLACEHOLDER}</DetailField>
+                <TextDetail label="操作人" value={detail.createUserString} />
+                <TextDetail label="操作时间" value={detail.createTime} />
+                <TextDetail label="操作内容" value={detail.description} />
+                <TextDetail label="所属模块" value={detail.module} />
+                <TextDetail label="操作 IP" value={detail.ip} />
+                <TextDetail label="操作地点" value={detail.address} />
+                <TextDetail label="浏览器" value={detail.browser} />
+                <TextDetail label="终端系统" value={detail.os} />
                 <DetailField label="状态">
                   <LogStatusCell status={detail.status} errorMsg={detail.errorMsg} />
                 </DetailField>

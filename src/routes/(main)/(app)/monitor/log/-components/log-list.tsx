@@ -1,14 +1,20 @@
 import * as React from 'react'
 
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { type ColumnVisibilityState, type PaginationState, useTable } from '@tanstack/react-table'
+import { Download, RotateCcw } from 'lucide-react'
 import type { DateRange } from 'react-day-picker'
 
-import { cn } from 'cn'
-
-import { Card, CardContent } from '@/components/ui/card'
-import { toast } from '@/components/ui/toast'
+import { DateRangeFilter } from '@/components/date-range-filter'
+import { FilterSelect } from '@/components/filter-select'
+import { ListPageCard } from '@/components/list-page-card'
+import { TableSearch } from '@/components/table-search'
+import { TableToolbar } from '@/components/table-toolbar'
+import { Button } from '@/components/ui/button'
+import { Spinner } from '@/components/ui/spinner'
+import { useExport } from '@/hooks/use-export'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
+import { usePageClamp } from '@/hooks/use-page-clamp'
 import { usePermission } from '@/hooks/use-permission'
 import {
   exportLoginLogs,
@@ -23,34 +29,41 @@ import {
 import { dataTableFeatures } from '@/lib/data-table-features'
 import { createRecentDateRange, toDateTimeRangeQuery } from '@/lib/date-range'
 
-import { createLoginLogColumns, createOperationLogColumns } from './log-columns'
+import { createLoginLogColumns, createOperationLogColumns, LOG_COLUMN_LABELS } from './log-columns'
 import { LogDetailDrawer } from './log-detail-drawer'
 import { LogTable } from './log-table'
-import { LogToolbar } from './log-toolbar'
 
-export type LogMode = 'login' | 'operation'
+type LogMode = 'login' | 'operation'
 
 const EMPTY_ROWS: LogResp[] = []
 
 /** The log query sorts on its own `t1` table alias, by the SQL column the mapper selects. */
 const DEFAULT_SORT = 't1.create_time,desc'
 
+const STATUS_OPTIONS = [
+  { value: 'all', label: '全部' },
+  { value: '1', label: '成功' },
+  { value: '2', label: '失败' }
+]
+
+const PLACEHOLDERS: Record<LogMode, { operator: string; ip: string; date: string }> = {
+  login: { operator: '搜索登录用户', ip: '搜索登录 IP 或地点', date: '登录时间' },
+  operation: { operator: '搜索操作人', ip: '搜索操作 IP 或地点', date: '操作时间' }
+}
+
 interface LogListProps {
   readonly mode: LogMode
 }
 
-/**
- * One log tab: its filters, its table and, for operation rows, the detail drawer.
- *
- * Both tabs share the pagination, column visibility and fullscreen behaviour of the online
- * user screen; only the columns and the module filter differ.
- */
+/** One log tab: its filters, its table and, for operation rows, the detail drawer. */
 export function LogList({ mode }: LogListProps) {
   const isLogin = mode === 'login'
+  const placeholders = PLACEHOLDERS[mode]
+  const fullscreen = useFullscreenTransition()
   const { hasPermission } = usePermission()
   const canExport = hasPermission('monitor:log:export')
   const canViewDetail = hasPermission('monitor:log:get')
-  const { isFullscreen, reservedHeight, fullscreenRef, spacerRef, toggleFullscreen } = useFullscreenTransition()
+  const { isExporting, exportData } = useExport<LogExportQuery>(isLogin ? exportLoginLogs : exportOperationLogs)
 
   const [pagination, setPagination] = React.useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
   const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>({})
@@ -58,63 +71,16 @@ export function LogList({ mode }: LogListProps) {
   const [ip, setIp] = React.useState('')
   const [status, setStatus] = React.useState<LogStatus | undefined>(undefined)
   const [createTime, setCreateTime] = React.useState<DateRange | undefined>(createRecentDateRange)
-  // The search boxes own their text, so resetting the filters remounts them.
+  // The search boxes keep their own text, so a reset remounts them.
   const [searchVersion, setSearchVersion] = React.useState(0)
-  const [isExporting, setIsExporting] = React.useState(false)
   const [detailId, setDetailId] = React.useState<string | number | null>(null)
   const [isDetailOpen, setIsDetailOpen] = React.useState(false)
 
-  const goToFirstPage = React.useCallback(() => {
+  const resetPage = () => {
     setPagination(current => (current.pageIndex === 0 ? current : { ...current, pageIndex: 0 }))
-  }, [])
+  }
 
-  const handleOperatorSearch = React.useCallback(
-    (next: string) => {
-      setOperator(next)
-      goToFirstPage()
-    },
-    [goToFirstPage]
-  )
-
-  const handleIpSearch = React.useCallback(
-    (next: string) => {
-      setIp(next)
-      goToFirstPage()
-    },
-    [goToFirstPage]
-  )
-
-  const handleCreateTimeChange = React.useCallback(
-    (next: DateRange | undefined) => {
-      setCreateTime(next)
-      goToFirstPage()
-    },
-    [goToFirstPage]
-  )
-
-  const handleStatusChange = React.useCallback(
-    (value: string | null) => {
-      setStatus(!value || value === 'all' ? undefined : (Number(value) as LogStatus))
-      goToFirstPage()
-    },
-    [goToFirstPage]
-  )
-
-  const handleReset = React.useCallback(() => {
-    setOperator('')
-    setIp('')
-    setStatus(undefined)
-    setCreateTime(createRecentDateRange())
-    setSearchVersion(current => current + 1)
-    goToFirstPage()
-  }, [goToFirstPage])
-
-  const handleDetail = React.useCallback((log: LogResp) => {
-    setDetailId(log.id)
-    setIsDetailOpen(true)
-  }, [])
-
-  const filters: LogExportQuery = {
+  const queryFilters: LogExportQuery = {
     sort: DEFAULT_SORT,
     module: isLogin ? '登录' : undefined,
     createUserString: operator || undefined,
@@ -122,23 +88,52 @@ export function LogList({ mode }: LogListProps) {
     createTime: toDateTimeRangeQuery(createTime),
     status
   }
-  const params: LogPageQuery = { page: pagination.pageIndex + 1, size: pagination.pageSize, ...filters }
+  const params: LogPageQuery = { page: pagination.pageIndex + 1, size: pagination.pageSize, ...queryFilters }
 
   const query = useQuery({
     queryKey: logKeys.list(params),
     queryFn: ({ signal }) => listLogs(params, signal),
-    placeholderData: previous => previous
+    placeholderData: keepPreviousData
   })
 
   const total = query.data?.total ?? 0
   const rowOffset = pagination.pageIndex * pagination.pageSize
 
-  React.useEffect(() => {
-    if (total > 0 && pagination.pageIndex * pagination.pageSize >= total) {
-      const maxPageIndex = Math.max(0, Math.ceil(total / pagination.pageSize) - 1)
-      setPagination(current => ({ ...current, pageIndex: maxPageIndex }))
-    }
-  }, [total, pagination.pageIndex, pagination.pageSize])
+  usePageClamp(total, pagination, setPagination)
+
+  const handleOperatorSearch = (next: string) => {
+    setOperator(next)
+    resetPage()
+  }
+
+  const handleIpSearch = (next: string) => {
+    setIp(next)
+    resetPage()
+  }
+
+  const handleCreateTimeChange = (next: DateRange | undefined) => {
+    setCreateTime(next)
+    resetPage()
+  }
+
+  const handleStatusChange = (value: string | null) => {
+    setStatus(value === '1' ? 1 : value === '2' ? 2 : undefined)
+    resetPage()
+  }
+
+  const handleReset = () => {
+    setOperator('')
+    setIp('')
+    setStatus(undefined)
+    setCreateTime(createRecentDateRange())
+    setSearchVersion(current => current + 1)
+    resetPage()
+  }
+
+  const handleDetail = React.useCallback((log: LogResp) => {
+    setDetailId(log.id)
+    setIsDetailOpen(true)
+  }, [])
 
   const columns = React.useMemo(
     () =>
@@ -162,64 +157,69 @@ export function LogList({ mode }: LogListProps) {
     getRowId: row => String(row.id)
   })
 
-  const handleExport = async () => {
-    setIsExporting(true)
+  const filters = (
+    <>
+      <TableSearch
+        key={`operator-${searchVersion}`}
+        className="col-span-2 h-8 w-full md:w-52"
+        clearable
+        placeholder={placeholders.operator}
+        onSearch={handleOperatorSearch}
+      />
+      <TableSearch
+        key={`ip-${searchVersion}`}
+        className="col-span-2 h-8 w-full md:w-56"
+        clearable
+        placeholder={placeholders.ip}
+        onSearch={handleIpSearch}
+      />
+      <DateRangeFilter value={createTime} onChange={handleCreateTimeChange} placeholder={placeholders.date} />
+      <FilterSelect
+        label="状态"
+        options={STATUS_OPTIONS}
+        value={status === undefined ? 'all' : String(status)}
+        onValueChange={handleStatusChange}
+        className="w-full sm:w-32"
+      />
+      <Button type="button" variant="ghost" onClick={handleReset}>
+        <RotateCcw />
+        重置
+      </Button>
+    </>
+  )
 
-    try {
-      if (isLogin) {
-        await exportLoginLogs(filters)
-      } else {
-        await exportOperationLogs(filters)
+  const actions = (
+    <TableToolbar
+      table={table}
+      className="w-full xl:w-auto xl:justify-end"
+      isRefreshing={query.isFetching && !query.isPending}
+      isFullscreen={fullscreen.isFullscreen}
+      onRefresh={() => void query.refetch()}
+      onToggleFullscreen={fullscreen.toggleFullscreen}
+      onResetColumns={() => setColumnVisibility({})}
+      columnLabels={LOG_COLUMN_LABELS}
+      actions={
+        canExport ? (
+          <Button variant="outline" disabled={isExporting} onClick={() => void exportData(queryFilters)}>
+            {isExporting ? <Spinner /> : <Download />}
+            导出
+          </Button>
+        ) : null
       }
-
-      toast.add({ title: '导出已开始，请留意浏览器下载', type: 'success' })
-    } catch {
-      // The HTTP layer already reported the failure.
-    } finally {
-      setIsExporting(false)
-    }
-  }
+    />
+  )
 
   return (
     <>
-      <Card className="pb-0">
-        <CardContent className="flex flex-col gap-4 px-0">
-          {isFullscreen ? <div ref={spacerRef} style={{ height: reservedHeight }} /> : null}
-
-          <div ref={fullscreenRef} className={cn('flex flex-col gap-4', isFullscreen && 'bg-background')}>
-            <LogToolbar
-              table={table}
-              isRefreshing={query.isFetching && !query.isPending}
-              isExporting={isExporting}
-              isFullscreen={isFullscreen}
-              canExport={canExport}
-              searchVersion={searchVersion}
-              operatorPlaceholder={isLogin ? '搜索登录用户' : '搜索操作人'}
-              ipPlaceholder={isLogin ? '搜索登录 IP 或地点' : '搜索操作 IP 或地点'}
-              datePlaceholder={isLogin ? '登录时间' : '操作时间'}
-              createTime={createTime}
-              status={status}
-              onOperatorSearch={handleOperatorSearch}
-              onIpSearch={handleIpSearch}
-              onCreateTimeChange={handleCreateTimeChange}
-              onStatusChange={handleStatusChange}
-              onReset={handleReset}
-              onExport={() => void handleExport()}
-              onRefresh={() => void query.refetch()}
-              onToggleFullscreen={toggleFullscreen}
-              onResetColumns={() => setColumnVisibility({})}
-            />
-
-            <LogTable
-              table={table}
-              isLoading={query.isPending}
-              isError={query.isError}
-              isShowingPreviousRows={query.isPlaceholderData}
-              onRetry={() => void query.refetch()}
-            />
-          </div>
-        </CardContent>
-      </Card>
+      <ListPageCard filters={filters} actions={actions} fullscreen={fullscreen}>
+        <LogTable
+          table={table}
+          isLoading={query.isPending}
+          isError={query.isError}
+          isShowingPreviousRows={query.isPlaceholderData}
+          onRetry={() => void query.refetch()}
+        />
+      </ListPageCard>
 
       {!isLogin && canViewDetail ? (
         <LogDetailDrawer logId={detailId} open={isDetailOpen} onClose={() => setIsDetailOpen(false)} />

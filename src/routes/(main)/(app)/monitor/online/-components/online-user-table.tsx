@@ -25,7 +25,6 @@ interface OnlineUserTableProps {
   readonly onRetry?: () => void
 }
 
-/** The online sessions table: only its skeleton shapes are screen-specific. */
 export function OnlineUserTable({ table, ...rest }: OnlineUserTableProps) {
   return (
     <DataTable

@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
+import { useLastRecord } from '@/hooks/use-last-record'
 import { kickoutOnlineUser, onlineUserKeys, type OnlineUserResp } from '@/lib/api/online'
 
 interface OnlineUserKickoutDialogProps {
@@ -26,31 +27,15 @@ interface OnlineUserKickoutDialogProps {
   readonly onClose: () => void
 }
 
-/**
- * Confirms kicking out one login session.
- *
- * The row already hides this action for the signed-in session, because the backend rejects
- * it; the dialog only covers the sessions that can actually be revoked.
- */
 export function OnlineUserKickoutDialog({ user, open, onClose }: OnlineUserKickoutDialogProps) {
   const queryClient = useQueryClient()
   const [isKicking, setIsKicking] = React.useState(false)
+  const shownUser = useLastRecord(user)
 
-  // The parent clears `user` when the dialog closes, but the exit animation keeps rendering this
-  // copy, so the name would vanish mid-close. Keep the last record around for that window; `user`
-  // still wins while it is set, so opening a second session never shows the previous one.
-  const [lastUser, setLastUser] = React.useState<OnlineUserResp | null>(null)
-
-  React.useEffect(() => {
-    if (user) {
-      setLastUser(user)
-    }
-  }, [user])
-
-  const shownUser = user ?? lastUser
-  const shownName = shownUser ? shownUser.nickname || shownUser.username : ''
-  const shownLabel = shownUser?.nickname ? `${shownUser.nickname}(${shownUser.username})` : shownName
-  const shownTarget = shownUser?.ip ? `${shownLabel}（IP ${shownUser.ip}）` : shownLabel
+  const sessionLabel = shownUser
+    ? `${shownUser.nickname || shownUser.username}${shownUser.nickname ? `(${shownUser.username})` : ''}`
+    : ''
+  const shownTarget = shownUser?.ip ? `${sessionLabel}（IP ${shownUser.ip}）` : sessionLabel
 
   const handleKickout = async () => {
     if (user === null) {

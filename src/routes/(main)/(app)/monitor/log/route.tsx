@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { ClipboardList, LogIn } from 'lucide-react'
 import { z } from 'zod'
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsContent, TabsIndicator, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 import { LogList } from './-components/log-list'
 
@@ -36,18 +36,19 @@ function SystemLogPage() {
         <p className="mt-1 text-sm text-muted-foreground">查看登录日志与操作日志，支持按人员、IP、状态和时间范围筛选</p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={handleTabChange}>
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="min-h-0 flex-1 gap-0">
         <div className="touch-pan-x scrollbar-none overflow-x-auto overscroll-x-contain border-y">
           <TabsList
             variant="line"
-            className="w-max min-w-full justify-start gap-4 px-4 *:data-[slot=tabs-trigger]:flex-none md:px-6"
+            className="w-max min-w-full justify-start gap-4 px-4 *:data-[slot=tabs-trigger]:flex-none"
           >
             {TABS.map(({ mode, name, icon }) => (
-              <TabsTrigger key={mode} value={mode} className="gap-2">
+              <TabsTrigger key={mode} value={mode} className="gap-2 after:hidden">
                 {icon}
                 {name}
               </TabsTrigger>
             ))}
+            <TabsIndicator />
           </TabsList>
         </div>
 

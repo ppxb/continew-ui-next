@@ -27,6 +27,8 @@ interface TableToolbarProps<TRow extends RowData> {
   readonly onToggleFullscreen: () => void
   readonly onResetColumns: () => void
   readonly className?: string
+  /** Labels for columns whose header renders a node, which the hide menu cannot read. */
+  readonly columnLabels?: Record<string, string>
 }
 
 /** Shared refresh, column visibility and fullscreen controls for list tables. */
@@ -38,7 +40,8 @@ export function TableToolbar<TRow extends RowData>({
   onRefresh,
   onToggleFullscreen,
   onResetColumns,
-  className
+  className,
+  columnLabels
 }: TableToolbarProps<TRow>) {
   const hideableColumns = table.getAllColumns().filter(column => column.getCanHide())
 
@@ -61,7 +64,10 @@ export function TableToolbar<TRow extends RowData>({
             <DropdownMenuLabel>显示的列</DropdownMenuLabel>
             <DropdownMenuSeparator />
             {hideableColumns.map(column => {
-              const label = typeof column.columnDef.header === 'string' ? column.columnDef.header : column.id
+              const label =
+                typeof column.columnDef.header === 'string'
+                  ? column.columnDef.header
+                  : (columnLabels?.[column.id] ?? column.id)
 
               return (
                 <DropdownMenuCheckboxItem
