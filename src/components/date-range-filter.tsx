@@ -32,7 +32,7 @@ export function DateRangeFilter({ value, onChange, placeholder = '选择日期' 
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger render={<Button size="sm" variant="outline" className="font-normal" />}>
+      <PopoverTrigger render={<Button variant="outline" className="border-input bg-transparent font-normal" />}>
         <CalendarDays />
         {label}
       </PopoverTrigger>

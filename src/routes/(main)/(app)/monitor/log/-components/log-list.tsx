@@ -2,7 +2,7 @@ import * as React from 'react'
 
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { type ColumnVisibilityState, type PaginationState, useTable } from '@tanstack/react-table'
-import { Download, RotateCcw } from 'lucide-react'
+import { Download } from 'lucide-react'
 import type { DateRange } from 'react-day-picker'
 
 import { DateRangeFilter } from '@/components/date-range-filter'
@@ -71,8 +71,6 @@ export function LogList({ mode }: LogListProps) {
   const [ip, setIp] = React.useState('')
   const [status, setStatus] = React.useState<LogStatus | undefined>(undefined)
   const [createTime, setCreateTime] = React.useState<DateRange | undefined>(createRecentDateRange)
-  // The search boxes keep their own text, so a reset remounts them.
-  const [searchVersion, setSearchVersion] = React.useState(0)
   const [detailId, setDetailId] = React.useState<string | number | null>(null)
   const [isDetailOpen, setIsDetailOpen] = React.useState(false)
 
@@ -121,15 +119,6 @@ export function LogList({ mode }: LogListProps) {
     resetPage()
   }
 
-  const handleReset = () => {
-    setOperator('')
-    setIp('')
-    setStatus(undefined)
-    setCreateTime(createRecentDateRange())
-    setSearchVersion(current => current + 1)
-    resetPage()
-  }
-
   const handleDetail = React.useCallback((log: LogResp) => {
     setDetailId(log.id)
     setIsDetailOpen(true)
@@ -160,14 +149,12 @@ export function LogList({ mode }: LogListProps) {
   const filters = (
     <>
       <TableSearch
-        key={`operator-${searchVersion}`}
         className="col-span-2 h-8 w-full md:w-52"
         clearable
         placeholder={placeholders.operator}
         onSearch={handleOperatorSearch}
       />
       <TableSearch
-        key={`ip-${searchVersion}`}
         className="col-span-2 h-8 w-full md:w-56"
         clearable
         placeholder={placeholders.ip}
@@ -181,10 +168,6 @@ export function LogList({ mode }: LogListProps) {
         onValueChange={handleStatusChange}
         className="w-full sm:w-32"
       />
-      <Button type="button" variant="ghost" onClick={handleReset}>
-        <RotateCcw />
-        重置
-      </Button>
     </>
   )
 

@@ -2,14 +2,12 @@ import * as React from 'react'
 
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { type ColumnVisibilityState, type PaginationState, useTable } from '@tanstack/react-table'
-import { RotateCcw } from 'lucide-react'
 import type { DateRange } from 'react-day-picker'
 
 import { DateRangeFilter } from '@/components/date-range-filter'
 import { ListPageCard } from '@/components/list-page-card'
 import { TableSearch } from '@/components/table-search'
 import { TableToolbar } from '@/components/table-toolbar'
-import { Button } from '@/components/ui/button'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
 import { usePageClamp } from '@/hooks/use-page-clamp'
 import { usePermission } from '@/hooks/use-permission'
@@ -29,8 +27,6 @@ export function OnlineUserList() {
   const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>({})
   const [keyword, setKeyword] = React.useState('')
   const [loginTime, setLoginTime] = React.useState<DateRange | undefined>(createRecentDateRange)
-  // The search box keeps its own text, so a reset remounts it.
-  const [searchVersion, setSearchVersion] = React.useState(0)
   const [kickingUser, setKickingUser] = React.useState<OnlineUserResp | null>(null)
   const { hasPermission } = usePermission()
   const fullscreen = useFullscreenTransition()
@@ -55,13 +51,6 @@ export function OnlineUserList() {
 
   const handleLoginTimeChange = (next: DateRange | undefined) => {
     setLoginTime(next)
-    resetPage()
-  }
-
-  const handleReset = () => {
-    setKeyword('')
-    setLoginTime(createRecentDateRange())
-    setSearchVersion(current => current + 1)
     resetPage()
   }
 
@@ -109,17 +98,12 @@ export function OnlineUserList() {
   const filters = (
     <>
       <TableSearch
-        key={searchVersion}
         className="col-span-2 h-8 w-full sm:w-64"
         clearable
         placeholder="搜索用户名、昵称"
         onSearch={handleSearch}
       />
       <DateRangeFilter value={loginTime} onChange={handleLoginTimeChange} placeholder="登录时间" />
-      <Button type="button" variant="ghost" onClick={handleReset}>
-        <RotateCcw />
-        重置
-      </Button>
     </>
   )
 
