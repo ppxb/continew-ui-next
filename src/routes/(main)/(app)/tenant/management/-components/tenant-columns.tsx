@@ -31,21 +31,27 @@ interface TenantColumnOptions {
   readonly onAction: (action: TenantAction, tenant: TenantResp) => void
 }
 
-function RowActions({
-  tenant,
-  canGet,
-  canUpdate,
-  canUpdateAdminPassword,
-  canDelete,
-  onAction
-}: {
-  tenant: TenantResp
-  canGet: boolean
-  canUpdate: boolean
-  canUpdateAdminPassword: boolean
-  canDelete: boolean
-  onAction: (action: TenantAction, tenant: TenantResp) => void
-}) {
+type TextColumnKey =
+  | 'name'
+  | 'packageName'
+  | 'adminUsername'
+  | 'description'
+  | 'createUserString'
+  | 'createTime'
+  | 'updateUserString'
+  | 'updateTime'
+
+function textColumn(key: TextColumnKey, header: string): ColumnDef<DataTableFeatures, TenantResp> {
+  return {
+    accessorKey: key,
+    header,
+    cell: ({ row }) => <TextCell value={row.original[key]} />
+  }
+}
+
+type RowActionsProps = Omit<TenantColumnOptions, 'rowOffset'> & { readonly tenant: TenantResp }
+
+function RowActions({ tenant, canGet, canUpdate, canUpdateAdminPassword, canDelete, onAction }: RowActionsProps) {
   const hasPrimary = canGet || canUpdate
   const hasSecondary = canUpdateAdminPassword || canDelete
 
@@ -102,12 +108,7 @@ function RowActions({
   )
 }
 
-/**
- * Builds the column set of the tenant table.
- *
- * The fields follow the Vue client's `tenant/management` page: the generated code, the
- * package it belongs to, its domain and expiry, and the administrator it was created with.
- */
+/** Builds the column set of the tenant table, in the order of the Vue client's page. */
 export function createTenantColumns({
   rowOffset,
   canGet,
@@ -121,25 +122,15 @@ export function createTenantColumns({
       id: 'index',
       header: '序号',
       enableHiding: false,
-      cell: ({ row }) => (
-        <div className="text-center text-sm text-muted-foreground tabular-nums">{rowOffset + row.index + 1}</div>
-      )
+      cell: ({ row }) => <div>{rowOffset + row.index + 1}</div>
     },
     {
       accessorKey: 'code',
       header: '编码',
       cell: ({ row }) => <CopyableText value={row.original.code} />
     },
-    {
-      accessorKey: 'name',
-      header: '名称',
-      cell: ({ row }) => <TextCell value={row.original.name} />
-    },
-    {
-      accessorKey: 'packageName',
-      header: '套餐',
-      cell: ({ row }) => <TextCell value={row.original.packageName} />
-    },
+    textColumn('name', '名称'),
+    textColumn('packageName', '套餐'),
     {
       accessorKey: 'domain',
       header: '域名',
@@ -150,45 +141,17 @@ export function createTenantColumns({
       header: '过期时间',
       cell: ({ row }) => <ExpireTimeCell value={row.original.expireTime} />
     },
-    {
-      accessorKey: 'adminUsername',
-      header: '管理员用户',
-      cell: ({ row }) => <TextCell value={row.original.adminUsername} />
-    },
+    textColumn('adminUsername', '管理员用户'),
     {
       accessorKey: 'status',
-      header: () => <div className="text-center">状态</div>,
-      cell: ({ row }) => (
-        <div className="flex justify-center">
-          <StatusCell status={row.original.status} />
-        </div>
-      )
+      header: () => <div>状态</div>,
+      cell: ({ row }) => <StatusCell status={row.original.status} />
     },
-    {
-      accessorKey: 'description',
-      header: '描述',
-      cell: ({ row }) => <TextCell value={row.original.description} />
-    },
-    {
-      accessorKey: 'createUserString',
-      header: '创建人',
-      cell: ({ row }) => <TextCell value={row.original.createUserString} />
-    },
-    {
-      accessorKey: 'createTime',
-      header: '创建时间',
-      cell: ({ row }) => <TextCell value={row.original.createTime} />
-    },
-    {
-      accessorKey: 'updateUserString',
-      header: '修改人',
-      cell: ({ row }) => <TextCell value={row.original.updateUserString} />
-    },
-    {
-      accessorKey: 'updateTime',
-      header: '修改时间',
-      cell: ({ row }) => <TextCell value={row.original.updateTime} />
-    }
+    textColumn('description', '描述'),
+    textColumn('createUserString', '创建人'),
+    textColumn('createTime', '创建时间'),
+    textColumn('updateUserString', '修改人'),
+    textColumn('updateTime', '修改时间')
   ]
 
   if (canGet || canUpdate || canUpdateAdminPassword || canDelete) {
