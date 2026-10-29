@@ -7,6 +7,7 @@ import { z } from 'zod'
 import { Building2, PackageOpen } from 'lucide-react'
 
 import { EntityDrawer } from '@/components/entity-drawer'
+import { ExpiryPicker } from '@/components/expiry-picker'
 import { PasswordInput } from '@/components/password-input'
 import { QueryState } from '@/components/query-state'
 import { RequiredMark } from '@/components/required-mark'
@@ -26,7 +27,6 @@ import { listPackageDict, packageKeys } from '@/lib/api/package'
 import { createTenant, tenantKeys, updateTenant, type TenantDetailResp, type TenantReq } from '@/lib/api/tenant'
 import { encryptByRsa } from '@/lib/crypto'
 
-import { TenantExpiryPicker } from './tenant-expiry-picker'
 import { useTenantDetail } from './use-tenant-detail'
 
 /** Mirrors `RegexConstants.USERNAME`: 4-64 chars, letters, digits, underscore, letter first. */
@@ -42,7 +42,7 @@ const PASSWORD_HINT = '密码长度为 8-32 个字符，且至少包含一个小
 const LOOKUP_STALE_MS = 5 * 60_000
 
 const formSchema = z.object({
-  name: z.string().trim().min(1, '请输入名称').max(30, '名称长度不能超过 30 个字符'),
+  name: z.string().trim().min(1, '请输入租户名称').max(30, '名称长度不能超过 30 个字符'),
   domain: z
     .string()
     .max(255, '域名长度不能超过 255 个字符')
@@ -274,7 +274,7 @@ export function TenantFormDrawer({ tenantId, open, onClose }: TenantFormDrawerPr
                         onChange={event => field.handleChange(event.target.value)}
                         onBlur={field.handleBlur}
                         maxLength={30}
-                        placeholder="请输入名称"
+                        placeholder="请输入租户名称"
                         aria-invalid={invalid}
                       />
                       <FieldError errors={field.state.meta.errors} />
@@ -300,7 +300,7 @@ export function TenantFormDrawer({ tenantId, open, onClose }: TenantFormDrawerPr
                           onChange={event => field.handleChange(event.target.value)}
                           onBlur={field.handleBlur}
                           maxLength={255}
-                          placeholder="例如：example.com"
+                          placeholder="请输入需要绑定的域名"
                           aria-invalid={invalid}
                         />
                       </InputGroup>
@@ -317,7 +317,7 @@ export function TenantFormDrawer({ tenantId, open, onClose }: TenantFormDrawerPr
                   return (
                     <Field className="gap-1.5" data-invalid={invalid}>
                       <FieldLabel>过期时间</FieldLabel>
-                      <TenantExpiryPicker
+                      <ExpiryPicker
                         value={field.state.value}
                         onChange={field.handleChange}
                         onBlur={field.handleBlur}

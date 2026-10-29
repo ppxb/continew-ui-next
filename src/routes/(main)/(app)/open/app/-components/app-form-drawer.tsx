@@ -2,20 +2,18 @@ import * as React from 'react'
 
 import { revalidateLogic, useForm, useSelector } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
-import { addDays, addYears, format } from 'date-fns'
 import { z } from 'zod'
 
-import { Calendar as CalendarIcon, Clock, LayoutGrid, X } from 'lucide-react'
+import { Clock, LayoutGrid } from 'lucide-react'
 
 import { EntityDrawer } from '@/components/entity-drawer'
+import { ExpiryPicker } from '@/components/expiry-picker'
 import { QueryState } from '@/components/query-state'
 import { RequiredMark } from '@/components/required-mark'
 import { Button } from '@/components/ui/button'
-import { Calendar } from '@/components/ui/calendar'
 import { DrawerFooter } from '@/components/ui/drawer'
 import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
 import { Switch } from '@/components/ui/switch'
@@ -43,13 +41,6 @@ const EMPTY_FORM: FormValues = {
   status: 1,
   expireTime: '',
   description: ''
-}
-
-/** The backend sends `yyyy-MM-dd HH:mm:ss`; Safari needs the dashes replaced to parse it. */
-const toSelectedDate = (value: string) => {
-  if (!value) return undefined
-  const date = new Date(value.replace(/-/g, '/'))
-  return Number.isNaN(date.getTime()) ? undefined : date
 }
 
 function toFormValues(app: AppDetailResp): FormValues {
@@ -101,7 +92,6 @@ export function AppFormDrawer({ appId, open, onClose }: AppFormDrawerProps) {
   const isEdit = appId !== null
   const queryClient = useQueryClient()
   const formRef = React.useRef<HTMLFormElement>(null)
-  const [calendarOpen, setCalendarOpen] = React.useState(false)
 
   const detailQuery = useAppDetail(appId, { enabled: open && isEdit, refreshOnOpen: isEdit })
 
@@ -239,109 +229,22 @@ export function AppFormDrawer({ appId, open, onClose }: AppFormDrawerProps) {
                 }}
               </form.Field>
 
-              {/* Expiration Time (Optional, with calendar & quick presets) */}
               <form.Field name="expireTime" validators={{ onDynamic: formSchema.shape.expireTime }}>
                 {field => {
                   const invalid = field.state.meta.errors.length > 0
-                  const hasValue = field.state.value !== ''
-                  const selectedDate = toSelectedDate(field.state.value)
-
-                  const setExpire = (value: string) => {
-                    field.handleChange(value)
-                    setCalendarOpen(false)
-                  }
 
                   return (
                     <Field className="gap-1.5" data-invalid={invalid}>
                       <FieldLabel htmlFor="app-expire-time">失效时间</FieldLabel>
-                      <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-                        <div className="relative flex items-center">
-                          <PopoverTrigger
-                            render={
-                              <Button
-                                type="button"
-                                id="app-expire-time"
-                                variant="outline"
-                                disabled={isSubmitting}
-                                className="w-full justify-between pr-8 font-normal"
-                              />
-                            }
-                          >
-                            <span className={hasValue ? 'text-foreground' : 'text-muted-foreground'}>
-                              {hasValue ? field.state.value : '永久有效（点击设置失效时间）'}
-                            </span>
-                            <CalendarIcon className="size-4 text-muted-foreground" />
-                          </PopoverTrigger>
-
-                          {hasValue ? (
-                            <button
-                              type="button"
-                              onClick={e => {
-                                e.stopPropagation()
-                                setExpire('')
-                              }}
-                              disabled={isSubmitting}
-                              className="absolute right-2.5 z-10 text-muted-foreground transition-colors hover:text-foreground"
-                              title="清空并设为永久有效"
-                            >
-                              <X className="size-3.5" />
-                            </button>
-                          ) : null}
-                        </div>
-
-                        <PopoverContent className="w-auto p-3" align="start">
-                          {/* The presets and the calendar have no single `disabled` prop to hang the
-                                saving state on, so `inert` covers the whole popover body at once. */}
-                          <div className="flex flex-col gap-3" inert={isSubmitting}>
-                            <div className="flex flex-wrap items-center gap-1.5 border-b pb-2">
-                              <Button
-                                type="button"
-                                size="xs"
-                                variant="outline"
-                                onClick={() => setExpire(format(addDays(new Date(), 30), 'yyyy-MM-dd 23:59:59'))}
-                              >
-                                30天
-                              </Button>
-                              <Button
-                                type="button"
-                                size="xs"
-                                variant="outline"
-                                onClick={() => setExpire(format(addDays(new Date(), 90), 'yyyy-MM-dd 23:59:59'))}
-                              >
-                                90天
-                              </Button>
-                              <Button
-                                type="button"
-                                size="xs"
-                                variant="outline"
-                                onClick={() => setExpire(format(addYears(new Date(), 1), 'yyyy-MM-dd 23:59:59'))}
-                              >
-                                1年
-                              </Button>
-                              <Button
-                                type="button"
-                                size="xs"
-                                variant="outline"
-                                onClick={() => setExpire(format(addYears(new Date(), 3), 'yyyy-MM-dd 23:59:59'))}
-                              >
-                                3年
-                              </Button>
-                              <Button type="button" size="xs" variant="ghost" onClick={() => setExpire('')}>
-                                永久有效
-                              </Button>
-                            </div>
-
-                            <Calendar
-                              mode="single"
-                              selected={selectedDate}
-                              onSelect={date => {
-                                setExpire(date ? format(date, 'yyyy-MM-dd 23:59:59') : '')
-                              }}
-                              disabled={date => date.getTime() < Date.now() - 24 * 60 * 60 * 1000}
-                            />
-                          </div>
-                        </PopoverContent>
-                      </Popover>
+                      <ExpiryPicker
+                        id="app-expire-time"
+                        value={field.state.value}
+                        onChange={field.handleChange}
+                        neverLabel="永久有效"
+                        placeholder="永久有效（点击设置失效时间）"
+                        disabled={isSubmitting}
+                        invalid={invalid}
+                      />
                       <FieldDescription>
                         <span className="flex items-center gap-1">
                           <Clock className="size-3" />
