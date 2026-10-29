@@ -76,10 +76,6 @@ function ClientIdCell({ clientId }: { clientId: string }) {
   )
 }
 
-function AuthTypeCell({ authTypes, authTypeMap }: { authTypes?: string[]; authTypeMap: Record<string, string> }) {
-  return <TagList items={(authTypes ?? []).map(authType => authTypeMap[authType] || authType)} max={1} />
-}
-
 function RowActions({
   client,
   onAction
@@ -175,7 +171,9 @@ export function createClientColumns(
     {
       accessorKey: 'authType',
       header: '认证类型',
-      cell: ({ row }) => <AuthTypeCell authTypes={row.original.authType} authTypeMap={authTypeMap} />
+      cell: ({ row }) => (
+        <TagList items={(row.original.authType ?? []).map(authType => authTypeMap[authType] || authType)} max={1} />
+      )
     },
     {
       accessorKey: 'status',
