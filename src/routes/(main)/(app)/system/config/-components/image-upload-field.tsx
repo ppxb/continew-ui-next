@@ -8,6 +8,9 @@ import { Input } from '@/components/ui/input'
 import { toast } from '@/components/ui/toast'
 import { cn } from 'cn'
 
+const PREVIEW_BOX_CLASS =
+  'group relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted/20 transition-all'
+
 interface ImageUploadFieldProps {
   value: string
   onChange: (value: string) => void
@@ -65,23 +68,12 @@ export function ImageUploadField({
           disabled={disabled}
         />
         {disabled ? (
-          <div
-            className={cn(
-              'group relative flex size-14 shrink-0 items-center justify-center overflow-hidden',
-              'rounded-lg border border-border bg-muted/20 transition-all'
-            )}
-          >
-            {preview}
-          </div>
+          <div className={PREVIEW_BOX_CLASS}>{preview}</div>
         ) : (
           <Button
             type="button"
             size="icon-lg"
-            className={cn(
-              'group relative flex size-14 shrink-0 items-center justify-center overflow-hidden',
-              'rounded-lg border border-border bg-muted/20 transition-all',
-              'hover:bg-muted/40'
-            )}
+            className={cn(PREVIEW_BOX_CLASS, 'hover:bg-muted/40')}
             onClick={() => inputRef.current?.click()}
           >
             {preview}

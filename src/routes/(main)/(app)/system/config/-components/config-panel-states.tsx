@@ -40,7 +40,7 @@ export function ConfigPanelSkeleton({ fields = 6, variant = 'form' }: ConfigPane
         </div>
       </div>
       <div className={fields > 1 ? 'grid grid-cols-1 gap-6 sm:grid-cols-2' : 'flex flex-col gap-6'}>
-        {Array.from({ length: fields }).map((_, index) => (
+        {Array.from({ length: fields }, (_, index) => (
           <Skeleton key={index} className="h-20 w-full" />
         ))}
       </div>

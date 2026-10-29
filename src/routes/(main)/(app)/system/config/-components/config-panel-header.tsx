@@ -1,3 +1,5 @@
+import type { MouseEvent } from 'react'
+
 import { Check, Pencil, RefreshCw, RotateCcw, Undo2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -32,6 +34,13 @@ export function ConfigPanelHeader({
   onCancel,
   variant = 'panel'
 }: ConfigPanelHeaderProps) {
+  // React reuses this same DOM button as the submit button on the next render; without this the
+  // browser can still submit the form after the click handler.
+  const clickWithoutSubmit = (handler: () => void) => (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault()
+    handler()
+  }
+
   return (
     <div
       className={cn(
@@ -46,39 +55,7 @@ export function ConfigPanelHeader({
         </p>
       </div>
       <div className="flex items-center gap-2">
-        {!isEdit ? (
-          <>
-            {canUpdate && (
-              <Button
-                type="button"
-                size="sm"
-                onClick={event => {
-                  // React turns this same DOM button into the submit button on the next render;
-                  // without this the browser can still submit the form after the click handler.
-                  event.preventDefault()
-                  onEdit()
-                }}
-              >
-                <Pencil />
-                修改
-              </Button>
-            )}
-            {canUpdate && (
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                onClick={event => {
-                  event.preventDefault()
-                  onResetDefault()
-                }}
-              >
-                <RotateCcw />
-                恢复默认
-              </Button>
-            )}
-          </>
-        ) : (
+        {isEdit ? (
           <>
             <Button type="submit" size="sm" disabled={isSubmitting}>
               {isSubmitting ? <Spinner /> : <Check />}
@@ -93,6 +70,19 @@ export function ConfigPanelHeader({
               取消
             </Button>
           </>
+        ) : (
+          canUpdate && (
+            <>
+              <Button type="button" size="sm" onClick={clickWithoutSubmit(onEdit)}>
+                <Pencil />
+                修改
+              </Button>
+              <Button type="button" size="sm" variant="outline" onClick={clickWithoutSubmit(onResetDefault)}>
+                <RotateCcw />
+                恢复默认
+              </Button>
+            </>
+          )
         )}
       </div>
     </div>

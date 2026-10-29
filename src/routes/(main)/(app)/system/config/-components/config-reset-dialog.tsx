@@ -30,7 +30,7 @@ export function ConfigResetDialog({ open, onOpenChange, onConfirm, isResetting, 
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isResetting}>取消</AlertDialogCancel>
           <AlertDialogAction onClick={onConfirm} disabled={isResetting}>
-            {isResetting ? <Spinner /> : null}
+            {isResetting && <Spinner />}
             确认恢复
           </AlertDialogAction>
         </AlertDialogFooter>
