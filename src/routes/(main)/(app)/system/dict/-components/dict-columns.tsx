@@ -28,7 +28,7 @@ export interface DictItemColumn {
   readonly cell: (item: DictItemResp, index: number) => ReactNode
 }
 
-export interface DictItemColumnOptions {
+interface DictItemColumnOptions {
   readonly canUpdate: boolean
   readonly canDelete: boolean
   readonly onAction: (action: DictItemAction, item: DictItemResp) => void
@@ -45,24 +45,22 @@ function RowActions({ item, options }: { item: DictItemResp; options: DictItemCo
       <DropdownMenu>
         <Tooltip>
           <TooltipTrigger render={<DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />} />}>
-            <MoreHorizontal className="size-4" />
+            <MoreHorizontal />
           </TooltipTrigger>
-          <TooltipContent side="top" sideOffset={8}>
-            更多操作
-          </TooltipContent>
+          <TooltipContent side="top">更多操作</TooltipContent>
         </Tooltip>
         <DropdownMenuContent align="end" className="w-36">
-          <DropdownMenuGroup>
-            {canUpdate ? (
+          {canUpdate && (
+            <DropdownMenuGroup>
               <DropdownMenuItem onClick={() => onAction('update', item)}>
                 <Pencil />
                 修改
               </DropdownMenuItem>
-            ) : null}
-          </DropdownMenuGroup>
-          {canDelete ? (
+            </DropdownMenuGroup>
+          )}
+          {canDelete && (
             <>
-              {canUpdate ? <DropdownMenuSeparator /> : null}
+              {canUpdate && <DropdownMenuSeparator />}
               <DropdownMenuGroup>
                 <DropdownMenuItem variant="destructive" onClick={() => onAction('delete', item)}>
                   <Trash2 />
@@ -70,7 +68,7 @@ function RowActions({ item, options }: { item: DictItemResp; options: DictItemCo
                 </DropdownMenuItem>
               </DropdownMenuGroup>
             </>
-          ) : null}
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
@@ -84,7 +82,7 @@ export function createDictItemColumns(options: DictItemColumnOptions): DictItemC
       id: 'index',
       header: '序号',
       width: 'w-16',
-      cell: (_item, index) => <span className="text-sm text-muted-foreground tabular-nums">{index + 1}</span>
+      cell: (_item, index) => <span>{index + 1}</span>
     },
     {
       id: 'label',
@@ -102,19 +100,13 @@ export function createDictItemColumns(options: DictItemColumnOptions): DictItemC
       id: 'status',
       header: '状态',
       width: 'w-24',
-      headerClassName: 'text-center',
-      cell: item => (
-        <div className="flex justify-center">
-          <StatusCell status={item.status === 1 ? 1 : 2} />
-        </div>
-      )
+      cell: item => <StatusCell status={item.status} />
     },
     {
       id: 'sort',
       header: '排序',
       width: 'w-20',
-      headerClassName: 'text-center',
-      cell: item => <div className="text-center text-sm text-muted-foreground tabular-nums">{item.sort}</div>
+      cell: item => <div>{item.sort}</div>
     },
     {
       id: 'description',
