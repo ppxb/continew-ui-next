@@ -2,9 +2,8 @@ import type { ColumnDef } from '@tanstack/react-table'
 import { Eye, MoreHorizontal, PenLine, Trash2 } from 'lucide-react'
 
 import { CopyButton } from '@/components/copy-button'
-import { FlagBadge, TypeBadge, type TypeTone } from '@/components/data-badge'
+import { FlagBadge, TagList, TypeBadge, type TypeTone } from '@/components/data-badge'
 import { StatusCell } from '@/components/status-cell'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -15,9 +14,15 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { usePermission } from '@/hooks/use-permission'
 import type { ClientResp } from '@/lib/api/client'
 import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 import type { DataTableFeatures } from '@/lib/data-table-features'
+
+/** Labels for the enum codes, derived so the option list stays the single source. */
+function toLabelMap(options: readonly { value: string; label: string }[]): Record<string, string> {
+  return Object.fromEntries(options.map(option => [option.value, option.label] as const))
+}
 
 export const AUTH_TYPE_OPTIONS = [
   { label: '账号密码', value: 'ACCOUNT' },
@@ -26,44 +31,23 @@ export const AUTH_TYPE_OPTIONS = [
   { label: '三方授权', value: 'SOCIAL' }
 ]
 
-export const AUTH_TYPE_MAP: Record<string, string> = {
-  ACCOUNT: '账号密码',
-  SMS: '短信验证码',
-  EMAIL: '邮箱验证码',
-  SOCIAL: '三方授权'
-}
-
 export const REFRESH_TOKEN_MODE_OPTIONS = [
   { label: 'Cookie（Web）', value: 'COOKIE' },
   { label: '响应体（App / 小程序）', value: 'BODY' }
 ]
 
-export const REFRESH_TOKEN_MODE_MAP: Record<string, string> = {
-  COOKIE: 'Cookie（Web）',
-  BODY: '响应体（App / 小程序）'
-}
+export const REFRESH_TOKEN_MODE_MAP = toLabelMap(REFRESH_TOKEN_MODE_OPTIONS)
 
 export const REPLACED_RANGE_PRESETS = [
   { label: '当前客户端类型', value: 'CURR_DEVICE_TYPE' },
   { label: '所有客户端类型', value: 'ALL_DEVICE_TYPE' }
 ]
 
-export const REPLACED_RANGE_MAP: Record<string, string> = {
-  CURR_DEVICE_TYPE: '当前客户端类型',
-  ALL_DEVICE_TYPE: '所有客户端类型'
-}
-
 export const LOGOUT_MODE_PRESETS = [
   { label: '注销下线', value: 'LOGOUT' },
   { label: '踢人下线', value: 'KICKOUT' },
   { label: '顶人下线', value: 'REPLACED' }
 ]
-
-export const LOGOUT_MODE_MAP: Record<string, string> = {
-  LOGOUT: '注销下线',
-  KICKOUT: '踢人下线',
-  REPLACED: '顶人下线'
-}
 
 const CLIENT_TYPE_TONES: Record<string, TypeTone> = {
   PC: 'blue',
@@ -92,37 +76,18 @@ function ClientIdCell({ clientId }: { clientId: string }) {
   )
 }
 
-function AuthTypeCell({ authTypes, authTypeMap }: { authTypes?: string[]; authTypeMap?: Record<string, string> }) {
-  if (!authTypes?.length) {
-    return <span className="text-sm">{EMPTY_PLACEHOLDER}</span>
-  }
-
-  const map = authTypeMap ?? AUTH_TYPE_MAP
-
-  return (
-    <div className="flex items-center gap-1 whitespace-nowrap">
-      {authTypes.map(at => (
-        <Badge key={at} variant="secondary" className="shrink-0 font-normal whitespace-nowrap">
-          {map[at] || at}
-        </Badge>
-      ))}
-    </div>
-  )
+function AuthTypeCell({ authTypes, authTypeMap }: { authTypes?: string[]; authTypeMap: Record<string, string> }) {
+  return <TagList items={(authTypes ?? []).map(authType => authTypeMap[authType] || authType)} max={1} />
 }
 
 function RowActions({
   client,
-  onAction,
-  canGet,
-  canUpdate,
-  canDelete
+  onAction
 }: {
   client: ClientResp
   onAction: (action: ClientAction, client: ClientResp) => void
-  canGet: boolean
-  canUpdate: boolean
-  canDelete: boolean
 }) {
+  const { hasPermission } = usePermission()
   const isLocked = Boolean(client.disabled)
 
   return (
@@ -138,20 +103,20 @@ function RowActions({
         </Tooltip>
         <DropdownMenuContent align="end">
           <DropdownMenuGroup>
-            {canGet && (
+            {hasPermission('system:client:get') && (
               <DropdownMenuItem onClick={() => onAction('detail', client)}>
                 <Eye />
                 客户端详情
               </DropdownMenuItem>
             )}
-            {canUpdate && (
+            {hasPermission('system:client:update') && (
               <DropdownMenuItem disabled={isLocked} onClick={() => onAction('edit', client)}>
                 <PenLine />
                 修改客户端
               </DropdownMenuItem>
             )}
           </DropdownMenuGroup>
-          {canDelete && (
+          {hasPermission('system:client:delete') && (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
@@ -168,17 +133,20 @@ function RowActions({
   )
 }
 
+export interface ClientColumnOptions {
+  readonly clientTypeMap: Record<string, string>
+  readonly authTypeMap: Record<string, string>
+  readonly replacedRangeMap: Record<string, string>
+  readonly logoutModeMap: Record<string, string>
+  readonly onAction: (action: ClientAction, client: ClientResp) => void
+}
+
 export function createClientColumns(
-  onAction: (action: ClientAction, record: ClientResp) => void,
-  rowOffset: number,
-  clientTypeMap: Record<string, string>,
-  authTypeMap: Record<string, string>,
-  replacedRangeMap: Record<string, string>,
-  logoutModeMap: Record<string, string>,
-  canGet: boolean,
-  canUpdate: boolean,
-  canDelete: boolean
+  options: ClientColumnOptions,
+  rowOffset: number
 ): ColumnDef<DataTableFeatures, ClientResp>[] {
+  const { clientTypeMap, authTypeMap, replacedRangeMap, logoutModeMap, onAction } = options
+
   return [
     {
       id: 'index',
@@ -312,15 +280,7 @@ export function createClientColumns(
       id: 'actions',
       header: () => <div className="text-center">操作</div>,
       enableHiding: false,
-      cell: ({ row }) => (
-        <RowActions
-          client={row.original}
-          onAction={onAction}
-          canGet={canGet}
-          canUpdate={canUpdate}
-          canDelete={canDelete}
-        />
-      )
+      cell: ({ row }) => <RowActions client={row.original} onAction={onAction} />
     }
   ]
 }

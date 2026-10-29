@@ -56,7 +56,7 @@ export function TableToolbar<TRow extends RowData>({
           <SlidersHorizontal />
           隐藏列
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-44">
+        <DropdownMenuContent align="end" className="min-w-44">
           <DropdownMenuGroup>
             <DropdownMenuLabel>显示的列</DropdownMenuLabel>
             <DropdownMenuSeparator />

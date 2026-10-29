@@ -1,14 +1,17 @@
 import * as React from 'react'
 
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { type ColumnVisibilityState, type PaginationState, useTable } from '@tanstack/react-table'
-import { cn } from 'cn'
+
+import { Plus } from 'lucide-react'
 
 import { DataTable } from '@/components/data-table'
-import { ListFilterRow } from '@/components/list-filter-row'
-import { Card, CardContent } from '@/components/ui/card'
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { FilterSelect } from '@/components/filter-select'
+import { ListPageCard } from '@/components/list-page-card'
+import { TableToolbar } from '@/components/table-toolbar'
+import { Button } from '@/components/ui/button'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
+import { usePageClamp } from '@/hooks/use-page-clamp'
 import { usePermission } from '@/hooks/use-permission'
 import { listClient, type ClientResp } from '@/lib/api/client'
 import { listDict } from '@/lib/api/common'
@@ -25,9 +28,13 @@ import {
 import { ClientDeleteDialog } from './delete-dialog'
 import { ClientDetailDrawer } from './detail-drawer'
 import { ClientFormDrawer } from './form-drawer'
-import { ClientToolbar } from './toolbar'
 
-const CLIENT_TYPE_PRESETS = [
+interface DictOption {
+  readonly value: string
+  readonly label: string
+}
+
+const CLIENT_TYPE_PRESETS: DictOption[] = [
   { label: 'PC网页端', value: 'PC' },
   { label: '移动App端', value: 'APP' },
   { label: '微信小程序', value: 'MINI' },
@@ -53,171 +60,88 @@ const STATUS_OPTIONS = [
 
 const EMPTY_ROWS: ClientResp[] = []
 
+/** One dictionary of enum labels, falling back to the built-in presets when it is empty. */
+function useDictOptions(code: string, presets: DictOption[]): DictOption[] {
+  const { data = [] } = useQuery({
+    queryKey: dictKeys.code(code),
+    queryFn: ({ signal }) => listDict(code, signal)
+  })
+
+  return data.length > 0 ? data : presets
+}
+
+function toLabelMap(options: readonly DictOption[]): Record<string, string> {
+  return Object.fromEntries(options.map(option => [option.value, option.label] as const))
+}
+
 export function ConfigClient() {
   const { hasPermission } = usePermission()
+  const fullscreen = useFullscreenTransition()
 
-  const canCreate = hasPermission('system:client:create')
-  const canUpdate = hasPermission('system:client:update')
-  const canDelete = hasPermission('system:client:delete')
-  const canGet = hasPermission('system:client:get')
-
-  // Pagination & Column visibility
   const [pagination, setPagination] = React.useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
   const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>(HIDDEN_BY_DEFAULT)
-
-  // Filters
   const [clientType, setClientType] = React.useState<string | undefined>(undefined)
   const [status, setStatus] = React.useState<number | undefined>(undefined)
 
-  // Drawer & Dialog states
-  const [editingId, setEditingId] = React.useState<string | number | null>(null)
-  const [drawerOpen, setDrawerOpen] = React.useState(false)
+  // One state per overlay: a null value means it is closed. The form drawer holds an object, because
+  // a null id there means 新增.
+  const [formTarget, setFormTarget] = React.useState<{ clientId: string | number | null } | null>(null)
   const [detailTarget, setDetailTarget] = React.useState<ClientResp | null>(null)
-  const [detailOpen, setDetailOpen] = React.useState(false)
   const [deleteTarget, setDeleteTarget] = React.useState<ClientResp | null>(null)
-  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
 
-  const { isFullscreen, reservedHeight, fullscreenRef, spacerRef, toggleFullscreen } = useFullscreenTransition()
+  const clientTypeOptions = useDictOptions('client_type', CLIENT_TYPE_PRESETS)
+  const authTypeOptions = useDictOptions('auth_type_enum', AUTH_TYPE_OPTIONS)
+  const replacedRangeOptions = useDictOptions('replaced_range_enum', REPLACED_RANGE_PRESETS)
+  const logoutModeOptions = useDictOptions('logout_mode_enum', LOGOUT_MODE_PRESETS)
 
-  // Dict queries matching Vue version: client_type, auth_type_enum, replaced_range_enum, logout_mode_enum
-  const { data: dictClientTypes = [] } = useQuery({
-    queryKey: dictKeys.code('client_type'),
-    queryFn: ({ signal }) => listDict('client_type', signal)
-  })
+  const clientTypeMap = React.useMemo(() => toLabelMap(clientTypeOptions), [clientTypeOptions])
+  const authTypeMap = React.useMemo(() => toLabelMap(authTypeOptions), [authTypeOptions])
+  const replacedRangeMap = React.useMemo(() => toLabelMap(replacedRangeOptions), [replacedRangeOptions])
+  const logoutModeMap = React.useMemo(() => toLabelMap(logoutModeOptions), [logoutModeOptions])
 
-  const { data: dictAuthTypes = [] } = useQuery({
-    queryKey: dictKeys.code('auth_type_enum'),
-    queryFn: ({ signal }) => listDict('auth_type_enum', signal)
-  })
+  const params = {
+    page: pagination.pageIndex + 1,
+    size: pagination.pageSize,
+    clientType,
+    status
+  }
 
-  const { data: dictReplacedRanges = [] } = useQuery({
-    queryKey: dictKeys.code('replaced_range_enum'),
-    queryFn: ({ signal }) => listDict('replaced_range_enum', signal)
-  })
-
-  const { data: dictLogoutModes = [] } = useQuery({
-    queryKey: dictKeys.code('logout_mode_enum'),
-    queryFn: ({ signal }) => listDict('logout_mode_enum', signal)
-  })
-
-  const clientTypeOptions = dictClientTypes.length > 0 ? dictClientTypes : CLIENT_TYPE_PRESETS
-  const authTypeOptions = dictAuthTypes.length > 0 ? dictAuthTypes : AUTH_TYPE_OPTIONS
-  const replacedRangeOptions = dictReplacedRanges.length > 0 ? dictReplacedRanges : REPLACED_RANGE_PRESETS
-  const logoutModeOptions = dictLogoutModes.length > 0 ? dictLogoutModes : LOGOUT_MODE_PRESETS
-
-  const clientTypeFilterOptions = React.useMemo(
-    () => [{ value: 'all', label: '全部' }, ...clientTypeOptions],
-    [clientTypeOptions]
-  )
-
-  const clientTypeMap = React.useMemo(() => {
-    const map: Record<string, string> = {}
-    for (const item of clientTypeOptions) {
-      map[item.value] = item.label
-    }
-    return map
-  }, [clientTypeOptions])
-
-  const authTypeMap = React.useMemo(() => {
-    const map: Record<string, string> = {}
-    for (const item of authTypeOptions) {
-      map[item.value] = item.label
-    }
-    return map
-  }, [authTypeOptions])
-
-  const replacedRangeMap = React.useMemo(() => {
-    const map: Record<string, string> = {}
-    for (const item of replacedRangeOptions) {
-      map[item.value] = item.label
-    }
-    return map
-  }, [replacedRangeOptions])
-
-  const logoutModeMap = React.useMemo(() => {
-    const map: Record<string, string> = {}
-    for (const item of logoutModeOptions) {
-      map[item.value] = item.label
-    }
-    return map
-  }, [logoutModeOptions])
-
-  // List query with pagination and filters
   const query = useQuery({
-    queryKey: clientKeys.list({
-      page: pagination.pageIndex + 1,
-      size: pagination.pageSize,
-      clientType,
-      status
-    }),
-    queryFn: ({ signal }) =>
-      listClient(
-        {
-          page: pagination.pageIndex + 1,
-          size: pagination.pageSize,
-          clientType,
-          status
-        },
-        signal
-      ),
-    placeholderData: previous => previous
+    queryKey: clientKeys.list(params),
+    queryFn: ({ signal }) => listClient(params, signal),
+    placeholderData: keepPreviousData
   })
 
   const total = query.data?.total ?? 0
   const rowOffset = pagination.pageIndex * pagination.pageSize
 
-  // Page index adjustment if total records shrinks
-  React.useEffect(() => {
-    if (total > 0 && pagination.pageIndex * pagination.pageSize >= total) {
-      const maxPageIndex = Math.max(0, Math.ceil(total / pagination.pageSize) - 1)
-      setPagination(current => ({ ...current, pageIndex: maxPageIndex }))
-    }
-  }, [total, pagination.pageIndex, pagination.pageSize])
+  usePageClamp(total, pagination, setPagination)
 
-  // Action dispatcher for table rows
+  const resetPage = React.useCallback(() => {
+    setPagination(current => (current.pageIndex === 0 ? current : { ...current, pageIndex: 0 }))
+  }, [])
+
   const handleRowAction = React.useCallback((action: ClientAction, record: ClientResp) => {
     if (action === 'detail') {
       setDetailTarget(record)
-      setDetailOpen(true)
       return
     }
 
     if (action === 'edit') {
-      setEditingId(record.id)
-      setDrawerOpen(true)
+      setFormTarget({ clientId: record.id })
       return
     }
 
-    if (action === 'delete') {
-      setDeleteTarget(record)
-      setDeleteDialogOpen(true)
-    }
+    setDeleteTarget(record)
   }, [])
 
   const columns = React.useMemo(
     () =>
       createClientColumns(
-        handleRowAction,
-        rowOffset,
-        clientTypeMap,
-        authTypeMap,
-        replacedRangeMap,
-        logoutModeMap,
-        canGet,
-        canUpdate,
-        canDelete
+        { clientTypeMap, authTypeMap, replacedRangeMap, logoutModeMap, onAction: handleRowAction },
+        rowOffset
       ),
-    [
-      handleRowAction,
-      rowOffset,
-      clientTypeMap,
-      authTypeMap,
-      replacedRangeMap,
-      logoutModeMap,
-      canGet,
-      canUpdate,
-      canDelete
-    ]
+    [clientTypeMap, authTypeMap, replacedRangeMap, logoutModeMap, handleRowAction, rowOffset]
   )
 
   const table = useTable({
@@ -234,143 +158,98 @@ export function ConfigClient() {
     getRowId: row => String(row.id)
   })
 
-  const handleClientTypeChange = (value: string | null) => {
-    setClientType(!value || value === 'all' ? undefined : value)
-    setPagination(current => ({ ...current, pageIndex: 0 }))
-  }
-
-  const handleStatusChange = (value: string | null) => {
-    setStatus(!value || value === 'all' ? undefined : Number(value))
-    setPagination(current => ({ ...current, pageIndex: 0 }))
-  }
-
-  const handleCreate = () => {
-    setEditingId(null)
-    setDrawerOpen(true)
-  }
-
-  const tableSection = (
+  const filters = (
     <>
-      <ListFilterRow
-        filters={
-          <>
-            <div className="w-full sm:w-40">
-              <Select
-                items={clientTypeFilterOptions}
-                value={clientType === undefined ? 'all' : clientType}
-                onValueChange={handleClientTypeChange}
-              >
-                <SelectTrigger className="w-full">
-                  <span className="text-muted-foreground">客户端类型</span>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent align="start" alignItemWithTrigger={false}>
-                  <SelectGroup>
-                    {clientTypeFilterOptions.map(option => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="w-full sm:w-32">
-              <Select
-                items={STATUS_OPTIONS}
-                value={status === undefined ? 'all' : String(status)}
-                onValueChange={handleStatusChange}
-              >
-                <SelectTrigger className="w-full">
-                  <span className="text-muted-foreground">状态</span>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent align="start" alignItemWithTrigger={false}>
-                  <SelectGroup>
-                    {STATUS_OPTIONS.map(option => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-          </>
-        }
-        actions={
-          <ClientToolbar
-            table={table}
-            isRefreshing={query.isFetching && !query.isPending}
-            isFullscreen={isFullscreen}
-            canCreate={canCreate}
-            onCreate={handleCreate}
-            onRefresh={() => void query.refetch()}
-            onToggleFullscreen={toggleFullscreen}
-            onResetColumns={() => setColumnVisibility(HIDDEN_BY_DEFAULT)}
-          />
-        }
+      <FilterSelect
+        label="客户端类型"
+        options={[{ value: 'all', label: '全部' }, ...clientTypeOptions]}
+        value={clientType ?? 'all'}
+        onValueChange={value => {
+          setClientType(!value || value === 'all' ? undefined : value)
+          resetPage()
+        }}
+        className="w-full sm:w-40"
       />
-
-      {/* TanStack Table */}
-      <DataTable
-        table={table}
-        isLoading={query.isPending}
-        isError={query.isError}
-        isShowingPreviousRows={query.isPlaceholderData}
-        onRetry={() => void query.refetch()}
-        skeletonWidths={[
-          'mx-auto w-6',
-          'w-24',
-          'w-20',
-          'w-24',
-          'mx-auto w-12 rounded-full',
-          'w-24',
-          'w-24',
-          'w-24',
-          'mx-auto w-10'
-        ]}
+      <FilterSelect
+        label="状态"
+        options={STATUS_OPTIONS}
+        value={status === undefined ? 'all' : String(status)}
+        onValueChange={value => {
+          setStatus(!value || value === 'all' ? undefined : Number(value))
+          resetPage()
+        }}
+        className="w-full sm:w-32"
       />
     </>
   )
 
+  const actions = (
+    <TableToolbar
+      table={table}
+      isRefreshing={query.isFetching && !query.isPending}
+      isFullscreen={fullscreen.isFullscreen}
+      onRefresh={() => void query.refetch()}
+      onToggleFullscreen={fullscreen.toggleFullscreen}
+      onResetColumns={() => setColumnVisibility(HIDDEN_BY_DEFAULT)}
+      actions={
+        hasPermission('system:client:create') && (
+          <Button className="w-full sm:w-auto" onClick={() => setFormTarget({ clientId: null })}>
+            <Plus />
+            新增客户端
+          </Button>
+        )
+      }
+    />
+  )
+
   return (
     <>
-      <Card className="pb-0">
-        <CardContent className="flex flex-col gap-4 px-0">
-          {isFullscreen ? <div ref={spacerRef} style={{ height: reservedHeight }} /> : null}
+      <ListPageCard
+        title="客户端配置"
+        description="管理客户端凭据、令牌策略与登录限制"
+        filters={filters}
+        actions={actions}
+        fullscreen={fullscreen}
+      >
+        <DataTable
+          table={table}
+          isLoading={query.isPending}
+          isError={query.isError}
+          isShowingPreviousRows={query.isPlaceholderData}
+          onRetry={() => void query.refetch()}
+          skeletonWidths={[
+            'mx-auto w-6',
+            'w-24',
+            'w-20',
+            'w-24',
+            'mx-auto w-12 rounded-full',
+            'w-24',
+            'w-24',
+            'w-24',
+            'mx-auto w-10'
+          ]}
+        />
+      </ListPageCard>
 
-          <div ref={fullscreenRef} className={cn('flex flex-col gap-4', isFullscreen && 'bg-background')}>
-            {tableSection}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Add / Edit Drawer */}
       <ClientFormDrawer
-        clientId={editingId}
-        open={drawerOpen}
+        clientId={formTarget?.clientId ?? null}
+        open={formTarget !== null}
         clientTypeOptions={clientTypeOptions}
         authTypeOptions={authTypeOptions}
         replacedRangeOptions={replacedRangeOptions}
         logoutModeOptions={logoutModeOptions}
-        onClose={() => setDrawerOpen(false)}
+        onClose={() => setFormTarget(null)}
       />
-
-      {/* Detail Drawer */}
       <ClientDetailDrawer
         client={detailTarget}
-        open={detailOpen}
+        open={detailTarget !== null}
         clientTypeMap={clientTypeMap}
         authTypeMap={authTypeMap}
         replacedRangeMap={replacedRangeMap}
         logoutModeMap={logoutModeMap}
-        onClose={() => setDetailOpen(false)}
+        onClose={() => setDetailTarget(null)}
       />
-
-      {/* Delete Confirmation Dialog */}
-      <ClientDeleteDialog client={deleteTarget} open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)} />
+      <ClientDeleteDialog client={deleteTarget} open={deleteTarget !== null} onClose={() => setDeleteTarget(null)} />
     </>
   )
 }
