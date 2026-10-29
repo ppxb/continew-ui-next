@@ -1,7 +1,6 @@
-import type { ReactNode } from 'react'
-
 import { FileText } from 'lucide-react'
 
+import { DetailField, DetailGrid } from '@/components/detail-field'
 import { EntityDrawer } from '@/components/entity-drawer'
 import { QueryState } from '@/components/query-state'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -11,67 +10,71 @@ import { NoticeMethodTags, NoticeStatusBadge, NoticeTypeBadge, noticeOptionLabel
 import { useNoticeDetail } from './use-notice-detail'
 import { useNoticeDicts } from './use-notice-dicts'
 
+function NoticeDetailSkeleton() {
+  return (
+    <DetailGrid>
+      {Array.from({ length: 13 }, (_, index) => (
+        <div key={index} className="flex flex-col gap-1">
+          <Skeleton className="h-3.5 w-12" />
+          <Skeleton className="h-5 w-24" />
+        </div>
+      ))}
+    </DetailGrid>
+  )
+}
+
+function TextDetail({ label, value, className }: { label: string; value?: string | null; className?: string }) {
+  return (
+    <DetailField label={label} className={className}>
+      {value || EMPTY_PLACEHOLDER}
+    </DetailField>
+  )
+}
+
 interface NoticeDetailDrawerProps {
+  /** The notice to show, or `null` before the first one is picked. */
   readonly noticeId: string | number | null
   readonly open: boolean
   readonly onClose: () => void
 }
 
-function DetailItem({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div className="flex flex-col gap-1">
-      <span className="text-xs text-muted-foreground">{label}</span>
-      <div className="text-sm break-words">{children}</div>
-    </div>
-  )
-}
-
 /** The Vue DetailDrawer's fields, laid out as a two-column drawer. */
 export function NoticeDetailDrawer({ noticeId, open, onClose }: NoticeDetailDrawerProps) {
-  const { scopeOptions, methodOptions, statusOptions, typeOptions } = useNoticeDicts()
-  const detailQuery = useNoticeDetail(noticeId, { enabled: open })
-  const detail = detailQuery.data
+  const dicts = useNoticeDicts()
+  const query = useNoticeDetail(noticeId, { enabled: open })
+  const detail = query.data
 
   return (
     <EntityDrawer open={open} onClose={onClose} title="公告详情" icon={<FileText className="size-4" />} width={40}>
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-5">
-        {detailQuery.isPending ? (
-          <div className="grid gap-4 sm:grid-cols-2">
-            {Array.from({ length: 8 }, (_, index) => (
-              <div key={index} className="flex flex-col gap-1.5">
-                <Skeleton className="h-3 w-16" />
-                <Skeleton className="h-4 w-2/3" />
-              </div>
-            ))}
-          </div>
-        ) : detailQuery.isError || !detail ? (
-          <QueryState state="error" onRetry={() => void detailQuery.refetch()} />
+        {query.isPending ? (
+          <NoticeDetailSkeleton />
+        ) : query.isError || !detail ? (
+          <QueryState state="error" onRetry={() => void query.refetch()} />
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="sm:col-span-2">
-              <DetailItem label="ID">
-                <span className="font-mono text-xs">{detail.id}</span>
-              </DetailItem>
-            </div>
-            <DetailItem label="标题">{detail.title}</DetailItem>
-            <DetailItem label="分类">
-              <NoticeTypeBadge type={detail.type} options={typeOptions} />
-            </DetailItem>
-            <DetailItem label="通知范围">{noticeOptionLabel(scopeOptions, detail.noticeScope)}</DetailItem>
-            <DetailItem label="通知方式">
-              <NoticeMethodTags methods={detail.noticeMethods} options={methodOptions} />
-            </DetailItem>
-            <DetailItem label="是否定时">{detail.isTiming ? '是' : '否'}</DetailItem>
-            <DetailItem label="发布时间">{detail.publishTime || EMPTY_PLACEHOLDER}</DetailItem>
-            <DetailItem label="是否置顶">{detail.isTop ? '是' : '否'}</DetailItem>
-            <DetailItem label="状态">
-              <NoticeStatusBadge status={detail.status} options={statusOptions} />
-            </DetailItem>
-            <DetailItem label="创建人">{detail.createUserString || EMPTY_PLACEHOLDER}</DetailItem>
-            <DetailItem label="创建时间">{detail.createTime || EMPTY_PLACEHOLDER}</DetailItem>
-            <DetailItem label="修改人">{detail.updateUserString || EMPTY_PLACEHOLDER}</DetailItem>
-            <DetailItem label="修改时间">{detail.updateTime || EMPTY_PLACEHOLDER}</DetailItem>
-          </div>
+          <DetailGrid>
+            <DetailField label="ID" className="sm:col-span-2">
+              <span className="font-mono text-xs">{detail.id}</span>
+            </DetailField>
+            <TextDetail label="标题" value={detail.title} />
+            <DetailField label="分类">
+              <NoticeTypeBadge type={detail.type} options={dicts.typeOptions} />
+            </DetailField>
+            <DetailField label="通知范围">{noticeOptionLabel(dicts.scopeOptions, detail.noticeScope)}</DetailField>
+            <DetailField label="通知方式">
+              <NoticeMethodTags methods={detail.noticeMethods} options={dicts.methodOptions} />
+            </DetailField>
+            <DetailField label="是否定时">{detail.isTiming ? '是' : '否'}</DetailField>
+            <TextDetail label="发布时间" value={detail.publishTime} />
+            <DetailField label="是否置顶">{detail.isTop ? '是' : '否'}</DetailField>
+            <DetailField label="状态">
+              <NoticeStatusBadge status={detail.status} options={dicts.statusOptions} />
+            </DetailField>
+            <TextDetail label="创建人" value={detail.createUserString} />
+            <TextDetail label="创建时间" value={detail.createTime} />
+            <TextDetail label="修改人" value={detail.updateUserString} />
+            <TextDetail label="修改时间" value={detail.updateTime} />
+          </DetailGrid>
         )}
       </div>
     </EntityDrawer>

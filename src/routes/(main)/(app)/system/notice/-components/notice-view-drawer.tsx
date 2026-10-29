@@ -5,6 +5,7 @@ import { QueryState } from '@/components/query-state'
 import { RichTextContent } from '@/components/rich-text-editor'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 
 import { useNoticeDetail } from './use-notice-detail'
 
@@ -44,8 +45,8 @@ export function NoticeViewDrawer({ noticeId, open, onClose }: NoticeViewDrawerPr
                 ) : null}
               </div>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                <span>发布人：{detail.createUserString || '—'}</span>
-                <span>发布时间：{detail.publishTime || '—'}</span>
+                <span>发布人：{detail.createUserString || EMPTY_PLACEHOLDER}</span>
+                <span>发布时间：{detail.publishTime || EMPTY_PLACEHOLDER}</span>
                 {detail.updateTime ? <span>更新时间：{detail.updateTime}</span> : null}
               </div>
             </header>

@@ -2,7 +2,7 @@ import type { ColumnDef, ColumnVisibilityState } from '@tanstack/react-table'
 
 import { Eye, FileText, MoreHorizontal, Pen, Trash2 } from 'lucide-react'
 
-import { Badge } from '@/components/ui/badge'
+import { FlagBadge } from '@/components/data-badge'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -13,11 +13,12 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { usePermission } from '@/hooks/use-permission'
 import type { NoticeResp } from '@/lib/api/notice'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 
-import { NoticeMethodTags, NoticeStatusBadge, NoticeTypeBadge, TextCell, noticeOptionLabel } from './notice-display'
-import type { NoticeDictOption } from './use-notice-dicts'
+import { NoticeMethodTags, NoticeStatusBadge, NoticeTypeBadge, noticeOptionLabel, TextCell } from './notice-display'
+import type { NoticeDicts } from './use-notice-dicts'
 
 export type NoticeAction = 'detail' | 'view' | 'edit' | 'delete'
 
@@ -26,23 +27,36 @@ export const HIDDEN_BY_DEFAULT: ColumnVisibilityState = {
   isTop: false
 }
 
-interface NoticeColumnOptions {
-  readonly typeOptions: NoticeDictOption[]
-  readonly scopeOptions: NoticeDictOption[]
-  readonly methodOptions: NoticeDictOption[]
-  readonly statusOptions: NoticeDictOption[]
-  readonly canDetail: boolean
-  readonly canView: boolean
-  readonly canUpdate: boolean
-  readonly canDelete: boolean
-  readonly onAction: (action: NoticeAction, notice: NoticeResp) => void
+/** Every code the row menu can show; the menu is dropped when the user has none of them. */
+const ROW_ACTION_PERMISSIONS = [
+  'system:notice:get',
+  'system:notice:view',
+  'system:notice:update',
+  'system:notice:delete'
+]
+
+function yesNoColumn(key: 'isTiming' | 'isTop', header: string): ColumnDef<DataTableFeatures, NoticeResp> {
+  return {
+    accessorKey: key,
+    header,
+    cell: ({ row }) => (
+      <div className="flex justify-center">
+        <FlagBadge active={row.original[key]} activeLabel="是" inactiveLabel="否" />
+      </div>
+    )
+  }
 }
 
-function RowActions({ notice, options }: { notice: NoticeResp; options: NoticeColumnOptions }) {
-  const { canDetail, canView, canUpdate, canDelete, onAction } = options
-  const hasAny = canDetail || canView || canUpdate || canDelete
+function RowActions({
+  notice,
+  onAction
+}: {
+  notice: NoticeResp
+  onAction: (action: NoticeAction, notice: NoticeResp) => void
+}) {
+  const { hasPermission, hasAnyPermission } = usePermission()
 
-  if (!hasAny) {
+  if (!hasAnyPermission(ROW_ACTION_PERMISSIONS)) {
     return null
   }
 
@@ -56,31 +70,29 @@ function RowActions({ notice, options }: { notice: NoticeResp; options: NoticeCo
           <TooltipContent side="top">更多操作</TooltipContent>
         </Tooltip>
         <DropdownMenuContent align="end">
-          {canDetail || canView || canUpdate ? (
-            <DropdownMenuGroup>
-              {canDetail ? (
-                <DropdownMenuItem onClick={() => onAction('detail', notice)}>
-                  <FileText />
-                  详情
-                </DropdownMenuItem>
-              ) : null}
-              {canView ? (
-                <DropdownMenuItem onClick={() => onAction('view', notice)}>
-                  <Eye />
-                  查看
-                </DropdownMenuItem>
-              ) : null}
-              {canUpdate ? (
-                <DropdownMenuItem onClick={() => onAction('edit', notice)}>
-                  <Pen />
-                  修改
-                </DropdownMenuItem>
-              ) : null}
-            </DropdownMenuGroup>
-          ) : null}
-          {canDelete ? (
+          <DropdownMenuGroup>
+            {hasPermission('system:notice:get') && (
+              <DropdownMenuItem onClick={() => onAction('detail', notice)}>
+                <FileText />
+                详情
+              </DropdownMenuItem>
+            )}
+            {hasPermission('system:notice:view') && (
+              <DropdownMenuItem onClick={() => onAction('view', notice)}>
+                <Eye />
+                查看
+              </DropdownMenuItem>
+            )}
+            {hasPermission('system:notice:update') && (
+              <DropdownMenuItem onClick={() => onAction('edit', notice)}>
+                <Pen />
+                修改
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuGroup>
+          {hasPermission('system:notice:delete') && (
             <>
-              {canDetail || canView || canUpdate ? <DropdownMenuSeparator /> : null}
+              <DropdownMenuSeparator />
               <DropdownMenuGroup>
                 <DropdownMenuItem variant="destructive" onClick={() => onAction('delete', notice)}>
                   <Trash2 />
@@ -88,7 +100,7 @@ function RowActions({ notice, options }: { notice: NoticeResp; options: NoticeCo
                 </DropdownMenuItem>
               </DropdownMenuGroup>
             </>
-          ) : null}
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
@@ -96,24 +108,22 @@ function RowActions({ notice, options }: { notice: NoticeResp; options: NoticeCo
 }
 
 /** Builds the notice table columns, matching the Vue order and the user table conventions. */
-export function createNoticeColumns(options: NoticeColumnOptions, rowOffset: number) {
-  const columns: ColumnDef<DataTableFeatures, NoticeResp>[] = [
+export function createNoticeColumns(
+  dicts: NoticeDicts,
+  onAction: (action: NoticeAction, notice: NoticeResp) => void,
+  rowOffset: number
+): ColumnDef<DataTableFeatures, NoticeResp>[] {
+  return [
     {
       id: 'index',
       header: '序号',
       enableHiding: false,
-      cell: ({ row }) => (
-        <div className="text-center text-sm text-muted-foreground tabular-nums">{rowOffset + row.index + 1}</div>
-      )
+      cell: ({ row }) => <div>{rowOffset + row.index + 1}</div>
     },
     {
       accessorKey: 'title',
       header: '公告标题',
-      cell: ({ row }) => (
-        <span className="block max-w-72 truncate text-sm font-medium" title={row.original.title}>
-          {row.original.title}
-        </span>
-      )
+      cell: ({ row }) => <TextCell value={row.original.title} className="max-w-72 font-medium" />
     },
     {
       accessorKey: 'createUserString',
@@ -123,21 +133,19 @@ export function createNoticeColumns(options: NoticeColumnOptions, rowOffset: num
     {
       accessorKey: 'noticeScope',
       header: '通知范围',
-      cell: ({ row }) => (
-        <div className="text-center text-sm">{noticeOptionLabel(options.scopeOptions, row.original.noticeScope)}</div>
-      )
+      cell: ({ row }) => <div>{noticeOptionLabel(dicts.scopeOptions, row.original.noticeScope)}</div>
     },
     {
       accessorKey: 'noticeMethods',
       header: '通知方式',
-      cell: ({ row }) => <NoticeMethodTags methods={row.original.noticeMethods} options={options.methodOptions} />
+      cell: ({ row }) => <NoticeMethodTags methods={row.original.noticeMethods} options={dicts.methodOptions} />
     },
     {
       accessorKey: 'type',
       header: '分类',
       cell: ({ row }) => (
         <div className="flex justify-center">
-          <NoticeTypeBadge type={row.original.type} options={options.typeOptions} />
+          <NoticeTypeBadge type={row.original.type} options={dicts.typeOptions} />
         </div>
       )
     },
@@ -146,44 +154,22 @@ export function createNoticeColumns(options: NoticeColumnOptions, rowOffset: num
       header: '状态',
       cell: ({ row }) => (
         <div className="flex justify-center">
-          <NoticeStatusBadge status={row.original.status} options={options.statusOptions} />
+          <NoticeStatusBadge status={row.original.status} options={dicts.statusOptions} />
         </div>
       )
     },
-    {
-      accessorKey: 'isTiming',
-      header: '是否定时',
-      cell: ({ row }) => (
-        <div className="flex justify-center">
-          <Badge variant={row.original.isTiming ? 'secondary' : 'outline'} className="font-normal">
-            {row.original.isTiming ? '是' : '否'}
-          </Badge>
-        </div>
-      )
-    },
+    yesNoColumn('isTiming', '是否定时'),
     {
       accessorKey: 'publishTime',
       header: '发布时间',
       cell: ({ row }) => <TextCell value={row.original.publishTime} />
     },
-    {
-      accessorKey: 'isTop',
-      header: '是否置顶',
-      cell: ({ row }) => (
-        <div className="flex justify-center">
-          <Badge variant={row.original.isTop ? 'secondary' : 'outline'} className="font-normal">
-            {row.original.isTop ? '是' : '否'}
-          </Badge>
-        </div>
-      )
-    },
+    yesNoColumn('isTop', '是否置顶'),
     {
       id: 'actions',
       header: () => <div className="text-center">操作</div>,
       enableHiding: false,
-      cell: ({ row }) => <RowActions notice={row.original} options={options} />
+      cell: ({ row }) => <RowActions notice={row.original} onAction={onAction} />
     }
   ]
-
-  return columns
 }

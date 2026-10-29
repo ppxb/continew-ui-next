@@ -20,6 +20,10 @@ export const userKeys = {
   all: ['system', 'user'] as const,
   lists: () => [...userKeys.all, 'list'] as const,
   list: (query?: UserPageQuery) => [...userKeys.lists(), query] as const,
+  // The notice user picker pages users itself, so it must not share the `list` entry: an infinite
+  // query reads that entry as `{ pages, pageParams }` and a single page would crash it.
+  pickers: () => [...userKeys.lists(), 'picker'] as const,
+  picker: (query?: UserPageQuery) => [...userKeys.pickers(), query] as const,
   details: () => [...userKeys.all, 'detail'] as const,
   detail: (id: string | number | null) => [...userKeys.details(), id] as const
 }

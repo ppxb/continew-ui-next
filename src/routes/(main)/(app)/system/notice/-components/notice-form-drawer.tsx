@@ -38,6 +38,15 @@ import { NoticeUserPicker } from './notice-user-picker'
 import { useNoticeDetail } from './use-notice-detail'
 import { useNoticeDicts } from './use-notice-dicts'
 
+function hasRichText(html: string) {
+  return (
+    html
+      .replace(/<[^>]*>/g, '')
+      .replace(/&nbsp;/g, ' ')
+      .trim().length > 0
+  )
+}
+
 const formSchema = z
   .object({
     title: z.string().trim().min(1, '请输入标题').max(150, '标题长度不能超过 150 个字符'),
@@ -66,15 +75,6 @@ const formSchema = z
 
 type NoticeFormValues = z.infer<typeof formSchema>
 
-function hasRichText(html: string) {
-  return (
-    html
-      .replace(/<[^>]*>/g, '')
-      .replace(/&nbsp;/g, ' ')
-      .trim().length > 0
-  )
-}
-
 const EMPTY_FORM: NoticeFormValues = {
   title: '',
   type: '',
@@ -102,6 +102,7 @@ function toFormValues(detail: NoticeDetailResp): NoticeFormValues {
 }
 
 interface NoticeFormDrawerProps {
+  /** The notice being edited, or `null` to create one. */
   readonly noticeId: string | number | null
   readonly open: boolean
   readonly onClose: () => void
@@ -113,10 +114,7 @@ export function NoticeFormDrawer({ noticeId, open, onClose }: NoticeFormDrawerPr
   const { typeOptions, scopeOptions, methodOptions, statusOptions } = useNoticeDicts()
 
   const isEdit = noticeId !== null
-  const detailQuery = useNoticeDetail(noticeId, {
-    enabled: open && noticeId !== null,
-    refreshOnOpen: true
-  })
+  const detailQuery = useNoticeDetail(noticeId, { enabled: open, refreshOnOpen: true })
   const detail = detailQuery.data
   const isPublished = detail?.status === 3
 
@@ -130,6 +128,12 @@ export function NoticeFormDrawer({ noticeId, open, onClose }: NoticeFormDrawerPr
   const [userPickerOpen, setUserPickerOpen] = React.useState(false)
   const submitStatusRef = React.useRef<NoticeStatus>(3)
   const filledForRef = React.useRef<string | null>(null)
+
+  const finish = (message: string) => {
+    onClose()
+    void queryClient.invalidateQueries({ queryKey: noticeKeys.all })
+    toast.add({ title: message, type: 'success' })
+  }
 
   const form = useForm({
     defaultValues: EMPTY_FORM,
@@ -152,47 +156,40 @@ export function NoticeFormDrawer({ noticeId, open, onClose }: NoticeFormDrawerPr
       try {
         if (noticeId === null) {
           await createNotice(body)
-          toast.add({ title: '新增成功', type: 'success' })
-        } else {
-          await updateNotice(noticeId, body)
-          toast.add({ title: '修改成功', type: 'success' })
+          finish('新增成功')
+          return
         }
 
-        void queryClient.invalidateQueries({ queryKey: noticeKeys.all })
-        onClose()
+        await updateNotice(noticeId, body)
+        finish('修改成功')
       } catch {
         // The HTTP layer already reported the failure.
       }
     }
   })
 
+  // Fill the form once per open, and only after the record has settled (see the render guard below).
   React.useEffect(() => {
     if (!open) {
-      filledForRef.current = null
       setUserPickerOpen(false)
+      filledForRef.current = null
       return
     }
 
     if (noticeId === null) {
-      if (filledForRef.current === 'create') {
-        return
-      }
+      if (filledForRef.current === 'create') return
       filledForRef.current = 'create'
       form.reset(EMPTY_FORM, { keepDefaultValues: true })
       return
     }
 
-    if (!detail) {
-      return
-    }
+    if (!detail) return
 
-    const key = `edit:${noticeId}:${detail.updateTime ?? ''}`
-    if (filledForRef.current === key) {
-      return
-    }
+    const key = `${noticeId}:${detailQuery.dataUpdatedAt}`
+    if (filledForRef.current === key) return
     filledForRef.current = key
     form.reset(toFormValues(detail), { keepDefaultValues: true })
-  }, [open, noticeId, detail, form])
+  }, [open, noticeId, detail, detailQuery.dataUpdatedAt, form])
 
   const submitAs = (status: NoticeStatus) => {
     submitStatusRef.current = status
@@ -200,14 +197,15 @@ export function NoticeFormDrawer({ noticeId, open, onClose }: NoticeFormDrawerPr
   }
 
   const noticeScope = useSelector(form.store, state => state.values.noticeScope)
-  const selectedUserIds = useSelector(form.store, state => state.values.noticeUsers)
-  const knownUserNames = new Map(users.map(user => [String(user.id), user.nickname || user.username]))
+  const noticeUserIds = useSelector(form.store, state => state.values.noticeUsers)
+  const isTiming = useSelector(form.store, state => state.values.isTiming)
 
-  // The first page covers most notices; ids beyond it are resolved one by one.
-  const unresolvedUserIds =
-    noticeScope === 2 ? Array.from(new Set(selectedUserIds.map(String).filter(id => !knownUserNames.has(id)))) : []
-  const unresolvedUserQueries = useQueries({
-    queries: unresolvedUserIds.map(id => ({
+  // The first user page covers most picks; ids beyond it are resolved one by one.
+  const userNames = new Map(users.map(user => [String(user.id), user.nickname || user.username]))
+  const unknownUserIds = noticeScope === 2 ? Array.from(new Set(noticeUserIds.filter(id => !userNames.has(id)))) : []
+
+  const unknownUserQueries = useQueries({
+    queries: unknownUserIds.map(id => ({
       queryKey: userKeys.detail(id),
       queryFn: ({ signal }) => getUser(id, signal),
       enabled: open,
@@ -215,15 +213,13 @@ export function NoticeFormDrawer({ noticeId, open, onClose }: NoticeFormDrawerPr
     }))
   })
 
-  unresolvedUserIds.forEach((id, index) => {
-    const user = unresolvedUserQueries[index]?.data
-
-    if (user) {
-      knownUserNames.set(id, user.nickname || user.username)
+  unknownUserQueries.forEach(query => {
+    if (query.data) {
+      userNames.set(String(query.data.id), query.data.nickname || query.data.username)
     }
   })
 
-  const getUserName = (id: string | number) => knownUserNames.get(String(id)) ?? `用户 ${id}`
+  const getUserName = (id: string) => userNames.get(id) ?? `用户 ${id}`
 
   return (
     <EntityDrawer
@@ -235,18 +231,7 @@ export function NoticeFormDrawer({ noticeId, open, onClose }: NoticeFormDrawerPr
       width={48}
       canClose={() => !form.state.isSubmitting}
     >
-      {isEdit && (detailQuery.isPending || detailQuery.fetchStatus !== 'idle') ? (
-        <NoticeFormSkeleton onClose={onClose} />
-      ) : isEdit && detailQuery.isError ? (
-        <div className="flex min-h-0 flex-1 flex-col">
-          <QueryState state="error" className="p-6" onRetry={() => void detailQuery.refetch()} />
-          <DrawerFooter className="flex-row justify-end gap-2 border-t p-4">
-            <Button type="button" variant="outline" onClick={onClose}>
-              取消
-            </Button>
-          </DrawerFooter>
-        </div>
-      ) : (
+      {!isEdit || (detail && !detailQuery.isError && detailQuery.fetchStatus === 'idle') ? (
         <form
           noValidate
           className="flex min-h-0 flex-1 flex-col"
@@ -351,58 +336,58 @@ export function NoticeFormDrawer({ noticeId, open, onClose }: NoticeFormDrawerPr
                 }}
               </form.Field>
 
-              <form.Subscribe selector={state => state.values.noticeScope}>
-                {scope =>
-                  scope === 2 ? (
-                    <form.Field name="noticeUsers">
-                      {field => {
-                        const invalid = field.state.meta.errors.length > 0
+              {noticeScope === 2 && (
+                <form.Field name="noticeUsers">
+                  {field => {
+                    const invalid = field.state.meta.errors.length > 0
 
-                        return (
-                          <Field className="gap-1.5 sm:col-span-2" data-invalid={invalid}>
-                            <FieldLabel>
-                              指定用户
-                              <RequiredMark />
-                            </FieldLabel>
-                            <div className="flex flex-col gap-2 rounded-lg border p-3">
-                              {field.state.value.length > 0 ? (
-                                <div className="flex flex-wrap gap-1">
-                                  {field.state.value.map(id => (
-                                    <Badge key={id} variant="secondary" className="font-normal">
-                                      {getUserName(id)}
-                                    </Badge>
-                                  ))}
-                                </div>
-                              ) : (
-                                <p className="text-sm text-muted-foreground">尚未选择用户</p>
-                              )}
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                className="self-start"
-                                disabled={isPublished}
-                                onClick={() => setUserPickerOpen(true)}
-                              >
-                                <UserPlus />
-                                选择用户
-                              </Button>
+                    return (
+                      <Field className="gap-1.5 sm:col-span-2" data-invalid={invalid}>
+                        <FieldLabel>
+                          指定用户
+                          <RequiredMark />
+                        </FieldLabel>
+                        <div className="flex flex-col gap-2 rounded-lg border p-3">
+                          {field.state.value.length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                              {field.state.value.map(id => (
+                                <Badge key={id} variant="secondary" className="font-normal">
+                                  {getUserName(id)}
+                                </Badge>
+                              ))}
                             </div>
-                            <FieldDescription>
-                              {isPublished ? '公告已发布，通知用户不可修改' : '只有选中的用户能收到该公告'}
-                            </FieldDescription>
-                            <FieldError errors={field.state.meta.errors} />
-                          </Field>
-                        )
-                      }}
-                    </form.Field>
-                  ) : null
-                }
-              </form.Subscribe>
+                          ) : (
+                            <p className="text-sm text-muted-foreground">尚未选择用户</p>
+                          )}
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="self-start"
+                            disabled={isPublished}
+                            onClick={() => setUserPickerOpen(true)}
+                          >
+                            <UserPlus />
+                            选择用户
+                          </Button>
+                        </div>
+                        <FieldDescription>
+                          {isPublished ? '公告已发布，通知用户不可修改' : '只有选中的用户能收到该公告'}
+                        </FieldDescription>
+                        <FieldError errors={field.state.meta.errors} />
+                      </Field>
+                    )
+                  }}
+                </form.Field>
+              )}
 
               <form.Field name="noticeMethods">
                 {field => {
                   const selectedMethods = (field.state.value ?? []).map(String)
+                  const methodLabels = methodOptions
+                    .filter(option => selectedMethods.includes(option.value))
+                    .map(option => option.label)
+                    .join('、')
 
                   return (
                     <Field className="gap-1.5 sm:col-span-2">
@@ -416,15 +401,7 @@ export function NoticeFormDrawer({ noticeId, open, onClose }: NoticeFormDrawerPr
                       >
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="请选择通知方式">
-                            {(value: unknown) => {
-                              const selected = Array.isArray(value) ? value.map(String) : []
-                              return selected.length > 0
-                                ? methodOptions
-                                    .filter(option => selected.includes(option.value))
-                                    .map(option => option.label)
-                                    .join('、')
-                                : '请选择通知方式'
-                            }}
+                            {() => methodLabels || '请选择通知方式'}
                           </SelectValue>
                         </SelectTrigger>
                         <SelectContent alignItemWithTrigger={false}>
@@ -461,33 +438,29 @@ export function NoticeFormDrawer({ noticeId, open, onClose }: NoticeFormDrawerPr
                 )}
               </form.Field>
 
-              <form.Subscribe selector={state => state.values.isTiming}>
-                {isTiming =>
-                  isTiming ? (
-                    <form.Field name="publishTime">
-                      {field => {
-                        const invalid = field.state.meta.errors.length > 0
+              {isTiming && (
+                <form.Field name="publishTime">
+                  {field => {
+                    const invalid = field.state.meta.errors.length > 0
 
-                        return (
-                          <Field className="gap-1.5 sm:col-span-2" data-invalid={invalid}>
-                            <FieldLabel>
-                              发布时间
-                              <RequiredMark />
-                            </FieldLabel>
-                            <NoticePublishTimePicker
-                              value={field.state.value}
-                              disabled={isPublished}
-                              invalid={invalid}
-                              onChange={value => field.handleChange(value)}
-                            />
-                            <FieldError errors={field.state.meta.errors} />
-                          </Field>
-                        )
-                      }}
-                    </form.Field>
-                  ) : null
-                }
-              </form.Subscribe>
+                    return (
+                      <Field className="gap-1.5 sm:col-span-2" data-invalid={invalid}>
+                        <FieldLabel>
+                          发布时间
+                          <RequiredMark />
+                        </FieldLabel>
+                        <NoticePublishTimePicker
+                          value={field.state.value}
+                          disabled={isPublished}
+                          invalid={invalid}
+                          onChange={value => field.handleChange(value)}
+                        />
+                        <FieldError errors={field.state.meta.errors} />
+                      </Field>
+                    )
+                  }}
+                </form.Field>
+              )}
 
               <form.Field name="isTop">
                 {field => (
@@ -553,18 +526,24 @@ export function NoticeFormDrawer({ noticeId, open, onClose }: NoticeFormDrawerPr
             </form.Subscribe>
           </DrawerFooter>
         </form>
+      ) : detailQuery.isError ? (
+        <div className="flex min-h-0 flex-1 flex-col">
+          <QueryState state="error" className="p-6" onRetry={() => void detailQuery.refetch()} />
+          <DrawerFooter className="flex-row justify-end gap-2 border-t p-4">
+            <Button type="button" variant="outline" onClick={onClose}>
+              取消
+            </Button>
+          </DrawerFooter>
+        </div>
+      ) : (
+        <NoticeFormSkeleton onClose={onClose} />
       )}
 
       <NoticeUserPicker
         open={userPickerOpen && !isPublished}
-        selected={form.state.values.noticeUsers}
+        selected={noticeUserIds}
         onClose={() => setUserPickerOpen(false)}
         onConfirm={ids => {
-          if (isPublished) {
-            setUserPickerOpen(false)
-            return
-          }
-
           form.setFieldValue('noticeUsers', ids)
           setUserPickerOpen(false)
         }}

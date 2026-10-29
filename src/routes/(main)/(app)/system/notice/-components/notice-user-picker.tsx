@@ -4,6 +4,7 @@ import { useInfiniteQuery } from '@tanstack/react-query'
 
 import { Search, UserPlus } from 'lucide-react'
 
+import { QueryState } from '@/components/query-state'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -41,7 +42,7 @@ export function NoticeUserPicker({ open, selected, onClose, onConfirm }: NoticeU
   // Search runs on the server; further pages load on demand so matches beyond the first 100 stay
   // reachable.
   const usersQuery = useInfiniteQuery({
-    queryKey: userKeys.list({ page: 1, size: PAGE_SIZE, description: debouncedSearch.trim() || undefined }),
+    queryKey: userKeys.picker({ page: 1, size: PAGE_SIZE, description: debouncedSearch.trim() || undefined }),
     queryFn: ({ pageParam, signal }) =>
       listUsers({ page: pageParam, size: PAGE_SIZE, description: debouncedSearch.trim() || undefined }, signal),
     initialPageParam: 1,
@@ -74,7 +75,14 @@ export function NoticeUserPicker({ open, selected, onClose, onConfirm }: NoticeU
   }
 
   return (
-    <Dialog open={open} onOpenChange={next => (!next ? onClose() : undefined)}>
+    <Dialog
+      open={open}
+      onOpenChange={next => {
+        if (!next) {
+          onClose()
+        }
+      }}
+    >
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <div className="flex items-center gap-2">
@@ -110,12 +118,12 @@ export function NoticeUserPicker({ open, selected, onClose, onConfirm }: NoticeU
                 ))}
               </div>
             ) : usersQuery.isError ? (
-              <div className="flex h-36 flex-col items-center justify-center gap-2">
-                <p className="text-sm text-foreground">用户列表加载失败，请稍后重试</p>
-                <Button type="button" variant="outline" size="sm" onClick={() => void usersQuery.refetch()}>
-                  重新加载
-                </Button>
-              </div>
+              <QueryState
+                state="error"
+                title="用户列表加载失败"
+                onRetry={() => void usersQuery.refetch()}
+                className="h-36"
+              />
             ) : users.length === 0 ? (
               <div className="flex h-36 items-center justify-center text-xs text-muted-foreground">未找到用户</div>
             ) : (
