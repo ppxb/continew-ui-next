@@ -443,7 +443,7 @@ export function TenantFormDrawer({ tenantId, open, onClose }: TenantFormDrawerPr
                           ) : (
                             <Empty className="min-h-28 border border-dashed p-4">
                               <EmptyHeader>
-                                <EmptyMedia variant="icon">
+                                <EmptyMedia>
                                   <PackageOpen />
                                 </EmptyMedia>
                                 <EmptyTitle>{packages.isError ? '套餐加载失败' : '暂无可用套餐'}</EmptyTitle>

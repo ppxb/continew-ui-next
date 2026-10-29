@@ -6,6 +6,7 @@ import { EntityDrawer } from '@/components/entity-drawer'
 import { QueryState } from '@/components/query-state'
 import { StatusCell } from '@/components/status-cell'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useLastRecord } from '@/hooks/use-last-record'
 import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 
 import { DomainCell, ExpireTimeCell } from './tenant-display'
@@ -24,6 +25,14 @@ function TenantDetailSkeleton() {
   )
 }
 
+function TextDetail({ label, value, className }: { label: string; value: string | null; className?: string }) {
+  return (
+    <DetailField label={label} className={className}>
+      {value || EMPTY_PLACEHOLDER}
+    </DetailField>
+  )
+}
+
 interface TenantDetailDrawerProps {
   /** The tenant to show, or `null` before the first one is picked. */
   readonly tenantId: string | number | null
@@ -34,12 +43,15 @@ interface TenantDetailDrawerProps {
 /** Read-only detail panel for one tenant, with the field order of the Vue client's drawer. */
 export function TenantDetailDrawer({ tenantId, open, onClose }: TenantDetailDrawerProps) {
   const query = useTenantDetail(tenantId, { enabled: open })
-  const detail = query.data
+
+  // Keep the last detail during the close animation; the query key becomes null first.
+  const lastDetail = useLastRecord(query.data ?? null)
+  const detail = query.data ?? (open ? null : lastDetail)
 
   return (
     <EntityDrawer open={open} onClose={onClose} title="租户详情" icon={<Building2 className="size-4" />} width={36}>
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
-        {query.isPending ? (
+        {!detail && query.isPending ? (
           <TenantDetailSkeleton />
         ) : query.isError || !detail ? (
           <QueryState state="error" onRetry={() => void query.refetch()} />
@@ -51,25 +63,23 @@ export function TenantDetailDrawer({ tenantId, open, onClose }: TenantDetailDraw
             <DetailField label="编码">
               <CopyableText value={detail.code} />
             </DetailField>
-            <DetailField label="名称">{detail.name || EMPTY_PLACEHOLDER}</DetailField>
-            <DetailField label="套餐">{detail.packageName || EMPTY_PLACEHOLDER}</DetailField>
+            <TextDetail label="名称" value={detail.name} />
+            <TextDetail label="套餐" value={detail.packageName} />
             <DetailField label="域名">
               <DomainCell domain={detail.domain} />
             </DetailField>
             <DetailField label="过期时间">
               <ExpireTimeCell value={detail.expireTime} />
             </DetailField>
-            <DetailField label="管理员用户">{detail.adminUsername || EMPTY_PLACEHOLDER}</DetailField>
+            <TextDetail label="管理员用户" value={detail.adminUsername} />
             <DetailField label="状态">
               <StatusCell status={detail.status} />
             </DetailField>
-            <DetailField label="创建人">{detail.createUserString || EMPTY_PLACEHOLDER}</DetailField>
-            <DetailField label="创建时间">{detail.createTime || EMPTY_PLACEHOLDER}</DetailField>
-            <DetailField label="修改人">{detail.updateUserString || EMPTY_PLACEHOLDER}</DetailField>
-            <DetailField label="修改时间">{detail.updateTime || EMPTY_PLACEHOLDER}</DetailField>
-            <DetailField label="描述" className="sm:col-span-2">
-              {detail.description || EMPTY_PLACEHOLDER}
-            </DetailField>
+            <TextDetail label="创建人" value={detail.createUserString} />
+            <TextDetail label="创建时间" value={detail.createTime} />
+            <TextDetail label="修改人" value={detail.updateUserString} />
+            <TextDetail label="修改时间" value={detail.updateTime} />
+            <TextDetail label="描述" value={detail.description} className="sm:col-span-2" />
           </DetailGrid>
         )}
       </div>
