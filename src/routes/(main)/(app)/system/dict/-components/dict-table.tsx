@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react'
+
 import { cn } from 'cn'
 
 import { QueryState } from '@/components/query-state'
@@ -13,6 +15,8 @@ const SCROLL_CONTAINER_CLASS =
 
 const TABLE_CLASS = "table-fixed **:data-[slot='table-cell']:px-5 **:data-[slot='table-head']:px-5"
 
+const STATE_CLASS = 'min-h-24 rounded-none border-t bg-muted/50 p-4'
+
 interface DictTableProps {
   readonly items: DictItemResp[]
   readonly columns: DictItemColumn[]
@@ -24,14 +28,7 @@ interface DictTableProps {
 /** The plain item table of one dictionary, styled like the storage group tables. */
 export function DictTable({ items, columns, isLoading, isError, onRetry }: DictTableProps) {
   if (isError) {
-    return (
-      <QueryState
-        state="error"
-        title="字典项加载失败"
-        className="min-h-24 rounded-none border-t bg-muted/50 p-4"
-        onRetry={onRetry}
-      />
-    )
+    return <QueryState state="error" title="字典项加载失败" className={STATE_CLASS} onRetry={onRetry} />
   }
 
   if (isLoading && items.length === 0) {
@@ -39,43 +36,48 @@ export function DictTable({ items, columns, isLoading, isError, onRetry }: DictT
   }
 
   if (items.length === 0) {
-    return <QueryState state="empty" title="暂无字典项" className="min-h-24 rounded-none border-t bg-muted/50 p-4" />
+    return <QueryState state="empty" title="暂无字典项" className={STATE_CLASS} />
   }
 
   return (
-    <div className={SCROLL_CONTAINER_CLASS}>
-      <Table className={cn(TABLE_CLASS, DICT_ITEM_TABLE_MIN_WIDTH)}>
-        <TableColGroup columns={columns} />
-
-        <TableHeader className="bg-muted/50 [&_tr]:border-y">
-          <TableRow>
-            {columns.map(column => (
-              <TableHead key={column.id} className={cn('font-medium', column.headerClassName)}>
-                {column.header}
-              </TableHead>
-            ))}
-          </TableRow>
-        </TableHeader>
-
-        <TableBody className="**:data-[slot='table-row']:hover:bg-transparent">
-          {items.map((item, index) => (
-            <TableRow key={String(item.id)}>
-              {columns.map(column => (
-                <TableCell key={column.id}>{column.cell(item, index)}</TableCell>
-              ))}
-            </TableRow>
+    <DictTableShell columns={columns}>
+      {items.map((item, index) => (
+        <TableRow key={String(item.id)}>
+          {columns.map(column => (
+            <TableCell key={column.id}>{column.cell(item, index)}</TableCell>
           ))}
-        </TableBody>
-      </Table>
-    </div>
+        </TableRow>
+      ))}
+    </DictTableShell>
   )
 }
 
 function DictTableSkeleton({ columns }: { columns: DictItemColumn[] }) {
   return (
+    <DictTableShell columns={columns}>
+      {Array.from({ length: 2 }, (_, index) => (
+        <TableRow key={index}>
+          {columns.map(column => (
+            <TableCell key={column.id}>
+              <Skeleton className={cn('h-4', column.id === 'actions' ? 'ml-auto w-8' : 'w-24')} />
+            </TableCell>
+          ))}
+        </TableRow>
+      ))}
+    </DictTableShell>
+  )
+}
+
+/** The scroll container, fixed layout and header that the data and skeleton tables share. */
+function DictTableShell({ columns, children }: { columns: DictItemColumn[]; children: ReactNode }) {
+  return (
     <div className={SCROLL_CONTAINER_CLASS}>
       <Table className={cn(TABLE_CLASS, DICT_ITEM_TABLE_MIN_WIDTH)}>
-        <TableColGroup columns={columns} />
+        <colgroup>
+          {columns.map(column => (
+            <col key={column.id} className={column.width} />
+          ))}
+        </colgroup>
 
         <TableHeader className="bg-muted/50 [&_tr]:border-y">
           <TableRow>
@@ -87,28 +89,8 @@ function DictTableSkeleton({ columns }: { columns: DictItemColumn[] }) {
           </TableRow>
         </TableHeader>
 
-        <TableBody className="**:data-[slot='table-row']:hover:bg-transparent">
-          {Array.from({ length: 2 }, (_, rowIndex) => (
-            <TableRow key={rowIndex}>
-              {columns.map(column => (
-                <TableCell key={column.id}>
-                  <Skeleton className={cn('h-4', column.id === 'actions' ? 'ml-auto w-8' : 'w-24')} />
-                </TableCell>
-              ))}
-            </TableRow>
-          ))}
-        </TableBody>
+        <TableBody className="**:data-[slot='table-row']:hover:bg-transparent">{children}</TableBody>
       </Table>
     </div>
-  )
-}
-
-function TableColGroup({ columns }: { columns: DictItemColumn[] }) {
-  return (
-    <colgroup>
-      {columns.map(column => (
-        <col key={column.id} className={column.width} />
-      ))}
-    </colgroup>
   )
 }
