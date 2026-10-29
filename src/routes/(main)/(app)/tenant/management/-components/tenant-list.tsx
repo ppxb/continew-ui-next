@@ -1,15 +1,18 @@
 import * as React from 'react'
 
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { type ColumnVisibilityState, type PaginationState, useTable } from '@tanstack/react-table'
 
-import { RotateCcw } from 'lucide-react'
+import { Plus } from 'lucide-react'
 
+import { DataTable } from '@/components/data-table'
+import { FilterSelect } from '@/components/filter-select'
 import { ListPageCard } from '@/components/list-page-card'
 import { TableSearch } from '@/components/table-search'
+import { TableToolbar } from '@/components/table-toolbar'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
+import { usePageClamp } from '@/hooks/use-page-clamp'
 import { usePermission } from '@/hooks/use-permission'
 import { listPackageDict, packageKeys } from '@/lib/api/package'
 import { listTenants, tenantKeys, type TenantPageQuery, type TenantResp } from '@/lib/api/tenant'
@@ -20,8 +23,6 @@ import { TenantAdminPasswordDialog } from './tenant-admin-password-dialog'
 import { TenantDeleteDialog } from './tenant-delete-dialog'
 import { TenantDetailDrawer } from './tenant-detail-drawer'
 import { TenantFormDrawer } from './tenant-form-drawer'
-import { TenantTable } from './tenant-table'
-import { TenantToolbar } from './tenant-toolbar'
 
 const EMPTY_ROWS: TenantResp[] = []
 
@@ -32,6 +33,24 @@ const HIDDEN_BY_DEFAULT: ColumnVisibilityState = {
   createUserString: false,
   updateUserString: false,
   updateTime: false
+}
+
+/** One width per column id, so the hidden columns cannot shift the placeholder shapes. */
+const SKELETON_WIDTHS: Record<string, string> = {
+  index: 'mx-auto w-6',
+  code: 'w-28',
+  name: 'w-32',
+  packageName: 'w-24',
+  domain: 'w-32',
+  expireTime: 'w-32',
+  adminUsername: 'w-24',
+  status: 'mx-auto w-14 rounded-full',
+  description: 'w-32',
+  createUserString: 'w-20',
+  createTime: 'w-32',
+  updateUserString: 'w-20',
+  updateTime: 'w-32',
+  actions: 'mx-auto w-8'
 }
 
 /** Packages barely change, so the filter and the form share one cached lookup. */
@@ -50,10 +69,7 @@ export function TenantList() {
   const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>(HIDDEN_BY_DEFAULT)
   const [keyword, setKeyword] = React.useState('')
   const [packageId, setPackageId] = React.useState<string | undefined>(undefined)
-  // The search box owns its text, so resetting the filters remounts it.
-  const [searchVersion, setSearchVersion] = React.useState(0)
-  // One state per overlay: a null value means it is closed. The form drawer holds an object,
-  // because a null id there means 新增.
+  // A null value means the overlay is closed; the form drawer holds an object so a null id means 新增.
   const [detailId, setDetailId] = React.useState<string | number | null>(null)
   const [formTarget, setFormTarget] = React.useState<{ tenantId: string | number | null } | null>(null)
   const [passwordTenant, setPasswordTenant] = React.useState<TenantResp | null>(null)
@@ -65,40 +81,24 @@ export function TenantList() {
     staleTime: LOOKUP_STALE_MS
   })
 
-  const packageItems = React.useMemo(
-    () => [
-      { value: 'all', label: '全部套餐' },
-      ...(packages.data ?? []).map(option => ({ value: String(option.value), label: option.label }))
-    ],
-    [packages.data]
-  )
+  const packageItems = [
+    { value: 'all', label: '全部' },
+    ...(packages.data ?? []).map(option => ({ value: String(option.value), label: option.label }))
+  ]
 
-  const goToFirstPage = React.useCallback(() => {
+  const goToFirstPage = () => {
     setPagination(current => (current.pageIndex === 0 ? current : { ...current, pageIndex: 0 }))
-  }, [])
+  }
 
-  const handleKeywordSearch = React.useCallback(
-    (next: string) => {
-      setKeyword(next)
-      goToFirstPage()
-    },
-    [goToFirstPage]
-  )
-
-  const handlePackageChange = React.useCallback(
-    (value: string | null) => {
-      setPackageId(!value || value === 'all' ? undefined : value)
-      goToFirstPage()
-    },
-    [goToFirstPage]
-  )
-
-  const handleReset = React.useCallback(() => {
-    setKeyword('')
-    setPackageId(undefined)
-    setSearchVersion(current => current + 1)
+  const handleKeywordSearch = (next: string) => {
+    setKeyword(next)
     goToFirstPage()
-  }, [goToFirstPage])
+  }
+
+  const handlePackageChange = (value: string | null) => {
+    setPackageId(!value || value === 'all' ? undefined : value)
+    goToFirstPage()
+  }
 
   const handleAction = React.useCallback((action: TenantAction, tenant: TenantResp) => {
     if (action === 'detail') {
@@ -130,18 +130,13 @@ export function TenantList() {
   const query = useQuery({
     queryKey: tenantKeys.list(params),
     queryFn: ({ signal }) => listTenants(params, signal),
-    placeholderData: previous => previous
+    placeholderData: keepPreviousData
   })
 
   const total = query.data?.total ?? 0
   const rowOffset = pagination.pageIndex * pagination.pageSize
 
-  React.useEffect(() => {
-    if (total > 0 && pagination.pageIndex * pagination.pageSize >= total) {
-      const maxPageIndex = Math.max(0, Math.ceil(total / pagination.pageSize) - 1)
-      setPagination(current => ({ ...current, pageIndex: maxPageIndex }))
-    }
-  }, [total, pagination.pageIndex, pagination.pageSize])
+  usePageClamp(total, pagination, setPagination)
 
   const columns = React.useMemo(
     () =>
@@ -173,46 +168,38 @@ export function TenantList() {
   const filters = (
     <>
       <TableSearch
-        key={`keyword-${searchVersion}`}
         clearable
         className="col-span-2 h-8 w-full sm:w-64"
         placeholder="搜索名称、描述"
         onSearch={handleKeywordSearch}
       />
-      <div className="w-full sm:w-40">
-        <Select items={packageItems} value={packageId ?? 'all'} onValueChange={handlePackageChange}>
-          <SelectTrigger className="w-full">
-            <span className="text-muted-foreground">套餐</span>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent align="start" alignItemWithTrigger={false}>
-            <SelectGroup>
-              {packageItems.map(option => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      </div>
-      <Button type="button" variant="ghost" onClick={handleReset}>
-        <RotateCcw />
-        重置
-      </Button>
+      <FilterSelect
+        label="套餐"
+        options={packageItems}
+        value={packageId ?? 'all'}
+        onValueChange={handlePackageChange}
+        className="w-full sm:w-40"
+      />
     </>
   )
 
   const actions = (
-    <TenantToolbar
+    <TableToolbar
       table={table}
+      columnLabels={{ status: '状态' }}
       isRefreshing={query.isFetching && !query.isPending}
       isFullscreen={fullscreen.isFullscreen}
-      canCreate={canCreate}
-      onCreate={() => setFormTarget({ tenantId: null })}
       onRefresh={() => void query.refetch()}
       onToggleFullscreen={fullscreen.toggleFullscreen}
       onResetColumns={() => setColumnVisibility(HIDDEN_BY_DEFAULT)}
+      actions={
+        canCreate ? (
+          <Button onClick={() => setFormTarget({ tenantId: null })}>
+            <Plus />
+            新增租户
+          </Button>
+        ) : null
+      }
     />
   )
 
@@ -225,8 +212,9 @@ export function TenantList() {
         actions={actions}
         fullscreen={fullscreen}
       >
-        <TenantTable
+        <DataTable
           table={table}
+          skeletonWidths={table.getVisibleLeafColumns().map(column => SKELETON_WIDTHS[column.id] ?? 'w-24')}
           isLoading={query.isPending}
           isError={query.isError}
           isShowingPreviousRows={query.isPlaceholderData}
