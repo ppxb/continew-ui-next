@@ -53,11 +53,10 @@ interface DictItemFormDrawerProps {
   readonly dictId: string | number
   readonly open: boolean
   readonly onClose: () => void
-  readonly onCompleted: () => void
 }
 
 /** Creates or edits an item of the selected dictionary. */
-export function DictItemFormDrawer({ item, dictId, open, onClose, onCompleted }: DictItemFormDrawerProps) {
+export function DictItemFormDrawer({ item, dictId, open, onClose }: DictItemFormDrawerProps) {
   const queryClient = useQueryClient()
   const filledForRef = React.useRef<string | null>(null)
   const isEdit = item !== null
@@ -86,7 +85,6 @@ export function DictItemFormDrawer({ item, dictId, open, onClose, onCompleted }:
 
         toast.add({ title: item ? '修改成功' : '新增成功', type: 'success' })
         void queryClient.invalidateQueries({ queryKey: dictKeys.items() })
-        onCompleted()
         onClose()
       } catch {
         // The HTTP layer already reported the failure.

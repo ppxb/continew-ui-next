@@ -103,11 +103,6 @@ export function DictManager() {
     setSearchInput('')
   }, [])
 
-  // The children invalidate their own query keys; this hook is only for parent-side follow-ups.
-  const handleCompleted = React.useCallback(() => {
-    // Nothing to do yet: the affected queries are invalidated by the child component.
-  }, [])
-
   const handleRefresh = React.useCallback(() => {
     void query.refetch()
     void queryClient.invalidateQueries({ queryKey: dictKeys.items() })
@@ -212,25 +207,14 @@ export function DictManager() {
         </CardContent>
       </Card>
 
-      <DictFormDrawer
-        dict={editingDict}
-        open={dictFormOpen}
-        onClose={() => setDictFormOpen(false)}
-        onCompleted={handleCompleted}
-      />
+      <DictFormDrawer dict={editingDict} open={dictFormOpen} onClose={() => setDictFormOpen(false)} />
       <DictItemFormDrawer
         item={itemFormTarget?.item ?? null}
         dictId={itemFormTarget?.dict.id ?? ''}
         open={itemFormTarget !== null}
         onClose={() => setItemFormTarget(null)}
-        onCompleted={handleCompleted}
       />
-      <DictDeleteDialog
-        target={deleteTarget}
-        open={deleteTarget !== null}
-        onClose={() => setDeleteTarget(null)}
-        onCompleted={handleCompleted}
-      />
+      <DictDeleteDialog target={deleteTarget} open={deleteTarget !== null} onClose={() => setDeleteTarget(null)} />
     </>
   )
 }

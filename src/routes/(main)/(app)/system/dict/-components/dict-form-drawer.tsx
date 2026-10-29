@@ -40,11 +40,10 @@ interface DictFormDrawerProps {
   readonly dict: DictResp | null
   readonly open: boolean
   readonly onClose: () => void
-  readonly onCompleted: () => void
 }
 
 /** Creates a dictionary or edits its name and description; the code cannot change after creation. */
-export function DictFormDrawer({ dict, open, onClose, onCompleted }: DictFormDrawerProps) {
+export function DictFormDrawer({ dict, open, onClose }: DictFormDrawerProps) {
   const queryClient = useQueryClient()
   const filledForRef = React.useRef<string | null>(null)
   const isEdit = dict !== null
@@ -69,7 +68,6 @@ export function DictFormDrawer({ dict, open, onClose, onCompleted }: DictFormDra
 
         toast.add({ title: dict ? '修改成功' : '新增成功', type: 'success' })
         void queryClient.invalidateQueries({ queryKey: dictKeys.lists() })
-        onCompleted()
         onClose()
       } catch {
         // The HTTP layer already reported the failure.

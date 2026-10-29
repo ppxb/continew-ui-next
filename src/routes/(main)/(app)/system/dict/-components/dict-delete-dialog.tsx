@@ -26,11 +26,10 @@ interface DictDeleteDialogProps {
   readonly target: DictDeleteTarget | null
   readonly open: boolean
   readonly onClose: () => void
-  readonly onCompleted: () => void
 }
 
 /** Confirms deleting a dictionary (with its items) or one dictionary item. */
-export function DictDeleteDialog({ target, open, onClose, onCompleted }: DictDeleteDialogProps) {
+export function DictDeleteDialog({ target, open, onClose }: DictDeleteDialogProps) {
   const queryClient = useQueryClient()
   const [isDeleting, setIsDeleting] = React.useState(false)
   // Keep the last target during the close animation, where `target` is already null.
@@ -61,7 +60,6 @@ export function DictDeleteDialog({ target, open, onClose, onCompleted }: DictDel
       }
 
       toast.add({ title: '删除成功', type: 'success' })
-      onCompleted()
       onClose()
     } catch {
       // The HTTP layer already reported the failure.
