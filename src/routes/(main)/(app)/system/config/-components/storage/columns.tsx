@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { usePermission } from '@/hooks/use-permission'
 import type { StorageResp } from '@/lib/api/storage'
 
 import { MonoCell, RecycleBinCell, StorageNameCell } from './display'
@@ -37,17 +38,13 @@ export interface StorageColumn {
 
 export interface StorageColumnOptions {
   readonly onAction: (action: StorageAction, storage: StorageResp) => void
-  readonly canUpdate: boolean
-  readonly canDelete: boolean
-  readonly canSetDefault: boolean
-  readonly canUpdateStatus: boolean
 }
 
 /** Sum of the local column widths, so the fixed layout keeps them instead of squeezing. */
-export const LOCAL_TABLE_MIN_WIDTH = 'min-w-[1376px]'
+export const LOCAL_TABLE_MIN_WIDTH = 'min-w-[1200px]'
 
 /** Sum of the object-storage column widths. */
-export const OSS_TABLE_MIN_WIDTH = 'min-w-[1760px]'
+export const OSS_TABLE_MIN_WIDTH = 'min-w-[1584px]'
 
 const NAME_COLUMN: StorageColumn = {
   id: 'name',
@@ -66,20 +63,27 @@ const STATUS_COLUMN: StorageColumn = {
 const RECYCLE_BIN_COLUMN: StorageColumn = {
   id: 'recycleBin',
   header: '回收站',
-  width: 'w-72',
-  cell: storage => <RecycleBinCell enabled={storage.recycleBinEnabled} path={storage.recycleBinPath} />
+  width: 'w-28',
+  cell: storage => <RecycleBinCell enabled={storage.recycleBinEnabled} />
 }
 
-function RowActions({ storage, options }: { storage: StorageResp; options: StorageColumnOptions }) {
-  const { onAction, canUpdate, canDelete, canSetDefault, canUpdateStatus } = options
+function RowActions({
+  storage,
+  onAction
+}: {
+  storage: StorageResp
+  onAction: (action: StorageAction, storage: StorageResp) => void
+}) {
+  const { hasPermission } = usePermission()
   // The backend refuses to disable or delete the default storage, and only an enabled one can
   // become the default.
   const isDefault = Boolean(storage.isDefault)
   const isEnabled = storage.status === 1
-  const canToggleStatus = canUpdateStatus && !isDefault
-  const canRemove = canDelete && !isDefault
-  const canPromote = canSetDefault && !isDefault
-  const hasRowGroup = canPromote || canUpdate
+  const canPromote = hasPermission('system:storage:setDefault') && !isDefault
+  const canEdit = hasPermission('system:storage:update')
+  const canToggleStatus = hasPermission('system:storage:updateStatus') && !isDefault
+  const canRemove = hasPermission('system:storage:delete') && !isDefault
+  const hasRowGroup = canPromote || canEdit
 
   return (
     <div className="flex items-center justify-end">
@@ -93,26 +97,26 @@ function RowActions({ storage, options }: { storage: StorageResp; options: Stora
           </TooltipContent>
         </Tooltip>
         <DropdownMenuContent align="end">
-          {hasRowGroup ? (
+          {hasRowGroup && (
             <DropdownMenuGroup>
-              {canPromote ? (
+              {canPromote && (
                 <DropdownMenuItem disabled={!isEnabled} onClick={() => onAction('setDefault', storage)}>
                   <Star />
                   设为默认
                 </DropdownMenuItem>
-              ) : null}
-              {canUpdate ? (
+              )}
+              {canEdit && (
                 <DropdownMenuItem onClick={() => onAction('edit', storage)}>
                   <PenLine />
                   修改
                 </DropdownMenuItem>
-              ) : null}
+              )}
             </DropdownMenuGroup>
-          ) : null}
+          )}
 
-          {canToggleStatus ? (
+          {canToggleStatus && (
             <>
-              {hasRowGroup ? <DropdownMenuSeparator /> : null}
+              {hasRowGroup && <DropdownMenuSeparator />}
               <DropdownMenuGroup>
                 <DropdownMenuItem onClick={() => onAction('toggleStatus', storage)}>
                   {isEnabled ? <CircleSlash /> : <CircleCheck />}
@@ -120,11 +124,11 @@ function RowActions({ storage, options }: { storage: StorageResp; options: Stora
                 </DropdownMenuItem>
               </DropdownMenuGroup>
             </>
-          ) : null}
+          )}
 
-          {canRemove ? (
+          {canRemove && (
             <>
-              {hasRowGroup || canToggleStatus ? <DropdownMenuSeparator /> : null}
+              {(hasRowGroup || canToggleStatus) && <DropdownMenuSeparator />}
               <DropdownMenuGroup>
                 <DropdownMenuItem variant="destructive" onClick={() => onAction('delete', storage)}>
                   <Trash2 />
@@ -132,20 +136,20 @@ function RowActions({ storage, options }: { storage: StorageResp; options: Stora
                 </DropdownMenuItem>
               </DropdownMenuGroup>
             </>
-          ) : null}
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
   )
 }
 
-function actionsColumn(options: StorageColumnOptions): StorageColumn {
+function actionsColumn(onAction: (action: StorageAction, storage: StorageResp) => void): StorageColumn {
   return {
     id: 'actions',
     header: '操作',
     width: 'w-20',
     headerClassName: 'text-right',
-    cell: storage => <RowActions storage={storage} options={options} />
+    cell: storage => <RowActions storage={storage} onAction={onAction} />
   }
 }
 
@@ -167,7 +171,7 @@ export function createLocalStorageColumns(options: StorageColumnOptions): Storag
       cell: storage => <MonoCell value={storage.domain} />
     },
     RECYCLE_BIN_COLUMN,
-    actionsColumn(options)
+    actionsColumn(options.onAction)
   ]
 }
 
@@ -201,6 +205,6 @@ export function createOssStorageColumns(options: StorageColumnOptions): StorageC
       cell: storage => <MonoCell value={storage.domain} />
     },
     RECYCLE_BIN_COLUMN,
-    actionsColumn(options)
+    actionsColumn(options.onAction)
   ]
 }

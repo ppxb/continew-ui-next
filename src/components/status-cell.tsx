@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 
 import { cn } from 'cn'
+import { Star } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
 
@@ -40,16 +41,15 @@ const TONE_CLASSES: Record<StatusTone, { badge: string; dot: string }> = {
 interface StatusBadgeProps {
   readonly tone: StatusTone
   readonly label: ReactNode
-  readonly dot?: boolean
   readonly className?: string
 }
 
-export function StatusBadge({ tone, label, dot = true, className }: StatusBadgeProps) {
+export function StatusBadge({ tone, label, className }: StatusBadgeProps) {
   const classes = TONE_CLASSES[tone]
 
   return (
     <Badge variant="outline" className={cn('gap-1.5 border px-2 py-1 font-medium', classes.badge, className)}>
-      {dot ? <span className={cn('size-1.5 rounded-full', classes.dot)} /> : null}
+      <span className={cn('size-1.5 rounded-full', classes.dot)} />
       {label}
     </Badge>
   )
@@ -67,6 +67,12 @@ export function SuccessFailureCell({ status }: { status?: number | null }) {
   return <StatusBadge tone={isSuccess ? 'success' : 'danger'} label={isSuccess ? '成功' : '失败'} />
 }
 
+/** The 默认 marker, drawn like the 内置 badge of the role screen: an outline badge with its icon. */
 export function DefaultBadge() {
-  return <StatusBadge tone="primary" label="默认" dot={false} />
+  return (
+    <Badge variant="outline">
+      <Star />
+      默认
+    </Badge>
+  )
 }

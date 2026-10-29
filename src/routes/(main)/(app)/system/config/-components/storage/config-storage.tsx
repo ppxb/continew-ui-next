@@ -1,14 +1,14 @@
 import * as React from 'react'
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Cloud, HardDrive, RefreshCw, Search } from 'lucide-react'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
+import { Cloud, HardDrive, RefreshCw } from 'lucide-react'
+
+import { FilterSelect } from '@/components/filter-select'
 import { ListPageCard } from '@/components/list-page-card'
+import { TableSearch } from '@/components/table-search'
 import { Button } from '@/components/ui/button'
-import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from '@/components/ui/toast'
-import { useDebouncedValue } from '@/hooks/use-debounced-value'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
 import { usePermission } from '@/hooks/use-permission'
 import {
@@ -26,8 +26,7 @@ import {
   createOssStorageColumns,
   LOCAL_TABLE_MIN_WIDTH,
   OSS_TABLE_MIN_WIDTH,
-  type StorageAction,
-  type StorageColumnOptions
+  type StorageAction
 } from './columns'
 import { StorageDeleteDialog } from './delete-dialog'
 import { StorageFormDrawer } from './form-drawer'
@@ -52,39 +51,32 @@ const STATUS_OPTIONS = [
   { value: '2', label: '禁用' }
 ]
 
+interface StorageFormTarget {
+  readonly type: StorageType
+  /** `null` creates a storage of that type; an id edits it. */
+  readonly storageId: string | number | null
+}
+
 export function ConfigStorage() {
   const queryClient = useQueryClient()
   const { hasPermission } = usePermission()
-
-  const canCreate = hasPermission('system:storage:create')
-  const canUpdate = hasPermission('system:storage:update')
-  const canDelete = hasPermission('system:storage:delete')
-  const canSetDefault = hasPermission('system:storage:setDefault')
-  const canUpdateStatus = hasPermission('system:storage:updateStatus')
-
-  const [searchInput, setSearchInput] = React.useState('')
-  const keyword = useDebouncedValue(searchInput).trim()
-  const [typeFilter, setTypeFilter] = React.useState('all')
-  const [statusFilter, setStatusFilter] = React.useState('all')
-
-  // The form drawer covers both 新增 and 修改, so a null id means "create" rather than "nothing
-  // picked yet"; the open flag is what says whether the drawer is showing at all.
-  const [formType, setFormType] = React.useState<StorageType>(1)
-  const [formStorageId, setFormStorageId] = React.useState<string | number | null>(null)
-  const [isFormOpen, setIsFormOpen] = React.useState(false)
-  const [deletingStorage, setDeletingStorage] = React.useState<StorageResp | null>(null)
-  const [isDeleteOpen, setIsDeleteOpen] = React.useState(false)
   const fullscreen = useFullscreenTransition()
 
-  const type = typeFilter === 'all' ? undefined : (Number(typeFilter) as StorageType)
-  const status = statusFilter === 'all' ? undefined : (Number(statusFilter) as StorageStatus)
+  const [searchInput, setSearchInput] = React.useState('')
+  const [keyword, setKeyword] = React.useState('')
+  const [type, setType] = React.useState<StorageType | undefined>(undefined)
+  const [status, setStatus] = React.useState<StorageStatus | undefined>(undefined)
+
+  // One state per overlay: a null value means it is closed, and a null id inside the form target
+  // means 新增 (of that type).
+  const [formTarget, setFormTarget] = React.useState<StorageFormTarget | null>(null)
+  const [deleteTarget, setDeleteTarget] = React.useState<StorageResp | null>(null)
 
   const query = useQuery({
     queryKey: storageKeys.list({ description: keyword || undefined, type, status, sort: DEFAULT_SORT }),
     queryFn: ({ signal }) =>
       listStorage({ description: keyword || undefined, type, status, sort: DEFAULT_SORT }, signal),
-    // Keep the current rows on screen while the next filter loads.
-    placeholderData: previous => previous
+    placeholderData: keepPreviousData
   })
 
   const storages = query.data ?? EMPTY_STORAGES
@@ -111,8 +103,7 @@ export function ConfigStorage() {
   const handleRowAction = React.useCallback(
     (action: StorageAction, storage: StorageResp) => {
       if (action === 'edit') {
-        setFormStorageId(storage.id)
-        setIsFormOpen(true)
+        setFormTarget({ type: storage.type, storageId: storage.id })
         return
       }
 
@@ -126,98 +117,61 @@ export function ConfigStorage() {
         return
       }
 
-      if (action === 'delete') {
-        setDeletingStorage(storage)
-        setIsDeleteOpen(true)
-      }
+      setDeleteTarget(storage)
     },
     [setDefaultMutation, statusMutation]
   )
 
-  const columnOptions: StorageColumnOptions = React.useMemo(
-    () => ({ onAction: handleRowAction, canUpdate, canDelete, canSetDefault, canUpdateStatus }),
-    [handleRowAction, canUpdate, canDelete, canSetDefault, canUpdateStatus]
-  )
+  const localColumns = React.useMemo(() => createLocalStorageColumns({ onAction: handleRowAction }), [handleRowAction])
+  const ossColumns = React.useMemo(() => createOssStorageColumns({ onAction: handleRowAction }), [handleRowAction])
 
-  const localColumns = React.useMemo(() => createLocalStorageColumns(columnOptions), [columnOptions])
-  const ossColumns = React.useMemo(() => createOssStorageColumns(columnOptions), [columnOptions])
-
-  const hasActiveFilters = keyword !== '' || typeFilter !== 'all' || statusFilter !== 'all'
+  const hasActiveFilters = keyword !== '' || type !== undefined || status !== undefined
 
   const handleResetFilters = () => {
     setSearchInput('')
-    setTypeFilter('all')
-    setStatusFilter('all')
-  }
-
-  const handleCreate = (nextType: StorageType) => {
-    setFormType(nextType)
-    setFormStorageId(null)
-    setIsFormOpen(true)
+    setKeyword('')
+    setType(undefined)
+    setStatus(undefined)
   }
 
   const filters = (
     <>
-      <InputGroup className="w-full md:w-64">
-        <InputGroupAddon align="inline-start">
-          <Search className="size-3.5" />
-        </InputGroupAddon>
-        <InputGroupInput
-          className="text-sm"
-          placeholder="搜索名称、编码、描述"
-          value={searchInput}
-          onChange={event => setSearchInput(event.target.value)}
-        />
-      </InputGroup>
-      <div className="w-full sm:w-32">
-        <Select items={TYPE_OPTIONS} value={typeFilter} onValueChange={value => setTypeFilter(value ?? 'all')}>
-          <SelectTrigger className="w-full">
-            <span className="text-muted-foreground">类型</span>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent align="start" alignItemWithTrigger={false}>
-            <SelectGroup>
-              {TYPE_OPTIONS.map(option => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="w-full sm:w-32">
-        <Select items={STATUS_OPTIONS} value={statusFilter} onValueChange={value => setStatusFilter(value ?? 'all')}>
-          <SelectTrigger className="w-full">
-            <span className="text-muted-foreground">状态</span>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent align="start" alignItemWithTrigger={false}>
-            <SelectGroup>
-              {STATUS_OPTIONS.map(option => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      </div>
-      {hasActiveFilters ? (
+      <TableSearch
+        className="col-span-2 h-8 w-full sm:w-64"
+        value={searchInput}
+        onValueChange={setSearchInput}
+        onSearch={setKeyword}
+        placeholder="搜索名称、编码、描述"
+      />
+      <FilterSelect
+        label="类型"
+        options={TYPE_OPTIONS}
+        value={type === undefined ? 'all' : String(type)}
+        onValueChange={value => setType(!value || value === 'all' ? undefined : (Number(value) as StorageType))}
+        className="w-full sm:w-32"
+      />
+      <FilterSelect
+        label="状态"
+        options={STATUS_OPTIONS}
+        value={status === undefined ? 'all' : String(status)}
+        onValueChange={value => setStatus(!value || value === 'all' ? undefined : (Number(value) as StorageStatus))}
+        className="w-full sm:w-32"
+      />
+      {hasActiveFilters && (
         <Button type="button" variant="ghost" onClick={handleResetFilters}>
           <RefreshCw />
           重置
         </Button>
-      ) : null}
+      )}
     </>
   )
 
   const actions = (
     <StorageToolbar
-      canCreate={canCreate}
+      canCreate={hasPermission('system:storage:create')}
       isRefreshing={query.isFetching && !query.isPending}
       isFullscreen={fullscreen.isFullscreen}
-      onCreate={handleCreate}
+      onCreate={type => setFormTarget({ type, storageId: null })}
       onRefresh={() => void query.refetch()}
       onToggleFullscreen={fullscreen.toggleFullscreen}
     />
@@ -232,8 +186,8 @@ export function ConfigStorage() {
         actions={actions}
         fullscreen={fullscreen}
       >
-        <div className="flex flex-col gap-4 px-4">
-          {typeFilter !== '2' ? (
+        <div className="flex flex-col">
+          {type !== 2 && (
             <StorageGroupPanel
               title="本地存储"
               icon={<HardDrive className="size-4 text-muted-foreground" />}
@@ -242,9 +196,9 @@ export function ConfigStorage() {
               columns={localColumns}
               isLoading={query.isPending}
             />
-          ) : null}
+          )}
 
-          {typeFilter !== '1' ? (
+          {type !== 1 && (
             <StorageGroupPanel
               title="对象存储"
               icon={<Cloud className="size-4 text-muted-foreground" />}
@@ -253,18 +207,17 @@ export function ConfigStorage() {
               columns={ossColumns}
               isLoading={query.isPending}
             />
-          ) : null}
+          )}
         </div>
       </ListPageCard>
 
       <StorageFormDrawer
-        storageId={formStorageId}
-        storageType={formType}
-        open={isFormOpen}
-        onClose={() => setIsFormOpen(false)}
+        storageId={formTarget?.storageId ?? null}
+        storageType={formTarget?.type ?? 1}
+        open={formTarget !== null}
+        onClose={() => setFormTarget(null)}
       />
-
-      <StorageDeleteDialog storage={deletingStorage} open={isDeleteOpen} onClose={() => setIsDeleteOpen(false)} />
+      <StorageDeleteDialog storage={deleteTarget} open={deleteTarget !== null} onClose={() => setDeleteTarget(null)} />
     </>
   )
 }

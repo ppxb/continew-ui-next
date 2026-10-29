@@ -20,7 +20,7 @@ interface StorageToolbarProps {
   readonly onToggleFullscreen: () => void
 }
 
-/** Actions on the left, table tools on the right, the way the user screen lays them out. */
+/** The storage page's actions, rendered in the list card's toolbar slot. */
 export function StorageToolbar({
   canCreate,
   isRefreshing,
@@ -30,41 +30,37 @@ export function StorageToolbar({
   onToggleFullscreen
 }: StorageToolbarProps) {
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <div className="flex flex-wrap items-center gap-2">
-        {canCreate ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger render={<Button />}>
-              <Plus />
-              新增存储
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-40">
-              <DropdownMenuGroup>
-                <DropdownMenuItem onClick={() => onCreate(1)}>
-                  <HardDrive />
-                  本地存储
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onCreate(2)}>
-                  <Cloud />
-                  对象存储
-                </DropdownMenuItem>
-              </DropdownMenuGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : null}
-      </div>
+    <>
+      {canCreate && (
+        <DropdownMenu>
+          <DropdownMenuTrigger render={<Button />}>
+            <Plus />
+            新增存储
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-40">
+            <DropdownMenuGroup>
+              <DropdownMenuItem onClick={() => onCreate(1)}>
+                <HardDrive />
+                本地存储
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onCreate(2)}>
+                <Cloud />
+                对象存储
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
 
-      <div className="flex flex-wrap items-center gap-2">
-        <Button variant="outline" disabled={isRefreshing} onClick={onRefresh}>
-          {isRefreshing ? <Spinner /> : <RefreshCw />}
-          刷新
-        </Button>
+      <Button variant="outline" disabled={isRefreshing} onClick={onRefresh}>
+        {isRefreshing ? <Spinner /> : <RefreshCw />}
+        刷新
+      </Button>
 
-        <Button variant="outline" onClick={onToggleFullscreen}>
-          {isFullscreen ? <Minimize /> : <Maximize />}
-          表格全屏
-        </Button>
-      </div>
-    </div>
+      <Button variant="outline" onClick={onToggleFullscreen}>
+        {isFullscreen ? <Minimize /> : <Maximize />}
+        表格全屏
+      </Button>
+    </>
   )
 }

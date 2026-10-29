@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
+import { useLastRecord } from '@/hooks/use-last-record'
 import { deleteStorages, type StorageResp } from '@/lib/api/storage'
 import { storageKeys } from '@/lib/query-keys'
 
@@ -36,6 +37,8 @@ interface StorageDeleteDialogProps {
 export function StorageDeleteDialog({ storage, open, onClose }: StorageDeleteDialogProps) {
   const queryClient = useQueryClient()
   const [isDeleting, setIsDeleting] = React.useState(false)
+  // Keep the storage named after the dialog starts closing and `storage` is already null.
+  const shownStorage = useLastRecord(storage)
 
   const handleDelete = async () => {
     if (storage === null) {
@@ -74,9 +77,9 @@ export function StorageDeleteDialog({ storage, open, onClose }: StorageDeleteDia
           </AlertDialogMedia>
           <AlertDialogTitle>删除存储</AlertDialogTitle>
           <AlertDialogDescription>
-            {storage === null
+            {shownStorage === null
               ? '是否确定删除该存储配置？删除后不可恢复。'
-              : `是否确定删除存储配置「${storage.name}(${storage.code})」？删除后不可恢复，已上传至该存储的文件将无法访问。`}
+              : `是否确定删除存储配置「${shownStorage.name}(${shownStorage.code})」？删除后不可恢复，已上传至该存储的文件将无法访问。`}
           </AlertDialogDescription>
         </AlertDialogHeader>
 

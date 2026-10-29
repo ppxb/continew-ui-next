@@ -1,8 +1,9 @@
 import type { ReactNode } from 'react'
 
 import { cn } from 'cn'
-import { ChevronDown, CircleDashed } from 'lucide-react'
+import { ChevronDown } from 'lucide-react'
 
+import { QueryState } from '@/components/query-state'
 import { Button } from '@/components/ui/button'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -27,19 +28,13 @@ interface StorageGroupPanelProps {
 }
 
 /**
- * One storage type as a collapsible panel holding its table.
- *
- * The shape follows the infrastructure screen's `ProjectEnvironments`: a collapsed-by-default-open
- * card whose header carries the group name and row count, with the table scrolling horizontally
- * inside it.
+ * One storage type as a collapsible group panel holding its table, sharing the dictionary screen's
+ * section shape: a top-separated section whose header carries the group name and row count.
  */
 export function StorageGroupPanel({ title, icon, minWidth, items, columns, isLoading }: StorageGroupPanelProps) {
   return (
-    <Collapsible
-      defaultOpen
-      className="flex flex-col overflow-hidden rounded-xl border bg-card py-3 text-card-foreground data-open:gap-3 data-open:pb-0"
-    >
-      <div className="flex flex-col gap-2 px-4 sm:flex-row sm:items-center">
+    <Collapsible defaultOpen className="flex flex-col border-t">
+      <div className="flex flex-col gap-2 px-5 py-3 sm:flex-row sm:items-center">
         <CollapsibleTrigger
           render={
             <Button
@@ -63,7 +58,11 @@ export function StorageGroupPanel({ title, icon, minWidth, items, columns, isLoa
         ) : isLoading ? (
           <StorageTableSkeleton columns={columns} minWidth={minWidth} />
         ) : (
-          <EmptyStorageState title={title} />
+          <QueryState
+            state="empty"
+            title={`暂无${title}配置`}
+            className="min-h-24 rounded-none border-t bg-muted/50 p-4"
+          />
         )}
       </CollapsibleContent>
     </Collapsible>
@@ -147,16 +146,5 @@ function StorageColGroup({ columns }: { columns: StorageColumn[] }) {
         <col key={column.id} className={column.width} />
       ))}
     </colgroup>
-  )
-}
-
-function EmptyStorageState({ title }: { title: string }) {
-  return (
-    <div className="flex min-h-24 items-center justify-center border-t bg-muted/50 p-4">
-      <div className="flex items-center gap-2">
-        <CircleDashed className="size-4" />
-        <p className="text-sm font-medium">暂无{title}配置</p>
-      </div>
-    </div>
   )
 }

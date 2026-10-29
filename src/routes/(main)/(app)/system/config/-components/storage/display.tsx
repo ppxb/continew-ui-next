@@ -46,17 +46,8 @@ export function MonoCell({ value }: { value?: string | null }) {
   )
 }
 
-export function RecycleBinCell({ enabled, path }: { enabled?: boolean | null; path?: string | null }) {
-  if (!enabled) {
-    return <StatusBadge tone="neutral" label="未启用" />
-  }
-
-  return (
-    <span className="flex min-w-0 flex-col gap-0.5">
-      <StatusBadge tone="success" label="已启用" />
-      <MonoCell value={path} />
-    </span>
-  )
+export function RecycleBinCell({ enabled }: { enabled?: boolean | null }) {
+  return <StatusBadge tone={enabled ? 'success' : 'neutral'} label={enabled ? '已启用' : '未启用'} />
 }
 
 const BYTES_PER_MEGABYTE = 1024 * 1024
