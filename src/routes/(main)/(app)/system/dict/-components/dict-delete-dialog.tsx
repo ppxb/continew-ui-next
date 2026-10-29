@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
+import { useLastRecord } from '@/hooks/use-last-record'
 import { deleteDict, deleteDictItem, dictKeys, type DictItemResp, type DictResp } from '@/lib/api/dict'
 
 export type DictDeleteTarget = { type: 'dict'; dict: DictResp } | { type: 'item'; item: DictItemResp }
@@ -32,20 +33,18 @@ interface DictDeleteDialogProps {
 export function DictDeleteDialog({ target, open, onClose, onCompleted }: DictDeleteDialogProps) {
   const queryClient = useQueryClient()
   const [isDeleting, setIsDeleting] = React.useState(false)
-  const [lastTarget, setLastTarget] = React.useState<DictDeleteTarget | null>(null)
+  // Keep the last target during the close animation, where `target` is already null.
+  const shownTarget = useLastRecord(target)
 
-  React.useEffect(() => {
-    if (target) {
-      setLastTarget(target)
-    }
-  }, [target])
-
-  const shownTarget = target ?? lastTarget
-  const isDict = shownTarget?.type === 'dict'
-  const name = shownTarget?.type === 'dict' ? shownTarget.dict.name : shownTarget?.item.label
+  const description =
+    shownTarget === null
+      ? '是否确定删除该数据？删除后不可恢复'
+      : shownTarget.type === 'dict'
+        ? `是否确定删除字典「${shownTarget.dict.name}」？其下所有字典项也会一并删除`
+        : `是否确定删除字典项「${shownTarget.item.label}」？`
 
   const handleDelete = async () => {
-    if (!target) {
+    if (target === null) {
       return
     }
 
@@ -75,6 +74,7 @@ export function DictDeleteDialog({ target, open, onClose, onCompleted }: DictDel
     <AlertDialog
       open={open}
       onOpenChange={nextOpen => {
+        // Closing mid-delete would leave the request in flight with no way to report it.
         if (!nextOpen && !isDeleting) {
           onClose()
         }
@@ -85,12 +85,8 @@ export function DictDeleteDialog({ target, open, onClose, onCompleted }: DictDel
           <AlertDialogMedia className="bg-destructive/10 text-destructive">
             <Trash2 />
           </AlertDialogMedia>
-          <AlertDialogTitle>{isDict ? '删除字典' : '删除字典项'}</AlertDialogTitle>
-          <AlertDialogDescription>
-            {isDict
-              ? `是否确定删除字典「${name ?? ''}」？其下所有字典项也会一并删除`
-              : `是否确定删除字典项「${name ?? ''}」？`}
-          </AlertDialogDescription>
+          <AlertDialogTitle>{shownTarget?.type === 'dict' ? '删除字典' : '删除字典项'}</AlertDialogTitle>
+          <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isDeleting}>取消</AlertDialogCancel>
