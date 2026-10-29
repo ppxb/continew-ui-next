@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
+import { useLastRecord } from '@/hooks/use-last-record'
 import { deleteSmsConfigs, type SmsConfigResp } from '@/lib/api/sms'
 import { smsKeys } from '@/lib/query-keys'
 
@@ -28,6 +29,8 @@ interface SmsDeleteDialogProps {
 export function SmsDeleteDialog({ sms, open, onClose }: SmsDeleteDialogProps) {
   const queryClient = useQueryClient()
   const [isDeleting, setIsDeleting] = React.useState(false)
+  // Keep the config named after the dialog starts closing and `sms` is already null.
+  const shownSms = useLastRecord(sms)
 
   const handleDelete = async () => {
     if (!sms) return
@@ -63,9 +66,7 @@ export function SmsDeleteDialog({ sms, open, onClose }: SmsDeleteDialogProps) {
             <TriangleAlert />
           </AlertDialogMedia>
           <AlertDialogTitle>删除短信配置</AlertDialogTitle>
-          <AlertDialogDescription>
-            {`确定要删除短信配置「${sms?.name ?? ''}」吗？操作不可撤销。`}
-          </AlertDialogDescription>
+          <AlertDialogDescription>确定要删除短信配置「{shownSms?.name}」吗？操作不可撤销。</AlertDialogDescription>
         </AlertDialogHeader>
 
         <AlertDialogFooter>

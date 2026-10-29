@@ -14,10 +14,10 @@ import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
 import { usePageClamp } from '@/hooks/use-page-clamp'
 import { usePermission } from '@/hooks/use-permission'
 import { listClient, type ClientResp } from '@/lib/api/client'
-import { listDict } from '@/lib/api/common'
 import { dataTableFeatures } from '@/lib/data-table-features'
-import { clientKeys, dictKeys } from '@/lib/query-keys'
+import { clientKeys } from '@/lib/query-keys'
 
+import { type DictOption, toLabelMap, useDictOptions } from '../use-dict-options'
 import {
   AUTH_TYPE_OPTIONS,
   createClientColumns,
@@ -28,11 +28,6 @@ import {
 import { ClientDeleteDialog } from './delete-dialog'
 import { ClientDetailDrawer } from './detail-drawer'
 import { ClientFormDrawer } from './form-drawer'
-
-interface DictOption {
-  readonly value: string
-  readonly label: string
-}
 
 const CLIENT_TYPE_PRESETS: DictOption[] = [
   { label: 'PC网页端', value: 'PC' },
@@ -59,20 +54,6 @@ const STATUS_OPTIONS = [
 ]
 
 const EMPTY_ROWS: ClientResp[] = []
-
-/** One dictionary of enum labels, falling back to the built-in presets when it is empty. */
-function useDictOptions(code: string, presets: DictOption[]): DictOption[] {
-  const { data = [] } = useQuery({
-    queryKey: dictKeys.code(code),
-    queryFn: ({ signal }) => listDict(code, signal)
-  })
-
-  return data.length > 0 ? data : presets
-}
-
-function toLabelMap(options: readonly DictOption[]): Record<string, string> {
-  return Object.fromEntries(options.map(option => [option.value, option.label] as const))
-}
 
 export function ConfigClient() {
   const { hasPermission } = usePermission()

@@ -12,24 +12,77 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
+import { usePermission } from '@/hooks/use-permission'
 import type { SmsConfigResp } from '@/lib/api/sms'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 
 export type SmsAction = 'edit' | 'setDefault' | 'delete'
 
+function RowActions({
+  record,
+  onAction
+}: {
+  record: SmsConfigResp
+  onAction: (action: SmsAction, record: SmsConfigResp) => void
+}) {
+  const { hasPermission } = usePermission()
+  const canSetDefault = hasPermission('system:smsConfig:setDefault')
+  const canDelete = hasPermission('system:smsConfig:delete')
+
+  return (
+    <div className="flex items-center justify-end gap-1">
+      {hasPermission('system:smsConfig:update') && (
+        <Button size="sm" variant="ghost" onClick={() => onAction('edit', record)}>
+          修改
+        </Button>
+      )}
+
+      {(canSetDefault || canDelete) && (
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button size="icon" variant="ghost" className="size-8">
+                <MoreHorizontal className="size-4" />
+              </Button>
+            }
+          />
+          <DropdownMenuContent align="end">
+            <DropdownMenuGroup>
+              {canSetDefault && !record.isDefault && (
+                <DropdownMenuItem onClick={() => onAction('setDefault', record)}>
+                  <Star className="size-4" />
+                  设为默认
+                </DropdownMenuItem>
+              )}
+              {canDelete && (
+                <DropdownMenuItem variant="destructive" onClick={() => onAction('delete', record)}>
+                  <Trash2 className="size-4" />
+                  删除
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
+    </div>
+  )
+}
+
+export interface SmsColumnOptions {
+  readonly supplierMap: Record<string, string>
+  readonly onAction: (action: SmsAction, record: SmsConfigResp) => void
+}
+
 export function createSmsColumns(
-  onAction: (action: SmsAction, record: SmsConfigResp) => void,
-  rowOffset: number,
-  supplierMap: Record<string, string>,
-  canUpdate: boolean,
-  canSetDefault: boolean,
-  canDelete: boolean
+  options: SmsColumnOptions,
+  rowOffset: number
 ): ColumnDef<DataTableFeatures, SmsConfigResp>[] {
+  const { supplierMap, onAction } = options
+
   return [
     {
       id: 'index',
       header: '序号',
-      size: 56,
       enableHiding: false,
       cell: ({ row }) => (
         <div className="text-center text-sm text-muted-foreground tabular-nums">{rowOffset + row.index + 1}</div>
@@ -98,45 +151,7 @@ export function createSmsColumns(
       id: 'actions',
       header: () => <div className="text-right">操作</div>,
       enableHiding: false,
-      cell: ({ row }) => {
-        const record = row.original
-        return (
-          <div className="flex items-center justify-end gap-1">
-            {canUpdate && (
-              <Button size="sm" variant="ghost" onClick={() => onAction('edit', record)}>
-                修改
-              </Button>
-            )}
-            {(canSetDefault || canDelete) && (
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  render={
-                    <Button size="icon" variant="ghost" className="size-8">
-                      <MoreHorizontal className="size-4" />
-                    </Button>
-                  }
-                />
-                <DropdownMenuContent align="end">
-                  <DropdownMenuGroup>
-                    {canSetDefault && !record.isDefault && (
-                      <DropdownMenuItem onClick={() => onAction('setDefault', record)}>
-                        <Star className="size-4" />
-                        设为默认
-                      </DropdownMenuItem>
-                    )}
-                    {canDelete && (
-                      <DropdownMenuItem variant="destructive" onClick={() => onAction('delete', record)}>
-                        <Trash2 className="size-4" />
-                        删除
-                      </DropdownMenuItem>
-                    )}
-                  </DropdownMenuGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-          </div>
-        )
-      }
+      cell: ({ row }) => <RowActions record={row.original} onAction={onAction} />
     }
   ]
 }
