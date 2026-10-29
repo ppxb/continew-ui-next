@@ -60,6 +60,7 @@ export function DictItemFormDrawer({ item, dictId, open, onClose }: DictItemForm
   const queryClient = useQueryClient()
   const filledForRef = React.useRef<string | null>(null)
   const isEdit = item !== null
+  const submitLabel = isEdit ? '保存' : '创建'
 
   const form = useForm({
     defaultValues: EMPTY_FORM,
@@ -114,7 +115,10 @@ export function DictItemFormDrawer({ item, dictId, open, onClose }: DictItemForm
             description: item.description ?? '',
             status: item.status
           }
-        : EMPTY_FORM
+        : EMPTY_FORM,
+      // `reset` would otherwise rewrite the form's defaults, and the next render would put
+      // EMPTY_FORM back over the record being edited.
+      { keepDefaultValues: true }
     )
   }, [open, item, dictId, form])
 
@@ -132,7 +136,6 @@ export function DictItemFormDrawer({ item, dictId, open, onClose }: DictItemForm
         className="flex min-h-0 flex-1 flex-col"
         onSubmit={event => {
           event.preventDefault()
-          event.stopPropagation()
           void form.handleSubmit()
         }}
       >
@@ -273,7 +276,7 @@ export function DictItemFormDrawer({ item, dictId, open, onClose }: DictItemForm
               }}
             </form.Field>
 
-            <form.Field name="status" validators={{ onDynamic: formSchema.shape.status }}>
+            <form.Field name="status">
               {field => {
                 const invalid = field.state.meta.errors.length > 0
 
@@ -308,12 +311,10 @@ export function DictItemFormDrawer({ item, dictId, open, onClose }: DictItemForm
                   {isSubmitting ? (
                     <>
                       <Spinner />
-                      {isEdit ? '保存中' : '创建中'}
+                      {submitLabel}中
                     </>
-                  ) : isEdit ? (
-                    '保存'
                   ) : (
-                    '创建'
+                    submitLabel
                   )}
                 </Button>
               </>
