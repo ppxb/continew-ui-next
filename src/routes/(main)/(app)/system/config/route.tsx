@@ -4,7 +4,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { Globe, HardDrive, Lock, Mail, MessageSquare, ShieldCheck, Smartphone } from 'lucide-react'
 import { z } from 'zod'
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsContent, TabsIndicator, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { hasPermission, usePermission } from '@/hooks/use-permission'
 
 import { ConfigClient } from './-components/client/config-client'
@@ -123,11 +123,12 @@ function SystemConfigPage() {
             variant="line"
           >
             {visibleTabs.map(tab => (
-              <TabsTrigger key={tab.key} value={tab.key} className="gap-2">
+              <TabsTrigger key={tab.key} value={tab.key} className="gap-2 after:hidden">
                 {tab.icon}
                 {tab.name}
               </TabsTrigger>
             ))}
+            <TabsIndicator />
           </TabsList>
         </div>
 

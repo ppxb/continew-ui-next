@@ -14,7 +14,7 @@ function Tabs({ className, orientation = 'horizontal', ...props }: TabsPrimitive
 }
 
 const tabsListVariants = cva(
-  'group/tabs-list inline-flex w-fit items-center justify-center rounded-lg p-[3px] text-muted-foreground group-data-horizontal/tabs:h-8 group-data-vertical/tabs:h-fit group-data-vertical/tabs:flex-col data-[variant=line]:rounded-none',
+  'group/tabs-list relative inline-flex w-fit items-center justify-center rounded-lg p-[3px] text-muted-foreground group-data-horizontal/tabs:h-8 group-data-vertical/tabs:h-fit group-data-vertical/tabs:flex-col data-[variant=line]:rounded-none',
   {
     variants: {
       variant: {
@@ -65,4 +65,22 @@ function TabsContent({ className, ...props }: TabsPrimitive.Panel.Props) {
   )
 }
 
-export { Tabs, TabsList, TabsTrigger, TabsContent, tabsListVariants }
+/**
+ * A sliding marker for the line variant: it reads the active tab's box from the variables Base UI
+ * publishes onto it, so a `variant="line"` list can drop the per-tab `after:` underline and use this
+ * instead. It stays within the list's box so a scrolling ancestor cannot clip it. Horizontal only.
+ */
+function TabsIndicator({ className, ...props }: TabsPrimitive.Indicator.Props) {
+  return (
+    <TabsPrimitive.Indicator
+      data-slot="tabs-indicator"
+      className={cn(
+        'pointer-events-none absolute bottom-0 left-(--active-tab-left) h-px w-(--active-tab-width) bg-foreground transition-[left,width] duration-200 ease-out',
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+export { Tabs, TabsList, TabsTrigger, TabsContent, TabsIndicator, tabsListVariants }
