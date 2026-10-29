@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
+import { useLastRecord } from '@/hooks/use-last-record'
 import { deleteSmsLog, smsLogKeys, type SmsLogResp } from '@/lib/api/sms-log'
 
 interface SmsLogDeleteDialogProps {
@@ -27,26 +28,12 @@ interface SmsLogDeleteDialogProps {
 }
 
 /**
- * Confirms deleting one SMS log.
- *
- * The row menu already blocks the action for the records the backend protects, and the
- * request cannot be undone, so it takes a deliberate answer instead of a stray click.
+ * Confirms deleting one SMS log; the rows the backend protects never reach the dialog.
  */
 export function SmsLogDeleteDialog({ log, open, onClose }: SmsLogDeleteDialogProps) {
   const queryClient = useQueryClient()
   const [isDeleting, setIsDeleting] = React.useState(false)
-
-  // The parent clears `log` when the dialog closes, but the exit animation keeps rendering this
-  // copy, so the phone number would vanish mid-close. `log` still wins while it is set.
-  const [lastLog, setLastLog] = React.useState<SmsLogResp | null>(null)
-
-  React.useEffect(() => {
-    if (log) {
-      setLastLog(log)
-    }
-  }, [log])
-
-  const shownLog = log ?? lastLog
+  const shownLog = useLastRecord(log)
 
   const handleDelete = async () => {
     if (log === null) {

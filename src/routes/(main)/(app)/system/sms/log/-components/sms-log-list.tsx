@@ -1,11 +1,18 @@
 import * as React from 'react'
 
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { type ColumnVisibilityState, type PaginationState, useTable } from '@tanstack/react-table'
+import { Download } from 'lucide-react'
 
+import { FilterSelect } from '@/components/filter-select'
 import { ListPageCard } from '@/components/list-page-card'
-import { toast } from '@/components/ui/toast'
+import { TableSearch } from '@/components/table-search'
+import { TableToolbar } from '@/components/table-toolbar'
+import { Button } from '@/components/ui/button'
+import { Spinner } from '@/components/ui/spinner'
+import { useExport } from '@/hooks/use-export'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
+import { usePageClamp } from '@/hooks/use-page-clamp'
 import { usePermission } from '@/hooks/use-permission'
 import {
   exportSmsLogs,
@@ -18,67 +25,53 @@ import {
 } from '@/lib/api/sms-log'
 import { dataTableFeatures } from '@/lib/data-table-features'
 
-import { createSmsLogColumns } from './sms-log-columns'
+import { createSmsLogColumns, SMS_LOG_COLUMN_LABELS } from './sms-log-columns'
 import { SmsLogDeleteDialog } from './sms-log-delete-dialog'
 import { SmsLogTable } from './sms-log-table'
-import { SmsLogFilters, SmsLogToolbar } from './sms-log-toolbar'
 
 const EMPTY_ROWS: SmsLogResp[] = []
 
 /** Newest first; the log table has no alias in its queries, so the plain column works. */
 const DEFAULT_SORT = 'id,desc'
 
+const STATUS_OPTIONS = [
+  { value: 'all', label: '全部' },
+  { value: '1', label: '成功' },
+  { value: '2', label: '失败' }
+]
+
 export function SmsLogList() {
   const { hasPermission } = usePermission()
   const canDelete = hasPermission('system:smsLog:delete')
   const canExport = hasPermission('system:smsLog:export')
   const fullscreen = useFullscreenTransition()
+  const { isExporting, exportData } = useExport<SmsLogQuery>(exportSmsLogs)
 
   const [pagination, setPagination] = React.useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
   const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>({})
   const [configId, setConfigId] = React.useState('')
   const [phone, setPhone] = React.useState('')
   const [status, setStatus] = React.useState<SmsLogStatus | undefined>(undefined)
-  // The search boxes own their text, so resetting the filters remounts them.
-  const [searchVersion, setSearchVersion] = React.useState(0)
-  const [isExporting, setIsExporting] = React.useState(false)
   const [deletingLog, setDeletingLog] = React.useState<SmsLogResp | null>(null)
 
-  const goToFirstPage = React.useCallback(() => {
+  const resetPage = () => {
     setPagination(current => (current.pageIndex === 0 ? current : { ...current, pageIndex: 0 }))
-  }, [])
+  }
 
-  const handleConfigIdSearch = React.useCallback(
-    (next: string) => {
-      setConfigId(next)
-      goToFirstPage()
-    },
-    [goToFirstPage]
-  )
+  const handleConfigIdSearch = (next: string) => {
+    setConfigId(next)
+    resetPage()
+  }
 
-  const handlePhoneSearch = React.useCallback(
-    (next: string) => {
-      setPhone(next)
-      goToFirstPage()
-    },
-    [goToFirstPage]
-  )
+  const handlePhoneSearch = (next: string) => {
+    setPhone(next)
+    resetPage()
+  }
 
-  const handleStatusChange = React.useCallback(
-    (value: string | null) => {
-      setStatus(!value || value === 'all' ? undefined : (Number(value) as SmsLogStatus))
-      goToFirstPage()
-    },
-    [goToFirstPage]
-  )
-
-  const handleReset = React.useCallback(() => {
-    setConfigId('')
-    setPhone('')
-    setStatus(undefined)
-    setSearchVersion(current => current + 1)
-    goToFirstPage()
-  }, [goToFirstPage])
+  const handleStatusChange = (value: string | null) => {
+    setStatus(value === '1' ? 1 : value === '2' ? 2 : undefined)
+    resetPage()
+  }
 
   const handleDelete = React.useCallback((log: SmsLogResp) => {
     setDeletingLog(log)
@@ -98,18 +91,13 @@ export function SmsLogList() {
   const query = useQuery({
     queryKey: smsLogKeys.list(params),
     queryFn: ({ signal }) => listSmsLogs(params, signal),
-    placeholderData: previous => previous
+    placeholderData: keepPreviousData
   })
 
   const total = query.data?.total ?? 0
   const rowOffset = pagination.pageIndex * pagination.pageSize
 
-  React.useEffect(() => {
-    if (total > 0 && pagination.pageIndex * pagination.pageSize >= total) {
-      const maxPageIndex = Math.max(0, Math.ceil(total / pagination.pageSize) - 1)
-      setPagination(current => ({ ...current, pageIndex: maxPageIndex }))
-    }
-  }, [total, pagination.pageIndex, pagination.pageSize])
+  usePageClamp(total, pagination, setPagination)
 
   const columns = React.useMemo(
     () => createSmsLogColumns({ rowOffset, canDelete, onDelete: handleDelete }),
@@ -130,41 +118,48 @@ export function SmsLogList() {
     getRowId: row => String(row.id)
   })
 
-  const handleExport = async () => {
-    setIsExporting(true)
-
-    try {
-      await exportSmsLogs(queryFilters)
-      toast.add({ title: '导出已开始，请留意浏览器下载', type: 'success' })
-    } catch {
-      // The HTTP layer already reported the failure.
-    } finally {
-      setIsExporting(false)
-    }
-  }
-
   const filters = (
-    <SmsLogFilters
-      searchVersion={searchVersion}
-      status={status}
-      onConfigIdSearch={handleConfigIdSearch}
-      onPhoneSearch={handlePhoneSearch}
-      onStatusChange={handleStatusChange}
-      onReset={handleReset}
-    />
+    <>
+      <TableSearch
+        className="col-span-2 h-8 w-full md:w-44"
+        clearable
+        placeholder="搜索配置 ID"
+        onSearch={handleConfigIdSearch}
+      />
+      <TableSearch
+        className="col-span-2 h-8 w-full md:w-48"
+        clearable
+        placeholder="搜索手机号"
+        onSearch={handlePhoneSearch}
+      />
+      <FilterSelect
+        label="状态"
+        options={STATUS_OPTIONS}
+        value={status === undefined ? 'all' : String(status)}
+        onValueChange={handleStatusChange}
+        className="w-full sm:w-32"
+      />
+    </>
   )
 
   const actions = (
-    <SmsLogToolbar
+    <TableToolbar
       table={table}
+      className="w-full xl:w-auto xl:justify-end"
       isRefreshing={query.isFetching && !query.isPending}
-      isExporting={isExporting}
       isFullscreen={fullscreen.isFullscreen}
-      canExport={canExport}
-      onExport={() => void handleExport()}
       onRefresh={() => void query.refetch()}
       onToggleFullscreen={fullscreen.toggleFullscreen}
       onResetColumns={() => setColumnVisibility({})}
+      columnLabels={SMS_LOG_COLUMN_LABELS}
+      actions={
+        canExport ? (
+          <Button variant="outline" disabled={isExporting} onClick={() => void exportData(queryFilters)}>
+            {isExporting ? <Spinner /> : <Download />}
+            导出
+          </Button>
+        ) : null
+      }
     />
   )
 

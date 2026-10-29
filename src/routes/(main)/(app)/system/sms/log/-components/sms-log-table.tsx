@@ -24,7 +24,6 @@ interface SmsLogTableProps {
   readonly onRetry?: () => void
 }
 
-/** The SMS log table: only its skeleton shapes are screen-specific. */
 export function SmsLogTable({ table, ...rest }: SmsLogTableProps) {
   return (
     <DataTable

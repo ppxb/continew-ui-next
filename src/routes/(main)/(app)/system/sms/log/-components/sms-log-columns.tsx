@@ -15,6 +15,14 @@ import type { SmsLogResp } from '@/lib/api/sms-log'
 import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 
+type SmsLogColumn = ColumnDef<DataTableFeatures, SmsLogResp>
+type TextColumnKey = 'phone' | 'createUserString' | 'createTime'
+
+/** Labels for the columns whose header is a node, which the hide-columns menu cannot read. */
+export const SMS_LOG_COLUMN_LABELS: Record<string, string> = {
+  status: '发送状态'
+}
+
 interface SmsLogColumnOptions {
   /** The index of the first row on the current page, so 序号 stays continuous. */
   readonly rowOffset: number
@@ -23,13 +31,21 @@ interface SmsLogColumnOptions {
   readonly onDelete: (log: SmsLogResp) => void
 }
 
-function TextCell({ value }: { value: string | null | undefined }) {
-  return <span className="text-sm">{value || EMPTY_PLACEHOLDER}</span>
+function TextCell({ value }: { value: string | null }) {
+  return <span>{value || EMPTY_PLACEHOLDER}</span>
 }
 
-/** The request parameters and the provider response can both be long JSON strings. */
+/** The template parameters and the provider response can both be long JSON strings. */
 function LongTextCell({ value }: { value: string | null }) {
-  return <span className="block max-w-72 text-sm wrap-break-word">{value || EMPTY_PLACEHOLDER}</span>
+  return <span className="block max-w-72">{value || EMPTY_PLACEHOLDER}</span>
+}
+
+function textColumn(key: TextColumnKey, header: string): SmsLogColumn {
+  return {
+    accessorKey: key,
+    header,
+    cell: ({ row }) => <TextCell value={row.original[key]} />
+  }
 }
 
 function RowActions({ log, onDelete }: { log: SmsLogResp; onDelete: (log: SmsLogResp) => void }) {
@@ -55,27 +71,15 @@ function RowActions({ log, onDelete }: { log: SmsLogResp; onDelete: (log: SmsLog
   )
 }
 
-/**
- * Builds the column set of the SMS log table.
- *
- * The fields follow the Vue client's `monitor/sms/log` page: the receiver, the template
- * parameters, the send result and the provider's response, then who sent it and when.
- */
-export function createSmsLogColumns({ rowOffset, canDelete, onDelete }: SmsLogColumnOptions) {
-  const columns: ColumnDef<DataTableFeatures, SmsLogResp>[] = [
+export function createSmsLogColumns({ rowOffset, canDelete, onDelete }: SmsLogColumnOptions): SmsLogColumn[] {
+  const columns: SmsLogColumn[] = [
     {
       id: 'index',
       header: '序号',
       enableHiding: false,
-      cell: ({ row }) => (
-        <div className="text-center text-sm text-muted-foreground tabular-nums">{rowOffset + row.index + 1}</div>
-      )
+      cell: ({ row }) => <div>{rowOffset + row.index + 1}</div>
     },
-    {
-      accessorKey: 'phone',
-      header: '手机号',
-      cell: ({ row }) => <TextCell value={row.original.phone} />
-    },
+    textColumn('phone', '手机号'),
     {
       accessorKey: 'params',
       header: '参数配置',
@@ -83,28 +87,16 @@ export function createSmsLogColumns({ rowOffset, canDelete, onDelete }: SmsLogCo
     },
     {
       accessorKey: 'status',
-      header: () => <div className="text-center">发送状态</div>,
-      cell: ({ row }) => (
-        <div className="flex justify-center">
-          <SuccessFailureCell status={row.original.status} />
-        </div>
-      )
+      header: () => <div>发送状态</div>,
+      cell: ({ row }) => <SuccessFailureCell status={row.original.status} />
     },
     {
       accessorKey: 'resMsg',
       header: '返回数据',
       cell: ({ row }) => <LongTextCell value={row.original.resMsg} />
     },
-    {
-      accessorKey: 'createUserString',
-      header: '操作人',
-      cell: ({ row }) => <TextCell value={row.original.createUserString} />
-    },
-    {
-      accessorKey: 'createTime',
-      header: '操作时间',
-      cell: ({ row }) => <TextCell value={row.original.createTime} />
-    }
+    textColumn('createUserString', '操作人'),
+    textColumn('createTime', '操作时间')
   ]
 
   if (canDelete) {
