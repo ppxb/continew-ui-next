@@ -15,6 +15,7 @@ import {
 import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
+import { useLastRecord } from '@/hooks/use-last-record'
 import { updateTenantAdminPassword, type TenantResp } from '@/lib/api/tenant'
 import { encryptByRsa } from '@/lib/crypto'
 
@@ -23,29 +24,16 @@ const PASSWORD_PATTERN = /^(?=.*\d)(?=.*[a-z]).{8,32}$/
 const PASSWORD_HINT = '密码长度为 8-32 个字符，且至少包含一个小写字母和一个数字'
 
 interface TenantAdminPasswordDialogProps {
-  /** The tenant whose administrator is being reset, or `null` before one is picked. */
   readonly tenant: TenantResp | null
   readonly open: boolean
   readonly onClose: () => void
 }
 
-/** Resets a tenant administrator's password; the new one is RSA encrypted before it leaves. */
 export function TenantAdminPasswordDialog({ tenant, open, onClose }: TenantAdminPasswordDialogProps) {
   const [password, setPassword] = React.useState('')
   const [error, setError] = React.useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
-
-  // The parent clears `tenant` when the dialog closes, but the exit animation keeps rendering
-  // this copy, so the name would vanish mid-close. `tenant` still wins while it is set.
-  const [lastTenant, setLastTenant] = React.useState<TenantResp | null>(null)
-
-  React.useEffect(() => {
-    if (tenant) {
-      setLastTenant(tenant)
-    }
-  }, [tenant])
-
-  const shownTenant = tenant ?? lastTenant
+  const shownTenant = useLastRecord(tenant)
 
   React.useEffect(() => {
     if (open) {
@@ -121,13 +109,12 @@ export function TenantAdminPasswordDialog({ tenant, open, onClose }: TenantAdmin
               value={password}
               onChange={event => {
                 setPassword(event.target.value)
-                if (error) {
-                  setError(null)
-                }
+                setError(null)
               }}
               maxLength={32}
               placeholder="请输入新密码"
               autoComplete="new-password"
+              disabled={isSubmitting}
               aria-invalid={Boolean(error)}
             />
             {error ? <FieldError>{error}</FieldError> : <FieldDescription>{PASSWORD_HINT}</FieldDescription>}
