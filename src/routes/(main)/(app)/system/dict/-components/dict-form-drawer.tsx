@@ -47,6 +47,7 @@ export function DictFormDrawer({ dict, open, onClose }: DictFormDrawerProps) {
   const queryClient = useQueryClient()
   const filledForRef = React.useRef<string | null>(null)
   const isEdit = dict !== null
+  const submitLabel = isEdit ? '保存' : '创建'
 
   const form = useForm({
     defaultValues: EMPTY_FORM,
@@ -94,7 +95,10 @@ export function DictFormDrawer({ dict, open, onClose }: DictFormDrawerProps) {
             code: dict.code,
             description: dict.description ?? ''
           }
-        : EMPTY_FORM
+        : EMPTY_FORM,
+      // `reset` would otherwise rewrite the form's defaults, and the next render would put
+      // EMPTY_FORM back over the record being edited.
+      { keepDefaultValues: true }
     )
   }, [open, dict, form])
 
@@ -112,7 +116,6 @@ export function DictFormDrawer({ dict, open, onClose }: DictFormDrawerProps) {
         className="flex min-h-0 flex-1 flex-col"
         onSubmit={event => {
           event.preventDefault()
-          event.stopPropagation()
           void form.handleSubmit()
         }}
       >
@@ -208,12 +211,10 @@ export function DictFormDrawer({ dict, open, onClose }: DictFormDrawerProps) {
                   {isSubmitting ? (
                     <>
                       <Spinner />
-                      {isEdit ? '保存中' : '创建中'}
+                      {submitLabel}中
                     </>
-                  ) : isEdit ? (
-                    '保存'
                   ) : (
-                    '创建'
+                    submitLabel
                   )}
                 </Button>
               </>
