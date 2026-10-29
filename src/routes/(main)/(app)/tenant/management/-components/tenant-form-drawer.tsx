@@ -127,7 +127,7 @@ export function TenantFormDrawer({ tenantId, open, onClose }: TenantFormDrawerPr
   const filledForRef = React.useRef<string | null>(null)
   const isCreate = tenantId === null
 
-  const detail = useTenantDetail(tenantId, { enabled: open && !isCreate, refreshOnOpen: true })
+  const detail = useTenantDetail(tenantId, { enabled: open, refreshOnOpen: !isCreate })
 
   const packages = useQuery({
     queryKey: packageKeys.dicts(),
