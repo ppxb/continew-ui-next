@@ -2,7 +2,7 @@ import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 
 /** A plain text cell, with the shared placeholder for what the backend left empty. */
 export function TextCell({ value }: { value: string | null | undefined }) {
-  return <span className="text-sm">{value || EMPTY_PLACEHOLDER}</span>
+  return <span>{value || EMPTY_PLACEHOLDER}</span>
 }
 
 /** `domain` holds a host without a protocol, so the link adds one when it opens. */
