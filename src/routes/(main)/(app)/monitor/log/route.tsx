@@ -16,22 +16,16 @@ export const Route = createFileRoute('/(main)/(app)/monitor/log')({
 })
 
 const TABS = [
-  { key: 'login', name: '登录日志', icon: <LogIn className="size-4" /> },
-  { key: 'operation', name: '操作日志', icon: <ClipboardList className="size-4" /> }
+  { mode: 'login', name: '登录日志', icon: <LogIn className="size-4" /> },
+  { mode: 'operation', name: '操作日志', icon: <ClipboardList className="size-4" /> }
 ] as const
 
 function SystemLogPage() {
   const { tab } = Route.useSearch()
   const navigate = useNavigate({ from: Route.fullPath })
-  // An unknown tab value falls back to the default instead of failing validation, the same
-  // way the system config page resolves its own tab.
-  const activeTab = tab === 'operation' ? 'operation' : 'login'
+  const activeTab = TABS.find(item => item.mode === tab)?.mode ?? 'login'
 
   const handleTabChange = (value: string) => {
-    if (value !== 'login' && value !== 'operation') {
-      return
-    }
-
     navigate({ search: previous => ({ ...previous, tab: value }) })
   }
 
@@ -48,22 +42,21 @@ function SystemLogPage() {
             variant="line"
             className="w-max min-w-full justify-start gap-4 px-4 *:data-[slot=tabs-trigger]:flex-none md:px-6"
           >
-            {TABS.map(tabItem => (
-              <TabsTrigger key={tabItem.key} value={tabItem.key} className="gap-2">
-                {tabItem.icon}
-                {tabItem.name}
+            {TABS.map(({ mode, name, icon }) => (
+              <TabsTrigger key={mode} value={mode} className="gap-2">
+                {icon}
+                {name}
               </TabsTrigger>
             ))}
           </TabsList>
         </div>
 
         <div className="px-4 md:px-6">
-          <TabsContent value="login" className="py-4">
-            <LogList mode="login" />
-          </TabsContent>
-          <TabsContent value="operation" className="py-4">
-            <LogList mode="operation" />
-          </TabsContent>
+          {TABS.map(({ mode }) => (
+            <TabsContent key={mode} value={mode} className="py-4">
+              <LogList mode={mode} />
+            </TabsContent>
+          ))}
         </div>
       </Tabs>
     </div>
