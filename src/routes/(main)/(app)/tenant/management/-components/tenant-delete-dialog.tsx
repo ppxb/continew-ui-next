@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
+import { useLastRecord } from '@/hooks/use-last-record'
 import { deleteTenant, tenantKeys, type TenantResp } from '@/lib/api/tenant'
 
 interface TenantDeleteDialogProps {
@@ -26,27 +27,11 @@ interface TenantDeleteDialogProps {
   readonly onClose: () => void
 }
 
-/**
- * Confirms deleting one tenant.
- *
- * The row menu already blocks the action for the records the backend protects, and the
- * request clears every row the tenant owns, so it takes a deliberate answer.
- */
+/** Confirms deleting one tenant; the request also clears every row it owns. */
 export function TenantDeleteDialog({ tenant, open, onClose }: TenantDeleteDialogProps) {
   const queryClient = useQueryClient()
   const [isDeleting, setIsDeleting] = React.useState(false)
-
-  // The parent clears `tenant` when the dialog closes, but the exit animation keeps rendering
-  // this copy, so the name would vanish mid-close. `tenant` still wins while it is set.
-  const [lastTenant, setLastTenant] = React.useState<TenantResp | null>(null)
-
-  React.useEffect(() => {
-    if (tenant) {
-      setLastTenant(tenant)
-    }
-  }, [tenant])
-
-  const shownTenant = tenant ?? lastTenant
+  const shownTenant = useLastRecord(tenant)
 
   const handleDelete = async () => {
     if (tenant === null) {
