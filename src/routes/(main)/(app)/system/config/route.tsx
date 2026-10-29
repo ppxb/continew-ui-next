@@ -5,7 +5,7 @@ import { Globe, HardDrive, Lock, Mail, MessageSquare, ShieldCheck, Smartphone } 
 import { z } from 'zod'
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { usePermission } from '@/hooks/use-permission'
+import { hasPermission, usePermission } from '@/hooks/use-permission'
 
 import { ConfigClient } from './-components/client/config-client'
 import { ConfigLogin } from './-components/config-login'
@@ -87,20 +87,15 @@ const ALL_TABS: ConfigTabItem[] = [
 function SystemConfigPage() {
   const { tab: queryTab } = Route.useSearch()
   const navigate = useNavigate({ from: Route.fullPath })
-  const { hasPermission } = usePermission()
+  const { permissions } = usePermission()
 
-  // Filter tabs according to user permissions
-  const visibleTabs = React.useMemo(() => {
-    return ALL_TABS.filter(t => hasPermission(t.permission))
-  }, [hasPermission])
+  // The bound `hasPermission` is a new closure each render, so the permission list is the dep.
+  const visibleTabs = React.useMemo(
+    () => ALL_TABS.filter(tab => hasPermission(permissions, tab.permission)),
+    [permissions]
+  )
 
-  // Resolve active tab
-  const activeTab = React.useMemo(() => {
-    if (queryTab && visibleTabs.some(t => t.key === queryTab)) {
-      return queryTab
-    }
-    return visibleTabs[0]?.key || 'site'
-  }, [queryTab, visibleTabs])
+  const activeTab = visibleTabs.some(tab => tab.key === queryTab) ? queryTab : visibleTabs[0]?.key
 
   const handleTabChange = (key: string) => {
     navigate({
@@ -108,7 +103,7 @@ function SystemConfigPage() {
     })
   }
 
-  if (visibleTabs.length === 0) {
+  if (activeTab === undefined) {
     return (
       <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">暂无系统配置访问权限</div>
     )
