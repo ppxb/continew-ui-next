@@ -165,7 +165,6 @@ export function DictManager() {
               <DictGroup
                 key={String(dict.id)}
                 dict={dict}
-                defaultOpen
                 canCreateItem={canCreateItem}
                 canUpdateItem={canUpdateItem}
                 canDeleteItem={canDeleteItem}

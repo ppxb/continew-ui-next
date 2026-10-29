@@ -27,7 +27,6 @@ const PAGE_SIZE = 10
 
 interface DictGroupProps {
   readonly dict: DictResp
-  readonly defaultOpen: boolean
   readonly canCreateItem: boolean
   readonly canUpdateItem: boolean
   readonly canDeleteItem: boolean
@@ -43,7 +42,6 @@ interface DictGroupProps {
 /** One dictionary as a collapsible group panel holding its items, like the infrastructure projects. */
 export function DictGroup({
   dict,
-  defaultOpen,
   canCreateItem,
   canUpdateItem,
   canDeleteItem,
@@ -55,8 +53,7 @@ export function DictGroup({
   onEditDict,
   onDeleteDict
 }: DictGroupProps) {
-  const [open, setOpen] = React.useState(defaultOpen)
-
+  const [open, setOpen] = React.useState(true)
   const [page, setPage] = React.useState(1)
 
   const query = useQuery({
@@ -96,7 +93,8 @@ export function DictGroup({
     [canUpdateItem, canDeleteItem, handleAction]
   )
 
-  const hasMenu = canCreateItem || canUpdateDict || (canDeleteDict && !dict.isSystem)
+  const canDeleteThisDict = canDeleteDict && !dict.isSystem
+  const hasMenu = canCreateItem || canUpdateDict || canDeleteThisDict
   const items = query.data?.list ?? []
 
   return (
@@ -114,21 +112,21 @@ export function DictGroup({
           <span className="flex min-w-0 items-center gap-1.5 text-left">
             <span className="min-w-0 truncate text-sm font-medium">{dict.name}</span>
             <span className="max-w-40 shrink-0 truncate text-sm text-muted-foreground">({dict.code})</span>
-            {dict.isSystem ? (
+            {dict.isSystem && (
               <Badge variant="outline" className="shrink-0 px-1 py-0 text-[10px] font-normal">
                 内置
               </Badge>
-            ) : null}
-            {dict.description ? (
+            )}
+            {dict.description && (
               <span className="hidden min-w-0 flex-1 truncate text-xs text-muted-foreground sm:block">
                 {dict.description}
               </span>
-            ) : null}
+            )}
           </span>
         </CollapsibleTrigger>
 
-        <div className="flex w-full items-center justify-end gap-2 sm:ml-auto sm:w-auto">
-          {hasMenu ? (
+        {hasMenu && (
+          <div className="flex w-full items-center justify-end gap-2 sm:ml-auto sm:w-auto">
             <DropdownMenu>
               <Tooltip>
                 <TooltipTrigger render={<DropdownMenuTrigger render={<Button variant="outline" size="icon-sm" />} />}>
@@ -140,22 +138,22 @@ export function DictGroup({
               </Tooltip>
               <DropdownMenuContent align="end" className="w-40">
                 <DropdownMenuGroup>
-                  {canCreateItem ? (
+                  {canCreateItem && (
                     <DropdownMenuItem onClick={() => onCreateItem(dict)}>
                       <Plus />
                       新增字典项
                     </DropdownMenuItem>
-                  ) : null}
-                  {canUpdateDict ? (
+                  )}
+                  {canUpdateDict && (
                     <DropdownMenuItem onClick={() => onEditDict(dict)}>
                       <Pencil />
                       修改字典
                     </DropdownMenuItem>
-                  ) : null}
+                  )}
                 </DropdownMenuGroup>
-                {canDeleteDict && !dict.isSystem ? (
+                {canDeleteThisDict && (
                   <>
-                    {canCreateItem || canUpdateDict ? <DropdownMenuSeparator /> : null}
+                    {(canCreateItem || canUpdateDict) && <DropdownMenuSeparator />}
                     <DropdownMenuGroup>
                       <DropdownMenuItem variant="destructive" onClick={() => onDeleteDict(dict)}>
                         <Trash2 />
@@ -163,11 +161,11 @@ export function DictGroup({
                       </DropdownMenuItem>
                     </DropdownMenuGroup>
                   </>
-                ) : null}
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
-          ) : null}
-        </div>
+          </div>
+        )}
       </div>
 
       <CollapsibleContent>
@@ -178,7 +176,7 @@ export function DictGroup({
           isError={query.isError}
           onRetry={() => void query.refetch()}
         />
-        {pageCount > 1 ? (
+        {pageCount > 1 && (
           <div className="flex flex-wrap items-center justify-between gap-2 border-t px-5 py-2 text-xs text-muted-foreground">
             <span>共 {total} 项</span>
             <Pagination className="mx-0 w-auto">
@@ -205,7 +203,7 @@ export function DictGroup({
               </PaginationContent>
             </Pagination>
           </div>
-        ) : null}
+        )}
       </CollapsibleContent>
     </Collapsible>
   )
