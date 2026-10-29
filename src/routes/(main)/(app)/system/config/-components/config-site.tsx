@@ -42,6 +42,7 @@ export function ConfigSite() {
 
   const {
     form,
+    formProps,
     optionMap,
     isLoading,
     isError,
@@ -51,7 +52,6 @@ export function ConfigSite() {
     setIsEdit,
     cancelEdit,
     resetForm,
-    submit,
     resetToDefault,
     isResetting,
     resetDialogOpen,
@@ -68,14 +68,7 @@ export function ConfigSite() {
 
   return (
     <>
-      <form
-        noValidate
-        className="grid grid-cols-1 gap-5 xl:grid-cols-2"
-        onSubmit={event => {
-          event.preventDefault()
-          void submit()
-        }}
-      >
+      <form {...formProps} className="grid grid-cols-1 gap-5 xl:grid-cols-2">
         <div className="flex flex-col gap-4 rounded-xl border bg-card p-4 sm:p-5">
           <ConfigPanelHeader
             title="网站基础配置"

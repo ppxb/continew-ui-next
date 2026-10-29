@@ -1,13 +1,12 @@
 import { z } from 'zod'
 
-import { Field, FieldContent, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field'
 import { InputGroupText } from '@/components/ui/input-group'
-import { Switch } from '@/components/ui/switch'
 import { usePermission } from '@/hooks/use-permission'
 
 import { ConfigPanelHeader } from './config-panel-header'
 import { ConfigPanelError, ConfigPanelSkeleton } from './config-panel-states'
 import { ConfigResetDialog } from './config-reset-dialog'
+import { SwitchField } from './switch-field'
 import { TextField } from './text-field'
 import { type OptionMap, useOptionForm } from './use-option-form'
 
@@ -50,6 +49,14 @@ const schema = fields.refine(
 
 type SecurityFormState = z.infer<typeof fields>
 
+type NumberFieldName =
+  | 'PASSWORD_ERROR_LOCK_COUNT'
+  | 'PASSWORD_ERROR_LOCK_MINUTES'
+  | 'PASSWORD_EXPIRATION_DAYS'
+  | 'PASSWORD_EXPIRATION_WARNING_DAYS'
+  | 'PASSWORD_REPETITION_TIMES'
+  | 'PASSWORD_MIN_LENGTH'
+
 function toForm(optionMap: OptionMap): SecurityFormState {
   return {
     PASSWORD_ERROR_LOCK_COUNT: optionMap.PASSWORD_ERROR_LOCK_COUNT?.value || '5',
@@ -71,6 +78,7 @@ export function ConfigSecurity() {
 
   const {
     form,
+    formProps,
     optionMap,
     isLoading,
     isError,
@@ -80,12 +88,30 @@ export function ConfigSecurity() {
     setIsEdit,
     cancelEdit,
     resetForm,
-    submit,
     resetToDefault,
     isResetting,
     resetDialogOpen,
     setResetDialogOpen
   } = useOptionForm({ category: 'PASSWORD', toForm, schema })
+
+  /** The numeric policies differ only in their label, range and unit, which the schema already owns. */
+  const numberField = (name: NumberFieldName, min: number, max: number, unit?: string) => (
+    <form.Field name={name} validators={{ onSubmit: fields.shape[name] }}>
+      {field => (
+        <TextField
+          field={field}
+          label={optionMap[name]?.name}
+          description={optionMap[name]?.description}
+          type="number"
+          min={min}
+          max={max}
+          required={isRequired(name)}
+          disabled={!isEdit}
+          addonEnd={unit && <InputGroupText className="text-xs font-normal">{unit}</InputGroupText>}
+        />
+      )}
+    </form.Field>
+  )
 
   if (isLoading) {
     return <ConfigPanelSkeleton fields={6} />
@@ -96,14 +122,7 @@ export function ConfigSecurity() {
   }
 
   return (
-    <form
-      noValidate
-      className="flex flex-col gap-6"
-      onSubmit={event => {
-        event.preventDefault()
-        void submit()
-      }}
-    >
+    <form {...formProps} className="flex flex-col gap-6">
       <ConfigPanelHeader
         title="安全策略配置"
         description="配置密码复杂度、重试锁定与密码过期提醒策略"
@@ -118,112 +137,12 @@ export function ConfigSecurity() {
 
       <div className="flex flex-col gap-6">
         <div className="grid grid-cols-1 items-start gap-6 sm:grid-cols-2">
-          <form.Field
-            name="PASSWORD_ERROR_LOCK_COUNT"
-            validators={{ onSubmit: fields.shape.PASSWORD_ERROR_LOCK_COUNT }}
-          >
-            {field => (
-              <TextField
-                field={field}
-                label={optionMap.PASSWORD_ERROR_LOCK_COUNT?.name}
-                description={optionMap.PASSWORD_ERROR_LOCK_COUNT?.description}
-                type="number"
-                min={0}
-                max={10}
-                required={isRequired('PASSWORD_ERROR_LOCK_COUNT')}
-                disabled={!isEdit}
-                addonEnd={<InputGroupText className="text-xs font-normal">次</InputGroupText>}
-              />
-            )}
-          </form.Field>
-
-          <form.Field
-            name="PASSWORD_ERROR_LOCK_MINUTES"
-            validators={{ onSubmit: fields.shape.PASSWORD_ERROR_LOCK_MINUTES }}
-          >
-            {field => (
-              <TextField
-                field={field}
-                label={optionMap.PASSWORD_ERROR_LOCK_MINUTES?.name}
-                description={optionMap.PASSWORD_ERROR_LOCK_MINUTES?.description}
-                type="number"
-                min={1}
-                max={1440}
-                required={isRequired('PASSWORD_ERROR_LOCK_MINUTES')}
-                disabled={!isEdit}
-                addonEnd={<InputGroupText className="text-xs font-normal">分钟</InputGroupText>}
-              />
-            )}
-          </form.Field>
-
-          <form.Field name="PASSWORD_EXPIRATION_DAYS" validators={{ onSubmit: fields.shape.PASSWORD_EXPIRATION_DAYS }}>
-            {field => (
-              <TextField
-                field={field}
-                label={optionMap.PASSWORD_EXPIRATION_DAYS?.name}
-                description={optionMap.PASSWORD_EXPIRATION_DAYS?.description}
-                type="number"
-                min={0}
-                max={999}
-                required={isRequired('PASSWORD_EXPIRATION_DAYS')}
-                disabled={!isEdit}
-                addonEnd={<InputGroupText className="text-xs font-normal">天</InputGroupText>}
-              />
-            )}
-          </form.Field>
-
-          <form.Field
-            name="PASSWORD_EXPIRATION_WARNING_DAYS"
-            validators={{ onSubmit: fields.shape.PASSWORD_EXPIRATION_WARNING_DAYS }}
-          >
-            {field => (
-              <TextField
-                field={field}
-                label={optionMap.PASSWORD_EXPIRATION_WARNING_DAYS?.name}
-                description={optionMap.PASSWORD_EXPIRATION_WARNING_DAYS?.description}
-                type="number"
-                min={0}
-                max={998}
-                required={isRequired('PASSWORD_EXPIRATION_WARNING_DAYS')}
-                disabled={!isEdit}
-                addonEnd={<InputGroupText className="text-xs font-normal">天</InputGroupText>}
-              />
-            )}
-          </form.Field>
-
-          <form.Field
-            name="PASSWORD_REPETITION_TIMES"
-            validators={{ onSubmit: fields.shape.PASSWORD_REPETITION_TIMES }}
-          >
-            {field => (
-              <TextField
-                field={field}
-                label={optionMap.PASSWORD_REPETITION_TIMES?.name}
-                description={optionMap.PASSWORD_REPETITION_TIMES?.description}
-                type="number"
-                min={3}
-                max={32}
-                required={isRequired('PASSWORD_REPETITION_TIMES')}
-                disabled={!isEdit}
-                addonEnd={<InputGroupText className="text-xs font-normal">次</InputGroupText>}
-              />
-            )}
-          </form.Field>
-
-          <form.Field name="PASSWORD_MIN_LENGTH" validators={{ onSubmit: fields.shape.PASSWORD_MIN_LENGTH }}>
-            {field => (
-              <TextField
-                field={field}
-                label={optionMap.PASSWORD_MIN_LENGTH?.name}
-                description={optionMap.PASSWORD_MIN_LENGTH?.description}
-                type="number"
-                min={8}
-                max={32}
-                required={isRequired('PASSWORD_MIN_LENGTH')}
-                disabled={!isEdit}
-              />
-            )}
-          </form.Field>
+          {numberField('PASSWORD_ERROR_LOCK_COUNT', 0, 10, '次')}
+          {numberField('PASSWORD_ERROR_LOCK_MINUTES', 1, 1440, '分钟')}
+          {numberField('PASSWORD_EXPIRATION_DAYS', 0, 999, '天')}
+          {numberField('PASSWORD_EXPIRATION_WARNING_DAYS', 0, 998, '天')}
+          {numberField('PASSWORD_REPETITION_TIMES', 3, 32, '次')}
+          {numberField('PASSWORD_MIN_LENGTH', 8, 32)}
         </div>
 
         <div className="grid grid-cols-1 gap-6 pt-2 sm:grid-cols-2">
@@ -232,37 +151,23 @@ export function ConfigSecurity() {
             validators={{ onSubmit: fields.shape.PASSWORD_ALLOW_CONTAIN_USERNAME }}
           >
             {field => (
-              <Field orientation="horizontal" className="items-center justify-between">
-                <FieldContent>
-                  <FieldLabel>{optionMap.PASSWORD_ALLOW_CONTAIN_USERNAME?.name}</FieldLabel>
-                  <FieldDescription>{optionMap.PASSWORD_ALLOW_CONTAIN_USERNAME?.description}</FieldDescription>
-                  <FieldError errors={field.state.meta.errors} />
-                </FieldContent>
-                <Switch
-                  checked={field.state.value === 1}
-                  onCheckedChange={checked => field.handleChange(checked ? 1 : 0)}
-                  onBlur={field.handleBlur}
-                  disabled={!isEdit}
-                />
-              </Field>
+              <SwitchField
+                field={field}
+                label={optionMap.PASSWORD_ALLOW_CONTAIN_USERNAME?.name}
+                description={optionMap.PASSWORD_ALLOW_CONTAIN_USERNAME?.description}
+                disabled={!isEdit}
+              />
             )}
           </form.Field>
 
           <form.Field name="PASSWORD_REQUIRE_SYMBOLS" validators={{ onSubmit: fields.shape.PASSWORD_REQUIRE_SYMBOLS }}>
             {field => (
-              <Field orientation="horizontal" className="items-center justify-between">
-                <FieldContent>
-                  <FieldLabel>{optionMap.PASSWORD_REQUIRE_SYMBOLS?.name}</FieldLabel>
-                  <FieldDescription>{optionMap.PASSWORD_REQUIRE_SYMBOLS?.description}</FieldDescription>
-                  <FieldError errors={field.state.meta.errors} />
-                </FieldContent>
-                <Switch
-                  checked={field.state.value === 1}
-                  onCheckedChange={checked => field.handleChange(checked ? 1 : 0)}
-                  onBlur={field.handleBlur}
-                  disabled={!isEdit}
-                />
-              </Field>
+              <SwitchField
+                field={field}
+                label={optionMap.PASSWORD_REQUIRE_SYMBOLS?.name}
+                description={optionMap.PASSWORD_REQUIRE_SYMBOLS?.description}
+                disabled={!isEdit}
+              />
             )}
           </form.Field>
         </div>

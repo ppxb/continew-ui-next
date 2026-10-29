@@ -113,8 +113,18 @@ export function useOptionForm<TForm extends object>({ category, toForm, schema }
     await form.handleSubmit()
   }
 
+  /** The panel owns the form's layout; the hook owns the submit wiring. */
+  const formProps = {
+    noValidate: true,
+    onSubmit: (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault()
+      void submit()
+    }
+  }
+
   return {
     form,
+    formProps,
     optionMap,
     isLoading: query.isLoading,
     isError: query.isError,

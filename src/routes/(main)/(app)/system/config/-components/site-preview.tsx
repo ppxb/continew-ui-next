@@ -23,6 +23,11 @@ interface SitePreviewProps<TSource extends { values: SitePreviewValues }> {
   }
 }
 
+const PREVIEW_MODES = [
+  { mode: 'admin', label: '工作台视图', icon: LayoutDashboard },
+  { mode: 'login', label: '登录页视图', icon: LogIn }
+] as const
+
 export function SitePreview<TSource extends { values: SitePreviewValues }>({ store }: SitePreviewProps<TSource>) {
   const values = useSelector(store, state => state.values)
   const [previewMode, setPreviewMode] = React.useState<'admin' | 'login'>('admin')
@@ -32,28 +37,20 @@ export function SitePreview<TSource extends { values: SitePreviewValues }>({ sto
       <div className="flex items-center justify-between border-b px-4 py-2.5 sm:px-5">
         <h2 className="text-base font-semibold">效果预览</h2>
         <div className="flex items-center rounded-lg border bg-muted/40 p-0.5">
-          <button
-            type="button"
-            onClick={() => setPreviewMode('admin')}
-            className={cn(
-              'flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors',
-              previewMode === 'admin' ? 'bg-background text-foreground' : 'text-muted-foreground hover:text-foreground'
-            )}
-          >
-            <LayoutDashboard className="size-3.5" />
-            工作台视图
-          </button>
-          <button
-            type="button"
-            onClick={() => setPreviewMode('login')}
-            className={cn(
-              'flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors',
-              previewMode === 'login' ? 'bg-background text-foreground' : 'text-muted-foreground hover:text-foreground'
-            )}
-          >
-            <LogIn className="size-3.5" />
-            登录页视图
-          </button>
+          {PREVIEW_MODES.map(({ mode, label, icon: Icon }) => (
+            <button
+              key={mode}
+              type="button"
+              onClick={() => setPreviewMode(mode)}
+              className={cn(
+                'flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors',
+                previewMode === mode ? 'bg-background text-foreground' : 'text-muted-foreground hover:text-foreground'
+              )}
+            >
+              <Icon className="size-3.5" />
+              {label}
+            </button>
+          ))}
         </div>
       </div>
 

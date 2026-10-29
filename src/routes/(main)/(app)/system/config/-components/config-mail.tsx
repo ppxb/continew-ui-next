@@ -4,15 +4,15 @@ import { Eye, EyeOff } from 'lucide-react'
 import { z } from 'zod'
 
 import { RequiredMark } from '@/components/required-mark'
-import { Field, FieldContent, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field'
+import { Field, FieldContent, FieldDescription, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { InputGroupButton } from '@/components/ui/input-group'
-import { Switch } from '@/components/ui/switch'
 import { usePermission } from '@/hooks/use-permission'
 
 import { ConfigPanelHeader } from './config-panel-header'
 import { ConfigPanelError, ConfigPanelSkeleton } from './config-panel-states'
 import { ConfigResetDialog } from './config-reset-dialog'
+import { SwitchField } from './switch-field'
 import { TextField } from './text-field'
 import { type OptionMap, useOptionForm } from './use-option-form'
 
@@ -64,6 +64,7 @@ export function ConfigMail() {
 
   const {
     form,
+    formProps,
     optionMap,
     isLoading,
     isError,
@@ -73,7 +74,6 @@ export function ConfigMail() {
     setIsEdit,
     cancelEdit,
     resetForm,
-    submit,
     resetToDefault,
     isResetting,
     resetDialogOpen,
@@ -89,14 +89,7 @@ export function ConfigMail() {
   }
 
   return (
-    <form
-      noValidate
-      className="flex flex-col gap-6"
-      onSubmit={event => {
-        event.preventDefault()
-        void submit()
-      }}
-    >
+    <form {...formProps} className="flex flex-col gap-6">
       <ConfigPanelHeader
         title="邮件服务配置"
         description="配置系统用于发送通知、验证码及报警邮件的 SMTP 邮箱服务"
@@ -210,19 +203,12 @@ export function ConfigMail() {
 
         <form.Field name="MAIL_SSL_ENABLED" validators={{ onSubmit: schema.shape.MAIL_SSL_ENABLED }}>
           {field => (
-            <Field orientation="horizontal" className="items-center justify-between">
-              <FieldContent>
-                <FieldLabel>{optionMap.MAIL_SSL_ENABLED?.name}</FieldLabel>
-                <FieldDescription>{optionMap.MAIL_SSL_ENABLED?.description}</FieldDescription>
-                <FieldError errors={field.state.meta.errors} />
-              </FieldContent>
-              <Switch
-                checked={field.state.value === 1}
-                onCheckedChange={checked => field.handleChange(checked ? 1 : 0)}
-                onBlur={field.handleBlur}
-                disabled={!isEdit}
-              />
-            </Field>
+            <SwitchField
+              field={field}
+              label={optionMap.MAIL_SSL_ENABLED?.name}
+              description={optionMap.MAIL_SSL_ENABLED?.description}
+              disabled={!isEdit}
+            />
           )}
         </form.Field>
       </div>
