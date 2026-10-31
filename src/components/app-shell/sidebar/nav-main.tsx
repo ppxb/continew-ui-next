@@ -73,16 +73,6 @@ interface RenderItemLinkOptions {
 }
 
 /**
- * `sidebarMenuButtonVariants` only transitions width, height and padding, which was enough while
- * animate-ui painted the hover colour on a shared surface. With that highlight off the button
- * paints its own hover colour, so the colour properties join the transition.
- */
-const MENU_BUTTON_CLASS = 'transition-[width,height,padding,background-color,color]'
-
-/** The sub button carries no transition of its own; a hover colour without one snaps. */
-const MENU_SUB_BUTTON_CLASS = 'transition-colors'
-
-/**
  * Menu paths come from the backend, so links use the raw `href` instead of a typed
  * route path: a path without a page is served by the placeholder route, and `href` is
  * what splits a query string off the path.
@@ -193,12 +183,7 @@ function NavItem({ item, isItemActive, isSubItemActive, isSubmenuOpen }: NavItem
 function NavLinkItem({ item, isActive, showIconFallback }: NavLinkItemProps) {
   return (
     <SidebarMenuItem>
-      <SidebarMenuButton
-        className={MENU_BUTTON_CLASS}
-        render={renderItemLink(item)}
-        tooltip={item.title}
-        isActive={isActive}
-      >
+      <SidebarMenuButton render={renderItemLink(item)} tooltip={item.title} isActive={isActive}>
         <NavLinkIcon item={item} showFallback={showIconFallback} />
         <span>{item.title}</span>
       </SidebarMenuButton>
@@ -226,9 +211,7 @@ function NavDropdownItem({ item, isActive, isSubItemActive }: NavDropdownItemPro
   return (
     <SidebarMenuItem>
       <DropdownMenu>
-        <DropdownMenuTrigger
-          render={<SidebarMenuButton className={MENU_BUTTON_CLASS} tooltip={item.title} isActive={isActive} />}
-        >
+        <DropdownMenuTrigger render={<SidebarMenuButton tooltip={item.title} isActive={isActive} />}>
           {Icon ? <Icon /> : <CollapsedIconFallback title={item.title} />}
           <span>{item.title}</span>
         </DropdownMenuTrigger>
@@ -268,9 +251,7 @@ function NavCollapsibleItem({ item, isActive, defaultOpen, isSubItemActive }: Na
       defaultOpen={defaultOpen}
       className="group/collapsible"
     >
-      <CollapsibleTrigger
-        render={<SidebarMenuButton className={MENU_BUTTON_CLASS} tooltip={item.title} isActive={isActive} />}
-      >
+      <CollapsibleTrigger render={<SidebarMenuButton tooltip={item.title} isActive={isActive} />}>
         {Icon && <Icon />}
         <span>{item.title}</span>
         <ChevronRight className="ml-auto transition-transform duration-200 group-data-panel-open/menu-button:rotate-90" />
@@ -283,11 +264,7 @@ function NavCollapsibleItem({ item, isActive, defaultOpen, isSubItemActive }: Na
 
             return (
               <SidebarMenuSubItem key={subItem.id}>
-                <SidebarMenuSubButton
-                  className={MENU_SUB_BUTTON_CLASS}
-                  render={renderItemLink(subItem)}
-                  isActive={isSubItemActive(subItem.url)}
-                >
+                <SidebarMenuSubButton render={renderItemLink(subItem)} isActive={isSubItemActive(subItem.url)}>
                   {SubIcon && <SubIcon />}
                   <span>{subItem.title}</span>
                 </SidebarMenuSubButton>

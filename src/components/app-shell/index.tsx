@@ -61,10 +61,6 @@ export function AppShell({ defaultOpen, variant, collapsible, children }: ShellP
   return (
     <SidebarProvider
       defaultOpen={defaultOpen}
-      // animate-ui's shared hover highlight glides between items: the item under the pointer has
-      // its own background cleared while a single surface travels to it, which reads as a lag on
-      // a quick sweep. Hover stays on the buttons themselves instead.
-      animateOnHover={false}
       style={
         {
           '--sidebar-width': 'calc(var(--spacing) * 68)'
