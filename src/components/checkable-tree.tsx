@@ -199,6 +199,7 @@ export function CheckableTree<T = Record<string, unknown>>({
       <div
         className={cn(
           'overflow-auto overscroll-contain rounded-md border bg-background/50 p-1.5 select-none',
+          '[&_[data-slot=checkbox]]:after:hidden',
           treeContainerClassName || (fillHeight ? 'min-h-0 flex-1' : 'max-h-72 min-h-36')
         )}
       >

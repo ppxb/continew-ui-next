@@ -35,10 +35,11 @@ export interface PackageDictResp {
  * A node of `GET /tenant/package/menu/tree`; the backend builds a simple Hutool tree.
  *
  * The starter maps the menu title onto the tree node through `@TreeField`'s default
- * `nameKey = "title"`, so the label lives in `title`, not `name`.
+ * `nameKey = "title"`, so the label lives in `title`, not `name`. Hutool serializes the
+ * node primary key as `key`; the menu id is there, not in an `id` field.
  */
 export interface PackageMenuNode {
-  id: string | number
+  key: string | number
   parentId: string | number | null
   title: string
   children?: PackageMenuNode[]

@@ -65,7 +65,7 @@ function toFormValues(pkg: PackageDetailResp): FormValues {
 /** Keeps the ids the backend sent, so the request does not turn every number into a string. */
 function collectRawMenuIds(nodes: PackageMenuNode[], ids = new Map<string, string | number>()) {
   for (const node of nodes) {
-    ids.set(String(node.id), node.id)
+    ids.set(String(node.key), node.key)
     if (node.children?.length) {
       collectRawMenuIds(node.children, ids)
     }

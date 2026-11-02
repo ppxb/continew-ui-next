@@ -18,7 +18,7 @@ export function usePackageMenuTree(enabled: boolean) {
 /** Maps the backend's simple tree onto the tree component's node shape. */
 export function toMenuTreeNodes(nodes: PackageMenuNode[]): TreeNodeData[] {
   return nodes.map(node => ({
-    id: String(node.id),
+    id: String(node.key),
     parentId: node.parentId === null || node.parentId === undefined ? null : String(node.parentId),
     label: node.title,
     children: node.children?.length ? toMenuTreeNodes(node.children) : undefined
