@@ -1,4 +1,4 @@
-import { differenceInMonths } from 'date-fns'
+import { differenceInDays, differenceInMonths, format } from 'date-fns'
 
 import type { UserInfoResp } from '@/lib/api/types'
 import { getInitials } from '@/lib/utils'
@@ -17,25 +17,47 @@ function parseBackendDate(value?: string | null): Date | undefined {
 
 function formatBackendDate(value?: string | null): string | undefined {
   const date = parseBackendDate(value)
-  return date?.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+  return date ? format(date, 'yyyy-MM-dd') : undefined
 }
 
-function formatEngagementLength(registered?: string | null): string | undefined {
-  const start = parseBackendDate(registered)
+function formatGender(gender?: number): string {
+  if (gender === 1) {
+    return '男'
+  }
+
+  if (gender === 2) {
+    return '女'
+  }
+
+  return '未知'
+}
+
+function formatActiveDuration(createdAt?: string | null): string | undefined {
+  const start = parseBackendDate(createdAt)
 
   if (!start) {
     return undefined
   }
 
-  const months = Math.max(0, differenceInMonths(new Date(), start))
-  const years = Math.floor(months / 12)
-  const rest = months % 12
+  const days = Math.max(0, differenceInDays(new Date(), start))
 
-  if (years === 0) {
-    return `${rest} months`
+  if (days < 1) {
+    return '不到 1 天'
   }
 
-  return rest === 0 ? `${years} years` : `${years} years, ${rest} months`
+  if (days < 30) {
+    return `${days} 天`
+  }
+
+  const months = Math.max(1, differenceInMonths(new Date(), start))
+
+  if (months < 12) {
+    return `${months} 个月`
+  }
+
+  const years = Math.floor(months / 12)
+  const rest = months % 12
+  return rest === 0 ? `${years} 年` : `${years} 年 ${rest} 个月`
 }
 
 /**
@@ -55,17 +77,20 @@ export function toProfileRecord(user: UserInfoResp | null): ProfileRecord {
   return {
     ...mockProfile,
     name,
-    preferredName: name,
+    preferredName: user.username,
     legalName: name,
+    pronouns: formatGender(user.gender),
     initials: getInitials(name),
     avatar: user.avatar ?? mockProfile.avatar,
     jobTitle: user.roleNames?.length ? user.roleNames.join(' / ') : mockProfile.jobTitle,
+    roleNames: user.roleNames ?? [],
     department: user.deptName || mockProfile.department,
     workEmail: user.email || mockProfile.workEmail,
+    personalEmail: user.email || mockProfile.personalEmail,
     workPhone: user.phone || mockProfile.workPhone,
     contractorId: String(user.id),
     startDate: formatBackendDate(user.registrationDate) ?? mockProfile.startDate,
-    engagementLength: formatEngagementLength(user.registrationDate) ?? mockProfile.engagementLength,
+    activeDuration: formatActiveDuration(user.registrationDate) ?? mockProfile.activeDuration,
     bio: user.description || mockProfile.bio,
     updatedBy: name,
     updatedAt: formatBackendDate(user.pwdResetTime) ?? mockProfile.updatedAt

@@ -18,18 +18,18 @@ import { encryptByRsa } from '@/lib/crypto'
  */
 const formSchema = z
   .object({
-    oldPassword: z.string().min(1, { message: 'Please enter your current password.' }),
+    oldPassword: z.string().min(1, { message: '请输入当前密码' }),
     newPassword: z
       .string()
-      .min(8, { message: 'The new password must be 8 to 32 characters long.' })
-      .max(32, { message: 'The new password must be 8 to 32 characters long.' })
+      .min(8, { message: '新密码长度为 8-32 个字符' })
+      .max(32, { message: '新密码长度为 8-32 个字符' })
       .regex(/(?=.*\d)(?=.*[a-z])/, {
-        message: 'The new password needs at least one letter and one digit.'
+        message: '新密码至少包含一个字母和一个数字'
       }),
-    confirmPassword: z.string().min(1, { message: 'Please repeat the new password.' })
+    confirmPassword: z.string().min(1, { message: '请再次输入新密码' })
   })
   .refine(values => values.newPassword === values.confirmPassword, {
-    message: 'The two passwords do not match.',
+    message: '两次输入的新密码不一致',
     path: ['confirmPassword']
   })
 
@@ -58,7 +58,7 @@ export function PasswordForm() {
         newPassword = encryptByRsa(value.newPassword)
       } catch {
         // Encryption happens locally, so the HTTP layer is not there to report it.
-        toast.add({ title: 'Password encryption failed. Please refresh the page and try again.', type: 'error' })
+        toast.add({ title: '密码加密失败，请刷新页面后重试', type: 'error' })
         return
       }
 
@@ -67,14 +67,14 @@ export function PasswordForm() {
       } catch (error) {
         // `updatePassword` is a silent request, so this form is the only place that reports it.
         toast.add({
-          title: error instanceof Error ? error.message : 'Could not update the password.',
+          title: error instanceof Error ? error.message : '密码修改失败，请重试',
           type: 'error'
         })
         return
       }
 
       form.reset({ ...EMPTY_FORM }, { keepDefaultValues: true })
-      toast.add({ title: 'Password updated. Please sign in again with the new password.', type: 'success' })
+      toast.add({ title: '密码已修改，请使用新密码重新登录', type: 'success' })
       // The backend signs the account out of every device after a password change, so
       // the local session is dropped instead of waiting for the next 401.
       await endSession({ revokeOnServer: false })
@@ -110,7 +110,7 @@ export function PasswordForm() {
 
             return (
               <Field className="gap-1.5" data-invalid={invalid}>
-                <FieldLabel htmlFor="password-current">Current password</FieldLabel>
+                <FieldLabel htmlFor="password-current">当前密码</FieldLabel>
                 <Input
                   id="password-current"
                   name="oldPassword"
@@ -134,7 +134,7 @@ export function PasswordForm() {
 
             return (
               <Field className="gap-1.5" data-invalid={invalid}>
-                <FieldLabel htmlFor="password-new">New password</FieldLabel>
+                <FieldLabel htmlFor="password-new">新密码</FieldLabel>
                 <Input
                   id="password-new"
                   name="newPassword"
@@ -158,7 +158,7 @@ export function PasswordForm() {
 
             return (
               <Field className="gap-1.5" data-invalid={invalid}>
-                <FieldLabel htmlFor="password-confirm">Repeat new password</FieldLabel>
+                <FieldLabel htmlFor="password-confirm">确认新密码</FieldLabel>
                 <Input
                   id="password-confirm"
                   name="confirmPassword"
@@ -178,7 +178,7 @@ export function PasswordForm() {
       </FieldGroup>
 
       <Button className="self-start" type="submit" disabled={isSubmitting}>
-        {isSubmitting ? 'Saving…' : 'Update password'}
+        {isSubmitting ? '修改中…' : '修改密码'}
       </Button>
     </form>
   )

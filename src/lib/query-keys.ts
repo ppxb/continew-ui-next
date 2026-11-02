@@ -89,6 +89,11 @@ export const optionKeys = {
   list: (category?: string) => [...optionKeys.lists(), category] as const
 }
 
+export const profileKeys = {
+  all: ['user', 'profile'] as const,
+  social: () => [...profileKeys.all, 'social'] as const
+}
+
 export const smsKeys = {
   all: ['system', 'sms'] as const,
   lists: () => [...smsKeys.all, 'list'] as const,

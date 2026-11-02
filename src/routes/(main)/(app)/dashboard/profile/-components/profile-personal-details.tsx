@@ -10,7 +10,7 @@ export function PersonalDetails({ profile }: { profile: ProfileRecord }) {
     <>
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
-          <h2 className="font-heading text-base font-medium">Personal information</h2>
+          <h2 className="font-heading text-base font-medium">个人信息</h2>
           <Badge className="rounded-sm" variant="outline">
             <LockKeyhole data-icon="inline-start" />
             Private
@@ -19,33 +19,33 @@ export function PersonalDetails({ profile }: { profile: ProfileRecord }) {
         <dl className="grid gap-8 sm:grid-cols-2 xl:grid-cols-3 xl:gap-12">
           <div className="flex flex-col gap-5">
             <div className="flex flex-col gap-1">
-              <dt className="text-xs text-muted-foreground">Preferred name</dt>
+              <dt className="text-xs text-muted-foreground">用户名</dt>
               <dd className="text-sm">{profile.preferredName}</dd>
             </div>
             <div className="flex flex-col gap-1">
-              <dt className="text-xs text-muted-foreground">Date of birth</dt>
+              <dt className="text-xs text-muted-foreground">出生日期</dt>
               <dd className="text-sm">{profile.dateOfBirth}</dd>
             </div>
           </div>
 
           <div className="flex flex-col gap-5">
             <div className="flex flex-col gap-1">
-              <dt className="text-xs text-muted-foreground">Legal name</dt>
+              <dt className="text-xs text-muted-foreground">昵称</dt>
               <dd className="text-sm">{profile.legalName}</dd>
             </div>
             <div className="flex flex-col gap-1">
-              <dt className="text-xs text-muted-foreground">Personal email</dt>
+              <dt className="text-xs text-muted-foreground">个人邮箱</dt>
               <dd className="text-sm">{profile.personalEmail}</dd>
             </div>
           </div>
 
           <div className="flex flex-col gap-5">
             <div className="flex flex-col gap-1">
-              <dt className="text-xs text-muted-foreground">Pronouns</dt>
+              <dt className="text-xs text-muted-foreground">性别</dt>
               <dd className="text-sm">{profile.pronouns}</dd>
             </div>
             <div className="flex flex-col gap-1">
-              <dt className="text-xs text-muted-foreground">Work phone</dt>
+              <dt className="text-xs text-muted-foreground">手机号码</dt>
               <dd className="text-sm">{profile.workPhone}</dd>
             </div>
           </div>
@@ -56,7 +56,7 @@ export function PersonalDetails({ profile }: { profile: ProfileRecord }) {
 
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
-          <h2 className="font-heading text-base font-medium">Address and emergency contact</h2>
+          <h2 className="font-heading text-base font-medium">地址和紧急联系方式</h2>
           <Badge className="rounded-sm" variant="outline">
             <LockKeyhole data-icon="inline-start" />
             Private
@@ -65,21 +65,21 @@ export function PersonalDetails({ profile }: { profile: ProfileRecord }) {
         <dl className="grid gap-8 sm:grid-cols-2 xl:grid-cols-3 xl:gap-12">
           <div className="flex flex-col gap-5">
             <div className="flex flex-col gap-1">
-              <dt className="text-xs text-muted-foreground">Home address</dt>
+              <dt className="text-xs text-muted-foreground">住址</dt>
               <dd className="text-sm">{profile.address}</dd>
             </div>
           </div>
 
           <div className="flex flex-col gap-5">
             <div className="flex flex-col gap-1">
-              <dt className="text-xs text-muted-foreground">Emergency contact</dt>
+              <dt className="text-xs text-muted-foreground">紧急联系人</dt>
               <dd className="text-sm">{profile.emergencyContact}</dd>
             </div>
           </div>
 
           <div className="flex flex-col gap-5">
             <div className="flex flex-col gap-1">
-              <dt className="text-xs text-muted-foreground">Emergency phone</dt>
+              <dt className="text-xs text-muted-foreground">紧急联系人电话</dt>
               <dd className="text-sm">{profile.emergencyPhone}</dd>
             </div>
           </div>

@@ -1,20 +1,16 @@
-﻿import { createFileRoute } from '@tanstack/react-router'
-
-import { LockKeyhole } from 'lucide-react'
+import { createFileRoute } from '@tanstack/react-router'
 
 import { Separator } from '@/components/ui/separator'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsContent, TabsIndicator, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useAuthStore } from '@/stores/auth/auth-provider'
 
 import { PasswordForm } from './-components/password-form'
 import { ProfileDocuments } from './-components/profile-documents'
-import { EmploymentDetails } from './-components/profile-employment-details'
 import { ProfileHeader } from './-components/profile-header'
 import { ProfileOverview } from './-components/profile-overview'
 import { PersonalDetails } from './-components/profile-personal-details'
 import { toProfileRecord } from './-components/profile-record'
 import { ProfileStatusSidebar } from './-components/profile-status-sidebar'
-import { TimeOffDetails } from './-components/profile-time-off-details'
 
 export const Route = createFileRoute('/(main)/(app)/dashboard/profile')({
   component: Page
@@ -34,13 +30,19 @@ function Page() {
             className="w-max min-w-full justify-start gap-4 px-4 *:data-[slot=tabs-trigger]:flex-none"
             variant="line"
           >
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="personal">Personal</TabsTrigger>
-            <TabsTrigger value="employment">Employment</TabsTrigger>
-            <TabsTrigger value="compensation">Compensation</TabsTrigger>
-            <TabsTrigger value="time-off">Time off</TabsTrigger>
-            <TabsTrigger value="documents">Documents</TabsTrigger>
-            <TabsTrigger value="security">Security</TabsTrigger>
+            <TabsTrigger value="overview" className="gap-2 after:hidden">
+              总览
+            </TabsTrigger>
+            <TabsTrigger value="personal" className="gap-2 after:hidden">
+              个人信息
+            </TabsTrigger>
+            <TabsTrigger value="documents" className="gap-2 after:hidden">
+              个人文档
+            </TabsTrigger>
+            <TabsTrigger value="security" className="gap-2 after:hidden">
+              安全
+            </TabsTrigger>
+            <TabsIndicator />
           </TabsList>
         </div>
 
@@ -52,7 +54,7 @@ function Page() {
               </div>
               <Separator className="hidden lg:block" orientation="vertical" />
               <div className="py-4 lg:pl-6">
-                <ProfileStatusSidebar profile={profile} />
+                <ProfileStatusSidebar />
               </div>
             </div>
           </TabsContent>
@@ -61,36 +63,15 @@ function Page() {
             <PersonalDetails profile={profile} />
           </TabsContent>
 
-          <TabsContent className="py-4" value="employment">
-            <EmploymentDetails profile={profile} />
-          </TabsContent>
-
-          <TabsContent className="py-4" value="compensation">
-            <div className="flex items-start gap-3">
-              <LockKeyhole aria-hidden="true" className="size-4 text-muted-foreground" />
-              <div>
-                <p className="text-sm font-medium">Restricted information</p>
-                <p className="mt-0.5 text-sm text-muted-foreground">
-                  Visible to people administrators and authorized finance roles.
-                </p>
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent className="py-4" value="time-off">
-            <TimeOffDetails profile={profile} />
-          </TabsContent>
-
           <TabsContent className="py-4" value="documents">
             <ProfileDocuments documents={profile.documents} />
           </TabsContent>
 
           <TabsContent className="py-4" value="security">
             <div className="max-w-md">
-              <h2 className="font-heading text-base font-medium">Change password</h2>
+              <h2 className="font-heading text-base font-medium">修改密码</h2>
               <p className="mt-1 mb-4 text-sm text-muted-foreground">
-                The current and the new password are encrypted before they are sent. Changing the password signs you out
-                of every device.
+                当前密码和新密码会在本地加密后提交，修改成功后所有设备都会退出登录。
               </p>
               <PasswordForm />
             </div>

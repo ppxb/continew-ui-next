@@ -22,6 +22,7 @@ export interface ProfileRecord {
   avatar: string
   engagementStatus: 'Active'
   jobTitle: string
+  roleNames: string[]
   jobLevel: string
   department: string
   team: string
@@ -33,7 +34,7 @@ export interface ProfileRecord {
   timeZone: string
   contractorId: string
   startDate: string
-  engagementLength: string
+  activeDuration: string
   employmentType: string
   weeklyHours: string
   schedule: string
@@ -62,13 +63,14 @@ export interface ProfileRecord {
 
 export const profile: ProfileRecord = {
   name: 'Arham Khan',
-  preferredName: 'Arham',
+  preferredName: 'arham.khan',
   legalName: 'Arham Khan',
-  pronouns: 'He / him',
+  pronouns: '男',
   initials: 'AK',
   avatar: 'https://avatars.githubusercontent.com/u/43849669',
   engagementStatus: 'Active',
   jobTitle: 'Software Engineer',
+  roleNames: [],
   jobLevel: 'Senior',
   department: 'Product',
   team: 'Product',
@@ -80,7 +82,7 @@ export const profile: ProfileRecord = {
   timeZone: 'UTC+5:30',
   contractorId: 'WS-2301',
   startDate: 'March 18, 2022',
-  engagementLength: '4 years, 4 months',
+  activeDuration: '4 年 4 个月',
   employmentType: 'Contractor',
   weeklyHours: '40 hours',
   schedule: 'Monday–Friday · 9:00 AM–5:30 PM',

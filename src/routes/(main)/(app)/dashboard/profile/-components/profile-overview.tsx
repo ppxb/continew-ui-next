@@ -1,10 +1,9 @@
-import { Users } from 'lucide-react'
-
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Button } from '@/components/ui/button'
+import { StatusCell } from '@/components/status-cell'
+import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 
 import type { ProfileRecord } from './profile-data'
+import { ProfileSocialAccounts } from './profile-social-accounts'
 
 interface ProfileOverviewProps {
   profile: ProfileRecord
@@ -14,53 +13,38 @@ export function ProfileOverview({ profile }: ProfileOverviewProps) {
   return (
     <>
       <div className="flex flex-col gap-2">
-        <h2 className="font-heading text-base font-medium">About</h2>
+        <h2 className="font-heading text-base font-medium">描述</h2>
         <p className="text-sm text-muted-foreground">{profile.bio}</p>
       </div>
 
       <Separator className="my-4" />
 
       <div className="flex flex-col gap-2">
-        <h2 className="font-heading text-base font-medium">Work details</h2>
-        <div className="grid gap-8 sm:grid-cols-2 xl:grid-cols-3 xl:gap-12">
+        <h2 className="font-heading text-base font-medium">账号详情</h2>
+        <div className="grid gap-8 sm:grid-cols-2 xl:gap-12">
           <div className="flex flex-col gap-5">
             <div className="flex flex-col gap-1">
-              <span className="text-xs text-muted-foreground">Contractor ID</span>
+              <span className="text-xs text-muted-foreground">用户 ID</span>
               <span className="text-sm">{profile.contractorId}</span>
             </div>
             <div className="flex flex-col gap-1">
-              <span className="text-xs text-muted-foreground">Engagement status</span>
-              <span className="text-sm">{profile.engagementStatus}</span>
-            </div>
-            <div className="flex flex-col gap-1">
-              <span className="text-xs text-muted-foreground">Job level</span>
-              <span className="text-sm">{profile.jobLevel}</span>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-5">
-            <div className="flex flex-col gap-1">
-              <span className="text-xs text-muted-foreground">Department</span>
+              <span className="text-xs text-muted-foreground">部门</span>
               <span className="text-sm">{profile.department}</span>
             </div>
             <div className="flex flex-col gap-1">
-              <span className="text-xs text-muted-foreground">Team</span>
-              <span className="text-sm">{profile.team}</span>
-            </div>
-            <div className="flex flex-col gap-1">
-              <span className="text-xs text-muted-foreground">Current project</span>
-              <span className="text-sm">{profile.currentProject}</span>
+              <span className="text-xs text-muted-foreground">创建时间</span>
+              <span className="text-sm">{profile.startDate}</span>
             </div>
           </div>
 
           <div className="flex flex-col gap-5">
             <div className="flex flex-col gap-1">
-              <span className="text-xs text-muted-foreground">Start date</span>
-              <span className="text-sm">{profile.startDate}</span>
+              <span className="text-xs text-muted-foreground">状态</span>
+              <StatusCell status={profile.engagementStatus === 'Active' ? 1 : 2} />
             </div>
             <div className="flex flex-col gap-1">
-              <span className="text-xs text-muted-foreground">Engagement length</span>
-              <span className="text-sm">{profile.engagementLength}</span>
+              <span className="text-xs text-muted-foreground">账户活跃时间</span>
+              <span className="text-sm">{profile.activeDuration}</span>
             </div>
           </div>
         </div>
@@ -68,26 +52,23 @@ export function ProfileOverview({ profile }: ProfileOverviewProps) {
 
       <Separator className="my-4" />
 
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex flex-col gap-0.5">
-            <h2 className="font-heading text-base leading-none font-medium">Reporting line</h2>
-            <p className="text-sm text-muted-foreground">Direct manager</p>
-          </div>
-          <Button size="sm" variant="outline">
-            <Users data-icon="inline-start" />
-            Org chart
-          </Button>
+      <div className="grid gap-8 sm:grid-cols-2 xl:gap-12">
+        <div className="flex flex-col gap-2">
+          <h2 className="font-heading text-base font-medium">角色信息</h2>
+          {profile.roleNames.length ? (
+            <div className="flex flex-wrap gap-2">
+              {profile.roleNames.map(role => (
+                <Badge key={role} className="rounded-sm" variant="secondary">
+                  {role}
+                </Badge>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">暂无角色</p>
+          )}
         </div>
-        <div className="flex items-center gap-3 py-3">
-          <Avatar size="lg">
-            <AvatarFallback>{profile.manager.initials}</AvatarFallback>
-          </Avatar>
-          <div>
-            <p className="text-sm font-medium">{profile.manager.name}</p>
-            <p className="text-xs text-muted-foreground">{profile.manager.role}</p>
-          </div>
-        </div>
+
+        <ProfileSocialAccounts />
       </div>
     </>
   )
