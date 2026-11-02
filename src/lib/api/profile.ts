@@ -2,6 +2,10 @@ import { http } from '@/lib/http'
 
 import type { UserPasswordUpdateReq } from './types'
 
+export interface AvatarResp {
+  avatar: string
+}
+
 export interface UserSocialBindResp {
   source: string
   description: string
@@ -15,6 +19,13 @@ export interface UserSocialBindResp {
  */
 export function updatePassword(req: UserPasswordUpdateReq) {
   return http.patch<void>('/user/profile/password', req, { silent: true })
+}
+
+/** Uploads a new avatar, answering with the URL the profile should show. */
+export function updateAvatar(file: File) {
+  const body = new FormData()
+  body.append('avatarFile', file)
+  return http.patch<AvatarResp>('/user/profile/avatar', body)
 }
 
 /** The third-party accounts bound to the signed-in user. */
