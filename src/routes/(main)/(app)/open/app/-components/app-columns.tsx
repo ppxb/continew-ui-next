@@ -1,6 +1,6 @@
 import type { ColumnDef } from '@tanstack/react-table'
 
-import { Eye, KeyRound, MoreHorizontal, PenLine, RotateCcw, Trash2 } from 'lucide-react'
+import { Eye, KeyRound, MoreHorizontal, Pen, RotateCcw, Trash2 } from 'lucide-react'
 
 import { StatusCell } from '@/components/status-cell'
 import { Button } from '@/components/ui/button'
@@ -23,7 +23,17 @@ import { AccessKeyCell, ExpireTimeCell } from './app-display'
 export type AppAction = 'detail' | 'edit' | 'secret' | 'resetSecret' | 'delete'
 
 function TextCell({ value }: { value: string | null }) {
-  return <span className="text-sm">{value || EMPTY_PLACEHOLDER}</span>
+  return <span>{value || EMPTY_PLACEHOLDER}</span>
+}
+
+type TextColumnKey = 'description' | 'createUserString' | 'createTime' | 'updateUserString' | 'updateTime'
+
+function textColumn(key: TextColumnKey, header: string): ColumnDef<DataTableFeatures, AppResp> {
+  return {
+    accessorKey: key,
+    header,
+    cell: ({ row }) => <TextCell value={row.original[key]} />
+  }
 }
 
 function RowActions({ app, onAction }: { app: AppResp; onAction: (action: AppAction, app: AppResp) => void }) {
@@ -34,11 +44,9 @@ function RowActions({ app, onAction }: { app: AppResp; onAction: (action: AppAct
       <DropdownMenu>
         <Tooltip>
           <TooltipTrigger render={<DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />} />}>
-            <MoreHorizontal className="size-4" />
+            <MoreHorizontal />
           </TooltipTrigger>
-          <TooltipContent side="top" sideOffset={8}>
-            更多操作
-          </TooltipContent>
+          <TooltipContent side="top">更多操作</TooltipContent>
         </Tooltip>
         <DropdownMenuContent align="end">
           <DropdownMenuGroup>
@@ -47,28 +55,26 @@ function RowActions({ app, onAction }: { app: AppResp; onAction: (action: AppAct
               应用详情
             </DropdownMenuItem>
             <DropdownMenuItem disabled={isLocked} onClick={() => onAction('edit', app)}>
-              <PenLine />
+              <Pen />
               修改应用
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onAction('secret', app)}>
-              <KeyRound />
-              查看密钥
             </DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
+            <DropdownMenuItem onClick={() => onAction('secret', app)}>
+              <KeyRound />
+              查看密钥
+            </DropdownMenuItem>
             <DropdownMenuItem disabled={isLocked} onClick={() => onAction('resetSecret', app)}>
               <RotateCcw />
               重置密钥
             </DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
-          <DropdownMenuGroup>
-            <DropdownMenuItem variant="destructive" disabled={isLocked} onClick={() => onAction('delete', app)}>
-              <Trash2 />
-              删除
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
+          <DropdownMenuItem variant="destructive" disabled={isLocked} onClick={() => onAction('delete', app)}>
+            <Trash2 />
+            删除
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
@@ -76,9 +82,7 @@ function RowActions({ app, onAction }: { app: AppResp; onAction: (action: AppAct
 }
 
 /**
- * Builds the column set of the app table without selection column.
- *
- * `rowOffset` is the index of the first row on the current page.
+ * Builds the app table columns; `rowOffset` keeps the serial number continuous across pages.
  */
 export function createAppColumns(onAction: (action: AppAction, app: AppResp) => void, rowOffset: number) {
   const columns: ColumnDef<DataTableFeatures, AppResp>[] = [
@@ -86,12 +90,12 @@ export function createAppColumns(onAction: (action: AppAction, app: AppResp) => 
       id: 'index',
       header: '序号',
       enableHiding: false,
-      cell: ({ row }) => <div className="text-sm text-muted-foreground tabular-nums">{rowOffset + row.index + 1}</div>
+      cell: ({ row }) => <div className="tabular-nums">{rowOffset + row.index + 1}</div>
     },
     {
       accessorKey: 'name',
       header: '应用名称',
-      cell: ({ row }) => <span className="text-sm font-medium text-foreground">{row.original.name}</span>
+      cell: ({ row }) => <span className="font-medium text-foreground">{row.original.name}</span>
     },
     {
       accessorKey: 'accessKey',
@@ -108,31 +112,11 @@ export function createAppColumns(onAction: (action: AppAction, app: AppResp) => 
       header: '失效时间',
       cell: ({ row }) => <ExpireTimeCell expireTime={row.original.expireTime} />
     },
-    {
-      accessorKey: 'description',
-      header: '描述',
-      cell: ({ row }) => <TextCell value={row.original.description} />
-    },
-    {
-      accessorKey: 'createUserString',
-      header: '创建人',
-      cell: ({ row }) => <TextCell value={row.original.createUserString} />
-    },
-    {
-      accessorKey: 'createTime',
-      header: '创建时间',
-      cell: ({ row }) => <TextCell value={row.original.createTime} />
-    },
-    {
-      accessorKey: 'updateUserString',
-      header: '修改人',
-      cell: ({ row }) => <TextCell value={row.original.updateUserString} />
-    },
-    {
-      accessorKey: 'updateTime',
-      header: '修改时间',
-      cell: ({ row }) => <TextCell value={row.original.updateTime} />
-    },
+    textColumn('description', '描述'),
+    textColumn('createUserString', '创建人'),
+    textColumn('createTime', '创建时间'),
+    textColumn('updateUserString', '修改人'),
+    textColumn('updateTime', '修改时间'),
     {
       id: 'actions',
       header: '操作',

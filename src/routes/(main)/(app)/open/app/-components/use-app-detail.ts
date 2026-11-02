@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { skipToken, useQuery } from '@tanstack/react-query'
 
 import { appKeys, getApp } from '@/lib/api/app'
 import { DETAIL_STALE_TIME_MS } from '@/lib/query-client'
@@ -10,21 +10,15 @@ interface AppDetailOptions {
   readonly refreshOnOpen?: boolean
 }
 
-/** One app's record, shared by the detail and edit dialogs through a single query key. */
+/** One app's record, shared by the detail and edit drawers; a null id skips the query. */
 export function useAppDetail(
   appId: string | number | null,
   { enabled = true, refreshOnOpen = false }: AppDetailOptions = {}
 ) {
   return useQuery({
     queryKey: appKeys.detail(appId),
-    queryFn: ({ signal }) => {
-      if (appId === null) {
-        throw new Error('An app detail was requested without an id')
-      }
-
-      return getApp(appId, signal)
-    },
-    enabled: enabled && appId !== null,
+    queryFn: appId === null ? skipToken : ({ signal }) => getApp(appId, signal),
+    enabled,
     staleTime: refreshOnOpen ? 0 : DETAIL_STALE_TIME_MS
   })
 }

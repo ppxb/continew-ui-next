@@ -1,6 +1,7 @@
 import * as React from 'react'
 
 import { useQueryClient } from '@tanstack/react-query'
+
 import { TriangleAlert } from 'lucide-react'
 
 import {
@@ -16,7 +17,10 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
+import { useLastRecord } from '@/hooks/use-last-record'
 import { appKeys, type AppResp, deleteApp } from '@/lib/api/app'
+
+import { appLabel } from './app-display'
 
 interface AppDeleteDialogProps {
   /** The app being deleted, or `null` before one is selected. */
@@ -25,15 +29,16 @@ interface AppDeleteDialogProps {
   readonly onClose: () => void
 }
 
-/**
- * Confirms deleting one app.
- */
 export function AppDeleteDialog({ app, open, onClose }: AppDeleteDialogProps) {
   const queryClient = useQueryClient()
   const [isDeleting, setIsDeleting] = React.useState(false)
+  const shownApp = useLastRecord(app)
+  const shownLabel = appLabel(shownApp)
 
   const handleDelete = async () => {
-    if (app === null) return
+    if (app === null) {
+      return
+    }
 
     setIsDeleting(true)
 
@@ -66,9 +71,9 @@ export function AppDeleteDialog({ app, open, onClose }: AppDeleteDialogProps) {
           </AlertDialogMedia>
           <AlertDialogTitle>删除应用</AlertDialogTitle>
           <AlertDialogDescription>
-            {app === null
-              ? '是否确定删除该应用？删除后不可恢复。'
-              : `是否确定删除应用「${app.name}」？删除后不可恢复。`}
+            {shownApp
+              ? `是否确定删除应用「${shownLabel}」？删除后不可恢复`
+              : '是否确定删除该应用？删除后不可恢复'}
           </AlertDialogDescription>
         </AlertDialogHeader>
 

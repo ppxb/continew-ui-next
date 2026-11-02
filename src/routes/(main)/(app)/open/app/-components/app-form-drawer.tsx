@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import { revalidateLogic, useForm, useSelector } from '@tanstack/react-form'
+import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
 import { z } from 'zod'
 
@@ -65,16 +65,16 @@ function AppFormSkeleton() {
           <Skeleton className="h-9 w-full" />
           <Skeleton className="h-3.5 w-48" />
         </div>
-        <div className="flex items-center justify-between py-1">
-          <div className="flex flex-col gap-1">
-            <Skeleton className="h-4 w-16" />
-            <Skeleton className="h-3.5 w-48" />
-          </div>
-          <Skeleton className="h-5 w-9 rounded-full" />
-        </div>
         <div className="flex flex-col gap-1.5">
           <Skeleton className="h-4 w-16" />
           <Skeleton className="h-20 w-full" />
+        </div>
+        <div className="flex items-center justify-between py-1">
+          <div className="flex flex-col gap-1">
+            <Skeleton className="h-4 w-10" />
+            <Skeleton className="h-3.5 w-48" />
+          </div>
+          <Skeleton className="h-5 w-9 rounded-full" />
         </div>
       </div>
     </div>
@@ -89,11 +89,10 @@ interface AppFormDrawerProps {
 }
 
 export function AppFormDrawer({ appId, open, onClose }: AppFormDrawerProps) {
-  const isEdit = appId !== null
+  const isCreate = appId === null
   const queryClient = useQueryClient()
   const formRef = React.useRef<HTMLFormElement>(null)
-
-  const detailQuery = useAppDetail(appId, { enabled: open && isEdit, refreshOnOpen: isEdit })
+  const detail = useAppDetail(appId, { enabled: open, refreshOnOpen: !isCreate })
 
   const form = useForm({
     defaultValues: EMPTY_FORM,
@@ -103,12 +102,12 @@ export function AppFormDrawer({ appId, open, onClose }: AppFormDrawerProps) {
       const payload: AppReq = {
         name: value.name,
         status: value.status as AppStatus,
-        expireTime: value.expireTime ? value.expireTime : null,
+        expireTime: value.expireTime || null,
         description: value.description || undefined
       }
 
       try {
-        if (appId === null) {
+        if (isCreate) {
           await createApp(payload)
         } else {
           await updateApp(appId, payload)
@@ -118,19 +117,24 @@ export function AppFormDrawer({ appId, open, onClose }: AppFormDrawerProps) {
         return
       }
 
-      toast.add({ title: isEdit ? '修改应用成功' : '新增应用成功', type: 'success' })
-      void queryClient.invalidateQueries({ queryKey: appKeys.all })
       onClose()
+      void queryClient.invalidateQueries({ queryKey: appKeys.all })
+      toast.add({ title: isCreate ? '新增应用成功' : '修改应用成功', type: 'success' })
     }
   })
 
-  // `form.state` is a render-time snapshot, so the "saving" flag comes from a subscription. It covers
-  // the whole request, which is what the close guard and every disabled control below rely on.
-  const isSubmitting = useSelector(form.store, state => state.isSubmitting)
+  /** Run the object validator first; handleSubmit stops at field errors and would hide form-level ones. */
+  const submit = async () => {
+    await form.validate('submit')
+    await form.handleSubmit()
 
-  // Fill the form once per open, and only after the record has settled. `keepDefaultValues` is
-  // load-bearing: `reset(values)` otherwise rewrites the form's own defaults, and the next render's
-  // `update(opts)` reads that as "defaults changed" and puts `EMPTY_FORM` back into the fields.
+    requestAnimationFrame(() => {
+      formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
+    })
+  }
+
+  // Fill the form once per open after the record settles. `keepDefaultValues` keeps `reset` from
+  // rewriting the form's own defaults, which the next render would otherwise put back on the fields.
   const filledForRef = React.useRef<string | null>(null)
   React.useEffect(() => {
     if (!open) {
@@ -139,58 +143,31 @@ export function AppFormDrawer({ appId, open, onClose }: AppFormDrawerProps) {
       return
     }
 
-    if (!isEdit) {
+    if (isCreate) {
       if (filledForRef.current === 'create') return
       filledForRef.current = 'create'
       form.reset({ ...EMPTY_FORM }, { keepDefaultValues: true })
       return
     }
 
-    if (!detailQuery.data) return
+    if (!detail.data) return
 
-    const key = `${String(appId)}:${detailQuery.dataUpdatedAt}`
+    const key = `${String(appId)}:${detail.dataUpdatedAt}`
     if (filledForRef.current === key) return
     filledForRef.current = key
-    form.reset(toFormValues(detailQuery.data), { keepDefaultValues: true })
-  }, [open, isEdit, appId, detailQuery.data, detailQuery.dataUpdatedAt, form])
-
-  /**
-   * Validates the whole object before submitting: `handleSubmit` returns as soon as the field
-   * validators report an invalid form, so a rule that only sits on the form would stay hidden until
-   * the other errors were fixed.
-   */
-  const submit = async () => {
-    await form.validate('submit')
-    await form.handleSubmit()
-
-    // TanStack Form does not move focus to the first invalid control, so the drawer does it here.
-    requestAnimationFrame(() => {
-      formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
-    })
-  }
-
-  const isLoadingDetail = isEdit && (detailQuery.isPending || detailQuery.fetchStatus !== 'idle')
-  const isDetailError = isEdit && !isLoadingDetail && detailQuery.isError
+    form.reset(toFormValues(detail.data), { keepDefaultValues: true })
+  }, [open, isCreate, appId, detail.data, detail.dataUpdatedAt, form])
 
   return (
     <EntityDrawer
       open={open}
       onClose={onClose}
-      title={isEdit ? '修改应用' : '新增应用'}
-      icon={
-        <div className="flex size-7 items-center justify-center rounded-md bg-primary/10 text-primary">
-          <LayoutGrid className="size-4" />
-        </div>
-      }
+      title={isCreate ? '新增应用' : '修改应用'}
+      icon={<LayoutGrid className="size-4" />}
       width={30}
-      closeDisabled={isSubmitting}
-      canClose={() => !isSubmitting}
+      canClose={() => !form.state.isSubmitting}
     >
-      {isLoadingDetail ? (
-        <AppFormSkeleton />
-      ) : isDetailError ? (
-        <QueryState state="error" className="p-6" onRetry={() => void detailQuery.refetch()} />
-      ) : (
+      {isCreate || (!detail.isError && detail.data && detail.fetchStatus === 'idle') ? (
         <form
           ref={formRef}
           noValidate
@@ -202,13 +179,12 @@ export function AppFormDrawer({ appId, open, onClose }: AppFormDrawerProps) {
         >
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
             <FieldGroup className="gap-4">
-              {/* Name field (Required, upfront) */}
               <form.Field name="name" validators={{ onDynamic: formSchema.shape.name }}>
                 {field => {
                   const invalid = field.state.meta.errors.length > 0
 
                   return (
-                    <Field className="gap-1.5" data-invalid={invalid}>
+                    <Field data-invalid={invalid}>
                       <FieldLabel htmlFor="app-name">
                         应用名称
                         <RequiredMark />
@@ -219,8 +195,8 @@ export function AppFormDrawer({ appId, open, onClose }: AppFormDrawerProps) {
                         value={field.state.value}
                         onChange={event => field.handleChange(event.target.value)}
                         onBlur={field.handleBlur}
+                        maxLength={100}
                         placeholder="请输入应用名称，例如：商城接口服务"
-                        disabled={isSubmitting}
                         aria-invalid={invalid}
                       />
                       <FieldError errors={field.state.meta.errors} />
@@ -234,7 +210,7 @@ export function AppFormDrawer({ appId, open, onClose }: AppFormDrawerProps) {
                   const invalid = field.state.meta.errors.length > 0
 
                   return (
-                    <Field className="gap-1.5" data-invalid={invalid}>
+                    <Field data-invalid={invalid}>
                       <FieldLabel htmlFor="app-expire-time">失效时间</FieldLabel>
                       <ExpiryPicker
                         id="app-expire-time"
@@ -242,7 +218,6 @@ export function AppFormDrawer({ appId, open, onClose }: AppFormDrawerProps) {
                         onChange={field.handleChange}
                         neverLabel="永久有效"
                         placeholder="永久有效（点击设置失效时间）"
-                        disabled={isSubmitting}
                         invalid={invalid}
                       />
                       <FieldDescription>
@@ -257,37 +232,12 @@ export function AppFormDrawer({ appId, open, onClose }: AppFormDrawerProps) {
                 }}
               </form.Field>
 
-              {/* Status Switch (One per line, placed below expire time) */}
-              <form.Field name="status" validators={{ onDynamic: formSchema.shape.status }}>
-                {field => {
-                  const invalid = field.state.meta.errors.length > 0
-
-                  return (
-                    <Field orientation="horizontal" className="items-center justify-between" data-invalid={invalid}>
-                      <FieldContent>
-                        <FieldLabel>应用状态</FieldLabel>
-                        <FieldDescription>
-                          {field.state.value === 1 ? '启用状态，允许调用开放 API 接口' : '禁用状态，阻止所有调用请求'}
-                        </FieldDescription>
-                      </FieldContent>
-                      <Switch
-                        checked={field.state.value === 1}
-                        onCheckedChange={checked => field.handleChange(checked ? 1 : 2)}
-                        disabled={isSubmitting}
-                        aria-invalid={invalid}
-                      />
-                    </Field>
-                  )
-                }}
-              </form.Field>
-
-              {/* Description field */}
               <form.Field name="description" validators={{ onDynamic: formSchema.shape.description }}>
                 {field => {
                   const invalid = field.state.meta.errors.length > 0
 
                   return (
-                    <Field className="gap-1.5" data-invalid={invalid}>
+                    <Field data-invalid={invalid}>
                       <FieldLabel htmlFor="app-description">应用描述</FieldLabel>
                       <Textarea
                         id="app-description"
@@ -295,9 +245,9 @@ export function AppFormDrawer({ appId, open, onClose }: AppFormDrawerProps) {
                         value={field.state.value}
                         onChange={event => field.handleChange(event.target.value)}
                         onBlur={field.handleBlur}
-                        placeholder="请输入应用描述信息（选填，最大 200 字）"
+                        maxLength={200}
                         rows={3}
-                        disabled={isSubmitting}
+                        placeholder="请输入应用描述信息（选填，最大 200 字）"
                         aria-invalid={invalid}
                       />
                       <FieldError errors={field.state.meta.errors} />
@@ -305,27 +255,57 @@ export function AppFormDrawer({ appId, open, onClose }: AppFormDrawerProps) {
                   )
                 }}
               </form.Field>
+
+              <form.Field name="status" validators={{ onDynamic: formSchema.shape.status }}>
+                {field => {
+                  const invalid = field.state.meta.errors.length > 0
+
+                  return (
+                    <Field orientation="horizontal" data-invalid={invalid}>
+                      <FieldContent>
+                        <FieldLabel>状态</FieldLabel>
+                        <FieldDescription>
+                          {field.state.value === 1 ? '启用后允许调用开放 API 接口' : '禁用后阻止所有调用请求'}
+                        </FieldDescription>
+                      </FieldContent>
+                      <Switch
+                        checked={field.state.value === 1}
+                        onCheckedChange={checked => field.handleChange(checked ? 1 : 2)}
+                        aria-invalid={invalid}
+                      />
+                    </Field>
+                  )
+                }}
+              </form.Field>
             </FieldGroup>
           </div>
 
-          <DrawerFooter className="border-t p-4">
-            <div className="flex items-center justify-end gap-2">
-              <Button type="button" variant="outline" disabled={isSubmitting} onClick={onClose}>
-                取消
-              </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <>
-                    <Spinner />
-                    保存中
-                  </>
-                ) : (
-                  '保存'
-                )}
-              </Button>
-            </div>
+          <DrawerFooter className="flex-row justify-end gap-2 border-t p-4">
+            <form.Subscribe selector={state => state.isSubmitting}>
+              {isSubmitting => (
+                <>
+                  <Button type="button" variant="outline" disabled={isSubmitting} onClick={onClose}>
+                    取消
+                  </Button>
+                  <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? (
+                      <>
+                        <Spinner />
+                        保存中
+                      </>
+                    ) : (
+                      '保存'
+                    )}
+                  </Button>
+                </>
+              )}
+            </form.Subscribe>
           </DrawerFooter>
         </form>
+      ) : detail.isError ? (
+        <QueryState state="error" className="p-6" onRetry={() => void detail.refetch()} />
+      ) : (
+        <AppFormSkeleton />
       )}
     </EntityDrawer>
   )

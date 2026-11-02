@@ -16,7 +16,10 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
+import { useLastRecord } from '@/hooks/use-last-record'
 import { appKeys, type AppResp, resetAppSecret } from '@/lib/api/app'
+
+import { appLabel } from './app-display'
 
 interface AppResetSecretDialogProps {
   readonly app: AppResp | null
@@ -25,15 +28,16 @@ interface AppResetSecretDialogProps {
   readonly onSuccess?: (app: AppResp) => void
 }
 
-/**
- * Confirms resetting the Secret Key of an app.
- */
 export function AppResetSecretDialog({ app, open, onClose, onSuccess }: AppResetSecretDialogProps) {
   const queryClient = useQueryClient()
   const [isResetting, setIsResetting] = React.useState(false)
+  const shownApp = useLastRecord(app)
+  const shownLabel = appLabel(shownApp)
 
   const handleReset = async () => {
-    if (app === null) return
+    if (app === null) {
+      return
+    }
 
     setIsResetting(true)
     try {
@@ -44,7 +48,7 @@ export function AppResetSecretDialog({ app, open, onClose, onSuccess }: AppReset
       onClose()
       onSuccess?.(app)
     } catch {
-      // Handled by http layer
+      // The HTTP layer already reported the failure.
     } finally {
       setIsResetting(false)
     }
@@ -66,9 +70,9 @@ export function AppResetSecretDialog({ app, open, onClose, onSuccess }: AppReset
           </AlertDialogMedia>
           <AlertDialogTitle>重置应用密钥</AlertDialogTitle>
           <AlertDialogDescription>
-            {app === null
-              ? '重置密钥后，原 Secret Key 将立即作废，使用旧密钥的外部服务将无法正常调用接口。是否确定重置？'
-              : `确定重置应用「${app.name}」的密钥吗？重置后原 Secret Key 将立即作废，使用旧密钥的外部服务将无法正常调用接口。`}
+            {shownApp
+              ? `确定重置应用「${shownLabel}」的密钥吗？重置后原 Secret Key 将立即作废，使用旧密钥的外部服务将无法正常调用接口。`
+              : '重置密钥后，原 Secret Key 将立即作废，使用旧密钥的外部服务将无法正常调用接口。是否确定重置？'}
           </AlertDialogDescription>
         </AlertDialogHeader>
 

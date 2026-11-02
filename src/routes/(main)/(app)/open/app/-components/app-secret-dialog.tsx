@@ -1,9 +1,10 @@
 import * as React from 'react'
 
-import { useQuery } from '@tanstack/react-query'
+import { skipToken, useQuery } from '@tanstack/react-query'
 import { Eye, EyeOff, KeyRound, ShieldAlert } from 'lucide-react'
 
 import { CopyButton } from '@/components/copy-button'
+import { QueryState } from '@/components/query-state'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import {
@@ -17,6 +18,7 @@ import {
 } from '@/components/ui/dialog'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { useLastRecord } from '@/hooks/use-last-record'
 import { appKeys, type AppResp, getAppSecret } from '@/lib/api/app'
 
 interface AppSecretDialogProps {
@@ -27,14 +29,13 @@ interface AppSecretDialogProps {
 
 function SecretField({ label, value, isMaskable = false }: { label: string; value: string; isMaskable?: boolean }) {
   const [show, setShow] = React.useState(!isMaskable)
-
-  const masked = value.replace(/./g, '•')
+  const displayValue = show ? value : value.replace(/./g, '•')
 
   return (
     <div className="flex flex-col gap-1.5">
       <span className="text-xs font-medium text-muted-foreground">{label}</span>
       <div className="flex items-center gap-2 rounded-md border bg-muted/30 px-3 py-2">
-        <span className="flex-1 text-sm break-all select-all">{show ? value : masked}</span>
+        <span className="flex-1 text-sm break-all select-all">{displayValue}</span>
         <div className="flex shrink-0 items-center gap-1">
           {isMaskable ? (
             <Tooltip>
@@ -65,16 +66,12 @@ function SecretField({ label, value, isMaskable = false }: { label: string; valu
 
 export function AppSecretDialog({ app, open, onClose }: AppSecretDialogProps) {
   const appId = app?.id ?? null
+  const shownApp = useLastRecord(app)
 
   const query = useQuery({
     queryKey: appKeys.secret(appId),
-    queryFn: ({ signal }) => {
-      if (appId === null) {
-        throw new Error('App ID is required')
-      }
-      return getAppSecret(appId, signal)
-    },
-    enabled: open && appId !== null
+    queryFn: appId === null ? skipToken : ({ signal }) => getAppSecret(appId, signal),
+    enabled: open
   })
 
   return (
@@ -82,16 +79,12 @@ export function AppSecretDialog({ app, open, onClose }: AppSecretDialogProps) {
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <div className="flex items-center gap-2">
-            <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <KeyRound className="size-4" />
-            </div>
-            <div>
-              <DialogTitle>应用密钥</DialogTitle>
-              <DialogDescription className="text-xs">
-                {app ? `应用「${app.name}」的接口调用认证凭证` : '查看应用密钥'}
-              </DialogDescription>
-            </div>
+            <KeyRound className="size-4" />
+            <DialogTitle>应用密钥</DialogTitle>
           </div>
+          <DialogDescription>
+            {shownApp ? `应用「${shownApp.name}」的接口调用认证凭证` : '查看应用密钥'}
+          </DialogDescription>
         </DialogHeader>
 
         <div className="flex flex-col gap-4 py-2">
@@ -101,7 +94,7 @@ export function AppSecretDialog({ app, open, onClose }: AppSecretDialogProps) {
               <Skeleton className="h-14 w-full" />
             </div>
           ) : query.isError ? (
-            <div className="text-center text-sm text-destructive">获取密钥失败，请检查网络或权限</div>
+            <QueryState state="error" className="p-6" onRetry={() => void query.refetch()} />
           ) : query.data ? (
             <>
               <SecretField label="Access Key (访问密钥)" value={query.data.accessKey} />

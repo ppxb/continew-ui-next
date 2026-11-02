@@ -2,8 +2,8 @@ import { CopyButton } from '@/components/copy-button'
 import { Badge } from '@/components/ui/badge'
 import type { AppResp } from '@/lib/api/app'
 
-export function appLabel(app: Pick<AppResp, 'name'>) {
-  return app.name
+export function appLabel(app: Pick<AppResp, 'name'> | null | undefined) {
+  return app?.name ?? ''
 }
 
 export function ExpireTimeCell({ expireTime }: { expireTime: string | null | undefined }) {

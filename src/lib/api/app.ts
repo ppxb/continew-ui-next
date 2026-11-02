@@ -40,12 +40,9 @@ export function exportApps(query: Omit<AppPageQuery, 'page' | 'size'>) {
   return downloadFile('/open/app/export', query)
 }
 
-/**
- * `GET /open/app/{id}`.
- */
-export interface AppDetailResp extends AppResp {}
-
 /** One app's full record. */
+export type AppDetailResp = AppResp
+
 export function getApp(id: string | number, signal?: AbortSignal) {
   return http.get<AppDetailResp>(`/open/app/${id}`, { signal })
 }

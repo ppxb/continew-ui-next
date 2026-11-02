@@ -1,17 +1,19 @@
 import * as React from 'react'
 
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { type ColumnVisibilityState, type PaginationState, useTable } from '@tanstack/react-table'
 
-import { Search, X } from 'lucide-react'
+import { Download, Plus } from 'lucide-react'
 
 import { DataTable } from '@/components/data-table'
 import { ListPageCard } from '@/components/list-page-card'
+import { TableSearch } from '@/components/table-search'
+import { TableToolbar } from '@/components/table-toolbar'
 import { Button } from '@/components/ui/button'
-import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
-import { toast } from '@/components/ui/toast'
-import { useDebouncedValue } from '@/hooks/use-debounced-value'
+import { Spinner } from '@/components/ui/spinner'
+import { useExport } from '@/hooks/use-export'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
+import { usePageClamp } from '@/hooks/use-page-clamp'
 import { appKeys, type AppResp, exportApps, listApps } from '@/lib/api/app'
 import { dataTableFeatures } from '@/lib/data-table-features'
 
@@ -21,7 +23,6 @@ import { AppDetailDrawer } from './app-detail-drawer'
 import { AppFormDrawer } from './app-form-drawer'
 import { AppResetSecretDialog } from './app-reset-secret-dialog'
 import { AppSecretDialog } from './app-secret-dialog'
-import { AppToolbar } from './app-toolbar'
 
 const HIDDEN_BY_DEFAULT: ColumnVisibilityState = {
   createUserString: false,
@@ -30,93 +31,68 @@ const HIDDEN_BY_DEFAULT: ColumnVisibilityState = {
 }
 
 const DEFAULT_SORT = 'id,desc'
+
 const EMPTY_ROWS: AppResp[] = []
 
 export function AppList() {
   const [pagination, setPagination] = React.useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
   const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>(HIDDEN_BY_DEFAULT)
-  const [searchInput, setSearchInput] = React.useState('')
-  const keyword = useDebouncedValue(searchInput).trim()
-  const [isExporting, setIsExporting] = React.useState(false)
-
-  // Drawer / Dialog states
+  const [keyword, setKeyword] = React.useState('')
+  // One state per overlay: a null value means it is closed, so "which record" and "is it open" can
+  // never drift apart. The form drawer holds an object, because a null id there means 新增.
   const [detailAppId, setDetailAppId] = React.useState<string | number | null>(null)
-  const [isDetailOpen, setIsDetailOpen] = React.useState(false)
-  const [formAppId, setFormAppId] = React.useState<string | number | null>(null)
-  const [isFormOpen, setIsFormOpen] = React.useState(false)
+  const [formTarget, setFormTarget] = React.useState<{ appId: string | number | null } | null>(null)
   const [secretApp, setSecretApp] = React.useState<AppResp | null>(null)
-  const [isSecretOpen, setIsSecretOpen] = React.useState(false)
   const [resetSecretApp, setResetSecretApp] = React.useState<AppResp | null>(null)
-  const [isResetSecretOpen, setIsResetSecretOpen] = React.useState(false)
   const [deletingApp, setDeletingApp] = React.useState<AppResp | null>(null)
-  const [isDeleteOpen, setIsDeleteOpen] = React.useState(false)
-
   const fullscreen = useFullscreenTransition()
+  const { isExporting, exportData } = useExport(exportApps)
 
-  React.useEffect(() => {
+  const resetPage = () => {
     setPagination(current => (current.pageIndex === 0 ? current : { ...current, pageIndex: 0 }))
-  }, [keyword])
+  }
+
+  const handleSearch = (next: string) => {
+    setKeyword(next)
+    resetPage()
+  }
+
+  const queryFilters = { description: keyword || undefined, sort: DEFAULT_SORT }
+  const params = { page: pagination.pageIndex + 1, size: pagination.pageSize, ...queryFilters }
 
   const query = useQuery({
-    queryKey: appKeys.list({
-      page: pagination.pageIndex + 1,
-      size: pagination.pageSize,
-      description: keyword || undefined,
-      sort: DEFAULT_SORT
-    }),
-    queryFn: ({ signal }) =>
-      listApps(
-        {
-          page: pagination.pageIndex + 1,
-          size: pagination.pageSize,
-          description: keyword || undefined,
-          sort: DEFAULT_SORT
-        },
-        signal
-      ),
-    placeholderData: previous => previous
+    queryKey: appKeys.list(params),
+    queryFn: ({ signal }) => listApps(params, signal),
+    placeholderData: keepPreviousData
   })
 
   const total = query.data?.total ?? 0
   const rowOffset = pagination.pageIndex * pagination.pageSize
 
-  // Page index bounds correction
-  React.useEffect(() => {
-    if (total > 0 && pagination.pageIndex * pagination.pageSize >= total) {
-      const maxPageIndex = Math.max(0, Math.ceil(total / pagination.pageSize) - 1)
-      setPagination(current => ({ ...current, pageIndex: maxPageIndex }))
-    }
-  }, [total, pagination.pageIndex, pagination.pageSize])
+  usePageClamp(total, pagination, setPagination)
 
   const handleRowAction = React.useCallback((action: AppAction, app: AppResp) => {
     if (action === 'detail') {
       setDetailAppId(app.id)
-      setIsDetailOpen(true)
       return
     }
 
     if (action === 'edit') {
-      setFormAppId(app.id)
-      setIsFormOpen(true)
+      setFormTarget({ appId: app.id })
       return
     }
 
     if (action === 'secret') {
       setSecretApp(app)
-      setIsSecretOpen(true)
       return
     }
 
     if (action === 'resetSecret') {
       setResetSecretApp(app)
-      setIsResetSecretOpen(true)
       return
     }
 
-    if (action === 'delete') {
-      setDeletingApp(app)
-      setIsDeleteOpen(true)
-    }
+    setDeletingApp(app)
   }, [])
 
   const columns = React.useMemo(() => createAppColumns(handleRowAction, rowOffset), [handleRowAction, rowOffset])
@@ -135,59 +111,36 @@ export function AppList() {
     getRowId: row => String(row.id)
   })
 
-  const handleExport = async () => {
-    setIsExporting(true)
-
-    try {
-      await exportApps({ description: keyword || undefined, sort: DEFAULT_SORT })
-      toast.add({ title: '导出已开始，请留意浏览器下载', type: 'success' })
-    } catch {
-      // The HTTP layer already reported the failure.
-    } finally {
-      setIsExporting(false)
-    }
-  }
-
-  const handleResetSecretSuccess = (app: AppResp) => {
-    setSecretApp(app)
-    setIsSecretOpen(true)
-  }
-
   const filters = (
-    <InputGroup className="w-full md:w-64">
-      <InputGroupAddon align="inline-start">
-        <Search className="size-3.5" />
-      </InputGroupAddon>
-      <InputGroupInput
-        className="text-sm"
-        placeholder="搜索应用名称、描述"
-        value={searchInput}
-        onChange={event => setSearchInput(event.target.value)}
-      />
-      {searchInput ? (
-        <InputGroupAddon align="inline-end">
-          <Button type="button" variant="ghost" size="icon-xs" aria-label="清空搜索" onClick={() => setSearchInput('')}>
-            <X className="size-3" />
-          </Button>
-        </InputGroupAddon>
-      ) : null}
-    </InputGroup>
+    <TableSearch
+      className="col-span-2 h-8 w-full sm:w-64"
+      placeholder="搜索应用名称、描述"
+      clearable
+      onSearch={handleSearch}
+    />
   )
 
   const actions = (
-    <AppToolbar
+    <TableToolbar
       table={table}
+      className="w-full xl:w-auto xl:justify-end"
       isRefreshing={query.isFetching && !query.isPending}
-      isExporting={isExporting}
       isFullscreen={fullscreen.isFullscreen}
-      onCreate={() => {
-        setFormAppId(null)
-        setIsFormOpen(true)
-      }}
-      onExport={() => void handleExport()}
       onRefresh={() => void query.refetch()}
       onToggleFullscreen={fullscreen.toggleFullscreen}
       onResetColumns={() => setColumnVisibility(HIDDEN_BY_DEFAULT)}
+      actions={
+        <>
+          <Button className="w-full sm:w-auto" onClick={() => setFormTarget({ appId: null })}>
+            <Plus />
+            新增应用
+          </Button>
+          <Button variant="outline" disabled={isExporting} onClick={() => void exportData(queryFilters)}>
+            {isExporting ? <Spinner /> : <Download />}
+            导出
+          </Button>
+        </>
+      }
     />
   )
 
@@ -210,16 +163,20 @@ export function AppList() {
         />
       </ListPageCard>
 
-      <AppDetailDrawer appId={detailAppId} open={isDetailOpen} onClose={() => setIsDetailOpen(false)} />
-      <AppFormDrawer appId={formAppId} open={isFormOpen} onClose={() => setIsFormOpen(false)} />
-      <AppSecretDialog app={secretApp} open={isSecretOpen} onClose={() => setIsSecretOpen(false)} />
+      <AppDetailDrawer appId={detailAppId} open={detailAppId !== null} onClose={() => setDetailAppId(null)} />
+      <AppFormDrawer
+        appId={formTarget?.appId ?? null}
+        open={formTarget !== null}
+        onClose={() => setFormTarget(null)}
+      />
+      <AppSecretDialog app={secretApp} open={secretApp !== null} onClose={() => setSecretApp(null)} />
       <AppResetSecretDialog
         app={resetSecretApp}
-        open={isResetSecretOpen}
-        onClose={() => setIsResetSecretOpen(false)}
-        onSuccess={handleResetSecretSuccess}
+        open={resetSecretApp !== null}
+        onClose={() => setResetSecretApp(null)}
+        onSuccess={setSecretApp}
       />
-      <AppDeleteDialog app={deletingApp} open={isDeleteOpen} onClose={() => setIsDeleteOpen(false)} />
+      <AppDeleteDialog app={deletingApp} open={deletingApp !== null} onClose={() => setDeletingApp(null)} />
     </>
   )
 }
