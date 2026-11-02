@@ -105,7 +105,7 @@ export function JobList() {
   }, [groups.isSuccess, groups.isError, groups.data])
 
   const groupItems = React.useMemo(
-    () => [{ value: 'all', label: '全部任务组' }, ...(groups.data ?? []).map(group => ({ value: group, label: group }))],
+    () => [{ value: 'all', label: '全部' }, ...(groups.data ?? []).map(group => ({ value: group, label: group }))],
     [groups.data]
   )
 

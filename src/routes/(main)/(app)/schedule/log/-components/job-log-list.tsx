@@ -87,7 +87,7 @@ export function JobLogList({ initialJobId, initialJobName, initialGroupName }: J
   }, [groups.data, groupName])
 
   const groupItems = React.useMemo(
-    () => [{ value: 'all', label: '全部任务组' }, ...groupOptions.map(group => ({ value: group, label: group }))],
+    () => [{ value: 'all', label: '全部' }, ...groupOptions.map(group => ({ value: group, label: group }))],
     [groupOptions]
   )
 
