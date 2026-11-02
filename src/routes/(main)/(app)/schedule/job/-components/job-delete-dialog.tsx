@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
+import { useLastRecord } from '@/hooks/use-last-record'
 import { deleteJob, jobKeys, type JobResp } from '@/lib/api/job'
 
 interface JobDeleteDialogProps {
@@ -30,15 +31,7 @@ interface JobDeleteDialogProps {
 export function JobDeleteDialog({ job, open, onClose }: JobDeleteDialogProps) {
   const queryClient = useQueryClient()
   const [isDeleting, setIsDeleting] = React.useState(false)
-  const [lastJob, setLastJob] = React.useState<JobResp | null>(null)
-
-  React.useEffect(() => {
-    if (job) {
-      setLastJob(job)
-    }
-  }, [job])
-
-  const shownJob = job ?? lastJob
+  const shownJob = useLastRecord(job)
 
   const handleDelete = async () => {
     if (job === null) {

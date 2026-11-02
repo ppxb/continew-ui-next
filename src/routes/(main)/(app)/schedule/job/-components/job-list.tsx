@@ -1,17 +1,20 @@
 import * as React from 'react'
 
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query'
 import { type ColumnVisibilityState, type PaginationState, useTable } from '@tanstack/react-table'
 import { useNavigate } from '@tanstack/react-router'
 
-import { RotateCcw } from 'lucide-react'
+import { Plus } from 'lucide-react'
 
+import { DataTable } from '@/components/data-table'
+import { FilterSelect } from '@/components/filter-select'
 import { ListPageCard } from '@/components/list-page-card'
 import { TableSearch } from '@/components/table-search'
+import { TableToolbar } from '@/components/table-toolbar'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { toast } from '@/components/ui/toast'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
+import { usePageClamp } from '@/hooks/use-page-clamp'
 import { usePermission } from '@/hooks/use-permission'
 import {
   JOB_STATUS_OPTIONS,
@@ -29,14 +32,24 @@ import { createJobColumns, type JobAction } from './job-columns'
 import { JobDeleteDialog } from './job-delete-dialog'
 import { JobDetailDrawer } from './job-detail-drawer'
 import { JobFormDrawer } from './job-form-drawer'
-import { JobTable } from './job-table'
-import { JobToolbar } from './job-toolbar'
 import { JobTriggerDialog } from './job-trigger-dialog'
 
 const EMPTY_ROWS: JobResp[] = []
 
 const HIDDEN_BY_DEFAULT: ColumnVisibilityState = {
   updateDt: false
+}
+
+const SKELETON_WIDTHS: Record<string, string> = {
+  index: 'mx-auto w-6',
+  jobName: 'w-32',
+  triggerType: 'w-32',
+  taskType: 'w-28',
+  jobStatus: 'mx-auto w-10 rounded-full',
+  description: 'w-32',
+  createDt: 'w-32',
+  updateDt: 'w-32',
+  actions: 'mx-auto w-8'
 }
 
 /** Groups barely change, so the filter and the form share one cached lookup. */
@@ -61,10 +74,8 @@ export function JobList() {
   const [groupName, setGroupName] = React.useState<string | undefined>(undefined)
   // The job query waits for the first group so the page does not briefly list every group.
   const [groupReady, setGroupReady] = React.useState(false)
-  // Once the user picks a group explicitly, a late successful lookup must not override it.
+  // A late group lookup must not override a group the user has already picked.
   const groupTouchedRef = React.useRef(false)
-  // The search box owns its text, so resetting the filters remounts it.
-  const [searchVersion, setSearchVersion] = React.useState(0)
   // One state per overlay: a null value means it is closed. The form drawer holds an object,
   // because a null job there means 新增.
   const [detailJob, setDetailJob] = React.useState<JobResp | null>(null)
@@ -94,50 +105,29 @@ export function JobList() {
   }, [groups.isSuccess, groups.isError, groups.data])
 
   const groupItems = React.useMemo(
-    () => [
-      { value: 'all', label: '全部任务组' },
-      ...(groups.data ?? []).map(group => ({ value: group, label: group }))
-    ],
+    () => [{ value: 'all', label: '全部任务组' }, ...(groups.data ?? []).map(group => ({ value: group, label: group }))],
     [groups.data]
   )
 
-  const goToFirstPage = React.useCallback(() => {
+  const resetPage = () => {
     setPagination(current => (current.pageIndex === 0 ? current : { ...current, pageIndex: 0 }))
-  }, [])
+  }
 
-  const handleKeywordSearch = React.useCallback(
-    (next: string) => {
-      setKeyword(next)
-      goToFirstPage()
-    },
-    [goToFirstPage]
-  )
+  const handleKeywordSearch = (next: string) => {
+    setKeyword(next)
+    resetPage()
+  }
 
-  const handleGroupChange = React.useCallback(
-    (value: string | null) => {
-      groupTouchedRef.current = true
-      setGroupName(!value || value === 'all' ? undefined : value)
-      goToFirstPage()
-    },
-    [goToFirstPage]
-  )
+  const handleGroupChange = (value: string | null) => {
+    groupTouchedRef.current = true
+    setGroupName(!value || value === 'all' ? undefined : value)
+    resetPage()
+  }
 
-  const handleStatusChange = React.useCallback(
-    (value: string | null) => {
-      setJobStatus(!value || value === 'all' ? undefined : (Number(value) as JobStatus))
-      goToFirstPage()
-    },
-    [goToFirstPage]
-  )
-
-  const handleReset = React.useCallback(() => {
-    groupTouchedRef.current = false
-    setGroupName(groups.data?.[0])
-    setKeyword('')
-    setJobStatus(undefined)
-    setSearchVersion(current => current + 1)
-    goToFirstPage()
-  }, [groups.data, goToFirstPage])
+  const handleStatusChange = (value: string | null) => {
+    setJobStatus(!value || value === 'all' ? undefined : (Number(value) as JobStatus))
+    resetPage()
+  }
 
   const handleToggleStatus = React.useCallback(
     async (job: JobResp, next: JobStatus) => {
@@ -190,7 +180,7 @@ export function JobList() {
     queryKey: jobKeys.list(params),
     queryFn: ({ signal }) => listJobs(params, signal),
     enabled: groupReady,
-    placeholderData: previous => previous
+    placeholderData: keepPreviousData
   })
 
   // The API has no detail endpoint, so keep the drawer on the freshest copy of the row the
@@ -206,12 +196,7 @@ export function JobList() {
   const total = query.data?.total ?? 0
   const rowOffset = pagination.pageIndex * pagination.pageSize
 
-  React.useEffect(() => {
-    if (total > 0 && pagination.pageIndex * pagination.pageSize >= total) {
-      const maxPageIndex = Math.max(0, Math.ceil(total / pagination.pageSize) - 1)
-      setPagination(current => ({ ...current, pageIndex: maxPageIndex }))
-    }
-  }, [total, pagination.pageIndex, pagination.pageSize])
+  usePageClamp(total, pagination, setPagination)
 
   const columns = React.useMemo(
     () =>
@@ -245,67 +230,46 @@ export function JobList() {
   const filters = (
     <>
       <TableSearch
-        key={`keyword-${searchVersion}`}
-        clearable
         className="col-span-2 h-8 w-full sm:w-64"
         placeholder="搜索任务名称"
+        clearable
         onSearch={handleKeywordSearch}
       />
-      <div className="w-full sm:w-40">
-        <Select items={groupItems} value={groupName ?? 'all'} onValueChange={handleGroupChange}>
-          <SelectTrigger className="w-full">
-            <span className="text-muted-foreground">任务组</span>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent align="start" alignItemWithTrigger={false}>
-            <SelectGroup>
-              {groupItems.map(option => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="w-full sm:w-32">
-        <Select
-          items={JOB_STATUS_OPTIONS}
-          value={jobStatus === undefined ? 'all' : String(jobStatus)}
-          onValueChange={handleStatusChange}
-        >
-          <SelectTrigger className="w-full">
-            <span className="text-muted-foreground">状态</span>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent align="start" alignItemWithTrigger={false}>
-            <SelectGroup>
-              {JOB_STATUS_OPTIONS.map(option => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      </div>
-      <Button type="button" variant="ghost" onClick={handleReset}>
-        <RotateCcw />
-        重置
-      </Button>
+      <FilterSelect
+        label="任务组"
+        options={groupItems}
+        value={groupName ?? 'all'}
+        onValueChange={handleGroupChange}
+        className="w-full sm:w-40"
+      />
+      <FilterSelect
+        label="状态"
+        options={JOB_STATUS_OPTIONS}
+        value={jobStatus === undefined ? 'all' : String(jobStatus)}
+        onValueChange={handleStatusChange}
+        className="w-full sm:w-32"
+      />
     </>
   )
 
   const actions = (
-    <JobToolbar
+    <TableToolbar
       table={table}
+      className="w-full xl:w-auto xl:justify-end"
       isRefreshing={query.isFetching && !query.isPending}
       isFullscreen={fullscreen.isFullscreen}
-      canCreate={canCreate}
-      onCreate={() => setFormTarget({ job: null })}
       onRefresh={() => void query.refetch()}
       onToggleFullscreen={fullscreen.toggleFullscreen}
       onResetColumns={() => setColumnVisibility(HIDDEN_BY_DEFAULT)}
+      columnLabels={{ jobStatus: '状态' }}
+      actions={
+        canCreate ? (
+          <Button className="w-full sm:w-auto" onClick={() => setFormTarget({ job: null })}>
+            <Plus />
+            新增任务
+          </Button>
+        ) : null
+      }
     />
   )
 
@@ -318,12 +282,13 @@ export function JobList() {
         actions={actions}
         fullscreen={fullscreen}
       >
-        <JobTable
+        <DataTable
           table={table}
           isLoading={query.isPending || !groupReady}
           isError={query.isError}
           isShowingPreviousRows={query.isPlaceholderData}
           onRetry={() => void query.refetch()}
+          skeletonWidths={table.getVisibleLeafColumns().map(column => SKELETON_WIDTHS[column.id] ?? 'w-24')}
         />
       </ListPageCard>
 

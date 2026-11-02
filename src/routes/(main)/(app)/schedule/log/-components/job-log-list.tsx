@@ -1,19 +1,19 @@
 import * as React from 'react'
 
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { type ColumnVisibilityState, type PaginationState, useTable } from '@tanstack/react-table'
 import { useNavigate } from '@tanstack/react-router'
 
 import type { DateRange } from 'react-day-picker'
 
-import { RotateCcw } from 'lucide-react'
-
+import { DataTable } from '@/components/data-table'
 import { DateRangeFilter } from '@/components/date-range-filter'
+import { FilterSelect } from '@/components/filter-select'
 import { ListPageCard } from '@/components/list-page-card'
 import { TableSearch } from '@/components/table-search'
-import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { TableToolbar } from '@/components/table-toolbar'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
+import { usePageClamp } from '@/hooks/use-page-clamp'
 import { usePermission } from '@/hooks/use-permission'
 import { jobKeys, listJobGroups } from '@/lib/api/job'
 import {
@@ -29,8 +29,6 @@ import { dataTableFeatures } from '@/lib/data-table-features'
 
 import { JobLogActionDialog, type JobLogActionTarget } from './job-log-action-dialog'
 import { createJobLogColumns, type JobLogAction } from './job-log-columns'
-import { JobLogTable } from './job-log-table'
-import { JobLogToolbar } from './job-log-toolbar'
 
 const EMPTY_ROWS: JobLogResp[] = []
 
@@ -38,6 +36,17 @@ const EMPTY_ROWS: JobLogResp[] = []
 const LOOKUP_STALE_MS = 5 * 60_000
 
 const NO_HIDDEN_COLUMNS: ColumnVisibilityState = {}
+
+const SKELETON_WIDTHS: Record<string, string> = {
+  index: 'mx-auto w-6',
+  groupName: 'w-28',
+  jobName: 'w-32',
+  createDt: 'w-32',
+  taskBatchStatus: 'mx-auto w-16 rounded-full',
+  operationReason: 'w-28',
+  executionAt: 'w-32',
+  actions: 'mx-auto w-8'
+}
 
 interface JobLogListProps {
   /** A job carried over from the job page's 查看日志 action. */
@@ -82,70 +91,47 @@ export function JobLogList({ initialJobId, initialJobName, initialGroupName }: J
     [groupOptions]
   )
 
-  const goToFirstPage = React.useCallback(() => {
+  const resetPage = () => {
     setPagination(current => (current.pageIndex === 0 ? current : { ...current, pageIndex: 0 }))
-  }, [])
+  }
 
   /** Clearing the URL search keeps the hidden `jobId` from outliving the visible filters. */
-  const clearRouteSearch = React.useCallback(() => {
+  const clearRouteSearch = () => {
     void navigate({ to: '/schedule/log', search: {}, replace: true })
-  }, [navigate])
+  }
 
-  const releaseJobFilter = React.useCallback(() => {
+  const releaseJobFilter = () => {
     if (jobId === undefined) {
       return
     }
 
     setJobId(undefined)
     clearRouteSearch()
-  }, [jobId, clearRouteSearch])
+  }
 
-  const handleKeywordSearch = React.useCallback(
-    (next: string) => {
-      setKeyword(next)
-      releaseJobFilter()
-      goToFirstPage()
-    },
-    [releaseJobFilter, goToFirstPage]
-  )
+  const handleKeywordSearch = (next: string) => {
+    setKeyword(next)
+    releaseJobFilter()
+    resetPage()
+  }
 
-  const handleGroupChange = React.useCallback(
-    (value: string | null) => {
-      setGroupName(!value || value === 'all' ? undefined : value)
-      releaseJobFilter()
-      goToFirstPage()
-    },
-    [releaseJobFilter, goToFirstPage]
-  )
+  const handleGroupChange = (value: string | null) => {
+    setGroupName(!value || value === 'all' ? undefined : value)
+    releaseJobFilter()
+    resetPage()
+  }
 
-  const handleStatusChange = React.useCallback(
-    (value: string | null) => {
-      setStatus(!value || value === 'all' ? undefined : (Number(value) as JobExecuteStatus))
-      releaseJobFilter()
-      goToFirstPage()
-    },
-    [releaseJobFilter, goToFirstPage]
-  )
+  const handleStatusChange = (value: string | null) => {
+    setStatus(!value || value === 'all' ? undefined : (Number(value) as JobExecuteStatus))
+    releaseJobFilter()
+    resetPage()
+  }
 
-  const handleDateRangeChange = React.useCallback(
-    (range: DateRange | undefined) => {
-      setDateRange(range)
-      releaseJobFilter()
-      goToFirstPage()
-    },
-    [releaseJobFilter, goToFirstPage]
-  )
-
-  const handleReset = React.useCallback(() => {
-    setJobId(undefined)
-    setGroupName(undefined)
-    setKeyword('')
-    setSearchText('')
-    setStatus(undefined)
-    setDateRange(createRecentDateRange())
-    goToFirstPage()
-    clearRouteSearch()
-  }, [clearRouteSearch, goToFirstPage])
+  const handleDateRangeChange = (range: DateRange | undefined) => {
+    setDateRange(range)
+    releaseJobFilter()
+    resetPage()
+  }
 
   const handleAction = React.useCallback((type: JobLogAction, log: JobLogResp) => {
     setActionTarget({ type, log })
@@ -164,18 +150,13 @@ export function JobLogList({ initialJobId, initialJobName, initialGroupName }: J
   const query = useQuery({
     queryKey: jobLogKeys.list(params),
     queryFn: ({ signal }) => listJobLogs(params, signal),
-    placeholderData: previous => previous
+    placeholderData: keepPreviousData
   })
 
   const total = query.data?.total ?? 0
   const rowOffset = pagination.pageIndex * pagination.pageSize
 
-  React.useEffect(() => {
-    if (total > 0 && pagination.pageIndex * pagination.pageSize >= total) {
-      const maxPageIndex = Math.max(0, Math.ceil(total / pagination.pageSize) - 1)
-      setPagination(current => ({ ...current, pageIndex: maxPageIndex }))
-    }
-  }, [total, pagination.pageIndex, pagination.pageSize])
+  usePageClamp(total, pagination, setPagination)
 
   const columns = React.useMemo(
     () => createJobLogColumns({ rowOffset, canStop, canRetry, onAction: handleAction }),
@@ -200,66 +181,40 @@ export function JobLogList({ initialJobId, initialJobName, initialGroupName }: J
     <>
       <TableSearch
         className="col-span-2 h-8 w-full sm:w-64"
+        placeholder="搜索任务名称"
+        clearable
         value={searchText}
         onValueChange={setSearchText}
         onSearch={handleKeywordSearch}
-        clearable
-        placeholder="搜索任务名称"
       />
-      <div className="w-full sm:w-40">
-        <Select items={groupItems} value={groupName ?? 'all'} onValueChange={handleGroupChange}>
-          <SelectTrigger className="w-full">
-            <span className="text-muted-foreground">任务组</span>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent align="start" alignItemWithTrigger={false}>
-            <SelectGroup>
-              {groupItems.map(option => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="w-full sm:w-32">
-        <Select
-          items={JOB_EXECUTE_STATUS_OPTIONS}
-          value={status === undefined ? 'all' : String(status)}
-          onValueChange={handleStatusChange}
-        >
-          <SelectTrigger className="w-full">
-            <span className="text-muted-foreground">状态</span>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent align="start" alignItemWithTrigger={false}>
-            <SelectGroup>
-              {JOB_EXECUTE_STATUS_OPTIONS.map(option => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      </div>
+      <FilterSelect
+        label="任务组"
+        options={groupItems}
+        value={groupName ?? 'all'}
+        onValueChange={handleGroupChange}
+        className="w-full sm:w-40"
+      />
+      <FilterSelect
+        label="状态"
+        options={JOB_EXECUTE_STATUS_OPTIONS}
+        value={status === undefined ? 'all' : String(status)}
+        onValueChange={handleStatusChange}
+        className="w-full sm:w-32"
+      />
       <DateRangeFilter value={dateRange} onChange={handleDateRangeChange} />
-      <Button type="button" variant="ghost" onClick={handleReset}>
-        <RotateCcw />
-        重置
-      </Button>
     </>
   )
 
   const actions = (
-    <JobLogToolbar
+    <TableToolbar
       table={table}
+      className="w-full xl:w-auto xl:justify-end"
       isRefreshing={query.isFetching && !query.isPending}
       isFullscreen={fullscreen.isFullscreen}
       onRefresh={() => void query.refetch()}
       onToggleFullscreen={fullscreen.toggleFullscreen}
       onResetColumns={() => setColumnVisibility(NO_HIDDEN_COLUMNS)}
+      columnLabels={{ taskBatchStatus: '执行状态', operationReason: '执行备注' }}
     />
   )
 
@@ -272,12 +227,13 @@ export function JobLogList({ initialJobId, initialJobName, initialGroupName }: J
         actions={actions}
         fullscreen={fullscreen}
       >
-        <JobLogTable
+        <DataTable
           table={table}
           isLoading={query.isPending}
           isError={query.isError}
           isShowingPreviousRows={query.isPlaceholderData}
           onRetry={() => void query.refetch()}
+          skeletonWidths={table.getVisibleLeafColumns().map(column => SKELETON_WIDTHS[column.id] ?? 'w-24')}
         />
       </ListPageCard>
 

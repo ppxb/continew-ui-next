@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
+import { useLastRecord } from '@/hooks/use-last-record'
 import { triggerJob, type JobResp } from '@/lib/api/job'
 import { jobLogKeys } from '@/lib/query-keys'
 
@@ -31,15 +32,7 @@ interface JobTriggerDialogProps {
 export function JobTriggerDialog({ job, open, onClose }: JobTriggerDialogProps) {
   const queryClient = useQueryClient()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
-  const [lastJob, setLastJob] = React.useState<JobResp | null>(null)
-
-  React.useEffect(() => {
-    if (job) {
-      setLastJob(job)
-    }
-  }, [job])
-
-  const shownJob = job ?? lastJob
+  const shownJob = useLastRecord(job)
 
   const handleTrigger = async () => {
     if (job === null) {

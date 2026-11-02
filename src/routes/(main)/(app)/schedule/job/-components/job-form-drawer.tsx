@@ -799,21 +799,23 @@ export function JobFormDrawer({ job, open, onClose, defaultGroupName }: JobFormD
         </div>
 
         <DrawerFooter className="shrink-0 flex-row justify-end gap-2 border-t p-4">
-          <Button type="button" variant="outline" disabled={form.state.isSubmitting} onClick={onClose}>
-            取消
-          </Button>
           <form.Subscribe selector={state => state.isSubmitting}>
             {isSubmitting => (
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <>
-                    <Spinner />
-                    保存中
-                  </>
-                ) : (
-                  '保存'
-                )}
-              </Button>
+              <>
+                <Button type="button" variant="outline" disabled={isSubmitting} onClick={onClose}>
+                  取消
+                </Button>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <Spinner />
+                      保存中
+                    </>
+                  ) : (
+                    '保存'
+                  )}
+                </Button>
+              </>
             )}
           </form.Subscribe>
         </DrawerFooter>

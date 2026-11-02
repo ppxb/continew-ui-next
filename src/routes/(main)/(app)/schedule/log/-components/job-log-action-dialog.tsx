@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
+import { useLastRecord } from '@/hooks/use-last-record'
 import { jobLogKeys, retryJobLog, stopJobLog, type JobLogResp } from '@/lib/api/job-log'
 
 export interface JobLogActionTarget {
@@ -35,15 +36,7 @@ interface JobLogActionDialogProps {
 export function JobLogActionDialog({ action, open, onClose }: JobLogActionDialogProps) {
   const queryClient = useQueryClient()
   const [isSubmitting, setIsSubmitting] = React.useState(false)
-  const [lastAction, setLastAction] = React.useState<JobLogActionTarget | null>(null)
-
-  React.useEffect(() => {
-    if (action) {
-      setLastAction(action)
-    }
-  }, [action])
-
-  const shownAction = action ?? lastAction
+  const shownAction = useLastRecord(action)
   const isStop = shownAction?.type === 'stop'
 
   const handleConfirm = async () => {
