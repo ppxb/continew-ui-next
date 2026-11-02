@@ -70,6 +70,19 @@ export const appKeys = {
   secret: (id: string | number | null) => [...appKeys.secrets(), id] as const
 }
 
+export const dashboardKeys = {
+  all: ['dashboard'] as const,
+  notices: () => [...dashboardKeys.all, 'notice'] as const,
+  overviewPv: () => [...dashboardKeys.all, 'overview', 'pv'] as const,
+  overviewIp: () => [...dashboardKeys.all, 'overview', 'ip'] as const,
+  accessTrend: (days: 7 | 30) => [...dashboardKeys.all, 'access-trend', days] as const,
+  geo: () => [...dashboardKeys.all, 'geo'] as const,
+  timeslot: () => [...dashboardKeys.all, 'timeslot'] as const,
+  module: () => [...dashboardKeys.all, 'module'] as const,
+  os: () => [...dashboardKeys.all, 'os'] as const,
+  browser: () => [...dashboardKeys.all, 'browser'] as const
+}
+
 export const optionKeys = {
   all: ['system', 'option'] as const,
   lists: () => [...optionKeys.all, 'list'] as const,
