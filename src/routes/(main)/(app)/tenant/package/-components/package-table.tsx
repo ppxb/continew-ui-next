@@ -26,7 +26,6 @@ interface PackageTableProps {
   readonly onRetry?: () => void
 }
 
-/** The tenant package table: only its skeleton shapes are screen-specific. */
 export function PackageTable({ table, ...rest }: PackageTableProps) {
   return (
     <DataTable

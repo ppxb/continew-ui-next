@@ -1,12 +1,12 @@
 import * as React from 'react'
 
 import { revalidateLogic, useForm } from '@tanstack/react-form'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 import { z } from 'zod'
 
 import { FolderTree } from 'lucide-react'
 
-import { CheckableTree, type CheckableTreeNode } from '@/components/checkable-tree'
+import { CheckableTree } from '@/components/checkable-tree'
 import { EntityDrawer } from '@/components/entity-drawer'
 import { QueryState } from '@/components/query-state'
 import { RequiredMark } from '@/components/required-mark'
@@ -22,7 +22,6 @@ import { toast } from '@/components/ui/toast'
 import { buildTreeIndex } from '@/components/ui/tree'
 import {
   createPackage,
-  getPackageMenuTree,
   packageKeys,
   updatePackage,
   type PackageDetailResp,
@@ -31,10 +30,8 @@ import {
 } from '@/lib/api/package'
 import { tenantKeys } from '@/lib/api/tenant'
 
+import { toMenuTreeNodes, usePackageMenuTree } from './use-package-menu-tree'
 import { usePackageDetail } from './use-package-detail'
-
-/** Menus barely change, so reopening the form should not refetch them. */
-const LOOKUP_STALE_MS = 5 * 60_000
 
 const formSchema = z.object({
   name: z.string().trim().min(1, '请输入名称').max(30, '名称长度不能超过 30 个字符'),
@@ -63,16 +60,6 @@ function toFormValues(pkg: PackageDetailResp): FormValues {
     status: pkg.status ?? 1,
     menuCheckStrictly: pkg.menuCheckStrictly ?? true
   }
-}
-
-/** Maps the backend's simple tree onto the checkable tree's node shape. */
-function toTreeNodes(nodes: PackageMenuNode[]): CheckableTreeNode[] {
-  return nodes.map(node => ({
-    id: String(node.id),
-    parentId: node.parentId === null || node.parentId === undefined ? null : String(node.parentId),
-    label: node.title,
-    children: node.children?.length ? toTreeNodes(node.children) : undefined
-  }))
 }
 
 /** Keeps the ids the backend sent, so the request does not turn every number into a string. */
@@ -111,13 +98,7 @@ interface PackageFormDrawerProps {
   readonly onClose: () => void
 }
 
-/**
- * Create and edit form for one package.
- *
- * The fields and the menu assignment follow the Vue client's `tenant/package/AddModal.vue`.
- * The tree collects the checked rows plus their ancestors, because a tenant's menu tree
- * cannot render a child whose parent was never granted.
- */
+/** Create and edit form for one package, including the menus it grants. */
 export function PackageFormDrawer({ packageId, open, onClose }: PackageFormDrawerProps) {
   const queryClient = useQueryClient()
   const formRef = React.useRef<HTMLFormElement>(null)
@@ -126,14 +107,9 @@ export function PackageFormDrawer({ packageId, open, onClose }: PackageFormDrawe
 
   const detail = usePackageDetail(packageId, { enabled: open && !isCreate, refreshOnOpen: true })
 
-  const menuTree = useQuery({
-    queryKey: packageKeys.menus(),
-    queryFn: ({ signal }) => getPackageMenuTree(signal),
-    staleTime: LOOKUP_STALE_MS,
-    enabled: open
-  })
+  const menuTree = usePackageMenuTree(open)
 
-  const treeNodes = React.useMemo(() => toTreeNodes(menuTree.data ?? []), [menuTree.data])
+  const treeNodes = React.useMemo(() => toMenuTreeNodes(menuTree.data ?? []), [menuTree.data])
   const treeIndex = React.useMemo(() => buildTreeIndex(treeNodes), [treeNodes])
   const rawMenuIds = React.useMemo(() => collectRawMenuIds(menuTree.data ?? []), [menuTree.data])
 
@@ -213,9 +189,7 @@ export function PackageFormDrawer({ packageId, open, onClose }: PackageFormDrawe
 
   const handleCheckedChange = (keys: Array<string | number>) => {
     setCheckedKeys(keys)
-    if (menuError) {
-      setMenuError(null)
-    }
+    setMenuError(null)
   }
 
   const submit = async () => {
@@ -233,6 +207,39 @@ export function PackageFormDrawer({ packageId, open, onClose }: PackageFormDrawe
       formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
     })
   }
+
+  const renderTextField = (
+    name: 'name' | 'sort',
+    label: string,
+    input: { type?: 'number'; min?: number; maxLength?: number; placeholder: string; required?: boolean }
+  ) => (
+    <form.Field name={name} validators={{ onDynamic: formSchema.shape[name] }}>
+      {field => {
+        const invalid = field.state.meta.errors.length > 0
+
+        return (
+          <Field className="gap-1.5" data-invalid={invalid}>
+            <FieldLabel>
+              {label}
+              {input.required && <RequiredMark />}
+            </FieldLabel>
+            <Input
+              type={input.type}
+              min={input.min}
+              name={name}
+              value={field.state.value}
+              onChange={event => field.handleChange(event.target.value)}
+              onBlur={field.handleBlur}
+              maxLength={input.maxLength}
+              placeholder={input.placeholder}
+              aria-invalid={invalid}
+            />
+            <FieldError errors={field.state.meta.errors} />
+          </Field>
+        )
+      }}
+    </form.Field>
+  )
 
   return (
     <EntityDrawer
@@ -255,53 +262,9 @@ export function PackageFormDrawer({ packageId, open, onClose }: PackageFormDrawe
         >
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
             <FieldGroup className="gap-4">
-              <form.Field name="name" validators={{ onDynamic: formSchema.shape.name }}>
-                {field => {
-                  const invalid = field.state.meta.errors.length > 0
+              {renderTextField('name', '名称', { maxLength: 30, placeholder: '请输入名称', required: true })}
 
-                  return (
-                    <Field className="gap-1.5" data-invalid={invalid}>
-                      <FieldLabel>
-                        名称
-                        <RequiredMark />
-                      </FieldLabel>
-                      <Input
-                        name="name"
-                        value={field.state.value}
-                        onChange={event => field.handleChange(event.target.value)}
-                        onBlur={field.handleBlur}
-                        maxLength={30}
-                        placeholder="请输入名称"
-                        aria-invalid={invalid}
-                      />
-                      <FieldError errors={field.state.meta.errors} />
-                    </Field>
-                  )
-                }}
-              </form.Field>
-
-              <form.Field name="sort" validators={{ onDynamic: formSchema.shape.sort }}>
-                {field => {
-                  const invalid = field.state.meta.errors.length > 0
-
-                  return (
-                    <Field className="gap-1.5" data-invalid={invalid}>
-                      <FieldLabel>排序</FieldLabel>
-                      <Input
-                        type="number"
-                        min={1}
-                        name="sort"
-                        value={field.state.value}
-                        onChange={event => field.handleChange(event.target.value)}
-                        onBlur={field.handleBlur}
-                        placeholder="请输入排序"
-                        aria-invalid={invalid}
-                      />
-                      <FieldError errors={field.state.meta.errors} />
-                    </Field>
-                  )
-                }}
-              </form.Field>
+              {renderTextField('sort', '排序', { type: 'number', min: 1, placeholder: '请输入排序' })}
 
               <form.Field name="description" validators={{ onDynamic: formSchema.shape.description }}>
                 {field => {

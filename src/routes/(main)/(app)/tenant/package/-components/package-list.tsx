@@ -1,15 +1,16 @@
 import * as React from 'react'
 
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { type ColumnVisibilityState, type PaginationState, useTable } from '@tanstack/react-table'
+import { Plus } from 'lucide-react'
 
-import { RotateCcw } from 'lucide-react'
-
+import { FilterSelect } from '@/components/filter-select'
 import { ListPageCard } from '@/components/list-page-card'
 import { TableSearch } from '@/components/table-search'
+import { TableToolbar } from '@/components/table-toolbar'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
+import { usePageClamp } from '@/hooks/use-page-clamp'
 import { usePermission } from '@/hooks/use-permission'
 import {
   listPackages,
@@ -20,12 +21,11 @@ import {
 } from '@/lib/api/package'
 import { dataTableFeatures } from '@/lib/data-table-features'
 
-import { createPackageColumns, type PackageAction } from './package-columns'
+import { createPackageColumns, PACKAGE_COLUMN_LABELS, type PackageAction } from './package-columns'
 import { PackageDeleteDialog } from './package-delete-dialog'
 import { PackageDetailDrawer } from './package-detail-drawer'
 import { PackageFormDrawer } from './package-form-drawer'
 import { PackageTable } from './package-table'
-import { PackageToolbar } from './package-toolbar'
 
 const EMPTY_ROWS: PackageResp[] = []
 
@@ -39,7 +39,7 @@ const HIDDEN_BY_DEFAULT: ColumnVisibilityState = {
 }
 
 const STATUS_ITEMS = [
-  { value: 'all', label: '全部状态' },
+  { value: 'all', label: '全部' },
   { value: '1', label: '启用' },
   { value: '2', label: '禁用' }
 ]
@@ -56,40 +56,25 @@ export function PackageList() {
   const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>(HIDDEN_BY_DEFAULT)
   const [keyword, setKeyword] = React.useState('')
   const [status, setStatus] = React.useState<PackageStatus | undefined>(undefined)
-  // The search box owns its text, so resetting the filters remounts it.
-  const [searchVersion, setSearchVersion] = React.useState(0)
   // One state per overlay: a null value means it is closed. The form drawer holds an object,
   // because a null id there means 新增.
   const [detailId, setDetailId] = React.useState<string | number | null>(null)
   const [formTarget, setFormTarget] = React.useState<{ packageId: string | number | null } | null>(null)
   const [deletingPackage, setDeletingPackage] = React.useState<PackageResp | null>(null)
 
-  const goToFirstPage = React.useCallback(() => {
+  const resetPage = () => {
     setPagination(current => (current.pageIndex === 0 ? current : { ...current, pageIndex: 0 }))
-  }, [])
+  }
 
-  const handleKeywordSearch = React.useCallback(
-    (next: string) => {
-      setKeyword(next)
-      goToFirstPage()
-    },
-    [goToFirstPage]
-  )
+  const handleKeywordSearch = (next: string) => {
+    setKeyword(next)
+    resetPage()
+  }
 
-  const handleStatusChange = React.useCallback(
-    (value: string | null) => {
-      setStatus(!value || value === 'all' ? undefined : (Number(value) as PackageStatus))
-      goToFirstPage()
-    },
-    [goToFirstPage]
-  )
-
-  const handleReset = React.useCallback(() => {
-    setKeyword('')
-    setStatus(undefined)
-    setSearchVersion(current => current + 1)
-    goToFirstPage()
-  }, [goToFirstPage])
+  const handleStatusChange = (value: string | null) => {
+    setStatus(value === '1' ? 1 : value === '2' ? 2 : undefined)
+    resetPage()
+  }
 
   const handleAction = React.useCallback((action: PackageAction, pkg: PackageResp) => {
     if (action === 'detail') {
@@ -116,28 +101,16 @@ export function PackageList() {
   const query = useQuery({
     queryKey: packageKeys.list(params),
     queryFn: ({ signal }) => listPackages(params, signal),
-    placeholderData: previous => previous
+    placeholderData: keepPreviousData
   })
 
   const total = query.data?.total ?? 0
   const rowOffset = pagination.pageIndex * pagination.pageSize
 
-  React.useEffect(() => {
-    if (total > 0 && pagination.pageIndex * pagination.pageSize >= total) {
-      const maxPageIndex = Math.max(0, Math.ceil(total / pagination.pageSize) - 1)
-      setPagination(current => ({ ...current, pageIndex: maxPageIndex }))
-    }
-  }, [total, pagination.pageIndex, pagination.pageSize])
+  usePageClamp(total, pagination, setPagination)
 
   const columns = React.useMemo(
-    () =>
-      createPackageColumns({
-        rowOffset,
-        canGet,
-        canUpdate,
-        canDelete,
-        onAction: handleAction
-      }),
+    () => createPackageColumns({ rowOffset, canGet, canUpdate, canDelete, onAction: handleAction }),
     [rowOffset, canGet, canUpdate, canDelete, handleAction]
   )
 
@@ -158,50 +131,39 @@ export function PackageList() {
   const filters = (
     <>
       <TableSearch
-        key={`keyword-${searchVersion}`}
-        clearable
         className="col-span-2 h-8 w-full sm:w-64"
+        clearable
         placeholder="搜索名称、描述"
         onSearch={handleKeywordSearch}
       />
-      <div className="w-full sm:w-32">
-        <Select
-          items={STATUS_ITEMS}
-          value={status === undefined ? 'all' : String(status)}
-          onValueChange={handleStatusChange}
-        >
-          <SelectTrigger className="w-full">
-            <span className="text-muted-foreground">状态</span>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent align="start" alignItemWithTrigger={false}>
-            <SelectGroup>
-              {STATUS_ITEMS.map(option => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      </div>
-      <Button type="button" variant="ghost" onClick={handleReset}>
-        <RotateCcw />
-        重置
-      </Button>
+      <FilterSelect
+        label="状态"
+        options={STATUS_ITEMS}
+        value={status === undefined ? 'all' : String(status)}
+        onValueChange={handleStatusChange}
+        className="w-full sm:w-32"
+      />
     </>
   )
 
   const actions = (
-    <PackageToolbar
+    <TableToolbar
       table={table}
+      className="w-full xl:w-auto xl:justify-end"
       isRefreshing={query.isFetching && !query.isPending}
       isFullscreen={fullscreen.isFullscreen}
-      canCreate={canCreate}
-      onCreate={() => setFormTarget({ packageId: null })}
       onRefresh={() => void query.refetch()}
       onToggleFullscreen={fullscreen.toggleFullscreen}
       onResetColumns={() => setColumnVisibility(HIDDEN_BY_DEFAULT)}
+      columnLabels={PACKAGE_COLUMN_LABELS}
+      actions={
+        canCreate ? (
+          <Button onClick={() => setFormTarget({ packageId: null })}>
+            <Plus />
+            新增套餐
+          </Button>
+        ) : null
+      }
     />
   )
 

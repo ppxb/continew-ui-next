@@ -16,8 +16,17 @@ import type { PackageResp } from '@/lib/api/package'
 import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 
+type PackageColumn = ColumnDef<DataTableFeatures, PackageResp>
+type TextColumnKey = 'name' | 'description' | 'createUserString' | 'createTime' | 'updateUserString' | 'updateTime'
+
 /** The row actions the table raises. */
 export type PackageAction = 'detail' | 'edit' | 'delete'
+
+/** Labels for the columns whose header is a node, which the hide-columns menu cannot read. */
+export const PACKAGE_COLUMN_LABELS: Record<string, string> = {
+  status: '状态',
+  sort: '排序'
+}
 
 interface PackageColumnOptions {
   /** The index of the first row on the current page, so 序号 stays continuous. */
@@ -30,6 +39,14 @@ interface PackageColumnOptions {
 
 function TextCell({ value }: { value: string | number | null | undefined }) {
   return <span className="text-sm">{value || value === 0 ? value : EMPTY_PLACEHOLDER}</span>
+}
+
+function textColumn(key: TextColumnKey, header: string): PackageColumn {
+  return {
+    accessorKey: key,
+    header,
+    cell: ({ row }) => <TextCell value={row.original[key]} />
+  }
 }
 
 function RowActions({
@@ -92,9 +109,8 @@ function RowActions({
   )
 }
 
-/** Builds the column set of the package table, in the order of the Vue client's page. */
 export function createPackageColumns({ rowOffset, canGet, canUpdate, canDelete, onAction }: PackageColumnOptions) {
-  const columns: ColumnDef<DataTableFeatures, PackageResp>[] = [
+  const columns: PackageColumn[] = [
     {
       id: 'index',
       header: '序号',
@@ -103,11 +119,7 @@ export function createPackageColumns({ rowOffset, canGet, canUpdate, canDelete, 
         <div className="text-center text-sm text-muted-foreground tabular-nums">{rowOffset + row.index + 1}</div>
       )
     },
-    {
-      accessorKey: 'name',
-      header: '名称',
-      cell: ({ row }) => <TextCell value={row.original.name} />
-    },
+    textColumn('name', '名称'),
     {
       accessorKey: 'status',
       header: () => <div className="text-center">状态</div>,
@@ -122,31 +134,11 @@ export function createPackageColumns({ rowOffset, canGet, canUpdate, canDelete, 
       header: () => <div className="text-center">排序</div>,
       cell: ({ row }) => <div className="text-center text-sm tabular-nums">{row.original.sort}</div>
     },
-    {
-      accessorKey: 'description',
-      header: '描述',
-      cell: ({ row }) => <TextCell value={row.original.description} />
-    },
-    {
-      accessorKey: 'createUserString',
-      header: '创建人',
-      cell: ({ row }) => <TextCell value={row.original.createUserString} />
-    },
-    {
-      accessorKey: 'createTime',
-      header: '创建时间',
-      cell: ({ row }) => <TextCell value={row.original.createTime} />
-    },
-    {
-      accessorKey: 'updateUserString',
-      header: '修改人',
-      cell: ({ row }) => <TextCell value={row.original.updateUserString} />
-    },
-    {
-      accessorKey: 'updateTime',
-      header: '修改时间',
-      cell: ({ row }) => <TextCell value={row.original.updateTime} />
-    }
+    textColumn('description', '描述'),
+    textColumn('createUserString', '创建人'),
+    textColumn('createTime', '创建时间'),
+    textColumn('updateUserString', '修改人'),
+    textColumn('updateTime', '修改时间')
   ]
 
   if (canGet || canUpdate || canDelete) {

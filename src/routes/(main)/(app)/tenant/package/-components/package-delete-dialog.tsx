@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
+import { useLastRecord } from '@/hooks/use-last-record'
 import { deletePackage, packageKeys, type PackageResp } from '@/lib/api/package'
 import { tenantKeys } from '@/lib/api/tenant'
 
@@ -31,18 +32,7 @@ interface PackageDeleteDialogProps {
 export function PackageDeleteDialog({ pkg, open, onClose }: PackageDeleteDialogProps) {
   const queryClient = useQueryClient()
   const [isDeleting, setIsDeleting] = React.useState(false)
-
-  // The parent clears `pkg` when the dialog closes, but the exit animation keeps rendering
-  // this copy, so the name would vanish mid-close. `pkg` still wins while it is set.
-  const [lastPackage, setLastPackage] = React.useState<PackageResp | null>(null)
-
-  React.useEffect(() => {
-    if (pkg) {
-      setLastPackage(pkg)
-    }
-  }, [pkg])
-
-  const shownPackage = pkg ?? lastPackage
+  const shownPackage = useLastRecord(pkg)
 
   const handleDelete = async () => {
     if (pkg === null) {

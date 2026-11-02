@@ -40,7 +40,7 @@ export const JOB_EXECUTE_STATUS_LABELS: Record<JobExecuteStatus, string> = {
 }
 
 export const JOB_EXECUTE_STATUS_OPTIONS = [
-  { value: 'all', label: '全部状态' },
+  { value: 'all', label: '全部' },
   { value: '1', label: '待处理' },
   { value: '2', label: '运行中' },
   { value: '3', label: '成功' },

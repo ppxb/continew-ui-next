@@ -84,7 +84,7 @@ export const JOB_STATUS_LABELS: Record<JobStatus, string> = {
 }
 
 export const JOB_STATUS_OPTIONS = [
-  { value: 'all', label: '全部状态' },
+  { value: 'all', label: '全部' },
   { value: '1', label: '启用' },
   { value: '0', label: '禁用' }
 ]

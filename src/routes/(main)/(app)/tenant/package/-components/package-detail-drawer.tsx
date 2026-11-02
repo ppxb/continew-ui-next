@@ -1,5 +1,3 @@
-import { useQuery } from '@tanstack/react-query'
-
 import { FolderTree } from 'lucide-react'
 
 import { CopyableText } from '@/components/copyable-text'
@@ -8,23 +6,11 @@ import { EntityDrawer } from '@/components/entity-drawer'
 import { QueryState } from '@/components/query-state'
 import { StatusCell } from '@/components/status-cell'
 import { Skeleton } from '@/components/ui/skeleton'
-import { type TreeNodeData, Tree } from '@/components/ui/tree'
-import { getPackageMenuTree, packageKeys, type PackageMenuNode } from '@/lib/api/package'
+import { Tree } from '@/components/ui/tree'
 import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 
+import { toMenuTreeNodes, usePackageMenuTree } from './use-package-menu-tree'
 import { usePackageDetail } from './use-package-detail'
-
-/** Menus barely change, so they stay cached between openings. */
-const LOOKUP_STALE_MS = 5 * 60_000
-
-function toTreeNodes(nodes: PackageMenuNode[]): TreeNodeData[] {
-  return nodes.map(node => ({
-    id: String(node.id),
-    parentId: node.parentId === null || node.parentId === undefined ? null : String(node.parentId),
-    label: node.title,
-    children: node.children?.length ? toTreeNodes(node.children) : undefined
-  }))
-}
 
 function PackageDetailSkeleton() {
   return (
@@ -52,14 +38,9 @@ interface PackageDetailDrawerProps {
 /** Read-only detail panel for one package, with its menu grants shown as a checked tree. */
 export function PackageDetailDrawer({ packageId, open, onClose }: PackageDetailDrawerProps) {
   const detail = usePackageDetail(packageId, { enabled: open })
-  const menuTree = useQuery({
-    queryKey: packageKeys.menus(),
-    queryFn: ({ signal }) => getPackageMenuTree(signal),
-    staleTime: LOOKUP_STALE_MS,
-    enabled: open
-  })
+  const menuTree = usePackageMenuTree(open)
 
-  const treeNodes = toTreeNodes(menuTree.data ?? [])
+  const treeNodes = toMenuTreeNodes(menuTree.data ?? [])
   const pkg = detail.data
   const isLoading = detail.isPending || menuTree.isPending
 
