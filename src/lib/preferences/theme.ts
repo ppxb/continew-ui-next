@@ -12,7 +12,7 @@ export const THEME_COLOR_OPTIONS = [
   {
     value: 'blue',
     label: '蓝色',
-    primary: { light: 'oklch(0.546 0.245 262.881)', dark: 'oklch(0.707 0.165 254.624)' }
+    primary: { light: 'oklch(0.6231 0.188 259.8145)', dark: 'oklch(0.6231 0.188 259.8145)' }
   },
   {
     value: 'cyan',
@@ -32,7 +32,7 @@ export const THEME_COLOR_OPTIONS = [
   {
     value: 'amber',
     label: '琥珀',
-    primary: { light: 'oklch(0.666 0.179 58.318)', dark: 'oklch(0.828 0.189 84.429)' }
+    primary: { light: 'oklch(0.7686 0.1647 70.0804)', dark: 'oklch(0.7686 0.1647 70.0804)' }
   },
   {
     value: 'orange',
@@ -53,6 +53,11 @@ export const THEME_COLOR_OPTIONS = [
     value: 'violet',
     label: '紫罗兰',
     primary: { light: 'oklch(0.541 0.281 293.009)', dark: 'oklch(0.702 0.183 293.541)' }
+  },
+  {
+    value: 'slate',
+    label: '石板',
+    primary: { light: 'oklch(0.5854 0.2041 277.1173)', dark: 'oklch(0.6801 0.1583 276.9349)' }
   }
 ] as const
 
