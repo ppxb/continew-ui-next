@@ -1,0 +1,158 @@
+# continew-ui-next 前端代码审计清单
+
+> 审计时间：2026-11-04　审计方式：静态审计（只读，未改动任何业务代码）　对应分支：`master`
+> 覆盖范围：547 个 `.ts/.tsx`，包含共享层 `components/hooks/lib/stores`、system/tenant/monitor/schedule/open 后台页，以及 dashboard/chat/mail/auth/app-shell。
+> 约定：路径相对 `continew-ui-next/src`；`components/ui`、`components/calendar` 为 shadcn 原样组件，按要求不作为问题对象；行号对应当前代码。
+
+## 总体结论
+
+- **基础工程质量较好**：`DataTable / EntityDrawer / ListPageCard / QueryState / CopyButton / DetailField / TableToolbar / usePageClamp` 等共享件复用度高，TanStack Query/Form/Table v9 用法规范，绝大多数请求带 `AbortSignal`，主题 token 体系完整。
+- **主要欠账集中在两类**：① 每个业务页 `-components` 内各自复制一套“列表脚手架 / 删除弹窗 / 表单抽屉 / TextCell / 详情 hook / 选人弹窗”，形成大量同构样板；② dashboard 演示层大量硬编码状态色、字号与 mock，且 `(legacy)` 与新看板重复。
+- **真实缺陷不多但需优先**：登录页默认填入 `admin/admin123`（P1）、富文本未净化（XSS 风险）、两处 `console.log` 残留、一处“实时时钟”不走。
+- 计数：**P1 1 条**（另有 1 条安全加固建议）、**P2 约 30 条**、**P3 约 35 条**。
+
+---
+
+## P1｜安全与正确性（优先）
+
+| 编号 | 维度 | 位置 | 问题 | 建议 |
+|---|---|---|---|---|
+| P1-1 | 安全 | `routes/(main)/auth/-components/login-form.tsx:29-35` | `// FOR DEMO PURPOSES ONLY` 的 `DEFAULT_FORM={username:'admin',password:'admin123'}` 会打进生产包，登录框默认预填管理员凭据，存在泄露/误登录风险 | 默认值置空；演示账号用 `import.meta.env.DEV` 判断或 env 注入，禁止进生产 bundle |
+
+---
+
+## A. 冗余 / 重复 / 可复用（R）
+
+| 编号 | 级别 | 位置 | 问题 | 建议 |
+|---|---|---|---|---|
+| R01 | P2 | `components/app-shell/app-breadcrumb.tsx:27-56` 与 `components/app-shell/header/header-tabs.tsx:20-42,93-101` | 22 条 `STATIC_ROUTE_TITLES` 两处完全重复；`formatSegmentTitle` 与内联 `split(/[-_]/)` 同逻辑两份 | 抽到 `navigation/` 单一常量与函数，两处引用 |
+| R02 | P2 | `user-list.tsx:27-43`、`config-client.tsx:39-56`、`tenant-list.tsx:27-33`、`package-list.tsx:30-36`、`app-list.tsx:27-35`、`log-list.tsx:38-44`、`sms-log-list.tsx:32-37` 等 17 屏 | 列表页脚手架重复：各自 `EMPTY_ROWS/DEFAULT_SORT/HIDDEN_BY_DEFAULT` + `pagination/columnVisibility` 状态 + `useFullscreenTransition` + `usePageClamp` + 多个 overlay state；`STATUS_OPTIONS`（全部/启用/禁用）重复 6 处 | 抽 `useListPage` / `useTableQuery` 与共享 `STATUS_OPTIONS` |
+| R03 | P2 | `system/config/-components/sms/delete-dialog.tsx:31-52` 等约 14 个 `*-delete-dialog.tsx` | 删除/确认弹窗手写 `useState(isDeleting)+try/catch+finally` 复制十几遍（仅 client/dept/menu 已用 `useMutation`） | 抽 `DeleteConfirmDialog` / `useDeleteAction`（内置 `useMutation`、`isPending`、`reportError`） |
+| R04 | P3 | `client/form-drawer.tsx:204-243`、`sms/form-drawer.tsx:191-246`、`storage/form-drawer.tsx:319-365`、`user-form-drawer.tsx:330-349`、`role-form-drawer.tsx:144-194` 等 9+ 表单 | “`filledForRef` 一次性回填 + `reset(keepDefaultValues)` + 先 `validate('submit')` 再 `handleSubmit()` + rAF 聚焦首个 `[aria-invalid]`”样板逐字重复 | 抽 `useEntityForm` / `useFillFormOnce` |
+| R05 | P2 | `use-user-detail.ts:14-24`、`use-role-detail.ts`、`use-notice-detail.ts`、`use-tenant-detail.ts`、`use-app-detail.ts`、`use-package-detail.ts:17-27` | 6 个 `use*Detail` 除 key/fetch 外逐字相同（skipToken + enabled + staleTime 三元） | 抽 `useDetailQuery(key, fetch, opts)` 工厂 |
+| R06 | P2 | `dict-display.tsx:47`、`notice-display.tsx:63`、`user-columns.tsx:27`、`sms-log-columns.tsx:27`、`app-columns.tsx:25`、`tenant-display.tsx:4`、`job-display.tsx:10`、`package-columns.tsx:40`、`log-columns.tsx:27`、`online-user-columns.tsx:23` | 名为 `TextCell` 的空值占位/截断文本组件被复制约 10 次（两种实现） | 收敛为一个共享 `TextCell`（支持 truncate/title） |
+| R07 | P2 | `system/dept/-components/dept-parent-select.tsx:9-30`、`system/menu/-components/menu-parent-select.tsx:11-32` | `collectSubtreeIds` 22 行完全一致，仅类型不同 | 抽 `lib/collect-subtree-ids.ts` 泛型函数 |
+| R08 | P2 | `user-form-drawer.tsx:54-57`、`user-reset-password-dialog.tsx:28-29`、`tenant-form-drawer.tsx:36-39`、`tenant-admin-password-dialog.tsx:23-24` | `PASSWORD_PATTERN` 与 `PASSWORD_HINT` 原样复制 4 份 | 抽 `lib/password.ts` |
+| R09 | P2 | `crm/opportunities-section.tsx:42-44,194-247`、`tasks/tasks.tsx:35-48,127-238`、`roles-table/table.tsx:96-164`、`recent-customers-table/table.tsx:75-78,268-345`、`ecommerce/recent-orders.tsx:68-77,164-217`、`users-table.tsx` | 已有 `components/table-pagination.tsx`（`getPageNumbers`/`PAGE_SIZE_OPTIONS`）与 `DataTable`，6+ 看板仍各自重写分页，且页码窗口规则不一致 | 统一改用 `TablePagination`/`DataTable` |
+| R10 | P2 | `dashboard-access-trend.tsx:26`、`dashboard-distributions.tsx:13`、`dashboard-geo.tsx:7`、`dashboard-metrics.tsx:9`、`dashboard-notices.tsx:10` | `DASHBOARD_STALE_MS = 5*60_000` 重复 5 份 | 在 `lib/api/dashboard.ts` 导出 |
+| R11 | P2 | `notice-user-picker.tsx:37-206`、`role-user-add-dialog.tsx:104-254` | “用户搜索 + 复选列表 + 头像 + 加载更多”选人弹窗结构高度重复 | 抽共享 `UserPicker`，差异用 props |
+| R12 | P3 | `dict-table.tsx:12-16`、`storage/group-panel.tsx:15-19`、`infrastructure/project-environments.tsx:111`、`kanban/kanban.tsx:167`、`kanban-column.tsx:74` | 同一长串滚动条 Tailwind class 复制 4 份；`toLabelMap` 重复 2 份；`SCROLL_CONTAINER_CLASS/TABLE_CLASS` 重复 2 份 | 抽共享常量模块 |
+| R13 | P3 | `dashboard/(legacy)/**`（24 文件约 2716 行） | `default-v1/crm-v1/finance-v1` 与新 `default/crm/finance` 为同一批数据的旧拷贝；`analytics-overview/analytics-actions-*` 5 个组件仅被 `(legacy)/analytics-v1` 引用却放在新看板目录（死代码+目录错位） | 确认无价值后归档 legacy；迁移 analytics-* 到 legacy 目录 |
+| R14 | P3 | `dashboard/chat/route.tsx`、`dashboard/mail/route.tsx`、`dashboard/$.tsx`、`coming-soon/route.tsx`、`kanban/utils.ts` | chat/mail 两个几乎逐行的 iframe 预览壳；两处 404/开发中占位；`isColumnId` 重复实现、`findColumnId/findTask` 疑似死代码 | 参数化复用 / 删除死代码 |
+
+---
+
+## B. 过度防御（D）
+
+| 编号 | 级别 | 位置 | 问题 | 建议 |
+|---|---|---|---|---|
+| D01 | P2 | `config-storage.tsx:86-101`、`dict-manager.tsx:85-91` | `setDefaultMutation/statusMutation/clearCacheMutation` 无 `onError`，失败无任何提示（同页 sms 同类 mutation 有 `reportError`） | 统一补 `onError: err => reportError(err, '…')` |
+| D02 | P3 | `job-form-drawer.tsx:159,272-308` | 已有 `form.isSubmitting`，又维护 `submitLockRef` 手动加锁，重复防护 | 删除 `submitLockRef` |
+| D03 | P3 | `login-form.tsx:83-91`（及 `profile/password-form.tsx:86-94`） | `await form.validate('submit')` 后紧接 `handleSubmit()`（内部已校验），重复校验 + 多一次 rAF；且顶层 `validators.onDynamic` 与每字段 `validators.onDynamic` 双重校验 | 只调 `handleSubmit()`；校验规则只保留一层 |
+| D04 | P3 | `table-search.tsx:46-55` | 自实现 `setTimeout` 防抖，与 `hooks/use-debounced-value` 重复；`onSearchRef` 的 effect 每次渲染都跑 | 复用 `useDebouncedValue` |
+| D05 | P3 | `file-detail-drawer.tsx:21-29`、`file-delete-dialog.tsx:30-38`、`file-preview-dialog.tsx:28-36`、`user-reset-password-dialog.tsx:54-64` | 手写 `useState(lastX)+useEffect` 保留上一条记录，项目已有 `hooks/use-last-record` | 改用 `useLastRecord(record)` |
+
+---
+
+## C. 过度设计 / 脆弱实现（O）
+
+| 编号 | 级别 | 位置 | 问题 | 建议 |
+|---|---|---|---|---|
+| O01 | P3 | `notice-form-drawer.tsx:234`、`user-form-drawer.tsx:362`、`tenant-form-drawer.tsx:249`、`app-form-drawer.tsx:170`、`package-form-drawer.tsx:253`、`role-form-drawer.tsx:228` | 用 `detail.fetchStatus === 'idle'` 判断“数据就绪”，语义隐晦且与 `isPending/isFetching` 混用 | 封装 `isDetailReady`（`isSuccess \|\| !open`） |
+| O02 | P3 | `monitor/log/-components/log-list.tsx:74-75,122-125` | 同一详情浮层用 `detailId` 与 `isDetailOpen` 两个 state，`onClose` 只关后者不清前者，可能漂移 | 合并为 `detailId: T \| null` |
+| O03 | P3 | `tenant-form-drawer.tsx:247,508` | 取消按钮/`canClose` 直接读 `form.state.isSubmitting`（渲染快照），提交按钮用 `form.Subscribe`，其他表单用 `useSelector`，三种读法混用 | 统一 `useSelector(form.store, s=>s.isSubmitting)` |
+| O04 | P3 | `hooks/use-fullscreen-transition.ts`（147 行） | 大量手写 `Object.assign(el.style,…)` + 计时器实现 FLIP 全屏动画，复杂度高、难维护 | 评估用 CSS 过渡 / `motion` 简化，或至少封装为纯样式类 |
+
+---
+
+## D. 未遵循框架 / 库最佳实践（F）
+
+| 编号 | 级别 | 位置 | 问题 | 建议 |
+|---|---|---|---|---|
+| F01 | P2 | `mail/-components/mail.tsx:19-31` | `isMounted` + effect 门禁，纯 SPA 首帧必然挂载，额外一次 Loading 渲染 | 删除门禁，直接渲染桌面/移动布局 |
+| F02 | P2 | `schedule/job/-components/job-form-drawer.tsx:673-680` | 可增删的分片参数列表使用 `key={index}`，删除中间项会导致输入状态错位 | 为每行生成稳定 id 作 key |
+| F03 | P2 | `tenant-admin-password-dialog.tsx:33-74` | 用 `useState+手动正则+try/catch` 手写密码表单，同类 `user-reset-password-dialog` 已用 `useForm`；违反“表单统一 TanStack Form” | 改用 `useForm` + zod |
+| F04 | P2 | `dashboard/-components/analytics-overview.tsx:133` | `buildRevenueChartData` 用 `Math.random()` 生成“趋势”并存 state，每次进入数据跳变 | 用确定性数据 + `useMemo` 派生 |
+| F05 | P3 | `default/subscriber-overview.tsx:10`、`ecommerce/recent-orders.tsx:31` | mock 直接 `as XxxRow[]` 断言，而 crm 用 `schema.parse` 运行时校验，风格不一致 | 统一用 `schema.parse` |
+
+---
+
+## E. 低效 / 低性能（P）
+
+| 编号 | 级别 | 位置 | 问题 | 建议 |
+|---|---|---|---|---|
+| P01 | P2 | `dashboard/invoice/-components/use-visible-center-position.ts:19-64` | 每次 `scroll` 都 `getBoundingClientRect()` + `setLayout`（未 rAF 节流），且第 40 行残留 `console.log`（DEV 分支仍在生产逻辑路径） | 用 rAF 合并；删除 console.log |
+| P02 | P2 | `dashboard/logistics/-components/shipment-route-map.tsx:156-191` | `catch` 只 `console.error`，失败后地图空白无错误态/重试；div/svg/rect 三层同背景色冗余；多组 `#hex` 硬编码 | 补错误态；去重背景层；走语义色板 |
+| P03 | P2 | `system/dict/-components/dict-panel.tsx:56-63` | `DictGroup` 默认 `open=true` 且 `useQuery(enabled: open)`，进入字典页每个字典各发一次 `listDictItems`（N 字典 = N 并发） | 默认折叠，或仅展开时 `enabled` |
+| P04 | P2 | `chat/-components/data.ts`(1253 行)、`shipment-data.ts`(971)、`tasks/data.ts`(771)、`mail/data.tsx`(470)、`performance-overview.tsx:24-205` | 大体量静态 mock 内嵌组件/页面文件，增大首包与解析 | 抽到 `.json`/独立 data 文件或接接口 |
+| P05 | P3 | `patient-monitoring/-components/use-realtime-tick.ts:5-12` | `COMPACT/DETAIL_WAVEFORM_TICK_INTERVAL_MS` 均 100，却建两个独立 ticker，每 100ms 双定时器触发全波形重算 | 合并为单一 ticker/常量 |
+| P06 | P3 | `system/menu/-components/menu-list.tsx:206-224`、`system/dept/-components/dept-list.tsx:200-219` | 树表 `showPagination={false}`、`paginateExpandedRows:false`，全量渲染未虚拟化 | 大树引入 `@tanstack/react-virtual` |
+| P07 | P3 | `performance-overview.tsx:207`、`finance/upcoming-transactions.tsx:13`、`ecommerce/kpi-strip.tsx:29` | 模块顶层 `endOfToday()`/`new Date()` 计算，日期在加载时固化、久驻会过期 | 组件内 `useMemo`/渲染时计算 |
+| P08 | P3 | `patient-monitoring/route.tsx:19-32` | 顶部 `now=new Date()` 只取一次渲染，页面无 tick 订阅，“实时监护”时钟不走 | 用 `use-realtime-tick` 驱动 |
+| P09 | P3 | `hooks/use-site-options.ts:27` | 每次渲染 `new Map(...)`，未 memo | `useMemo` 缓存 |
+
+---
+
+## F. 原生 HTML 组件（N）
+
+> 先给结论：项目大量使用原生 `<button>` 作**可点击卡片 / 列表行 / 树展开 / 标签关闭**，这些符合语义，**不算问题**（`file-grid/file-table/patient-card/shipment-list/chat-conversation-list/mail-list/header-tabs/dept-columns/menu-columns`）。以下才是真正宜改的：
+
+| 编号 | 级别 | 位置 | 问题 | 建议 |
+|---|---|---|---|---|
+| N01 | P3 | `system/config/-components/site-preview.tsx:40-54` | “工作台/登录页”二选一用手写 `<button>` 组，同类切换项目已用 `ToggleGroup`（file-manager、file-type-chart） | 改 `ToggleGroup`/`ToggleGroupItem` |
+| N02 | P3 | `auth/-components/captcha-image.tsx:12-19` | 刷新验证码用 `<div onClick>`，非 `button`、不可键盘操作 | 改 `<button type="button">` 包裹 |
+| N03 | P3 | `components/app-shell/header/search-dialog.tsx:145` | 原生 `<kbd>` 而非 `components/ui/kbd` 的 `Kbd` | 改用 `Kbd` |
+| N04 | P3 | `components/expiry-picker.tsx:100-111` | 清除按钮用原生 `<button>` + `title` 属性，而非 `Button size="icon-xs"` + `Tooltip` | 复用 `Button`+`Tooltip`（参考 `CopyButton`） |
+| N05 | P3 | `config/-components/image-upload-field.tsx:50`、`site-preview.tsx:90,160` | `<img>` 缺 `alt` | 补 `alt` 或 `alt=""`（装饰性） |
+
+---
+
+## G. 多余 className / 在 shadcn 组件上额外加样式（S）
+
+| 编号 | 级别 | 位置 | 问题 | 建议 |
+|---|---|---|---|---|
+| S01 | P3 | `profile-header.tsx:96`、`patient-card.tsx:39`、`academy/kpi-cards.tsx:20,39`、`infrastructure-header.tsx:35-46`、`tasks/columns.tsx:122`、`roles-table/columns.tsx:46,66,98`、`dict-panel.tsx:116` 等 | 在 `Badge` 上叠 `rounded-*/border-*/bg-*/h-*/text-[10px]`，覆盖其 `variant` 已有样式 | 用合适 `variant`/`tone`，勿逐处覆盖 |
+| S02 | P3 | `finance/quick-actions.tsx:82`（`size-12 rounded-full`）、`analytics-drivers-coverage-triage.tsx:75`（`size="sm"`+`h-7 px-3 text-xs`）、`layout-controls.tsx:235`（`size="sm"`+`text-xs`）、`sms/columns.tsx:43-47`（`size="icon"`+`size-8`）、`file-list-view.tsx:40` | 在 `Button` 上重复声明尺寸/字号/圆角，已有 `xs/sm/icon-*` 变体 | 改用对应 size 变体 |
+| S03 | P3 | `chat-header.tsx:12-13`、`mail-inbox.tsx:46-47`、`users.tsx:86,91`、`roles.tsx:116`、`shipment-list.tsx:162-163`、`checkable-tree.tsx:111,119` | `InputGroup className="h-7/8"` 与 `InputGroupInput className="h-7/8"` 重复设置同一高度 | 只在容器设一次高度 |
+| S04 | P3 | `roles.tsx:102`、`patient-monitoring.tsx:63,69` | 在 `Alert` 上硬编码整组 `border-amber-*/bg-amber-*/text-amber-*`，覆盖 variant | 用 Alert variant / 状态 tone |
+| S05 | P3 | `app-reset-secret-dialog.tsx:68,85`、`app-secret-dialog.tsx:103-107`、`menu-list.tsx:181`、`dict-toolbar.tsx:44` | 在 `AlertDialogAction variant="destructive"` 上再叠 `className` 改背景色（amber），与变体语义冲突 | 用语义 token，不覆盖变体配色 |
+| S06 | P3 | `chat-conversation-list.tsx:64,82`、`layout-controls.tsx:70`、`patient-monitoring.tsx:91` | 用 `**:data-[slot=…]` 深层选择器大幅改写子组件样式 | 收敛为组件变体或局部包装类 |
+
+---
+
+## H. UI 风格不统一 / 硬编码颜色 / 排版（U）
+
+| 编号 | 级别 | 位置 | 问题 | 建议 |
+|---|---|---|---|---|
+| U01 | P2 | `crm/kpi-cards.tsx:28-31,77-80,103-106`、`analytics/analytics-kpi-strip.tsx:20,46,98`、`finance/overview-kpis.tsx:17,30,58`、`tasks/columns.tsx:27-33`、`ecommerce/recent-orders-table/columns.tsx:30,50,63`、`kanban/task-card.tsx:29-48,150`、`finance/wallet.tsx:108-109` | 状态色写死 `bg-green-500/10 text-green-700 …`（同串多处重复）、`text-amber-500`、`text-sky-700`、`shadow-[0_0_8px_rgba(...)]`，未用现成 `status-success/warning/caution` token 与 `StatusBadge` | 统一走 `StatusBadge`/状态 token |
+| U02 | P2 | `users/-components/users-columns.tsx:46-61` | `getAvatarTone` 内联 10 组 Tailwind 原色巨型色表，绕过主题 token | 收敛为少量语义 tone 或 CSS 变量 |
+| U03 | P3 | 全项目 45 处 `text-[9px]/[10px]/[11px]`（如 `patient-card.tsx:39`、`analytics-actions-manager-queue.tsx:49,110`、`site-preview.tsx:78…`） | 任意字号散落，缺少统一排版刻度 | 定义 `text-2xs/3xs` 或统一到 `xs` |
+| U04 | P3 | `chat-conversation-list.tsx:82`（`w-1.5`）、`dict-table.tsx:14`/`infrastructure:111`/`kanban:167`（`h-1`）、`ui/scroll-area.tsx`（`w-2.5`） | 滚动条规格三套并存 | 统一 `globals.css` 紧凑滚动条工具类 |
+| U05 | P3 | `shipment-route-map.tsx:171-191`（`#d4dadc/#fafaf8/…`）、`invoice-paper.tsx:82`（`border-[oklch(0.86_0_0)]`） | 硬编码颜色绕过 token（地图/纸张属刻意，但应集中为共享色板） | 抽地图/纸张共享色板并注明例外 |
+| U06 | P3 | `dashboard/analytics/route.tsx:23`、`dashboard/productivity/route.tsx:23` | 标题写死 “Hello, Aiy” / “Good morning, Arham.”，未取当前用户名（`dashboard/index.tsx:25` 已示范） | 从 `useAuthStore` 取昵称 |
+
+---
+
+## 安全加固建议（补充）
+
+| 编号 | 级别 | 位置 | 问题 | 建议 |
+|---|---|---|---|---|
+| SEC-1 | P2 | `components/rich-text-editor.tsx:34` | `RichTextContent` 直接 `dangerouslySetInnerHTML={{ __html: html }}`，公告正文若来自非受信来源存在存储型 XSS 风险 | 渲染前用 DOMPurify 等净化，或仅渲染受信 HTML |
+
+---
+
+## 建议的修复顺序（Top 8）
+
+1. **删掉登录页默认凭据**（P1-1）——最高优先，且改动极小。
+2. **富文本净化**：`rich-text-editor.tsx:34` 的 `dangerouslySetInnerHTML` 加 DOMPurify 或仅渲染受信 HTML。
+3. **抽 `DeleteConfirmDialog` + `useDetailQuery` + `TextCell`**：一次消除约 14 个删除弹窗、6 个详情 hook、10 个 TextCell 的重复（R03/R05/R06）。
+4. **统一列表页脚手架**（R02/R09）：收敛 `useListPage` 与 `TablePagination`，同时删掉 6 处看板分页副本。
+5. **清理 dashboard 演示层硬编码**（U01/U02/S01）：状态色与头像色表改走 `StatusBadge`/token。
+6. **删 legacy 重复**（R13）：确认无入口后归档 2716 行旧看板，并把 `analytics-*` 归位。
+7. **性能小修**：`use-visible-center-position` 去掉 console.log 并 rAF 节流（P01）、`dict-panel` 改默认折叠（P03）、修静态时钟（P08）。
+8. **风格收尾**：`aria-label` 全面改为可见文本/`Tooltip`、`text-[10px]` 收敛、滚动条统一。
+   注：项目 `AGENTS.md` 明确禁止在 `src/components/ui` 之外使用 `aria-label`，而当前应用代码约有 58 处（如 `layout-controls.tsx:116-209`、`chat-header.tsx:20-26`、`mail-view.tsx`、`patient-card.tsx:22`、各 `*-columns.tsx` 复选/操作列），应统一改为 `sr-only` 文本或 `Tooltip`。
+
+---
+
+> 说明：本清单为静态审计，未做运行时性能剖析；`P3` 多为风格/维护建议，可按排期处理。
