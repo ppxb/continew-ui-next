@@ -3,6 +3,7 @@ import type { ColumnDef } from '@tanstack/react-table'
 import { Eye, KeyRound, MoreHorizontal, Pen, RotateCcw, Trash2 } from 'lucide-react'
 
 import { StatusCell } from '@/components/status-cell'
+import { TextCell } from '@/components/text-cell'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -14,17 +15,12 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import type { AppResp } from '@/lib/api/app'
-import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 
 import { AccessKeyCell, ExpireTimeCell } from './app-display'
 
 /** The row actions the table raises. */
 export type AppAction = 'detail' | 'edit' | 'secret' | 'resetSecret' | 'delete'
-
-function TextCell({ value }: { value: string | null }) {
-  return <span>{value || EMPTY_PLACEHOLDER}</span>
-}
 
 type TextColumnKey = 'description' | 'createUserString' | 'createTime' | 'updateUserString' | 'updateTime'
 

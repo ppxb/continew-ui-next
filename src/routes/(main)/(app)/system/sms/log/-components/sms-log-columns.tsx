@@ -2,6 +2,7 @@ import type { ColumnDef } from '@tanstack/react-table'
 import { MoreHorizontal, Trash2 } from 'lucide-react'
 
 import { SuccessFailureCell } from '@/components/status-cell'
+import { TextCell } from '@/components/text-cell'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -12,7 +13,6 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import type { SmsLogResp } from '@/lib/api/sms-log'
-import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 
 type SmsLogColumn = ColumnDef<DataTableFeatures, SmsLogResp>
@@ -29,15 +29,6 @@ interface SmsLogColumnOptions {
   /** The delete action needs `system:smsLog:delete`; the column is dropped without it. */
   readonly canDelete: boolean
   readonly onDelete: (log: SmsLogResp) => void
-}
-
-function TextCell({ value }: { value: string | null }) {
-  return <span>{value || EMPTY_PLACEHOLDER}</span>
-}
-
-/** The template parameters and the provider response can both be long JSON strings. */
-function LongTextCell({ value }: { value: string | null }) {
-  return <span className="block max-w-72">{value || EMPTY_PLACEHOLDER}</span>
 }
 
 function textColumn(key: TextColumnKey, header: string): SmsLogColumn {
@@ -83,7 +74,7 @@ export function createSmsLogColumns({ rowOffset, canDelete, onDelete }: SmsLogCo
     {
       accessorKey: 'params',
       header: '参数配置',
-      cell: ({ row }) => <LongTextCell value={row.original.params} />
+      cell: ({ row }) => <TextCell value={row.original.params} maxWidth="max-w-72" truncate={false} />
     },
     {
       accessorKey: 'status',
@@ -93,7 +84,7 @@ export function createSmsLogColumns({ rowOffset, canDelete, onDelete }: SmsLogCo
     {
       accessorKey: 'resMsg',
       header: '返回数据',
-      cell: ({ row }) => <LongTextCell value={row.original.resMsg} />
+      cell: ({ row }) => <TextCell value={row.original.resMsg} maxWidth="max-w-72" truncate={false} />
     },
     textColumn('createUserString', '操作人'),
     textColumn('createTime', '操作时间')

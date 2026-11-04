@@ -2,6 +2,7 @@ import type { ColumnDef } from '@tanstack/react-table'
 import { Eye, MoreHorizontal, Pen, Trash2 } from 'lucide-react'
 
 import { StatusCell } from '@/components/status-cell'
+import { TextCell } from '@/components/text-cell'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -13,7 +14,6 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import type { PackageResp } from '@/lib/api/package'
-import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 
 type PackageColumn = ColumnDef<DataTableFeatures, PackageResp>
@@ -35,10 +35,6 @@ interface PackageColumnOptions {
   readonly canUpdate: boolean
   readonly canDelete: boolean
   readonly onAction: (action: PackageAction, pkg: PackageResp) => void
-}
-
-function TextCell({ value }: { value: string | number | null | undefined }) {
-  return <span className="text-sm">{value || value === 0 ? value : EMPTY_PLACEHOLDER}</span>
 }
 
 function textColumn(key: TextColumnKey, header: string): PackageColumn {

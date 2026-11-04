@@ -4,6 +4,7 @@ import { Eye, MoreHorizontal, PenLine, Trash2 } from 'lucide-react'
 import { CopyButton } from '@/components/copy-button'
 import { FlagBadge, TagList, TypeBadge, type TypeTone } from '@/components/data-badge'
 import { StatusCell } from '@/components/status-cell'
+import { TextCell } from '@/components/text-cell'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -57,10 +58,6 @@ const CLIENT_TYPE_TONES: Record<string, TypeTone> = {
 }
 
 export type ClientAction = 'detail' | 'edit' | 'delete'
-
-function TextCell({ value }: { value: string | null | undefined }) {
-  return <span className="text-sm">{value || EMPTY_PLACEHOLDER}</span>
-}
 
 function ClientIdCell({ clientId }: { clientId: string }) {
   return (

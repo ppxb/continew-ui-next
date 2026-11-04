@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
 
 import { StatusCell } from '@/components/status-cell'
+import { TextCell } from '@/components/text-cell'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -15,7 +16,7 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import type { DictItemResp } from '@/lib/api/dict'
 
-import { DictLabelBadge, TextCell } from './dict-display'
+import { DictLabelBadge } from './dict-display'
 
 export type DictItemAction = 'update' | 'delete'
 

@@ -1,6 +1,7 @@
 import { type ColumnDef } from '@tanstack/react-table'
 import { Eye, MoreHorizontal, Pen, Play, ScrollText, Trash2 } from 'lucide-react'
 
+import { TextCell } from '@/components/text-cell'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -14,7 +15,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import type { JobResp, JobStatus } from '@/lib/api/job'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 
-import { JobStatusSwitch, TaskTypeCell, TextCell, TriggerTypeCell } from './job-display'
+import { JobStatusSwitch, TaskTypeCell, TriggerTypeCell } from './job-display'
 
 /** The row actions the table raises. */
 export type JobAction = 'detail' | 'trigger' | 'edit' | 'logs' | 'delete'

@@ -3,6 +3,7 @@ import { Eye, KeyRound, MoreHorizontal, Pen, Trash2 } from 'lucide-react'
 
 import { CopyableText } from '@/components/copyable-text'
 import { StatusCell } from '@/components/status-cell'
+import { TextCell } from '@/components/text-cell'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -16,7 +17,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import type { TenantResp } from '@/lib/api/tenant'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 
-import { DomainCell, ExpireTimeCell, TextCell } from './tenant-display'
+import { DomainCell, ExpireTimeCell } from './tenant-display'
 
 /** The row actions the table raises. */
 export type TenantAction = 'detail' | 'edit' | 'adminPassword' | 'delete'

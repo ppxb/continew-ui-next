@@ -1,6 +1,7 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import { LogOut } from 'lucide-react'
 
+import { TextCell } from '@/components/text-cell'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import type { OnlineUserResp } from '@/lib/api/online'
@@ -18,10 +19,6 @@ interface OnlineUserColumnOptions {
   /** The backend rejects kicking out the session that sends the request. */
   readonly isCurrentSession: (sessionId: string) => boolean
   readonly onKickout: (user: OnlineUserResp) => void
-}
-
-function TextCell({ value }: { value: string }) {
-  return <span>{value || EMPTY_PLACEHOLDER}</span>
 }
 
 function textColumn(key: TextColumnKey, header: string): OnlineUserColumn {

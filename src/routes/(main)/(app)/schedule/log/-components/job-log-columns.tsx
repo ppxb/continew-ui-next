@@ -1,6 +1,7 @@
 import { type ColumnDef } from '@tanstack/react-table'
 import { MoreHorizontal, RotateCcw, Square } from 'lucide-react'
 
+import { TextCell } from '@/components/text-cell'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -13,7 +14,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import type { JobLogResp } from '@/lib/api/job-log'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 
-import { JobExecuteStatusBadge, OperationReasonCell, TextCell } from './job-log-display'
+import { JobExecuteStatusBadge, OperationReasonCell } from './job-log-display'
 
 /** The row actions the table raises. */
 export type JobLogAction = 'stop' | 'retry'

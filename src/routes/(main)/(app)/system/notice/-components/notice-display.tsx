@@ -1,5 +1,3 @@
-import { cn } from 'cn'
-
 import { StatusBadge, type StatusTone } from '@/components/status-cell'
 import { Badge } from '@/components/ui/badge'
 import type { NoticeStatus } from '@/lib/api/notice'
@@ -56,18 +54,5 @@ export function NoticeTypeBadge({ type, options }: { type?: string | null; optio
     <Badge variant="secondary" className="font-normal">
       {noticeOptionLabel(options, type)}
     </Badge>
-  )
-}
-
-/** A compact, truncating text cell with the value exposed through the native title. */
-export function TextCell({ value, className }: { value?: string | number | null; className?: string }) {
-  if (value === null || value === undefined || value === '') {
-    return <span className="text-sm text-muted-foreground">{EMPTY_PLACEHOLDER}</span>
-  }
-
-  return (
-    <span className={cn('block max-w-56 truncate text-sm', className)} title={String(value)}>
-      {value}
-    </span>
   )
 }

@@ -3,6 +3,7 @@ import type { ColumnDef, ColumnVisibilityState } from '@tanstack/react-table'
 import { Eye, FileText, MoreHorizontal, Pen, Trash2 } from 'lucide-react'
 
 import { FlagBadge } from '@/components/data-badge'
+import { TextCell } from '@/components/text-cell'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -17,7 +18,7 @@ import { usePermission } from '@/hooks/use-permission'
 import type { NoticeResp } from '@/lib/api/notice'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 
-import { NoticeMethodTags, NoticeStatusBadge, NoticeTypeBadge, noticeOptionLabel, TextCell } from './notice-display'
+import { NoticeMethodTags, NoticeStatusBadge, NoticeTypeBadge, noticeOptionLabel } from './notice-display'
 import type { NoticeDicts } from './use-notice-dicts'
 
 export type NoticeAction = 'detail' | 'view' | 'edit' | 'delete'

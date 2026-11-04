@@ -6,11 +6,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { JOB_TASK_TYPE_LABELS, JOB_TRIGGER_TYPE_LABELS, type JobResp, type JobStatus } from '@/lib/api/job'
 import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 
-/** A plain text cell, with the shared placeholder for what the backend left empty. */
-export function TextCell({ value }: { value: string | number | null | undefined }) {
-  return <span className="text-sm">{value || value === 0 ? value : EMPTY_PLACEHOLDER}</span>
-}
-
 /** The trigger type plus what it actually schedules: seconds or a Quartz expression. */
 export function TriggerTypeCell({ job }: { job: JobResp }) {
   const label = JOB_TRIGGER_TYPE_LABELS[job.triggerType] ?? EMPTY_PLACEHOLDER

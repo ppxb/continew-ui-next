@@ -2,11 +2,6 @@ import { StatusBadge, type StatusTone } from '@/components/status-cell'
 import { JOB_EXECUTE_REASON_LABELS, JOB_EXECUTE_STATUS_LABELS, type JobExecuteStatus } from '@/lib/api/job-log'
 import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 
-/** A plain text cell, with the shared placeholder for what the backend left empty. */
-export function TextCell({ value }: { value: string | number | null | undefined }) {
-  return <span className="text-sm">{value || value === 0 ? value : EMPTY_PLACEHOLDER}</span>
-}
-
 const STATUS_TONES: Record<JobExecuteStatus, StatusTone> = {
   1: 'info',
   2: 'warning',

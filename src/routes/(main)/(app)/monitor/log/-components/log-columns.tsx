@@ -1,8 +1,8 @@
 import type { ColumnDef } from '@tanstack/react-table'
 
+import { TextCell } from '@/components/text-cell'
 import { Button } from '@/components/ui/button'
 import type { LogResp } from '@/lib/api/log'
-import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 
 import { LogStatusCell, TimeTakenCell } from './log-display'
@@ -22,10 +22,6 @@ interface OperationColumnOptions {
   readonly rowOffset: number
   readonly canViewDetail: boolean
   readonly onDetail: (log: LogResp) => void
-}
-
-function TextCell({ value }: { value: string | null }) {
-  return <span>{value || EMPTY_PLACEHOLDER}</span>
 }
 
 function textColumn(key: TextColumnKey, header: string): LogColumn {

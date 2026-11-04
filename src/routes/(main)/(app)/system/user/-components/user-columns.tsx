@@ -3,6 +3,7 @@ import { Eye, KeyRound, MoreHorizontal, Pen, ShieldCheck, Trash2 } from 'lucide-
 
 import { FlagBadge } from '@/components/data-badge'
 import { StatusCell } from '@/components/status-cell'
+import { TextCell } from '@/components/text-cell'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
@@ -15,7 +16,6 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import type { UserResp } from '@/lib/api/user'
-import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 import { getInitials } from '@/lib/utils'
 
@@ -23,10 +23,6 @@ import { genderLabel, RoleCell } from './user-display'
 
 /** The row actions the table raises. */
 export type UserAction = 'detail' | 'edit' | 'resetPassword' | 'assignRoles' | 'delete'
-
-function TextCell({ value }: { value: string | null }) {
-  return <span>{value || EMPTY_PLACEHOLDER}</span>
-}
 
 type TextColumnKey =
   | 'deptName'
