@@ -1,7 +1,9 @@
 import * as React from 'react'
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import { type ColumnVisibilityState, type PaginationState, useTable } from '@tanstack/react-table'
+
+import { type ColumnVisibilityState, type PaginationState } from '@tanstack/react-table'
+
 import { Download, Plus, Upload } from 'lucide-react'
+
 import { DataTable } from '@/components/data-table'
 import { FilterSelect } from '@/components/filter-select'
 import { ListPageCard } from '@/components/list-page-card'
@@ -12,9 +14,9 @@ import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
 import { useExport } from '@/hooks/use-export'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
-import { usePageClamp } from '@/hooks/use-page-clamp'
+import { useListTable } from '@/hooks/use-list-table'
 import { exportUsers, listUsers, userKeys, type UserResp, type UserStatus } from '@/lib/api/user'
-import { dataTableFeatures } from '@/lib/data-table-features'
+import type { PageResp } from '@/lib/api/types'
 
 import { DeptTreeSelect } from './dept-tree-select'
 import { UserAssignRolesDialog } from './user-assign-roles-dialog'
@@ -34,8 +36,6 @@ const HIDDEN_BY_DEFAULT: ColumnVisibilityState = {
 /** The user query sorts on its own `t1` table alias. */
 const DEFAULT_SORT = 't1.id,desc'
 
-const EMPTY_ROWS: UserResp[] = []
-
 const STATUS_OPTIONS = [
   { value: 'all', label: '全部' },
   { value: '1', label: '启用' },
@@ -43,8 +43,6 @@ const STATUS_OPTIONS = [
 ]
 
 export function UserList() {
-  const [pagination, setPagination] = React.useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
-  const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>(HIDDEN_BY_DEFAULT)
   const [deptId, setDeptId] = React.useState<string | number | undefined>(undefined)
   const [status, setStatus] = React.useState<UserStatus | undefined>(undefined)
   const [keyword, setKeyword] = React.useState('')
@@ -57,32 +55,6 @@ export function UserList() {
   const [deletingUser, setDeletingUser] = React.useState<UserResp | null>(null)
   const fullscreen = useFullscreenTransition()
   const { isExporting, exportData } = useExport(exportUsers)
-
-  const resetPage = React.useCallback(() => {
-    setPagination(current => (current.pageIndex === 0 ? current : { ...current, pageIndex: 0 }))
-  }, [])
-
-  const handleSearch = React.useCallback(
-    (next: string) => {
-      setKeyword(next)
-      resetPage()
-    },
-    [resetPage]
-  )
-
-  const queryFilters = { status, deptId, description: keyword || undefined, sort: DEFAULT_SORT }
-  const params = { page: pagination.pageIndex + 1, size: pagination.pageSize, ...queryFilters }
-
-  const query = useQuery({
-    queryKey: userKeys.list(params),
-    queryFn: ({ signal }) => listUsers(params, signal),
-    placeholderData: keepPreviousData
-  })
-
-  const total = query.data?.total ?? 0
-  const rowOffset = pagination.pageIndex * pagination.pageSize
-
-  usePageClamp(total, pagination, setPagination)
 
   const handleRowAction = React.useCallback((action: UserAction, user: UserResp) => {
     if (action === 'detail') {
@@ -110,24 +82,43 @@ export function UserList() {
     }
   }, [])
 
-  const columns = React.useMemo(() => createUserColumns(handleRowAction, rowOffset), [handleRowAction, rowOffset])
+  const buildQuery = React.useCallback(
+    (pagination: PaginationState) => {
+      const params = {
+        page: pagination.pageIndex + 1,
+        size: pagination.pageSize,
+        status,
+        deptId,
+        description: keyword || undefined,
+        sort: DEFAULT_SORT
+      }
+      return { queryKey: userKeys.list(params), queryFn: (signal: AbortSignal) => listUsers(params, signal) }
+    },
+    [status, deptId, keyword]
+  )
 
-  const table = useTable({
-    features: dataTableFeatures,
-    data: query.data?.list ?? EMPTY_ROWS,
-    columns,
-    state: { columnVisibility, pagination },
-    manualPagination: true,
-    rowCount: total,
-    pageCount: Math.max(Math.ceil(total / pagination.pageSize), 1),
-    autoResetPageIndex: false,
-    onColumnVisibilityChange: setColumnVisibility,
-    onPaginationChange: setPagination,
-    getRowId: row => String(row.id)
+  const buildColumns = React.useCallback(
+    (rowOffset: number) => createUserColumns(handleRowAction, rowOffset),
+    [handleRowAction]
+  )
+
+  const { query, table, resetPage, resetColumns } = useListTable<UserResp, PageResp<UserResp>>({
+    buildQuery,
+    buildColumns,
+    getRowId: row => String(row.id),
+    initialColumnVisibility: HIDDEN_BY_DEFAULT
   })
 
   // HIDDEN_BY_DEFAULT leaves 12 columns visible; only widen when more are enabled.
   const hasManyColumns = table.getVisibleLeafColumns().length > 12
+
+  const handleSearch = React.useCallback(
+    (next: string) => {
+      setKeyword(next)
+      resetPage()
+    },
+    [resetPage]
+  )
 
   const handleDeptChange = (value: string) => {
     setDeptId(value || undefined)
@@ -138,6 +129,8 @@ export function UserList() {
     setStatus(!value || value === 'all' ? undefined : (Number(value) as UserStatus))
     resetPage()
   }
+
+  const queryFilters = { status, deptId, description: keyword || undefined, sort: DEFAULT_SORT }
 
   const filters = (
     <>
@@ -174,7 +167,7 @@ export function UserList() {
       isFullscreen={fullscreen.isFullscreen}
       onRefresh={() => void query.refetch()}
       onToggleFullscreen={fullscreen.toggleFullscreen}
-      onResetColumns={() => setColumnVisibility(HIDDEN_BY_DEFAULT)}
+      onResetColumns={resetColumns}
       actions={
         <>
           <Button className="w-full sm:w-auto" onClick={() => setFormTarget({ userId: null })}>

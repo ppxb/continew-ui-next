@@ -9,7 +9,7 @@
 - **基础工程质量较好**：`DataTable / EntityDrawer / ListPageCard / QueryState / CopyButton / DetailField / TableToolbar / usePageClamp` 等共享件复用度高，TanStack Query/Form/Table v9 用法规范，绝大多数请求带 `AbortSignal`，主题 token 体系完整。
 - **主要欠账集中在两类**：① 每个业务页 `-components` 内各自复制一套“列表脚手架 / 删除弹窗 / 表单抽屉 / TextCell / 详情 hook / 选人弹窗”，形成大量同构样板；② dashboard 演示层大量硬编码状态色、字号与 mock，且 `(legacy)` 与新看板重复。
 - **真实缺陷不多但需优先**：登录页默认填入 `admin/admin123`（P1）、富文本未净化（XSS 风险）、两处 `console.log` 残留、一处“实时时钟”不走。
-- 计数：**P1 1 条**（另有 1 条安全加固建议）、**P2 约 30 条**、**P3 约 35 条**；其中 **R01 已修复（2026-11-04）**。
+- 计数：**P1 1 条**（另有 1 条安全加固建议）、**P2 约 30 条**、**P3 约 35 条**；其中 **R01 已修复（2026-11-04）**，**R02 已迁移主要列表页（2026-11-04）**。
 
 ---
 
@@ -26,7 +26,7 @@
 | 编号 | 级别 | 位置 | 问题 | 建议 |
 |---|---|---|---|---|
 | R01 | P2（✅ 已修复 2026-11-04） | `components/app-shell/app-breadcrumb.tsx:27-56` 与 `components/app-shell/header/header-tabs.tsx:20-42,93-101`（原行号） | 22 条 `STATIC_ROUTE_TITLES` 两处完全重复；`formatSegmentTitle` 与内联 `split(/[-_]/)` 同逻辑两份 | 已抽到 `src/navigation/route-titles.ts`（`STATIC_ROUTE_TITLES`/`STATIC_ROUTE_ICONS`/`formatSegmentTitle`），两处改为 import |
-| R02 | P2 | `user-list.tsx:27-43`、`config-client.tsx:39-56`、`tenant-list.tsx:27-33`、`package-list.tsx:30-36`、`app-list.tsx:27-35`、`log-list.tsx:38-44`、`sms-log-list.tsx:32-37` 等 17 屏 | 列表页脚手架重复：各自 `EMPTY_ROWS/DEFAULT_SORT/HIDDEN_BY_DEFAULT` + `pagination/columnVisibility` 状态 + `useFullscreenTransition` + `usePageClamp` + 多个 overlay state；`STATUS_OPTIONS`（全部/启用/禁用）重复 6 处 | 抽 `useListPage` / `useTableQuery` 与共享 `STATUS_OPTIONS` |
+| R02 | P2（✅ 大部分已修复 2026-11-04） | `user-list.tsx:27-43`、`config-client.tsx:39-56`、`tenant-list.tsx:27-33`、`package-list.tsx:30-36`、`app-list.tsx:27-35`、`log-list.tsx:38-44`、`sms-log-list.tsx:32-37` 等 17 屏 | 列表页脚手架重复：各自 `EMPTY_ROWS/DEFAULT_SORT/HIDDEN_BY_DEFAULT` + `pagination/columnVisibility` 状态 + `useFullscreenTransition` + `usePageClamp` + 多个 overlay state；`STATUS_OPTIONS`（全部/启用/禁用）重复 6 处 | 已抽 `src/hooks/use-list-table.ts` 并迁移 12 个服务端分页列表页；`role-list`（本地分页）、`config-storage`（不分页）、`dept/menu`（树表）保持独立；`STATUS_OPTIONS` 待统一 |
 | R03 | P2 | `system/config/-components/sms/delete-dialog.tsx:31-52` 等约 14 个 `*-delete-dialog.tsx` | 删除/确认弹窗手写 `useState(isDeleting)+try/catch+finally` 复制十几遍（仅 client/dept/menu 已用 `useMutation`） | 抽 `DeleteConfirmDialog` / `useDeleteAction`（内置 `useMutation`、`isPending`、`reportError`） |
 | R04 | P3 | `client/form-drawer.tsx:204-243`、`sms/form-drawer.tsx:191-246`、`storage/form-drawer.tsx:319-365`、`user-form-drawer.tsx:330-349`、`role-form-drawer.tsx:144-194` 等 9+ 表单 | “`filledForRef` 一次性回填 + `reset(keepDefaultValues)` + 先 `validate('submit')` 再 `handleSubmit()` + rAF 聚焦首个 `[aria-invalid]`”样板逐字重复 | 抽 `useEntityForm` / `useFillFormOnce` |
 | R05 | P2 | `use-user-detail.ts:14-24`、`use-role-detail.ts`、`use-notice-detail.ts`、`use-tenant-detail.ts`、`use-app-detail.ts`、`use-package-detail.ts:17-27` | 6 个 `use*Detail` 除 key/fetch 外逐字相同（skipToken + enabled + staleTime 三元） | 抽 `useDetailQuery(key, fetch, opts)` 工厂 |
@@ -160,6 +160,7 @@
 | 日期 | 编号 | 处理 | 涉及文件 |
 |---|---|---|---|
 | 2026-11-04 | R01 | 抽出共享路由标题/图标/分段格式化，删除两处重复（约 -80 行重复代码） | 新增 `src/navigation/route-titles.ts`；改 `components/app-shell/header/header-tabs.tsx`、`components/app-shell/app-breadcrumb.tsx`；改动前备份至 `backups/2026-11-04-*.bak` |
+| 2026-11-04 | R02 | 新增 `useListTable` 统一分页/列显隐/查询/页码回退/表格接线，迁移 12 个服务端分页列表页（每页约 -15~-22 行） | 新增 `src/hooks/use-list-table.ts`；迁移 config-client、tenant-list、package-list、notice-list、app-list、online-user-list、log-list、user-list、job-list、job-log-list、sms-log-list、config-sms；备份至 `backups/2026-11-04-*.bak` |
 
 ---
 

@@ -1,7 +1,6 @@
 import * as React from 'react'
 
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import { type ColumnVisibilityState, type PaginationState, useTable } from '@tanstack/react-table'
+import { type ColumnVisibilityState, type PaginationState } from '@tanstack/react-table'
 
 import { Download, Plus } from 'lucide-react'
 
@@ -13,9 +12,9 @@ import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 import { useExport } from '@/hooks/use-export'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
-import { usePageClamp } from '@/hooks/use-page-clamp'
+import { useListTable } from '@/hooks/use-list-table'
 import { appKeys, type AppResp, exportApps, listApps } from '@/lib/api/app'
-import { dataTableFeatures } from '@/lib/data-table-features'
+import type { PageResp } from '@/lib/api/types'
 
 import { type AppAction, createAppColumns } from './app-columns'
 import { AppDeleteDialog } from './app-delete-dialog'
@@ -32,11 +31,7 @@ const HIDDEN_BY_DEFAULT: ColumnVisibilityState = {
 
 const DEFAULT_SORT = 'id,desc'
 
-const EMPTY_ROWS: AppResp[] = []
-
 export function AppList() {
-  const [pagination, setPagination] = React.useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
-  const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>(HIDDEN_BY_DEFAULT)
   const [keyword, setKeyword] = React.useState('')
   // One state per overlay: a null value means it is closed, so "which record" and "is it open" can
   // never drift apart. The form drawer holds an object, because a null id there means 新增.
@@ -47,29 +42,6 @@ export function AppList() {
   const [deletingApp, setDeletingApp] = React.useState<AppResp | null>(null)
   const fullscreen = useFullscreenTransition()
   const { isExporting, exportData } = useExport(exportApps)
-
-  const resetPage = () => {
-    setPagination(current => (current.pageIndex === 0 ? current : { ...current, pageIndex: 0 }))
-  }
-
-  const handleSearch = (next: string) => {
-    setKeyword(next)
-    resetPage()
-  }
-
-  const queryFilters = { description: keyword || undefined, sort: DEFAULT_SORT }
-  const params = { page: pagination.pageIndex + 1, size: pagination.pageSize, ...queryFilters }
-
-  const query = useQuery({
-    queryKey: appKeys.list(params),
-    queryFn: ({ signal }) => listApps(params, signal),
-    placeholderData: keepPreviousData
-  })
-
-  const total = query.data?.total ?? 0
-  const rowOffset = pagination.pageIndex * pagination.pageSize
-
-  usePageClamp(total, pagination, setPagination)
 
   const handleRowAction = React.useCallback((action: AppAction, app: AppResp) => {
     if (action === 'detail') {
@@ -95,21 +67,37 @@ export function AppList() {
     setDeletingApp(app)
   }, [])
 
-  const columns = React.useMemo(() => createAppColumns(handleRowAction, rowOffset), [handleRowAction, rowOffset])
+  const buildQuery = React.useCallback(
+    (pagination: PaginationState) => {
+      const params = {
+        page: pagination.pageIndex + 1,
+        size: pagination.pageSize,
+        description: keyword || undefined,
+        sort: DEFAULT_SORT
+      }
+      return { queryKey: appKeys.list(params), queryFn: (signal: AbortSignal) => listApps(params, signal) }
+    },
+    [keyword]
+  )
 
-  const table = useTable({
-    features: dataTableFeatures,
-    data: query.data?.list ?? EMPTY_ROWS,
-    columns,
-    state: { columnVisibility, pagination },
-    manualPagination: true,
-    rowCount: total,
-    pageCount: Math.max(Math.ceil(total / pagination.pageSize), 1),
-    autoResetPageIndex: false,
-    onColumnVisibilityChange: setColumnVisibility,
-    onPaginationChange: setPagination,
-    getRowId: row => String(row.id)
+  const buildColumns = React.useCallback(
+    (rowOffset: number) => createAppColumns(handleRowAction, rowOffset),
+    [handleRowAction]
+  )
+
+  const { query, table, resetPage, resetColumns } = useListTable<AppResp, PageResp<AppResp>>({
+    buildQuery,
+    buildColumns,
+    getRowId: row => String(row.id),
+    initialColumnVisibility: HIDDEN_BY_DEFAULT
   })
+
+  const handleSearch = (next: string) => {
+    setKeyword(next)
+    resetPage()
+  }
+
+  const queryFilters = { description: keyword || undefined, sort: DEFAULT_SORT }
 
   const filters = (
     <TableSearch
@@ -128,7 +116,7 @@ export function AppList() {
       isFullscreen={fullscreen.isFullscreen}
       onRefresh={() => void query.refetch()}
       onToggleFullscreen={fullscreen.toggleFullscreen}
-      onResetColumns={() => setColumnVisibility(HIDDEN_BY_DEFAULT)}
+      onResetColumns={resetColumns}
       actions={
         <>
           <Button className="w-full sm:w-auto" onClick={() => setFormTarget({ appId: null })}>

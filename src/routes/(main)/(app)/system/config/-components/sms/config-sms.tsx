@@ -1,7 +1,7 @@
 import * as React from 'react'
 
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { type ColumnVisibilityState, type PaginationState, useTable } from '@tanstack/react-table'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { type ColumnVisibilityState, type PaginationState } from '@tanstack/react-table'
 
 import { Plus, RefreshCw } from 'lucide-react'
 
@@ -13,10 +13,10 @@ import { TableToolbar } from '@/components/table-toolbar'
 import { Button } from '@/components/ui/button'
 import { toast } from '@/components/ui/toast'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
-import { usePageClamp } from '@/hooks/use-page-clamp'
+import { useListTable } from '@/hooks/use-list-table'
 import { usePermission } from '@/hooks/use-permission'
 import { listSmsConfig, setDefaultSmsConfig, type SmsConfigResp } from '@/lib/api/sms'
-import { dataTableFeatures } from '@/lib/data-table-features'
+import type { PageResp } from '@/lib/api/types'
 import { reportError } from '@/lib/http'
 import { smsKeys } from '@/lib/query-keys'
 
@@ -43,15 +43,11 @@ const HIDDEN_BY_DEFAULT: ColumnVisibilityState = {
   createTime: false
 }
 
-const EMPTY_ROWS: SmsConfigResp[] = []
-
 export function ConfigSms() {
   const queryClient = useQueryClient()
   const { hasPermission } = usePermission()
   const fullscreen = useFullscreenTransition()
 
-  const [pagination, setPagination] = React.useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
-  const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>(HIDDEN_BY_DEFAULT)
   const [searchInput, setSearchInput] = React.useState('')
   const [keyword, setKeyword] = React.useState('')
   const [supplier, setSupplier] = React.useState<string | undefined>(undefined)
@@ -63,31 +59,6 @@ export function ConfigSms() {
 
   const supplierOptions = useDictOptions('sms_supplier', SUPPLIER_PRESETS)
   const supplierMap = React.useMemo(() => toLabelMap(supplierOptions), [supplierOptions])
-
-  const params = { page: pagination.pageIndex + 1, size: pagination.pageSize, name: keyword || undefined, supplier }
-
-  const query = useQuery({
-    queryKey: smsKeys.list(params),
-    queryFn: ({ signal }) => listSmsConfig(params, signal),
-    placeholderData: keepPreviousData
-  })
-
-  const total = query.data?.total ?? 0
-  const rowOffset = pagination.pageIndex * pagination.pageSize
-
-  usePageClamp(total, pagination, setPagination)
-
-  const resetPage = React.useCallback(() => {
-    setPagination(current => (current.pageIndex === 0 ? current : { ...current, pageIndex: 0 }))
-  }, [])
-
-  const handleSearch = React.useCallback(
-    (next: string) => {
-      setKeyword(next)
-      resetPage()
-    },
-    [resetPage]
-  )
 
   const setDefaultMutation = useMutation({
     mutationFn: (id: string | number) => setDefaultSmsConfig(id),
@@ -115,24 +86,33 @@ export function ConfigSms() {
     [setDefaultMutation]
   )
 
-  const columns = React.useMemo(
-    () => createSmsColumns({ supplierMap, onAction: handleRowAction }, rowOffset),
-    [supplierMap, handleRowAction, rowOffset]
+  const buildQuery = React.useCallback(
+    (pagination: PaginationState) => {
+      const params = { page: pagination.pageIndex + 1, size: pagination.pageSize, name: keyword || undefined, supplier }
+      return { queryKey: smsKeys.list(params), queryFn: (signal: AbortSignal) => listSmsConfig(params, signal) }
+    },
+    [keyword, supplier]
   )
 
-  const table = useTable({
-    features: dataTableFeatures,
-    data: query.data?.list ?? EMPTY_ROWS,
-    columns,
-    state: { columnVisibility, pagination },
-    manualPagination: true,
-    rowCount: total,
-    pageCount: Math.max(Math.ceil(total / pagination.pageSize), 1),
-    autoResetPageIndex: false,
-    onColumnVisibilityChange: setColumnVisibility,
-    onPaginationChange: setPagination,
-    getRowId: row => String(row.id)
+  const buildColumns = React.useCallback(
+    (rowOffset: number) => createSmsColumns({ supplierMap, onAction: handleRowAction }, rowOffset),
+    [supplierMap, handleRowAction]
+  )
+
+  const { query, table, resetPage, resetColumns } = useListTable<SmsConfigResp, PageResp<SmsConfigResp>>({
+    buildQuery,
+    buildColumns,
+    getRowId: row => String(row.id),
+    initialColumnVisibility: HIDDEN_BY_DEFAULT
   })
+
+  const handleSearch = React.useCallback(
+    (next: string) => {
+      setKeyword(next)
+      resetPage()
+    },
+    [resetPage]
+  )
 
   const handleResetFilters = () => {
     setSearchInput('')
@@ -176,7 +156,7 @@ export function ConfigSms() {
       isFullscreen={fullscreen.isFullscreen}
       onRefresh={() => void query.refetch()}
       onToggleFullscreen={fullscreen.toggleFullscreen}
-      onResetColumns={() => setColumnVisibility(HIDDEN_BY_DEFAULT)}
+      onResetColumns={resetColumns}
       actions={
         hasPermission('system:smsConfig:create') && (
           <Button className="w-full sm:w-auto" onClick={() => setFormTarget({ smsId: null })}>

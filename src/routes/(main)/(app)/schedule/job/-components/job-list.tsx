@@ -1,7 +1,7 @@
 import * as React from 'react'
 
-import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query'
-import { type ColumnVisibilityState, type PaginationState, useTable } from '@tanstack/react-table'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { type ColumnVisibilityState, type PaginationState } from '@tanstack/react-table'
 import { useNavigate } from '@tanstack/react-router'
 
 import { Plus } from 'lucide-react'
@@ -14,7 +14,7 @@ import { TableToolbar } from '@/components/table-toolbar'
 import { Button } from '@/components/ui/button'
 import { toast } from '@/components/ui/toast'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
-import { usePageClamp } from '@/hooks/use-page-clamp'
+import { useListTable } from '@/hooks/use-list-table'
 import { usePermission } from '@/hooks/use-permission'
 import {
   JOB_STATUS_OPTIONS,
@@ -26,15 +26,13 @@ import {
   type JobResp,
   type JobStatus
 } from '@/lib/api/job'
-import { dataTableFeatures } from '@/lib/data-table-features'
+import type { PageResp } from '@/lib/api/types'
 
 import { createJobColumns, type JobAction } from './job-columns'
 import { JobDeleteDialog } from './job-delete-dialog'
 import { JobDetailDrawer } from './job-detail-drawer'
 import { JobFormDrawer } from './job-form-drawer'
 import { JobTriggerDialog } from './job-trigger-dialog'
-
-const EMPTY_ROWS: JobResp[] = []
 
 const HIDDEN_BY_DEFAULT: ColumnVisibilityState = {
   updateDt: false
@@ -67,8 +65,6 @@ export function JobList() {
   const canViewLogs = hasPermission('schedule:log:list')
   const fullscreen = useFullscreenTransition()
 
-  const [pagination, setPagination] = React.useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
-  const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>(HIDDEN_BY_DEFAULT)
   const [keyword, setKeyword] = React.useState('')
   const [jobStatus, setJobStatus] = React.useState<JobStatus | undefined>(undefined)
   const [groupName, setGroupName] = React.useState<string | undefined>(undefined)
@@ -109,26 +105,6 @@ export function JobList() {
     [groups.data]
   )
 
-  const resetPage = () => {
-    setPagination(current => (current.pageIndex === 0 ? current : { ...current, pageIndex: 0 }))
-  }
-
-  const handleKeywordSearch = (next: string) => {
-    setKeyword(next)
-    resetPage()
-  }
-
-  const handleGroupChange = (value: string | null) => {
-    groupTouchedRef.current = true
-    setGroupName(!value || value === 'all' ? undefined : value)
-    resetPage()
-  }
-
-  const handleStatusChange = (value: string | null) => {
-    setJobStatus(!value || value === 'all' ? undefined : (Number(value) as JobStatus))
-    resetPage()
-  }
-
   const handleToggleStatus = React.useCallback(
     async (job: JobResp, next: JobStatus) => {
       await updateJobStatus(job.id, { jobStatus: next })
@@ -168,19 +144,41 @@ export function JobList() {
     [navigate]
   )
 
-  const params: JobQuery = {
-    page: pagination.pageIndex + 1,
-    size: pagination.pageSize,
-    groupName,
-    jobName: keyword || undefined,
-    jobStatus
-  }
+  const buildQuery = React.useCallback(
+    (pagination: PaginationState) => {
+      const params: JobQuery = {
+        page: pagination.pageIndex + 1,
+        size: pagination.pageSize,
+        groupName,
+        jobName: keyword || undefined,
+        jobStatus
+      }
+      return { queryKey: jobKeys.list(params), queryFn: (signal: AbortSignal) => listJobs(params, signal) }
+    },
+    [groupName, keyword, jobStatus]
+  )
 
-  const query = useQuery({
-    queryKey: jobKeys.list(params),
-    queryFn: ({ signal }) => listJobs(params, signal),
-    enabled: groupReady,
-    placeholderData: keepPreviousData
+  const buildColumns = React.useCallback(
+    (rowOffset: number) =>
+      createJobColumns({
+        rowOffset,
+        canGet,
+        canTrigger,
+        canUpdate,
+        canViewLogs,
+        canDelete,
+        onAction: handleAction,
+        onToggleStatus: handleToggleStatus
+      }),
+    [canGet, canTrigger, canUpdate, canViewLogs, canDelete, handleAction, handleToggleStatus]
+  )
+
+  const { query, table, resetPage, resetColumns } = useListTable<JobResp, PageResp<JobResp>>({
+    buildQuery,
+    buildColumns,
+    getRowId: row => String(row.id),
+    initialColumnVisibility: HIDDEN_BY_DEFAULT,
+    enabled: groupReady
   })
 
   // The API has no detail endpoint, so keep the drawer on the freshest copy of the row the
@@ -193,39 +191,21 @@ export function JobList() {
     return query.data?.list.find(job => String(job.id) === String(detailJob.id)) ?? detailJob
   }, [detailJob, query.data])
 
-  const total = query.data?.total ?? 0
-  const rowOffset = pagination.pageIndex * pagination.pageSize
+  const handleKeywordSearch = (next: string) => {
+    setKeyword(next)
+    resetPage()
+  }
 
-  usePageClamp(total, pagination, setPagination)
+  const handleGroupChange = (value: string | null) => {
+    groupTouchedRef.current = true
+    setGroupName(!value || value === 'all' ? undefined : value)
+    resetPage()
+  }
 
-  const columns = React.useMemo(
-    () =>
-      createJobColumns({
-        rowOffset,
-        canGet,
-        canTrigger,
-        canUpdate,
-        canViewLogs,
-        canDelete,
-        onAction: handleAction,
-        onToggleStatus: handleToggleStatus
-      }),
-    [rowOffset, canGet, canTrigger, canUpdate, canViewLogs, canDelete, handleAction, handleToggleStatus]
-  )
-
-  const table = useTable({
-    features: dataTableFeatures,
-    data: query.data?.list ?? EMPTY_ROWS,
-    columns,
-    state: { columnVisibility, pagination },
-    manualPagination: true,
-    rowCount: total,
-    pageCount: Math.max(Math.ceil(total / pagination.pageSize), 1),
-    autoResetPageIndex: false,
-    onColumnVisibilityChange: setColumnVisibility,
-    onPaginationChange: setPagination,
-    getRowId: row => String(row.id)
-  })
+  const handleStatusChange = (value: string | null) => {
+    setJobStatus(!value || value === 'all' ? undefined : (Number(value) as JobStatus))
+    resetPage()
+  }
 
   const filters = (
     <>
@@ -260,7 +240,7 @@ export function JobList() {
       isFullscreen={fullscreen.isFullscreen}
       onRefresh={() => void query.refetch()}
       onToggleFullscreen={fullscreen.toggleFullscreen}
-      onResetColumns={() => setColumnVisibility(HIDDEN_BY_DEFAULT)}
+      onResetColumns={resetColumns}
       columnLabels={{ jobStatus: '状态' }}
       actions={
         canCreate ? (

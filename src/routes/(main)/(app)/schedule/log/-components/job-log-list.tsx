@@ -1,7 +1,7 @@
 import * as React from 'react'
 
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import { type ColumnVisibilityState, type PaginationState, useTable } from '@tanstack/react-table'
+import { useQuery } from '@tanstack/react-query'
+import { type PaginationState } from '@tanstack/react-table'
 import { useNavigate } from '@tanstack/react-router'
 
 import type { DateRange } from 'react-day-picker'
@@ -13,7 +13,7 @@ import { ListPageCard } from '@/components/list-page-card'
 import { TableSearch } from '@/components/table-search'
 import { TableToolbar } from '@/components/table-toolbar'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
-import { usePageClamp } from '@/hooks/use-page-clamp'
+import { useListTable } from '@/hooks/use-list-table'
 import { usePermission } from '@/hooks/use-permission'
 import { jobKeys, listJobGroups } from '@/lib/api/job'
 import {
@@ -24,18 +24,14 @@ import {
   type JobLogQuery,
   type JobLogResp
 } from '@/lib/api/job-log'
+import type { PageResp } from '@/lib/api/types'
 import { createRecentDateRange, toDateTimeRangeQuery } from '@/lib/date-range'
-import { dataTableFeatures } from '@/lib/data-table-features'
 
 import { JobLogActionDialog, type JobLogActionTarget } from './job-log-action-dialog'
 import { createJobLogColumns, type JobLogAction } from './job-log-columns'
 
-const EMPTY_ROWS: JobLogResp[] = []
-
 /** Groups barely change, so the filter stays cached between visits. */
 const LOOKUP_STALE_MS = 5 * 60_000
-
-const NO_HIDDEN_COLUMNS: ColumnVisibilityState = {}
 
 const SKELETON_WIDTHS: Record<string, string> = {
   index: 'mx-auto w-6',
@@ -64,8 +60,6 @@ export function JobLogList({ initialJobId, initialJobName, initialGroupName }: J
   const canListJobs = hasPermission('schedule:job:list')
   const fullscreen = useFullscreenTransition()
 
-  const [pagination, setPagination] = React.useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
-  const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>(NO_HIDDEN_COLUMNS)
   const [jobId, setJobId] = React.useState<number | undefined>(initialJobId)
   const [groupName, setGroupName] = React.useState<string | undefined>(initialGroupName)
   const [keyword, setKeyword] = React.useState(initialJobName ?? '')
@@ -91,10 +85,6 @@ export function JobLogList({ initialJobId, initialJobName, initialGroupName }: J
     [groupOptions]
   )
 
-  const resetPage = () => {
-    setPagination(current => (current.pageIndex === 0 ? current : { ...current, pageIndex: 0 }))
-  }
-
   /** Clearing the URL search keeps the hidden `jobId` from outliving the visible filters. */
   const clearRouteSearch = () => {
     void navigate({ to: '/schedule/log', search: {}, replace: true })
@@ -108,6 +98,37 @@ export function JobLogList({ initialJobId, initialJobName, initialGroupName }: J
     setJobId(undefined)
     clearRouteSearch()
   }
+
+  const handleAction = React.useCallback((type: JobLogAction, log: JobLogResp) => {
+    setActionTarget({ type, log })
+  }, [])
+
+  const buildQuery = React.useCallback(
+    (pagination: PaginationState) => {
+      const params: JobLogQuery = {
+        page: pagination.pageIndex + 1,
+        size: pagination.pageSize,
+        jobId,
+        groupName,
+        jobName: keyword || undefined,
+        taskBatchStatus: status,
+        datetimeRange: toDateTimeRangeQuery(dateRange)
+      }
+      return { queryKey: jobLogKeys.list(params), queryFn: (signal: AbortSignal) => listJobLogs(params, signal) }
+    },
+    [jobId, groupName, keyword, status, dateRange]
+  )
+
+  const buildColumns = React.useCallback(
+    (rowOffset: number) => createJobLogColumns({ rowOffset, canStop, canRetry, onAction: handleAction }),
+    [canStop, canRetry, handleAction]
+  )
+
+  const { query, table, resetPage, resetColumns } = useListTable<JobLogResp, PageResp<JobLogResp>>({
+    buildQuery,
+    buildColumns,
+    getRowId: row => String(row.id)
+  })
 
   const handleKeywordSearch = (next: string) => {
     setKeyword(next)
@@ -132,50 +153,6 @@ export function JobLogList({ initialJobId, initialJobName, initialGroupName }: J
     releaseJobFilter()
     resetPage()
   }
-
-  const handleAction = React.useCallback((type: JobLogAction, log: JobLogResp) => {
-    setActionTarget({ type, log })
-  }, [])
-
-  const params: JobLogQuery = {
-    page: pagination.pageIndex + 1,
-    size: pagination.pageSize,
-    jobId,
-    groupName,
-    jobName: keyword || undefined,
-    taskBatchStatus: status,
-    datetimeRange: toDateTimeRangeQuery(dateRange)
-  }
-
-  const query = useQuery({
-    queryKey: jobLogKeys.list(params),
-    queryFn: ({ signal }) => listJobLogs(params, signal),
-    placeholderData: keepPreviousData
-  })
-
-  const total = query.data?.total ?? 0
-  const rowOffset = pagination.pageIndex * pagination.pageSize
-
-  usePageClamp(total, pagination, setPagination)
-
-  const columns = React.useMemo(
-    () => createJobLogColumns({ rowOffset, canStop, canRetry, onAction: handleAction }),
-    [rowOffset, canStop, canRetry, handleAction]
-  )
-
-  const table = useTable({
-    features: dataTableFeatures,
-    data: query.data?.list ?? EMPTY_ROWS,
-    columns,
-    state: { columnVisibility, pagination },
-    manualPagination: true,
-    rowCount: total,
-    pageCount: Math.max(Math.ceil(total / pagination.pageSize), 1),
-    autoResetPageIndex: false,
-    onColumnVisibilityChange: setColumnVisibility,
-    onPaginationChange: setPagination,
-    getRowId: row => String(row.id)
-  })
 
   const filters = (
     <>
@@ -213,7 +190,7 @@ export function JobLogList({ initialJobId, initialJobName, initialGroupName }: J
       isFullscreen={fullscreen.isFullscreen}
       onRefresh={() => void query.refetch()}
       onToggleFullscreen={fullscreen.toggleFullscreen}
-      onResetColumns={() => setColumnVisibility(NO_HIDDEN_COLUMNS)}
+      onResetColumns={resetColumns}
       columnLabels={{ taskBatchStatus: '执行状态', operationReason: '执行备注' }}
     />
   )

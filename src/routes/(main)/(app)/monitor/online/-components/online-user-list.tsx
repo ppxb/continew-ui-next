@@ -1,7 +1,6 @@
 import * as React from 'react'
 
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import { type ColumnVisibilityState, type PaginationState, useTable } from '@tanstack/react-table'
+import { type PaginationState } from '@tanstack/react-table'
 import type { DateRange } from 'react-day-picker'
 
 import { DateRangeFilter } from '@/components/date-range-filter'
@@ -9,22 +8,18 @@ import { ListPageCard } from '@/components/list-page-card'
 import { TableSearch } from '@/components/table-search'
 import { TableToolbar } from '@/components/table-toolbar'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
-import { usePageClamp } from '@/hooks/use-page-clamp'
+import { useListTable } from '@/hooks/use-list-table'
 import { usePermission } from '@/hooks/use-permission'
 import { listOnlineUsers, onlineUserKeys, type OnlineUserPageQuery, type OnlineUserResp } from '@/lib/api/online'
+import type { PageResp } from '@/lib/api/types'
 import { getSessionId } from '@/lib/auth-session'
-import { dataTableFeatures } from '@/lib/data-table-features'
 import { createRecentDateRange, toDateTimeRangeQuery } from '@/lib/date-range'
 
 import { createOnlineUserColumns } from './online-user-columns'
 import { OnlineUserKickoutDialog } from './online-user-kickout-dialog'
 import { OnlineUserTable } from './online-user-table'
 
-const EMPTY_ROWS: OnlineUserResp[] = []
-
 export function OnlineUserList() {
-  const [pagination, setPagination] = React.useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
-  const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>({})
   const [keyword, setKeyword] = React.useState('')
   const [loginTime, setLoginTime] = React.useState<DateRange | undefined>(createRecentDateRange)
   const [kickingUser, setKickingUser] = React.useState<OnlineUserResp | null>(null)
@@ -40,9 +35,34 @@ export function OnlineUserList() {
     [currentSessionId]
   )
 
-  const resetPage = () => {
-    setPagination(current => (current.pageIndex === 0 ? current : { ...current, pageIndex: 0 }))
-  }
+  const handleKickout = React.useCallback((user: OnlineUserResp) => {
+    setKickingUser(user)
+  }, [])
+
+  const buildQuery = React.useCallback(
+    (pagination: PaginationState) => {
+      const params: OnlineUserPageQuery = {
+        page: pagination.pageIndex + 1,
+        size: pagination.pageSize,
+        nickname: keyword || undefined,
+        loginTime: toDateTimeRangeQuery(loginTime)
+      }
+      return { queryKey: onlineUserKeys.list(params), queryFn: (signal: AbortSignal) => listOnlineUsers(params, signal) }
+    },
+    [keyword, loginTime]
+  )
+
+  const buildColumns = React.useCallback(
+    (rowOffset: number) =>
+      createOnlineUserColumns({ rowOffset, canKickout, isCurrentSession, onKickout: handleKickout }),
+    [canKickout, isCurrentSession, handleKickout]
+  )
+
+  const { query, table, resetPage, resetColumns } = useListTable<OnlineUserResp, PageResp<OnlineUserResp>>({
+    buildQuery,
+    buildColumns,
+    getRowId: row => row.sessionId
+  })
 
   const handleSearch = (next: string) => {
     setKeyword(next)
@@ -53,47 +73,6 @@ export function OnlineUserList() {
     setLoginTime(next)
     resetPage()
   }
-
-  const params: OnlineUserPageQuery = {
-    page: pagination.pageIndex + 1,
-    size: pagination.pageSize,
-    nickname: keyword || undefined,
-    loginTime: toDateTimeRangeQuery(loginTime)
-  }
-
-  const query = useQuery({
-    queryKey: onlineUserKeys.list(params),
-    queryFn: ({ signal }) => listOnlineUsers(params, signal),
-    placeholderData: keepPreviousData
-  })
-
-  const total = query.data?.total ?? 0
-  const rowOffset = pagination.pageIndex * pagination.pageSize
-
-  usePageClamp(total, pagination, setPagination)
-
-  const handleKickout = React.useCallback((user: OnlineUserResp) => {
-    setKickingUser(user)
-  }, [])
-
-  const columns = React.useMemo(
-    () => createOnlineUserColumns({ rowOffset, canKickout, isCurrentSession, onKickout: handleKickout }),
-    [rowOffset, canKickout, isCurrentSession, handleKickout]
-  )
-
-  const table = useTable({
-    features: dataTableFeatures,
-    data: query.data?.list ?? EMPTY_ROWS,
-    columns,
-    state: { columnVisibility, pagination },
-    manualPagination: true,
-    rowCount: total,
-    pageCount: Math.max(Math.ceil(total / pagination.pageSize), 1),
-    autoResetPageIndex: false,
-    onColumnVisibilityChange: setColumnVisibility,
-    onPaginationChange: setPagination,
-    getRowId: row => row.sessionId
-  })
 
   const filters = (
     <>
@@ -115,7 +94,7 @@ export function OnlineUserList() {
       isFullscreen={fullscreen.isFullscreen}
       onRefresh={() => void query.refetch()}
       onToggleFullscreen={fullscreen.toggleFullscreen}
-      onResetColumns={() => setColumnVisibility({})}
+      onResetColumns={resetColumns}
     />
   )
 

@@ -28,6 +28,8 @@ interface UseListTableOptions<TRow extends RowData, TData extends PageData<TRow>
   readonly getRowId: (row: TRow) => string
   readonly initialColumnVisibility?: ColumnVisibilityState
   readonly pageSize?: number
+  /** Delays the query, for a screen that must wait on a lookup before listing. */
+  readonly enabled?: boolean
 }
 
 /**
@@ -40,7 +42,8 @@ export function useListTable<TRow extends RowData, TData extends PageData<TRow>>
   buildColumns,
   getRowId,
   initialColumnVisibility = {},
-  pageSize = 10
+  pageSize = 10,
+  enabled = true
 }: UseListTableOptions<TRow, TData>) {
   const [pagination, setPagination] = React.useState<PaginationState>({ pageIndex: 0, pageSize })
   const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>(initialColumnVisibility)
@@ -50,7 +53,8 @@ export function useListTable<TRow extends RowData, TData extends PageData<TRow>>
   const query = useQuery({
     queryKey: request.queryKey,
     queryFn: ({ signal }) => request.queryFn(signal),
-    placeholderData: keepPreviousData
+    placeholderData: keepPreviousData,
+    enabled
   })
 
   const total = query.data?.total ?? 0

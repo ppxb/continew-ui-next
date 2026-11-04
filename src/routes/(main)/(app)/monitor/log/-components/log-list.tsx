@@ -1,7 +1,6 @@
 import * as React from 'react'
 
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import { type ColumnVisibilityState, type PaginationState, useTable } from '@tanstack/react-table'
+import { type PaginationState } from '@tanstack/react-table'
 import { Download } from 'lucide-react'
 import type { DateRange } from 'react-day-picker'
 
@@ -14,7 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 import { useExport } from '@/hooks/use-export'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
-import { usePageClamp } from '@/hooks/use-page-clamp'
+import { useListTable } from '@/hooks/use-list-table'
 import { usePermission } from '@/hooks/use-permission'
 import {
   exportLoginLogs,
@@ -26,7 +25,7 @@ import {
   type LogResp,
   type LogStatus
 } from '@/lib/api/log'
-import { dataTableFeatures } from '@/lib/data-table-features'
+import type { PageResp } from '@/lib/api/types'
 import { createRecentDateRange, toDateTimeRangeQuery } from '@/lib/date-range'
 
 import { createLoginLogColumns, createOperationLogColumns, LOG_COLUMN_LABELS } from './log-columns'
@@ -34,8 +33,6 @@ import { LogDetailDrawer } from './log-detail-drawer'
 import { LogTable } from './log-table'
 
 type LogMode = 'login' | 'operation'
-
-const EMPTY_ROWS: LogResp[] = []
 
 /** The log query sorts on its own `t1` table alias, by the SQL column the mapper selects. */
 const DEFAULT_SORT = 't1.create_time,desc'
@@ -65,8 +62,6 @@ export function LogList({ mode }: LogListProps) {
   const canViewDetail = hasPermission('monitor:log:get')
   const { isExporting, exportData } = useExport<LogExportQuery>(isLogin ? exportLoginLogs : exportOperationLogs)
 
-  const [pagination, setPagination] = React.useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
-  const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>({})
   const [operator, setOperator] = React.useState('')
   const [ip, setIp] = React.useState('')
   const [status, setStatus] = React.useState<LogStatus | undefined>(undefined)
@@ -74,9 +69,41 @@ export function LogList({ mode }: LogListProps) {
   const [detailId, setDetailId] = React.useState<string | number | null>(null)
   const [isDetailOpen, setIsDetailOpen] = React.useState(false)
 
-  const resetPage = () => {
-    setPagination(current => (current.pageIndex === 0 ? current : { ...current, pageIndex: 0 }))
-  }
+  const handleDetail = React.useCallback((log: LogResp) => {
+    setDetailId(log.id)
+    setIsDetailOpen(true)
+  }, [])
+
+  const buildQuery = React.useCallback(
+    (pagination: PaginationState) => {
+      const params: LogPageQuery = {
+        page: pagination.pageIndex + 1,
+        size: pagination.pageSize,
+        sort: DEFAULT_SORT,
+        module: isLogin ? '登录' : undefined,
+        createUserString: operator || undefined,
+        ip: ip || undefined,
+        createTime: toDateTimeRangeQuery(createTime),
+        status
+      }
+      return { queryKey: logKeys.list(params), queryFn: (signal: AbortSignal) => listLogs(params, signal) }
+    },
+    [isLogin, operator, ip, createTime, status]
+  )
+
+  const buildColumns = React.useCallback(
+    (rowOffset: number) =>
+      isLogin
+        ? createLoginLogColumns(rowOffset)
+        : createOperationLogColumns({ rowOffset, canViewDetail, onDetail: handleDetail }),
+    [isLogin, canViewDetail, handleDetail]
+  )
+
+  const { query, table, resetPage, resetColumns } = useListTable<LogResp, PageResp<LogResp>>({
+    buildQuery,
+    buildColumns,
+    getRowId: row => String(row.id)
+  })
 
   const queryFilters: LogExportQuery = {
     sort: DEFAULT_SORT,
@@ -86,18 +113,6 @@ export function LogList({ mode }: LogListProps) {
     createTime: toDateTimeRangeQuery(createTime),
     status
   }
-  const params: LogPageQuery = { page: pagination.pageIndex + 1, size: pagination.pageSize, ...queryFilters }
-
-  const query = useQuery({
-    queryKey: logKeys.list(params),
-    queryFn: ({ signal }) => listLogs(params, signal),
-    placeholderData: keepPreviousData
-  })
-
-  const total = query.data?.total ?? 0
-  const rowOffset = pagination.pageIndex * pagination.pageSize
-
-  usePageClamp(total, pagination, setPagination)
 
   const handleOperatorSearch = (next: string) => {
     setOperator(next)
@@ -118,33 +133,6 @@ export function LogList({ mode }: LogListProps) {
     setStatus(value === '1' ? 1 : value === '2' ? 2 : undefined)
     resetPage()
   }
-
-  const handleDetail = React.useCallback((log: LogResp) => {
-    setDetailId(log.id)
-    setIsDetailOpen(true)
-  }, [])
-
-  const columns = React.useMemo(
-    () =>
-      isLogin
-        ? createLoginLogColumns(rowOffset)
-        : createOperationLogColumns({ rowOffset, canViewDetail, onDetail: handleDetail }),
-    [isLogin, rowOffset, canViewDetail, handleDetail]
-  )
-
-  const table = useTable({
-    features: dataTableFeatures,
-    data: query.data?.list ?? EMPTY_ROWS,
-    columns,
-    state: { columnVisibility, pagination },
-    manualPagination: true,
-    rowCount: total,
-    pageCount: Math.max(Math.ceil(total / pagination.pageSize), 1),
-    autoResetPageIndex: false,
-    onColumnVisibilityChange: setColumnVisibility,
-    onPaginationChange: setPagination,
-    getRowId: row => String(row.id)
-  })
 
   const filters = (
     <>
@@ -179,7 +167,7 @@ export function LogList({ mode }: LogListProps) {
       isFullscreen={fullscreen.isFullscreen}
       onRefresh={() => void query.refetch()}
       onToggleFullscreen={fullscreen.toggleFullscreen}
-      onResetColumns={() => setColumnVisibility({})}
+      onResetColumns={resetColumns}
       columnLabels={LOG_COLUMN_LABELS}
       actions={
         canExport ? (

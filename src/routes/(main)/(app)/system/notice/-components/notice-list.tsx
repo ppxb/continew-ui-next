@@ -1,7 +1,6 @@
 import * as React from 'react'
 
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import { type ColumnVisibilityState, type PaginationState, useTable } from '@tanstack/react-table'
+import { type PaginationState } from '@tanstack/react-table'
 
 import { Plus, RefreshCw } from 'lucide-react'
 
@@ -12,10 +11,10 @@ import { TableSearch } from '@/components/table-search'
 import { TableToolbar } from '@/components/table-toolbar'
 import { Button } from '@/components/ui/button'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
-import { usePageClamp } from '@/hooks/use-page-clamp'
+import { useListTable } from '@/hooks/use-list-table'
 import { usePermission } from '@/hooks/use-permission'
 import { listNotices, noticeKeys, type NoticeResp } from '@/lib/api/notice'
-import { dataTableFeatures } from '@/lib/data-table-features'
+import type { PageResp } from '@/lib/api/types'
 
 import { createNoticeColumns, HIDDEN_BY_DEFAULT, type NoticeAction } from './notice-columns'
 import { NoticeDeleteDialog } from './notice-delete-dialog'
@@ -25,7 +24,6 @@ import { NoticeViewDrawer } from './notice-view-drawer'
 import { useNoticeDicts } from './use-notice-dicts'
 
 const DEFAULT_SORT = 'id,desc'
-const EMPTY_ROWS: NoticeResp[] = []
 
 const SKELETON_WIDTHS = [
   'mx-auto w-6',
@@ -45,8 +43,6 @@ export function NoticeList() {
   const { hasPermission } = usePermission()
   const dicts = useNoticeDicts()
 
-  const [pagination, setPagination] = React.useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
-  const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>(HIDDEN_BY_DEFAULT)
   const [searchInput, setSearchInput] = React.useState('')
   const [keyword, setKeyword] = React.useState('')
   const [type, setType] = React.useState<string | undefined>(undefined)
@@ -58,32 +54,6 @@ export function NoticeList() {
   const [formTarget, setFormTarget] = React.useState<{ noticeId: string | number | null } | null>(null)
   const [deletingNotice, setDeletingNotice] = React.useState<NoticeResp | null>(null)
   const fullscreen = useFullscreenTransition()
-
-  const resetPage = React.useCallback(() => {
-    setPagination(current => (current.pageIndex === 0 ? current : { ...current, pageIndex: 0 }))
-  }, [])
-
-  const handleSearch = React.useCallback(
-    (next: string) => {
-      setKeyword(next)
-      resetPage()
-    },
-    [resetPage]
-  )
-
-  const queryFilters = { title: keyword || undefined, type, sort: DEFAULT_SORT }
-  const params = { page: pagination.pageIndex + 1, size: pagination.pageSize, ...queryFilters }
-
-  const query = useQuery({
-    queryKey: noticeKeys.list(params),
-    queryFn: ({ signal }) => listNotices(params, signal),
-    placeholderData: keepPreviousData
-  })
-
-  const total = query.data?.total ?? 0
-  const rowOffset = pagination.pageIndex * pagination.pageSize
-
-  usePageClamp(total, pagination, setPagination)
 
   const handleRowAction = React.useCallback((action: NoticeAction, notice: NoticeResp) => {
     if (action === 'detail') {
@@ -104,24 +74,39 @@ export function NoticeList() {
     setDeletingNotice(notice)
   }, [])
 
-  const columns = React.useMemo(
-    () => createNoticeColumns(dicts, handleRowAction, rowOffset),
-    [dicts, handleRowAction, rowOffset]
+  const buildQuery = React.useCallback(
+    (pagination: PaginationState) => {
+      const params = {
+        page: pagination.pageIndex + 1,
+        size: pagination.pageSize,
+        title: keyword || undefined,
+        type,
+        sort: DEFAULT_SORT
+      }
+      return { queryKey: noticeKeys.list(params), queryFn: (signal: AbortSignal) => listNotices(params, signal) }
+    },
+    [keyword, type]
   )
 
-  const table = useTable({
-    features: dataTableFeatures,
-    data: query.data?.list ?? EMPTY_ROWS,
-    columns,
-    state: { columnVisibility, pagination },
-    manualPagination: true,
-    rowCount: total,
-    pageCount: Math.max(Math.ceil(total / pagination.pageSize), 1),
-    autoResetPageIndex: false,
-    onColumnVisibilityChange: setColumnVisibility,
-    onPaginationChange: setPagination,
-    getRowId: row => String(row.id)
+  const buildColumns = React.useCallback(
+    (rowOffset: number) => createNoticeColumns(dicts, handleRowAction, rowOffset),
+    [dicts, handleRowAction]
+  )
+
+  const { query, table, resetPage, resetColumns } = useListTable<NoticeResp, PageResp<NoticeResp>>({
+    buildQuery,
+    buildColumns,
+    getRowId: row => String(row.id),
+    initialColumnVisibility: HIDDEN_BY_DEFAULT
   })
+
+  const handleSearch = React.useCallback(
+    (next: string) => {
+      setKeyword(next)
+      resetPage()
+    },
+    [resetPage]
+  )
 
   const hasActiveFilters = keyword !== '' || type !== undefined
 
@@ -170,7 +155,7 @@ export function NoticeList() {
       isFullscreen={fullscreen.isFullscreen}
       onRefresh={() => void query.refetch()}
       onToggleFullscreen={fullscreen.toggleFullscreen}
-      onResetColumns={() => setColumnVisibility(HIDDEN_BY_DEFAULT)}
+      onResetColumns={resetColumns}
       actions={
         hasPermission('system:notice:create') && (
           <Button className="w-full sm:w-auto" onClick={() => setFormTarget({ noticeId: null })}>
