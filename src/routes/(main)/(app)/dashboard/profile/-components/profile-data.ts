@@ -41,9 +41,6 @@ export interface ProfileRecord {
   contractingEntity: string
   noticePeriod: string
   dateOfBirth: string
-  address: string
-  emergencyContact: string
-  emergencyPhone: string
   manager: PersonReference
   bio: string
   leavePolicy: string
@@ -89,9 +86,6 @@ export const profile: ProfileRecord = {
   contractingEntity: 'Studio Technologies Pte. Ltd.',
   noticePeriod: '30 days',
   dateOfBirth: 'September 9, 1993',
-  address: '1842 Valencia Street, San Francisco, CA 94110',
-  emergencyContact: 'Ammar K. · Brother',
-  emergencyPhone: '+1 (510) 555-0177',
   manager: {
     name: 'Pravi K.',
     role: 'Head of Product',

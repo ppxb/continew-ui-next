@@ -1,7 +1,6 @@
 import { LockKeyhole } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
 
 import type { ProfileRecord } from './profile-data'
 
@@ -47,40 +46,6 @@ export function PersonalDetails({ profile }: { profile: ProfileRecord }) {
             <div className="flex flex-col gap-1">
               <dt className="text-xs text-muted-foreground">手机号码</dt>
               <dd className="text-sm">{profile.workPhone}</dd>
-            </div>
-          </div>
-        </dl>
-      </div>
-
-      <Separator className="my-4" />
-
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-2">
-          <h2 className="font-heading text-base font-medium">地址和紧急联系方式</h2>
-          <Badge className="rounded-sm" variant="outline">
-            <LockKeyhole data-icon="inline-start" />
-            Private
-          </Badge>
-        </div>
-        <dl className="grid gap-8 sm:grid-cols-2 xl:grid-cols-3 xl:gap-12">
-          <div className="flex flex-col gap-5">
-            <div className="flex flex-col gap-1">
-              <dt className="text-xs text-muted-foreground">住址</dt>
-              <dd className="text-sm">{profile.address}</dd>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-5">
-            <div className="flex flex-col gap-1">
-              <dt className="text-xs text-muted-foreground">紧急联系人</dt>
-              <dd className="text-sm">{profile.emergencyContact}</dd>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-5">
-            <div className="flex flex-col gap-1">
-              <dt className="text-xs text-muted-foreground">紧急联系人电话</dt>
-              <dd className="text-sm">{profile.emergencyPhone}</dd>
             </div>
           </div>
         </dl>

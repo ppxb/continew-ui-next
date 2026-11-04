@@ -1,9 +1,8 @@
 import * as React from 'react'
 
-import { BadgeCheck, Camera } from 'lucide-react'
+import { Camera } from 'lucide-react'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
@@ -91,12 +90,6 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
               {profile.name}
             </h1>
             <p className="truncate text-sm leading-5 text-muted-foreground">{profile.workEmail}</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Badge className="rounded-sm bg-green-600 text-white" variant="default">
-              <BadgeCheck data-icon="inline-start" />
-              已验证
-            </Badge>
           </div>
         </div>
       </div>
