@@ -16,43 +16,12 @@ import {
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { useMenuRoutes } from '@/hooks/use-menu'
 import { findMenuTrail, toPathname } from '@/navigation/menu'
+import { formatSegmentTitle, STATIC_ROUTE_TITLES } from '@/navigation/route-titles'
 
 export interface BreadcrumbItemData {
   id: string
   title: string
   url?: string
-}
-
-/** Predefined titles for static app and dashboard routes. */
-const STATIC_ROUTE_TITLES: Record<string, string> = {
-  '/dashboard': '仪表盘',
-  '/dashboard/profile': '个人中心',
-  '/dashboard/analytics': '分析中心',
-  '/dashboard/ecommerce': '电子商务',
-  '/dashboard/crm': '客户关系',
-  '/dashboard/finance': '财务管理',
-  '/dashboard/logistics': '物流看板',
-  '/dashboard/kanban': '任务看板',
-  '/dashboard/calendar': '日程日历',
-  '/dashboard/file-manager': '文件管理',
-  '/dashboard/mail': '邮件中心',
-  '/dashboard/chat': '消息沟通',
-  '/dashboard/tasks': '任务清单',
-  '/dashboard/users': '用户管理',
-  '/dashboard/roles': '角色管理',
-  '/dashboard/infrastructure': '基础设施',
-  '/dashboard/invoice': '发票管理',
-  '/dashboard/productivity': '生产力看板',
-  '/dashboard/patient-monitoring': '健康监测',
-  '/dashboard/academy': '培训学院',
-  '/dashboard/coming-soon': '即将推出'
-}
-
-function formatSegmentTitle(segment: string) {
-  return segment
-    .split(/[-_]/)
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ')
 }
 
 export function useBreadcrumbTrail(): BreadcrumbItemData[] {
