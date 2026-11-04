@@ -20,6 +20,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/components/ui/toast'
+import { useFillFormOnce } from '@/hooks/use-fill-form-once'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import {
   createJob,
@@ -155,7 +156,6 @@ interface JobFormDrawerProps {
 export function JobFormDrawer({ job, open, onClose, defaultGroupName }: JobFormDrawerProps) {
   const queryClient = useQueryClient()
   const formRef = React.useRef<HTMLFormElement>(null)
-  const filledForRef = React.useRef<string | null>(null)
   const submitLockRef = React.useRef(false)
   const isCreate = job === null
 
@@ -218,29 +218,21 @@ export function JobFormDrawer({ job, open, onClose, defaultGroupName }: JobFormD
     }
   })
 
-  React.useEffect(() => {
-    if (!open) {
-      filledForRef.current = null
-      return
-    }
-
-    const key = job ? `job:${job.id}` : 'create'
-    if (filledForRef.current === key) {
-      return
-    }
-    filledForRef.current = key
-
-    if (job) {
-      form.reset(toFormValues(job))
-      setArgs(parseShardArgs(job.argsStr))
-    } else {
-      form.reset({ ...EMPTY_FORM, groupName: defaultGroupName ?? '' })
-      setArgs([''])
-    }
-
-    setArgsError(null)
-    setTriggerError(null)
-  }, [open, job, defaultGroupName, form])
+  useFillFormOnce({
+    open,
+    isEdit: !isCreate,
+    entityKey: job?.id,
+    record: job ?? undefined,
+    buildValues: ({ isEdit: editing, record }) =>
+      editing && record ? toFormValues(record) : { ...EMPTY_FORM, groupName: defaultGroupName ?? '' },
+    apply: values => form.reset(values, { keepDefaultValues: true }),
+    onFilled: ({ isEdit: editing, record }) => {
+      setArgs(editing && record ? parseShardArgs(record.argsStr) : [''])
+      setArgsError(null)
+      setTriggerError(null)
+    },
+    resetOnClose: false
+  })
 
   // A create may open before the groups arrive; fill the first one once they do.
   React.useEffect(() => {

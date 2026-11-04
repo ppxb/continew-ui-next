@@ -20,6 +20,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/components/ui/toast'
+import { useFillFormOnce } from '@/hooks/use-fill-form-once'
 import { createSmsConfig, getSmsConfig, type SmsConfigReq, updateSmsConfig } from '@/lib/api/sms'
 import { smsKeys } from '@/lib/query-keys'
 
@@ -186,49 +187,32 @@ export function SmsFormDrawer({ smsId, open, supplierOptions, onClose }: SmsForm
   // fields comes from a subscription, not from a `mutate()` call that returns before the response.
   const isSubmitting = useSelector(form.store, state => state.isSubmitting)
 
-  // Fill the form once per opened config. `supplierOptions` is deliberately not a reset trigger: the
-  // dictionary loading used to wipe whatever the user had already typed.
-  const filledForRef = React.useRef<string | null>(null)
-  React.useEffect(() => {
-    if (!open) {
-      form.reset({ ...DEFAULT_FORM }, { keepDefaultValues: true })
-      filledForRef.current = null
-      return
-    }
-
-    if (!isEdit) {
-      if (filledForRef.current === 'create') return
-      filledForRef.current = 'create'
-      form.reset({ ...DEFAULT_FORM, supplier: supplierOptions[0]?.value || 'alibaba' }, { keepDefaultValues: true })
-      return
-    }
-
-    if (!detailQuery.data) return
-
-    const key = String(smsId)
-    if (filledForRef.current === key) return
-    filledForRef.current = key
-
-    const detail = detailQuery.data
-    form.reset(
-      {
-        name: detail.name ?? '',
-        supplier: detail.supplier ?? (supplierOptions[0]?.value || 'alibaba'),
-        accessKey: detail.accessKey ?? '',
-        // The backend never returns a stored secret, so it stays empty and never reaches the body.
-        secretKey: '',
-        signature: detail.signature ?? '',
-        templateId: detail.templateId ?? '',
-        weight: detail.weight ?? 1,
-        retryInterval: detail.retryInterval ?? 5,
-        maxRetries: detail.maxRetries ?? 0,
-        maximum: detail.maximum ?? 100,
-        supplierConfig: detail.supplierConfig ?? '',
-        status: detail.status ?? 1
-      },
-      { keepDefaultValues: true }
-    )
-  }, [open, isEdit, smsId, detailQuery.data, supplierOptions, form])
+  useFillFormOnce({
+    open,
+    isEdit,
+    entityKey: smsId,
+    record: detailQuery.data,
+    version: detailQuery.dataUpdatedAt,
+    buildValues: ({ isEdit: editing, record }) =>
+      editing && record
+        ? {
+            name: record.name ?? '',
+            supplier: record.supplier ?? (supplierOptions[0]?.value || 'alibaba'),
+            accessKey: record.accessKey ?? '',
+            // The backend never returns a stored secret, so it stays empty and never reaches the body.
+            secretKey: '',
+            signature: record.signature ?? '',
+            templateId: record.templateId ?? '',
+            weight: record.weight ?? 1,
+            retryInterval: record.retryInterval ?? 5,
+            maxRetries: record.maxRetries ?? 0,
+            maximum: record.maximum ?? 100,
+            supplierConfig: record.supplierConfig ?? '',
+            status: record.status ?? 1
+          }
+        : { ...DEFAULT_FORM, supplier: supplierOptions[0]?.value || 'alibaba' },
+    apply: values => form.reset(values, { keepDefaultValues: true })
+  })
 
   /**
    * Validates the whole object before submitting: `handleSubmit` returns as soon as the field

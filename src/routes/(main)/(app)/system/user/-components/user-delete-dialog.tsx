@@ -20,7 +20,9 @@ export function UserDeleteDialog({ user, open, onClose }: UserDeleteDialogProps)
       open={open}
       onClose={onClose}
       title="删除用户"
-      description={shownUser ? `是否确定删除用户「${shownLabel}」？删除后不可恢复` : '是否确定删除该用户？删除后不可恢复'}
+      description={
+        shownUser ? `是否确定删除用户「${shownLabel}」？删除后不可恢复` : '是否确定删除该用户？删除后不可恢复'
+      }
       disabled={!user}
       action={async () => {
         if (user) await deleteUser(user.id)

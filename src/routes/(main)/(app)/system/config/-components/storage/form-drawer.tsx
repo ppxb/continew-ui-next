@@ -20,6 +20,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/components/ui/toast'
+import { useFillFormOnce } from '@/hooks/use-fill-form-once'
 import {
   createStorage,
   getStorage,
@@ -313,41 +314,27 @@ export function StorageFormDrawer({ storageId, storageType, open, onClose }: Sto
   const isOss = activeType === 2
   const isDefaultStorage = Boolean(isEdit && detail.data?.isDefault)
 
-  // Fill the form once per opened record. `keepDefaultValues` is load-bearing: `reset(values)`
-  // otherwise rewrites the form's own defaults, and the next render's `update(opts)` reads that as
-  // "defaults changed" and puts the create defaults back into the fields.
-  const filledForRef = React.useRef<string | null>(null)
-  React.useEffect(() => {
-    if (!open) {
-      form.reset(createDefaults(storageType), { keepDefaultValues: true })
-      setAdvancedOpen(false)
-      filledForRef.current = null
-      return
-    }
-
-    if (!isEdit) {
-      const key = `create:${storageType}`
-      if (filledForRef.current === key) return
-      filledForRef.current = key
-      form.reset(createDefaults(storageType), { keepDefaultValues: true })
-      setAdvancedOpen(false)
-      return
-    }
-
-    if (!detail.data) return
-
-    const key = String(storageId)
-    if (filledForRef.current === key) return
-    filledForRef.current = key
-
-    form.reset(toFormValues(detail.data), { keepDefaultValues: true })
-    // A storage that already uses the multipart settings should show them without a click.
-    setAdvancedOpen(
-      Boolean(
-        detail.data.multipartUploadThreshold || detail.data.multipartUploadPartSize || detail.data.multipartTempDir
+  useFillFormOnce({
+    open,
+    isEdit,
+    entityKey: storageId,
+    createKey: storageType,
+    record: detail.data,
+    version: detail.dataUpdatedAt,
+    buildValues: ({ isEdit: editing, record }) =>
+      editing && record ? toFormValues(record) : createDefaults(storageType),
+    apply: values => form.reset(values, { keepDefaultValues: true }),
+    onFilled: ({ isEdit: editing, record }) => {
+      // A storage that already uses the multipart settings should show them without a click.
+      setAdvancedOpen(
+        Boolean(
+          editing &&
+          record &&
+          (record.multipartUploadThreshold || record.multipartUploadPartSize || record.multipartTempDir)
+        )
       )
-    )
-  }, [open, isEdit, storageId, storageType, detail.data, form])
+    }
+  })
 
   /**
    * Validates the whole object before submitting: `handleSubmit` returns as soon as the field

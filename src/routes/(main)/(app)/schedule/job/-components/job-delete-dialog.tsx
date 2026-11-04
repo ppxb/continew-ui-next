@@ -18,7 +18,9 @@ export function JobDeleteDialog({ job, open, onClose }: JobDeleteDialogProps) {
       open={open}
       onClose={onClose}
       title="删除任务"
-      description={shownJob ? `是否确定删除任务「${shownJob.jobName}」？删除后不可恢复` : '是否确定删除该任务？删除后不可恢复'}
+      description={
+        shownJob ? `是否确定删除任务「${shownJob.jobName}」？删除后不可恢复` : '是否确定删除该任务？删除后不可恢复'
+      }
       disabled={!job}
       action={async () => {
         if (job) await deleteJob(job.id)

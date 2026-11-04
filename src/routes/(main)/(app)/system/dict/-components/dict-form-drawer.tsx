@@ -1,5 +1,3 @@
-import * as React from 'react'
-
 import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
 
@@ -16,6 +14,7 @@ import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/components/ui/toast'
+import { useFillFormOnce } from '@/hooks/use-fill-form-once'
 import { createDict, dictKeys, updateDict, type DictResp } from '@/lib/api/dict'
 
 const NAME_PATTERN = /^[\u4e00-\u9fa5a-zA-Z0-9_-]{2,30}$/
@@ -45,7 +44,6 @@ interface DictFormDrawerProps {
 /** Creates a dictionary or edits its name and description; the code cannot change after creation. */
 export function DictFormDrawer({ dict, open, onClose }: DictFormDrawerProps) {
   const queryClient = useQueryClient()
-  const filledForRef = React.useRef<string | null>(null)
   const isEdit = dict !== null
   const submitLabel = isEdit ? '保存' : '创建'
 
@@ -76,31 +74,16 @@ export function DictFormDrawer({ dict, open, onClose }: DictFormDrawerProps) {
     }
   })
 
-  React.useEffect(() => {
-    if (!open) {
-      filledForRef.current = null
-      return
-    }
-
-    const key = dict ? `edit:${dict.id}` : 'create'
-    if (filledForRef.current === key) {
-      return
-    }
-
-    filledForRef.current = key
-    form.reset(
-      dict
-        ? {
-            name: dict.name,
-            code: dict.code,
-            description: dict.description ?? ''
-          }
-        : EMPTY_FORM,
-      // `reset` would otherwise rewrite the form's defaults, and the next render would put
-      // EMPTY_FORM back over the record being edited.
-      { keepDefaultValues: true }
-    )
-  }, [open, dict, form])
+  useFillFormOnce({
+    open,
+    isEdit,
+    entityKey: dict?.id,
+    record: dict ?? undefined,
+    buildValues: ({ isEdit: editing, record }) =>
+      editing && record ? { name: record.name, code: record.code, description: record.description ?? '' } : EMPTY_FORM,
+    apply: values => form.reset(values, { keepDefaultValues: true }),
+    resetOnClose: false
+  })
 
   return (
     <EntityDrawer

@@ -20,6 +20,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/components/ui/toast'
+import { useFillFormOnce } from '@/hooks/use-fill-form-once'
 import { deptKeys, getDeptTree, type DeptResp } from '@/lib/api/dept'
 import { createRole, DATA_SCOPE_OPTIONS, type DataScope, roleKeys, type RoleReq, updateRole } from '@/lib/api/role'
 
@@ -138,45 +139,26 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
   const deptCheckStrictly = useSelector(form.store, state => state.values.deptCheckStrictly)
   const isSubmitting = useSelector(form.store, state => state.isSubmitting)
 
-  // Fill the form once per open, and only after the record has settled. `keepDefaultValues` is
-  // load-bearing: `reset(values)` otherwise rewrites the form's own defaults, and the next render's
-  // `update(opts)` reads that as "defaults changed" and puts `EMPTY_FORM` back into the fields.
-  const filledForRef = React.useRef<string | null>(null)
-  React.useEffect(() => {
-    if (!open) {
-      form.reset({ ...EMPTY_FORM }, { keepDefaultValues: true })
-      filledForRef.current = null
-      return
-    }
-
-    if (isCreate) {
-      if (filledForRef.current === 'create') return
-      filledForRef.current = 'create'
-      form.reset({ ...EMPTY_FORM }, { keepDefaultValues: true })
-      return
-    }
-
-    if (!detail.data) return
-
-    const key = `${String(roleId)}:${detail.dataUpdatedAt}`
-    if (filledForRef.current === key) return
-    filledForRef.current = key
-
-    form.reset(
-      {
-        name: detail.data.name,
-        code: detail.data.code,
-        sort: detail.data.sort,
-        dataScope: detail.data.dataScope,
-        // `deptIds` is assembled from the role's department rows, so a role outside the custom scope
-        // comes back without it even though `RoleDetailResp` types it as a required array.
-        deptIds: (detail.data.deptIds ?? []).map(String),
-        deptCheckStrictly: detail.data.deptCheckStrictly,
-        description: detail.data.description ?? ''
-      },
-      { keepDefaultValues: true }
-    )
-  }, [open, isCreate, roleId, detail.data, detail.dataUpdatedAt, form])
+  useFillFormOnce({
+    open,
+    isEdit: !isCreate,
+    entityKey: roleId,
+    record: detail.data,
+    version: detail.dataUpdatedAt,
+    buildValues: ({ isEdit: editing, record }) =>
+      editing && record
+        ? {
+            name: record.name,
+            code: record.code,
+            sort: record.sort,
+            dataScope: record.dataScope,
+            deptIds: (record.deptIds ?? []).map(String),
+            deptCheckStrictly: record.deptCheckStrictly,
+            description: record.description ?? ''
+          }
+        : { ...EMPTY_FORM },
+    apply: values => form.reset(values, { keepDefaultValues: true })
+  })
 
   /**
    * Validates the whole object before submitting: `handleSubmit` returns as soon as the field

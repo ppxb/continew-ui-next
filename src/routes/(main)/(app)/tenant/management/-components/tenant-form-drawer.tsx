@@ -23,6 +23,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/components/ui/toast'
+import { useFillFormOnce } from '@/hooks/use-fill-form-once'
 import { listPackageDict, packageKeys } from '@/lib/api/package'
 import { createTenant, tenantKeys, updateTenant, type TenantDetailResp, type TenantReq } from '@/lib/api/tenant'
 import { encryptByRsa } from '@/lib/crypto'
@@ -124,7 +125,6 @@ interface TenantFormDrawerProps {
 export function TenantFormDrawer({ tenantId, open, onClose }: TenantFormDrawerProps) {
   const queryClient = useQueryClient()
   const formRef = React.useRef<HTMLFormElement>(null)
-  const filledForRef = React.useRef<string | null>(null)
   const isCreate = tenantId === null
 
   const detail = useTenantDetail(tenantId, { enabled: open, refreshOnOpen: !isCreate })
@@ -201,27 +201,16 @@ export function TenantFormDrawer({ tenantId, open, onClose }: TenantFormDrawerPr
     }
   })
 
-  React.useEffect(() => {
-    if (!open) {
-      filledForRef.current = null
-      return
-    }
-
-    if (isCreate) {
-      if (filledForRef.current !== 'create') {
-        filledForRef.current = 'create'
-        form.reset(EMPTY_FORM)
-      }
-      return
-    }
-
-    if (!detail.data) return
-
-    const key = `${tenantId}:${detail.dataUpdatedAt}`
-    if (filledForRef.current === key) return
-    filledForRef.current = key
-    form.reset(toFormValues(detail.data), { keepDefaultValues: true })
-  }, [open, isCreate, tenantId, detail.data, detail.dataUpdatedAt, form])
+  useFillFormOnce({
+    open,
+    isEdit: !isCreate,
+    entityKey: tenantId,
+    record: detail.data,
+    version: detail.dataUpdatedAt,
+    buildValues: ({ isEdit: editing, record }) => (editing && record ? toFormValues(record) : EMPTY_FORM),
+    apply: values => form.reset(values, { keepDefaultValues: true }),
+    resetOnClose: false
+  })
 
   /**
    * Validates the whole object before submitting: `handleSubmit` returns as soon as the field

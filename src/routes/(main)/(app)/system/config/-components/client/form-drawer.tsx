@@ -19,6 +19,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { Switch } from '@/components/ui/switch'
 import { toast } from '@/components/ui/toast'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { useFillFormOnce } from '@/hooks/use-fill-form-once'
 import { createClient, getClient, updateClient, type ClientReq } from '@/lib/api/client'
 import { clientKeys } from '@/lib/query-keys'
 
@@ -192,6 +193,7 @@ export function ClientFormDrawer({
   // Fetch client details when editing
   const {
     data: clientDetail,
+    dataUpdatedAt: clientDetailUpdatedAt,
     isLoading,
     isError: isDetailError,
     refetch: refetchDetail
@@ -201,46 +203,30 @@ export function ClientFormDrawer({
     enabled: open && isEdit
   })
 
-  // Fill the form once per opened client. `keepDefaultValues` is load-bearing: `reset(values)`
-  // otherwise rewrites the form's own defaults, and the next render's `update(opts)` reads that as
-  // "defaults changed" and puts `DEFAULT_FORM_VALUES` back into the fields.
-  const filledForRef = React.useRef<string | null>(null)
-  React.useEffect(() => {
-    if (!open) {
-      form.reset({ ...DEFAULT_FORM_VALUES }, { keepDefaultValues: true })
-      filledForRef.current = null
-      return
-    }
-
-    if (!isEdit) {
-      if (filledForRef.current === 'create') return
-      filledForRef.current = 'create'
-      form.reset({ ...DEFAULT_FORM_VALUES }, { keepDefaultValues: true })
-      return
-    }
-
-    if (!clientDetail) return
-
-    const key = String(clientId)
-    if (filledForRef.current === key) return
-    filledForRef.current = key
-    form.reset(
-      {
-        clientType: clientDetail.clientType,
-        authType: clientDetail.authType || ['ACCOUNT'],
-        activeTimeout: String(clientDetail.activeTimeout ?? 1800),
-        timeout: String(clientDetail.timeout ?? 86400),
-        refreshTokenTimeout: String(clientDetail.refreshTokenTimeout ?? 2592000),
-        refreshTokenMode: clientDetail.refreshTokenMode ?? 'COOKIE',
-        isConcurrent: clientDetail.isConcurrent ?? true,
-        replacedRange: clientDetail.replacedRange || undefined,
-        maxLoginCount: String(clientDetail.maxLoginCount ?? -1),
-        overflowLogoutMode: clientDetail.overflowLogoutMode || undefined,
-        status: clientDetail.status ?? 1
-      },
-      { keepDefaultValues: true }
-    )
-  }, [open, isEdit, clientId, clientDetail, form])
+  useFillFormOnce({
+    open,
+    isEdit,
+    entityKey: clientId,
+    record: clientDetail,
+    version: clientDetailUpdatedAt,
+    buildValues: ({ isEdit: editing, record }) =>
+      editing && record
+        ? {
+            clientType: record.clientType,
+            authType: record.authType || ['ACCOUNT'],
+            activeTimeout: String(record.activeTimeout ?? 1800),
+            timeout: String(record.timeout ?? 86400),
+            refreshTokenTimeout: String(record.refreshTokenTimeout ?? 2592000),
+            refreshTokenMode: record.refreshTokenMode ?? 'COOKIE',
+            isConcurrent: record.isConcurrent ?? true,
+            replacedRange: record.replacedRange || undefined,
+            maxLoginCount: String(record.maxLoginCount ?? -1),
+            overflowLogoutMode: record.overflowLogoutMode || undefined,
+            status: record.status ?? 1
+          }
+        : { ...DEFAULT_FORM_VALUES },
+    apply: values => form.reset(values, { keepDefaultValues: true })
+  })
 
   // Keep the fields that no longer apply out of the payload and out of the error list.
   React.useEffect(() => {

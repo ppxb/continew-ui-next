@@ -36,10 +36,7 @@ export function DashboardNotices() {
         ) : (
           <ul className="flex flex-col">
             {query.data.map(notice => (
-              <li
-                key={notice.id}
-                className="flex items-start gap-2 border-b py-3 first:pt-0 last:border-b-0 last:pb-0"
-              >
+              <li key={notice.id} className="flex items-start gap-2 border-b py-3 first:pt-0 last:border-b-0 last:pb-0">
                 <Bell className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
                 <span className="min-w-0 flex-1 truncate text-sm">{notice.title}</span>
                 {notice.isTop ? (

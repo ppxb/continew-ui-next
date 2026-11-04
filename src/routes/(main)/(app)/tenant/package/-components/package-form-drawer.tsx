@@ -20,6 +20,7 @@ import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/components/ui/toast'
 import { buildTreeIndex } from '@/components/ui/tree'
+import { useFillFormOnce } from '@/hooks/use-fill-form-once'
 import {
   createPackage,
   packageKeys,
@@ -102,7 +103,6 @@ interface PackageFormDrawerProps {
 export function PackageFormDrawer({ packageId, open, onClose }: PackageFormDrawerProps) {
   const queryClient = useQueryClient()
   const formRef = React.useRef<HTMLFormElement>(null)
-  const filledForRef = React.useRef<string | null>(null)
   const isCreate = packageId === null
 
   const detail = usePackageDetail(packageId, { enabled: open && !isCreate, refreshOnOpen: true })
@@ -161,31 +161,20 @@ export function PackageFormDrawer({ packageId, open, onClose }: PackageFormDrawe
     }
   })
 
-  React.useEffect(() => {
-    if (!open) {
-      filledForRef.current = null
-      return
-    }
-
-    if (isCreate) {
-      if (filledForRef.current !== 'create') {
-        filledForRef.current = 'create'
-        form.reset(EMPTY_FORM)
-        setCheckedKeys([])
-        setMenuError(null)
-      }
-      return
-    }
-
-    if (!detail.data) return
-
-    const key = `${packageId}:${detail.dataUpdatedAt}`
-    if (filledForRef.current === key) return
-    filledForRef.current = key
-    form.reset(toFormValues(detail.data), { keepDefaultValues: true })
-    setCheckedKeys((detail.data.menuIds ?? []).map(String))
-    setMenuError(null)
-  }, [open, isCreate, packageId, detail.data, detail.dataUpdatedAt, form])
+  useFillFormOnce({
+    open,
+    isEdit: !isCreate,
+    entityKey: packageId,
+    record: detail.data,
+    version: detail.dataUpdatedAt,
+    buildValues: ({ isEdit: editing, record }) => (editing && record ? toFormValues(record) : EMPTY_FORM),
+    apply: values => form.reset(values, { keepDefaultValues: true }),
+    onFilled: ({ isEdit: editing, record }) => {
+      setCheckedKeys(editing && record ? (record.menuIds ?? []).map(String) : [])
+      setMenuError(null)
+    },
+    resetOnClose: false
+  })
 
   const handleCheckedChange = (keys: Array<string | number>) => {
     setCheckedKeys(keys)

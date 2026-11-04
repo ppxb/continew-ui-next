@@ -5,12 +5,7 @@ import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, XAxis, YAxis } from 
 
 import { QueryState } from '@/components/query-state'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  type ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent
-} from '@/components/ui/chart'
+import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { DashboardChartItem } from '@/lib/api/dashboard'
 
@@ -103,12 +98,7 @@ export function RankBarChart({ data, vertical = false, className }: RankBarChart
           </>
         )}
         <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="line" />} />
-        <Bar
-          dataKey="value"
-          fill="var(--color-value)"
-          radius={radius}
-          barSize={vertical ? 14 : 28}
-        />
+        <Bar dataKey="value" fill="var(--color-value)" radius={radius} barSize={vertical ? 14 : 28} />
       </BarChart>
     </ChartContainer>
   )

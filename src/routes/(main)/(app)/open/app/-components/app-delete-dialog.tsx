@@ -20,7 +20,9 @@ export function AppDeleteDialog({ app, open, onClose }: AppDeleteDialogProps) {
       open={open}
       onClose={onClose}
       title="删除应用"
-      description={shownApp ? `是否确定删除应用「${shownLabel}」？删除后不可恢复` : '是否确定删除该应用？删除后不可恢复'}
+      description={
+        shownApp ? `是否确定删除应用「${shownLabel}」？删除后不可恢复` : '是否确定删除该应用？删除后不可恢复'
+      }
       disabled={!app}
       action={async () => {
         if (app) await deleteApp(app.id)

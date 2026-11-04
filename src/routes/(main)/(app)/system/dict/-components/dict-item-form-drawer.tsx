@@ -1,5 +1,3 @@
-import * as React from 'react'
-
 import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
 
@@ -20,6 +18,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/components/ui/toast'
+import { useFillFormOnce } from '@/hooks/use-fill-form-once'
 import { createDictItem, dictKeys, updateDictItem, type DictItemReq, type DictItemResp } from '@/lib/api/dict'
 
 import { DICT_COLOR_DOT_CLASSES, DICT_COLOR_OPTIONS } from './dict-display'
@@ -58,7 +57,6 @@ interface DictItemFormDrawerProps {
 /** Creates or edits an item of the selected dictionary. */
 export function DictItemFormDrawer({ item, dictId, open, onClose }: DictItemFormDrawerProps) {
   const queryClient = useQueryClient()
-  const filledForRef = React.useRef<string | null>(null)
   const isEdit = item !== null
   const submitLabel = isEdit ? '保存' : '创建'
 
@@ -93,34 +91,26 @@ export function DictItemFormDrawer({ item, dictId, open, onClose }: DictItemForm
     }
   })
 
-  React.useEffect(() => {
-    if (!open) {
-      filledForRef.current = null
-      return
-    }
-
-    const key = item ? `edit:${item.id}` : `create:${dictId}`
-    if (filledForRef.current === key) {
-      return
-    }
-
-    filledForRef.current = key
-    form.reset(
-      item
+  useFillFormOnce({
+    open,
+    isEdit,
+    entityKey: item?.id,
+    createKey: dictId,
+    record: item ?? undefined,
+    buildValues: ({ isEdit: editing, record }) =>
+      editing && record
         ? {
-            label: item.label,
-            value: item.value,
-            color: item.color ?? 'none',
-            sort: String(item.sort),
-            description: item.description ?? '',
-            status: item.status
+            label: record.label,
+            value: record.value,
+            color: record.color ?? 'none',
+            sort: String(record.sort),
+            description: record.description ?? '',
+            status: record.status
           }
         : EMPTY_FORM,
-      // `reset` would otherwise rewrite the form's defaults, and the next render would put
-      // EMPTY_FORM back over the record being edited.
-      { keepDefaultValues: true }
-    )
-  }, [open, item, dictId, form])
+    apply: values => form.reset(values, { keepDefaultValues: true }),
+    resetOnClose: false
+  })
 
   return (
     <EntityDrawer

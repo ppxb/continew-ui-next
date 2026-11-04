@@ -47,7 +47,10 @@ export function OnlineUserList() {
         nickname: keyword || undefined,
         loginTime: toDateTimeRangeQuery(loginTime)
       }
-      return { queryKey: onlineUserKeys.list(params), queryFn: (signal: AbortSignal) => listOnlineUsers(params, signal) }
+      return {
+        queryKey: onlineUserKeys.list(params),
+        queryFn: (signal: AbortSignal) => listOnlineUsers(params, signal)
+      }
     },
     [keyword, loginTime]
   )

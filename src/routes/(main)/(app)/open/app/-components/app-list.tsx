@@ -152,11 +152,7 @@ export function AppList() {
       </ListPageCard>
 
       <AppDetailDrawer appId={detailAppId} open={detailAppId !== null} onClose={() => setDetailAppId(null)} />
-      <AppFormDrawer
-        appId={formTarget?.appId ?? null}
-        open={formTarget !== null}
-        onClose={() => setFormTarget(null)}
-      />
+      <AppFormDrawer appId={formTarget?.appId ?? null} open={formTarget !== null} onClose={() => setFormTarget(null)} />
       <AppSecretDialog app={secretApp} open={secretApp !== null} onClose={() => setSecretApp(null)} />
       <AppResetSecretDialog
         app={resetSecretApp}

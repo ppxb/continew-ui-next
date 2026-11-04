@@ -19,6 +19,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/components/ui/toast'
+import { useFillFormOnce } from '@/hooks/use-fill-form-once'
 import { appKeys, createApp, type AppDetailResp, type AppReq, type AppStatus, updateApp } from '@/lib/api/app'
 
 import { useAppDetail } from './use-app-detail'
@@ -133,30 +134,15 @@ export function AppFormDrawer({ appId, open, onClose }: AppFormDrawerProps) {
     })
   }
 
-  // Fill the form once per open after the record settles. `keepDefaultValues` keeps `reset` from
-  // rewriting the form's own defaults, which the next render would otherwise put back on the fields.
-  const filledForRef = React.useRef<string | null>(null)
-  React.useEffect(() => {
-    if (!open) {
-      form.reset({ ...EMPTY_FORM }, { keepDefaultValues: true })
-      filledForRef.current = null
-      return
-    }
-
-    if (isCreate) {
-      if (filledForRef.current === 'create') return
-      filledForRef.current = 'create'
-      form.reset({ ...EMPTY_FORM }, { keepDefaultValues: true })
-      return
-    }
-
-    if (!detail.data) return
-
-    const key = `${String(appId)}:${detail.dataUpdatedAt}`
-    if (filledForRef.current === key) return
-    filledForRef.current = key
-    form.reset(toFormValues(detail.data), { keepDefaultValues: true })
-  }, [open, isCreate, appId, detail.data, detail.dataUpdatedAt, form])
+  useFillFormOnce({
+    open,
+    isEdit: !isCreate,
+    entityKey: appId,
+    record: detail.data,
+    version: detail.dataUpdatedAt,
+    buildValues: ({ isEdit: editing, record }) => (editing && record ? toFormValues(record) : { ...EMPTY_FORM }),
+    apply: values => form.reset(values, { keepDefaultValues: true })
+  })
 
   return (
     <EntityDrawer

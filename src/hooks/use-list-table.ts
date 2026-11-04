@@ -82,10 +82,7 @@ export function useListTable<TRow extends RowData, TData extends PageData<TRow>>
     setPagination(current => (current.pageIndex === 0 ? current : { ...current, pageIndex: 0 }))
   }, [])
 
-  const resetColumns = React.useCallback(
-    () => setColumnVisibility(initialColumnVisibility),
-    [initialColumnVisibility]
-  )
+  const resetColumns = React.useCallback(() => setColumnVisibility(initialColumnVisibility), [initialColumnVisibility])
 
   return { query, table, columnVisibility, setColumnVisibility, resetPage, resetColumns }
 }

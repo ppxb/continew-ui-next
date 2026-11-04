@@ -83,13 +83,7 @@ export function AppDetailDrawer({ appId, open, onClose }: AppDetailDrawerProps) 
   const detail = query.data ?? (open ? null : lastDetail)
 
   return (
-    <EntityDrawer
-      open={open}
-      onClose={onClose}
-      title="应用详情"
-      icon={<LayoutGrid className="size-4" />}
-      width={32}
-    >
+    <EntityDrawer open={open} onClose={onClose} title="应用详情" icon={<LayoutGrid className="size-4" />} width={32}>
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
         {!detail && query.isPending ? (
           <AppDetailSkeleton />

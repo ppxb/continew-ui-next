@@ -93,7 +93,9 @@ export function DeleteConfirmDialog({
     >
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogMedia className="bg-destructive/10 text-destructive">{icon ?? <TriangleAlert />}</AlertDialogMedia>
+          <AlertDialogMedia className="bg-destructive/10 text-destructive">
+            {icon ?? <TriangleAlert />}
+          </AlertDialogMedia>
           <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>

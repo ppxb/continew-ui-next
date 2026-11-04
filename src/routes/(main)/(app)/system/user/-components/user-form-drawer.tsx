@@ -20,6 +20,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/components/ui/toast'
+import { useFillFormOnce } from '@/hooks/use-fill-form-once'
 import { deptKeys, flattenDepts, getDeptTree } from '@/lib/api/dept'
 import { listRoleDict, roleKeys } from '@/lib/api/role'
 import {
@@ -320,33 +321,15 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
     </form.Field>
   )
 
-  // Fill the form once per open, and only after the record has settled (see the render guard below).
-  // React Query hands back a fresh object on every successful fetch, so without both the gate and
-  // this guard a slow refetch would land on top of what the user has already typed.
-  //
-  // `keepDefaultValues` is load-bearing: `reset(values)` otherwise rewrites the form's own
-  // defaultValues, and the next render's `update(opts)` reads that as "defaults changed" and puts
-  // `EMPTY_FORM` back into the fields.
-  const filledForRef = React.useRef<string | null>(null)
-  React.useEffect(() => {
-    if (!open) {
-      form.reset({ ...EMPTY_FORM }, { keepDefaultValues: true })
-      filledForRef.current = null
-      return
-    }
-
-    if (isCreate) {
-      form.reset({ ...EMPTY_FORM }, { keepDefaultValues: true })
-      return
-    }
-
-    if (!detail.data) return
-
-    const key = String(userId)
-    if (filledForRef.current === `${key}:${detail.dataUpdatedAt}`) return
-    filledForRef.current = `${key}:${detail.dataUpdatedAt}`
-    form.reset(toFormValues(detail.data), { keepDefaultValues: true })
-  }, [open, isCreate, userId, detail.data, detail.dataUpdatedAt, form])
+  useFillFormOnce({
+    open,
+    isEdit: !isCreate,
+    entityKey: userId,
+    record: detail.data,
+    version: detail.dataUpdatedAt,
+    buildValues: ({ isEdit: editing, record }) => (editing && record ? toFormValues(record) : { ...EMPTY_FORM }),
+    apply: values => form.reset(values, { keepDefaultValues: true })
+  })
 
   return (
     <EntityDrawer

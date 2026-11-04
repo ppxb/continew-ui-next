@@ -15,6 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
 import { Switch } from '@/components/ui/switch'
 import { toast } from '@/components/ui/toast'
+import { useFillFormOnce } from '@/hooks/use-fill-form-once'
 import { useLastRecord } from '@/hooks/use-last-record'
 import {
   listRolePermissionTree,
@@ -72,24 +73,22 @@ export function RolePermissionDrawer({ role, open, onClose }: RolePermissionDraw
   const [menuCheckStrictly, setMenuCheckStrictly] = React.useState(false)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
-  // Fill the tree once per open, and only after the record has settled: a refetch while the drawer
-  // is open hands back a fresh object, which must not overwrite what the user has just checked.
-  const filledForRef = React.useRef<string | null>(null)
-  React.useEffect(() => {
-    if (!open) {
-      filledForRef.current = null
-      return
-    }
-
-    if (!detail.data) return
-
-    const key = `${String(roleId)}:${detail.dataUpdatedAt}`
-    if (filledForRef.current === key) return
-    filledForRef.current = key
-
-    setSelectedMenuIds(detail.data.menuIds.map(String))
-    setMenuCheckStrictly(detail.data.menuCheckStrictly)
-  }, [open, roleId, detail.data, detail.dataUpdatedAt])
+  useFillFormOnce({
+    open,
+    isEdit: true,
+    entityKey: roleId,
+    record: detail.data,
+    version: detail.dataUpdatedAt,
+    buildValues: ({ record }) =>
+      record
+        ? { menuIds: record.menuIds.map(String), menuCheckStrictly: record.menuCheckStrictly }
+        : { menuIds: [] as string[], menuCheckStrictly: false },
+    apply: values => {
+      setSelectedMenuIds(values.menuIds)
+      setMenuCheckStrictly(values.menuCheckStrictly)
+    },
+    resetOnClose: false
+  })
 
   const treeNodes = React.useMemo(() => toCheckablePermissionNodes(permTree.data ?? []), [permTree.data])
 

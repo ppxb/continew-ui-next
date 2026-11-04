@@ -21,6 +21,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
 import { Switch } from '@/components/ui/switch'
 import { toast } from '@/components/ui/toast'
+import { useFillFormOnce } from '@/hooks/use-fill-form-once'
 import {
   createNotice,
   noticeKeys,
@@ -127,7 +128,6 @@ export function NoticeFormDrawer({ noticeId, open, onClose }: NoticeFormDrawerPr
 
   const [userPickerOpen, setUserPickerOpen] = React.useState(false)
   const submitStatusRef = React.useRef<NoticeStatus>(3)
-  const filledForRef = React.useRef<string | null>(null)
 
   const finish = (message: string) => {
     onClose()
@@ -168,28 +168,18 @@ export function NoticeFormDrawer({ noticeId, open, onClose }: NoticeFormDrawerPr
     }
   })
 
-  // Fill the form once per open, and only after the record has settled (see the render guard below).
-  React.useEffect(() => {
-    if (!open) {
-      setUserPickerOpen(false)
-      filledForRef.current = null
-      return
+  useFillFormOnce({
+    open,
+    isEdit: noticeId !== null,
+    entityKey: noticeId,
+    record: detail,
+    version: detailQuery.dataUpdatedAt,
+    buildValues: ({ isEdit: editing, record }) => (editing && record ? toFormValues(record) : EMPTY_FORM),
+    apply: values => form.reset(values, { keepDefaultValues: true }),
+    onFilled: ({ isEdit: editing }) => {
+      if (!editing) setUserPickerOpen(false)
     }
-
-    if (noticeId === null) {
-      if (filledForRef.current === 'create') return
-      filledForRef.current = 'create'
-      form.reset(EMPTY_FORM, { keepDefaultValues: true })
-      return
-    }
-
-    if (!detail) return
-
-    const key = `${noticeId}:${detailQuery.dataUpdatedAt}`
-    if (filledForRef.current === key) return
-    filledForRef.current = key
-    form.reset(toFormValues(detail), { keepDefaultValues: true })
-  }, [open, noticeId, detail, detailQuery.dataUpdatedAt, form])
+  })
 
   const submitAs = (status: NoticeStatus) => {
     submitStatusRef.current = status

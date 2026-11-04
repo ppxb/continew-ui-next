@@ -19,6 +19,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
 import { Switch } from '@/components/ui/switch'
 import { toast } from '@/components/ui/toast'
+import { useFillFormOnce } from '@/hooks/use-fill-form-once'
 import { createMenu, getMenu, menuKeys, type MenuReq, type MenuResp, updateMenu } from '@/lib/api/menu'
 import { cn } from 'cn'
 
@@ -173,6 +174,7 @@ export function MenuFormDrawer({ menuId, defaultParentId, open, onClose, menuTre
 
   const {
     data: menuDetail,
+    dataUpdatedAt: menuDetailUpdatedAt,
     isLoading: isLoadingDetail,
     isError: isDetailError,
     refetch: refetchDetail
@@ -182,51 +184,33 @@ export function MenuFormDrawer({ menuId, defaultParentId, open, onClose, menuTre
     enabled: open && isEdit
   })
 
-  // Fill the form once per open, and only after the record has settled. `keepDefaultValues` is
-  // load-bearing: `reset(values)` otherwise rewrites the form's own defaults, and the next render's
-  // `update(opts)` reads that as "defaults changed" and puts `DEFAULT_FORM_VALUES` back into the fields.
-  const filledForRef = React.useRef<string | null>(null)
-  React.useEffect(() => {
-    if (!open) {
-      form.reset({ ...DEFAULT_FORM_VALUES }, { keepDefaultValues: true })
-      filledForRef.current = null
-      return
-    }
-
-    if (!isEdit) {
-      if (filledForRef.current === 'create') return
-      filledForRef.current = 'create'
-      form.reset({ ...DEFAULT_FORM_VALUES, parentId: defaultParentId ?? null }, { keepDefaultValues: true })
-      return
-    }
-
-    if (!menuDetail) return
-
-    // Keyed by id alone: a refetch of the same record must not reset what the user is editing.
-    const key = String(menuId)
-    if (filledForRef.current === key) return
-    filledForRef.current = key
-
-    form.reset(
-      {
-        type: menuDetail.type,
-        title: menuDetail.title,
-        parentId: menuDetail.parentId ?? null,
-        icon: menuDetail.icon ?? null,
-        sort: menuDetail.sort,
-        status: menuDetail.status,
-        path: menuDetail.path ?? '',
-        name: menuDetail.name ?? '',
-        component: menuDetail.component ?? '',
-        redirect: menuDetail.redirect ?? '',
-        permission: menuDetail.permission ?? '',
-        isExternal: Boolean(menuDetail.isExternal),
-        isCache: Boolean(menuDetail.isCache),
-        isHidden: Boolean(menuDetail.isHidden)
-      },
-      { keepDefaultValues: true }
-    )
-  }, [open, isEdit, menuId, menuDetail, defaultParentId, form])
+  useFillFormOnce({
+    open,
+    isEdit,
+    entityKey: menuId,
+    record: menuDetail,
+    version: menuDetailUpdatedAt,
+    buildValues: ({ isEdit: editing, record }) =>
+      editing && record
+        ? {
+            type: record.type,
+            title: record.title,
+            parentId: record.parentId ?? null,
+            icon: record.icon ?? null,
+            sort: record.sort,
+            status: record.status,
+            path: record.path ?? '',
+            name: record.name ?? '',
+            component: record.component ?? '',
+            redirect: record.redirect ?? '',
+            permission: record.permission ?? '',
+            isExternal: Boolean(record.isExternal),
+            isCache: Boolean(record.isCache),
+            isHidden: Boolean(record.isHidden)
+          }
+        : { ...DEFAULT_FORM_VALUES, parentId: defaultParentId ?? null },
+    apply: values => form.reset(values, { keepDefaultValues: true })
+  })
 
   /**
    * Validates the whole object before submitting: `handleSubmit` returns as soon as the field

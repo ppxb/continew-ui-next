@@ -18,6 +18,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/components/ui/toast'
+import { useFillFormOnce } from '@/hooks/use-fill-form-once'
 import { createDept, deptKeys, getDept, type DeptReq, type DeptResp, updateDept } from '@/lib/api/dept'
 
 import { DeptParentSelect } from './dept-parent-select'
@@ -98,46 +99,28 @@ export function DeptFormDrawer({ deptId, defaultParentId, open, deptTree, onClos
 
   const isRootDept = isEdit && (detailQuery.data?.parentId === 0 || detailQuery.data?.parentId === null)
 
-  // Fill the form once per open, and only after the record has settled. `keepDefaultValues` is
-  // load-bearing: `reset(values)` otherwise rewrites the form's own defaults, and the next render's
-  // `update(opts)` reads that as "defaults changed" and puts `EMPTY_FORM` back into the fields.
-  const filledForRef = React.useRef<string | null>(null)
-  React.useEffect(() => {
-    if (!open) {
-      form.reset({ ...EMPTY_FORM }, { keepDefaultValues: true })
-      filledForRef.current = null
-      return
-    }
-
-    if (isEdit) {
-      if (!detailQuery.data) return
-
-      const key = `${String(deptId)}:${detailQuery.dataUpdatedAt}`
-      if (filledForRef.current === key) return
-      filledForRef.current = key
-
-      const data = detailQuery.data
-      form.reset(
-        {
-          parentId: data.parentId === null || data.parentId === undefined ? 0 : data.parentId,
-          name: data.name ?? '',
-          sort: data.sort ?? 999,
-          status: data.status ?? 1,
-          description: data.description ?? ''
-        },
-        { keepDefaultValues: true }
-      )
-      return
-    }
-
-    // A create waits until it has a parent to default to, then fills once: a tree that arrives after
-    // the drawer opened must not overwrite what the user already typed.
-    const parentId = defaultParentId ?? (deptTree.length > 0 ? deptTree[0].id : null)
-    if (parentId === null) return
-    if (filledForRef.current === 'create') return
-    filledForRef.current = 'create'
-    form.reset({ ...EMPTY_FORM, parentId }, { keepDefaultValues: true })
-  }, [open, isEdit, deptId, detailQuery.data, detailQuery.dataUpdatedAt, defaultParentId, deptTree, form])
+  // A create waits until it has a parent to default to, then fills once: a tree that arrives after
+  // the drawer opened must not overwrite what the user already typed.
+  const createParentId = defaultParentId ?? (deptTree.length > 0 ? deptTree[0].id : null)
+  useFillFormOnce({
+    open,
+    isEdit,
+    entityKey: deptId,
+    record: detailQuery.data,
+    version: detailQuery.dataUpdatedAt,
+    ready: isEdit || createParentId !== null,
+    buildValues: ({ isEdit: editing, record }) =>
+      editing && record
+        ? {
+            parentId: record.parentId === null || record.parentId === undefined ? 0 : record.parentId,
+            name: record.name ?? '',
+            sort: record.sort ?? 999,
+            status: record.status ?? 1,
+            description: record.description ?? ''
+          }
+        : { ...EMPTY_FORM, parentId: createParentId ?? '' },
+    apply: values => form.reset(values, { keepDefaultValues: true })
+  })
 
   /**
    * Validates the whole object before submitting: `handleSubmit` returns as soon as the field
