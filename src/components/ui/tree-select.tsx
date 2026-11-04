@@ -239,6 +239,7 @@ export function TreeSelect<T = Record<string, unknown>>({
           {showAllOption && !searchKeyword && (
             <Button
               type="button"
+              variant="ghost"
               onClick={() => {
                 onChange?.(null, null)
                 setOpen(false)

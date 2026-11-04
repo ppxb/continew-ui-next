@@ -161,6 +161,7 @@
 |---|---|---|---|
 | 2026-11-04 | R01 | 抽出共享路由标题/图标/分段格式化，删除两处重复（约 -80 行重复代码） | 新增 `src/navigation/route-titles.ts`；改 `components/app-shell/header/header-tabs.tsx`、`components/app-shell/app-breadcrumb.tsx`；改动前备份至 `backups/2026-11-04-*.bak` |
 | 2026-11-04 | R02 | 新增 `useListTable` 统一分页/列显隐/查询/页码回退/表格接线，迁移 12 个服务端分页列表页（每页约 -15~-22 行） | 新增 `src/hooks/use-list-table.ts`；迁移 config-client、tenant-list、package-list、notice-list、app-list、online-user-list、log-list、user-list、job-list、job-log-list、sms-log-list、config-sms；备份至 `backups/2026-11-04-*.bak` |
+| 2026-11-04 | UI-01 | 修复 TreeSelect「全部」选项丢失 `variant="ghost"`，导致选中任意项后「全部」显示为实心主色高亮 | `components/ui/tree-select.tsx`（d43ba98 误删该属性，已恢复）；备份 `backups/2026-11-04-tree-select.tsx.bak` |
 
 ---
 
