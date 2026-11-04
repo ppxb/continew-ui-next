@@ -1,7 +1,7 @@
 import * as React from 'react'
 
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import { type ColumnVisibilityState, type PaginationState, useTable } from '@tanstack/react-table'
+import { useQuery } from '@tanstack/react-query'
+import { type ColumnVisibilityState, type PaginationState } from '@tanstack/react-table'
 
 import { Plus } from 'lucide-react'
 
@@ -12,19 +12,17 @@ import { TableSearch } from '@/components/table-search'
 import { TableToolbar } from '@/components/table-toolbar'
 import { Button } from '@/components/ui/button'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
-import { usePageClamp } from '@/hooks/use-page-clamp'
+import { useListTable } from '@/hooks/use-list-table'
 import { usePermission } from '@/hooks/use-permission'
 import { listPackageDict, packageKeys } from '@/lib/api/package'
 import { listTenants, tenantKeys, type TenantPageQuery, type TenantResp } from '@/lib/api/tenant'
-import { dataTableFeatures } from '@/lib/data-table-features'
+import type { PageResp } from '@/lib/api/types'
 
 import { createTenantColumns, type TenantAction } from './tenant-columns'
 import { TenantAdminPasswordDialog } from './tenant-admin-password-dialog'
 import { TenantDeleteDialog } from './tenant-delete-dialog'
 import { TenantDetailDrawer } from './tenant-detail-drawer'
 import { TenantFormDrawer } from './tenant-form-drawer'
-
-const EMPTY_ROWS: TenantResp[] = []
 
 /** Newest first; the tenant table has no alias in its queries. */
 const DEFAULT_SORT = 'createTime,desc'
@@ -65,8 +63,6 @@ export function TenantList() {
   const canUpdateAdminPassword = hasPermission('tenant:management:updateAdminUserPwd')
   const fullscreen = useFullscreenTransition()
 
-  const [pagination, setPagination] = React.useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
-  const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>(HIDDEN_BY_DEFAULT)
   const [keyword, setKeyword] = React.useState('')
   const [packageId, setPackageId] = React.useState<string | undefined>(undefined)
   // A null value means the overlay is closed; the form drawer holds an object so a null id means 新增.
@@ -85,20 +81,6 @@ export function TenantList() {
     { value: 'all', label: '全部' },
     ...(packages.data ?? []).map(option => ({ value: String(option.value), label: option.label }))
   ]
-
-  const goToFirstPage = () => {
-    setPagination(current => (current.pageIndex === 0 ? current : { ...current, pageIndex: 0 }))
-  }
-
-  const handleKeywordSearch = (next: string) => {
-    setKeyword(next)
-    goToFirstPage()
-  }
-
-  const handlePackageChange = (value: string | null) => {
-    setPackageId(!value || value === 'all' ? undefined : value)
-    goToFirstPage()
-  }
 
   const handleAction = React.useCallback((action: TenantAction, tenant: TenantResp) => {
     if (action === 'detail') {
@@ -119,51 +101,42 @@ export function TenantList() {
     setDeletingTenant(tenant)
   }, [])
 
-  const params: TenantPageQuery = {
-    page: pagination.pageIndex + 1,
-    size: pagination.pageSize,
-    sort: DEFAULT_SORT,
-    description: keyword || undefined,
-    packageId
-  }
-
-  const query = useQuery({
-    queryKey: tenantKeys.list(params),
-    queryFn: ({ signal }) => listTenants(params, signal),
-    placeholderData: keepPreviousData
-  })
-
-  const total = query.data?.total ?? 0
-  const rowOffset = pagination.pageIndex * pagination.pageSize
-
-  usePageClamp(total, pagination, setPagination)
-
-  const columns = React.useMemo(
-    () =>
-      createTenantColumns({
-        rowOffset,
-        canGet,
-        canUpdate,
-        canUpdateAdminPassword,
-        canDelete,
-        onAction: handleAction
-      }),
-    [rowOffset, canGet, canUpdate, canUpdateAdminPassword, canDelete, handleAction]
+  const buildQuery = React.useCallback(
+    (pagination: PaginationState) => {
+      const params: TenantPageQuery = {
+        page: pagination.pageIndex + 1,
+        size: pagination.pageSize,
+        sort: DEFAULT_SORT,
+        description: keyword || undefined,
+        packageId
+      }
+      return { queryKey: tenantKeys.list(params), queryFn: (signal: AbortSignal) => listTenants(params, signal) }
+    },
+    [keyword, packageId]
   )
 
-  const table = useTable({
-    features: dataTableFeatures,
-    data: query.data?.list ?? EMPTY_ROWS,
-    columns,
-    state: { columnVisibility, pagination },
-    manualPagination: true,
-    rowCount: total,
-    pageCount: Math.max(Math.ceil(total / pagination.pageSize), 1),
-    autoResetPageIndex: false,
-    onColumnVisibilityChange: setColumnVisibility,
-    onPaginationChange: setPagination,
-    getRowId: row => String(row.id)
+  const buildColumns = React.useCallback(
+    (rowOffset: number) =>
+      createTenantColumns({ rowOffset, canGet, canUpdate, canUpdateAdminPassword, canDelete, onAction: handleAction }),
+    [canGet, canUpdate, canUpdateAdminPassword, canDelete, handleAction]
+  )
+
+  const { query, table, resetPage, resetColumns } = useListTable<TenantResp, PageResp<TenantResp>>({
+    buildQuery,
+    buildColumns,
+    getRowId: row => String(row.id),
+    initialColumnVisibility: HIDDEN_BY_DEFAULT
   })
+
+  const handleKeywordSearch = (next: string) => {
+    setKeyword(next)
+    resetPage()
+  }
+
+  const handlePackageChange = (value: string | null) => {
+    setPackageId(!value || value === 'all' ? undefined : value)
+    resetPage()
+  }
 
   const filters = (
     <>
@@ -191,7 +164,7 @@ export function TenantList() {
       isFullscreen={fullscreen.isFullscreen}
       onRefresh={() => void query.refetch()}
       onToggleFullscreen={fullscreen.toggleFullscreen}
-      onResetColumns={() => setColumnVisibility(HIDDEN_BY_DEFAULT)}
+      onResetColumns={resetColumns}
       actions={
         canCreate ? (
           <Button onClick={() => setFormTarget({ tenantId: null })}>

@@ -148,9 +148,7 @@ export function createClientColumns(
       id: 'index',
       header: '序号',
       enableHiding: false,
-      cell: ({ row }) => (
-        <div className="text-center text-sm text-muted-foreground tabular-nums">{rowOffset + row.index + 1}</div>
-      )
+      cell: ({ row }) => <div>{rowOffset + row.index + 1}</div>
     },
     {
       accessorKey: 'clientId',
@@ -178,11 +176,7 @@ export function createClientColumns(
     {
       accessorKey: 'status',
       header: '状态',
-      cell: ({ row }) => (
-        <div className="text-center">
-          <StatusCell status={row.original.status} />
-        </div>
-      )
+      cell: ({ row }) => <StatusCell status={row.original.status} />
     },
     {
       accessorKey: 'activeTimeout',
@@ -220,11 +214,7 @@ export function createClientColumns(
     {
       accessorKey: 'isConcurrent',
       header: '多地登录',
-      cell: ({ row }) => (
-        <div className="text-center">
-          <FlagBadge active={row.original.isConcurrent} activeLabel="允许" inactiveLabel="互斥" />
-        </div>
-      )
+      cell: ({ row }) => <FlagBadge active={row.original.isConcurrent} activeLabel="允许" inactiveLabel="互斥" />
     },
     {
       accessorKey: 'replacedRange',

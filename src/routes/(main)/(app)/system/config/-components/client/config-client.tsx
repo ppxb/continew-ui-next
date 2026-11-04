@@ -1,7 +1,6 @@
 import * as React from 'react'
 
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import { type ColumnVisibilityState, type PaginationState, useTable } from '@tanstack/react-table'
+import { type ColumnVisibilityState, type PaginationState } from '@tanstack/react-table'
 
 import { Plus } from 'lucide-react'
 
@@ -11,10 +10,10 @@ import { ListPageCard } from '@/components/list-page-card'
 import { TableToolbar } from '@/components/table-toolbar'
 import { Button } from '@/components/ui/button'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
-import { usePageClamp } from '@/hooks/use-page-clamp'
+import { useListTable } from '@/hooks/use-list-table'
 import { usePermission } from '@/hooks/use-permission'
 import { listClient, type ClientResp } from '@/lib/api/client'
-import { dataTableFeatures } from '@/lib/data-table-features'
+import type { PageResp } from '@/lib/api/types'
 import { clientKeys } from '@/lib/query-keys'
 
 import { type DictOption, toLabelMap, useDictOptions } from '../use-dict-options'
@@ -53,14 +52,10 @@ const STATUS_OPTIONS = [
   { value: '2', label: '禁用' }
 ]
 
-const EMPTY_ROWS: ClientResp[] = []
-
 export function ConfigClient() {
   const { hasPermission } = usePermission()
   const fullscreen = useFullscreenTransition()
 
-  const [pagination, setPagination] = React.useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
-  const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>(HIDDEN_BY_DEFAULT)
   const [clientType, setClientType] = React.useState<string | undefined>(undefined)
   const [status, setStatus] = React.useState<number | undefined>(undefined)
 
@@ -80,28 +75,6 @@ export function ConfigClient() {
   const replacedRangeMap = React.useMemo(() => toLabelMap(replacedRangeOptions), [replacedRangeOptions])
   const logoutModeMap = React.useMemo(() => toLabelMap(logoutModeOptions), [logoutModeOptions])
 
-  const params = {
-    page: pagination.pageIndex + 1,
-    size: pagination.pageSize,
-    clientType,
-    status
-  }
-
-  const query = useQuery({
-    queryKey: clientKeys.list(params),
-    queryFn: ({ signal }) => listClient(params, signal),
-    placeholderData: keepPreviousData
-  })
-
-  const total = query.data?.total ?? 0
-  const rowOffset = pagination.pageIndex * pagination.pageSize
-
-  usePageClamp(total, pagination, setPagination)
-
-  const resetPage = React.useCallback(() => {
-    setPagination(current => (current.pageIndex === 0 ? current : { ...current, pageIndex: 0 }))
-  }, [])
-
   const handleRowAction = React.useCallback((action: ClientAction, record: ClientResp) => {
     if (action === 'detail') {
       setDetailTarget(record)
@@ -116,27 +89,28 @@ export function ConfigClient() {
     setDeleteTarget(record)
   }, [])
 
-  const columns = React.useMemo(
-    () =>
+  const buildQuery = React.useCallback(
+    (pagination: PaginationState) => {
+      const params = { page: pagination.pageIndex + 1, size: pagination.pageSize, clientType, status }
+      return { queryKey: clientKeys.list(params), queryFn: (signal: AbortSignal) => listClient(params, signal) }
+    },
+    [clientType, status]
+  )
+
+  const buildColumns = React.useCallback(
+    (rowOffset: number) =>
       createClientColumns(
         { clientTypeMap, authTypeMap, replacedRangeMap, logoutModeMap, onAction: handleRowAction },
         rowOffset
       ),
-    [clientTypeMap, authTypeMap, replacedRangeMap, logoutModeMap, handleRowAction, rowOffset]
+    [clientTypeMap, authTypeMap, replacedRangeMap, logoutModeMap, handleRowAction]
   )
 
-  const table = useTable({
-    features: dataTableFeatures,
-    data: query.data?.list ?? EMPTY_ROWS,
-    columns,
-    state: { columnVisibility, pagination },
-    manualPagination: true,
-    rowCount: total,
-    pageCount: Math.max(Math.ceil(total / pagination.pageSize), 1),
-    autoResetPageIndex: false,
-    onColumnVisibilityChange: setColumnVisibility,
-    onPaginationChange: setPagination,
-    getRowId: row => String(row.id)
+  const { query, table, resetPage, resetColumns } = useListTable<ClientResp, PageResp<ClientResp>>({
+    buildQuery,
+    buildColumns,
+    getRowId: row => String(row.id),
+    initialColumnVisibility: HIDDEN_BY_DEFAULT
   })
 
   const filters = (
@@ -171,7 +145,7 @@ export function ConfigClient() {
       isFullscreen={fullscreen.isFullscreen}
       onRefresh={() => void query.refetch()}
       onToggleFullscreen={fullscreen.toggleFullscreen}
-      onResetColumns={() => setColumnVisibility(HIDDEN_BY_DEFAULT)}
+      onResetColumns={resetColumns}
       actions={
         hasPermission('system:client:create') && (
           <Button className="w-full sm:w-auto" onClick={() => setFormTarget({ clientId: null })}>
