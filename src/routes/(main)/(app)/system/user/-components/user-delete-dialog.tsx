@@ -1,22 +1,4 @@
-import * as React from 'react'
-
-import { useQueryClient } from '@tanstack/react-query'
-
-import { TriangleAlert } from 'lucide-react'
-
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogMedia,
-  AlertDialogTitle
-} from '@/components/ui/alert-dialog'
-import { Spinner } from '@/components/ui/spinner'
-import { toast } from '@/components/ui/toast'
+import { DeleteConfirmDialog } from '@/components/delete-confirm-dialog'
 import { useLastRecord } from '@/hooks/use-last-record'
 import { deleteUser, userKeys, type UserResp } from '@/lib/api/user'
 
@@ -30,66 +12,20 @@ interface UserDeleteDialogProps {
 }
 
 export function UserDeleteDialog({ user, open, onClose }: UserDeleteDialogProps) {
-  const queryClient = useQueryClient()
-  const [isDeleting, setIsDeleting] = React.useState(false)
   const shownUser = useLastRecord(user)
   const shownLabel = userLabel(shownUser)
 
-  const handleDelete = async () => {
-    if (user === null) {
-      return
-    }
-
-    setIsDeleting(true)
-
-    try {
-      await deleteUser(user.id)
-
-      onClose()
-      // One prefix covers both the list and the cached detail.
-      void queryClient.invalidateQueries({ queryKey: userKeys.all })
-      toast.add({ title: '删除成功', type: 'success' })
-    } catch {
-      // The HTTP layer already reported the failure.
-    } finally {
-      setIsDeleting(false)
-    }
-  }
-
   return (
-    <AlertDialog
+    <DeleteConfirmDialog
       open={open}
-      onOpenChange={nextOpen => {
-        // Closing mid-delete would leave the request in flight with no way to report it.
-        if (!nextOpen && !isDeleting) {
-          onClose()
-        }
+      onClose={onClose}
+      title="删除用户"
+      description={shownUser ? `是否确定删除用户「${shownLabel}」？删除后不可恢复` : '是否确定删除该用户？删除后不可恢复'}
+      disabled={!user}
+      action={async () => {
+        if (user) await deleteUser(user.id)
       }}
-    >
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogMedia className="bg-destructive/10 text-destructive">
-            <TriangleAlert />
-          </AlertDialogMedia>
-          <AlertDialogTitle>删除用户</AlertDialogTitle>
-          <AlertDialogDescription>
-            {shownUser ? `是否确定删除用户「${shownLabel}」？删除后不可恢复` : '是否确定删除该用户？删除后不可恢复'}
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={isDeleting}>取消</AlertDialogCancel>
-          <AlertDialogAction variant="destructive" disabled={isDeleting} onClick={() => void handleDelete()}>
-            {isDeleting ? (
-              <>
-                <Spinner />
-                删除中
-              </>
-            ) : (
-              '删除'
-            )}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+      invalidateKeys={[userKeys.all]}
+    />
   )
 }

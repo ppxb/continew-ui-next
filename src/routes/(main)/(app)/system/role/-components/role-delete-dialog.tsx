@@ -1,22 +1,4 @@
-import * as React from 'react'
-
-import { useQueryClient } from '@tanstack/react-query'
-
-import { TriangleAlert } from 'lucide-react'
-
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogMedia,
-  AlertDialogTitle
-} from '@/components/ui/alert-dialog'
-import { Spinner } from '@/components/ui/spinner'
-import { toast } from '@/components/ui/toast'
+import { DeleteConfirmDialog } from '@/components/delete-confirm-dialog'
 import { useLastRecord } from '@/hooks/use-last-record'
 import { deleteRoles, roleKeys, type RoleResp } from '@/lib/api/role'
 
@@ -28,67 +10,24 @@ interface RoleDeleteDialogProps {
 }
 
 export function RoleDeleteDialog({ role, open, onClose }: RoleDeleteDialogProps) {
-  const queryClient = useQueryClient()
-  const [isDeleting, setIsDeleting] = React.useState(false)
   const shownRole = useLastRecord(role)
 
-  const handleDelete = async () => {
-    if (!role) {
-      return
-    }
-
-    setIsDeleting(true)
-
-    try {
-      await deleteRoles([role.id])
-
-      toast.add({ title: '删除角色成功', type: 'success' })
-      onClose()
-      void queryClient.invalidateQueries({ queryKey: roleKeys.all })
-    } catch {
-      // The HTTP layer already reported the failure.
-    } finally {
-      setIsDeleting(false)
-    }
-  }
-
   return (
-    <AlertDialog
+    <DeleteConfirmDialog
       open={open}
-      onOpenChange={nextOpen => {
-        // Closing mid-delete would leave the request in flight with no way to report it.
-        if (!nextOpen && !isDeleting) {
-          onClose()
-        }
+      onClose={onClose}
+      title="删除角色"
+      description={
+        shownRole
+          ? `确定要删除角色「${shownRole.name}」吗？删除后该角色下关联的用户权限将失效，操作不可撤回。`
+          : '确定要删除该角色吗？删除后不可撤回。'
+      }
+      disabled={!role}
+      action={async () => {
+        if (role) await deleteRoles([role.id])
       }}
-    >
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogMedia className="bg-destructive/10 text-destructive">
-            <TriangleAlert />
-          </AlertDialogMedia>
-          <AlertDialogTitle>删除角色</AlertDialogTitle>
-          <AlertDialogDescription>
-            {shownRole
-              ? `确定要删除角色「${shownRole.name}」吗？删除后该角色下关联的用户权限将失效，操作不可撤回。`
-              : '确定要删除该角色吗？删除后不可撤回。'}
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={isDeleting}>取消</AlertDialogCancel>
-          <AlertDialogAction variant="destructive" disabled={isDeleting || !role} onClick={() => void handleDelete()}>
-            {isDeleting ? (
-              <>
-                <Spinner />
-                删除中
-              </>
-            ) : (
-              '删除'
-            )}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+      invalidateKeys={[roleKeys.all]}
+      successMessage="删除角色成功"
+    />
   )
 }

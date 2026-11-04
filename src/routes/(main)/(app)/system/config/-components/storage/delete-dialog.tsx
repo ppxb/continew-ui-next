@@ -1,21 +1,4 @@
-import * as React from 'react'
-
-import { useQueryClient } from '@tanstack/react-query'
-import { TriangleAlert } from 'lucide-react'
-
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogMedia,
-  AlertDialogTitle
-} from '@/components/ui/alert-dialog'
-import { Spinner } from '@/components/ui/spinner'
-import { toast } from '@/components/ui/toast'
+import { DeleteConfirmDialog } from '@/components/delete-confirm-dialog'
 import { useLastRecord } from '@/hooks/use-last-record'
 import { deleteStorages, type StorageResp } from '@/lib/api/storage'
 import { storageKeys } from '@/lib/query-keys'
@@ -28,75 +11,28 @@ interface StorageDeleteDialogProps {
 }
 
 /**
- * Confirms deleting one storage.
- *
- * An alert dialog rather than a plain dialog, because the request cannot be undone and should take
- * a deliberate answer instead of a stray click. The backend refuses to delete a storage that still
- * has files associated with it, or that is the default one, and reports why.
+ * Confirms deleting one storage. The backend refuses to delete a storage that still has files
+ * associated with it, or that is the default one, and reports why.
  */
 export function StorageDeleteDialog({ storage, open, onClose }: StorageDeleteDialogProps) {
-  const queryClient = useQueryClient()
-  const [isDeleting, setIsDeleting] = React.useState(false)
   // Keep the storage named after the dialog starts closing and `storage` is already null.
   const shownStorage = useLastRecord(storage)
 
-  const handleDelete = async () => {
-    if (storage === null) {
-      return
-    }
-
-    setIsDeleting(true)
-
-    try {
-      await deleteStorages([storage.id])
-
-      onClose()
-      void queryClient.invalidateQueries({ queryKey: storageKeys.all })
-      toast.add({ title: '删除成功', type: 'success' })
-    } catch {
-      // The HTTP layer already reported the failure.
-    } finally {
-      setIsDeleting(false)
-    }
-  }
-
   return (
-    <AlertDialog
+    <DeleteConfirmDialog
       open={open}
-      onOpenChange={nextOpen => {
-        // Closing mid-delete would leave the request in flight with no way to report it.
-        if (!nextOpen && !isDeleting) {
-          onClose()
-        }
+      onClose={onClose}
+      title="删除存储"
+      description={
+        shownStorage === null
+          ? '是否确定删除该存储配置？删除后不可恢复。'
+          : `是否确定删除存储配置「${shownStorage.name}(${shownStorage.code})」？删除后不可恢复，已上传至该存储的文件将无法访问。`
+      }
+      disabled={!storage}
+      action={async () => {
+        if (storage) await deleteStorages([storage.id])
       }}
-    >
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogMedia className="bg-destructive/10 text-destructive">
-            <TriangleAlert />
-          </AlertDialogMedia>
-          <AlertDialogTitle>删除存储</AlertDialogTitle>
-          <AlertDialogDescription>
-            {shownStorage === null
-              ? '是否确定删除该存储配置？删除后不可恢复。'
-              : `是否确定删除存储配置「${shownStorage.name}(${shownStorage.code})」？删除后不可恢复，已上传至该存储的文件将无法访问。`}
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={isDeleting}>取消</AlertDialogCancel>
-          <AlertDialogAction variant="destructive" disabled={isDeleting} onClick={() => void handleDelete()}>
-            {isDeleting ? (
-              <>
-                <Spinner />
-                删除中
-              </>
-            ) : (
-              '删除'
-            )}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+      invalidateKeys={[storageKeys.all]}
+    />
   )
 }

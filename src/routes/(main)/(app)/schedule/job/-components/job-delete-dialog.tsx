@@ -1,22 +1,4 @@
-import * as React from 'react'
-
-import { useQueryClient } from '@tanstack/react-query'
-
-import { Trash2 } from 'lucide-react'
-
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogMedia,
-  AlertDialogTitle
-} from '@/components/ui/alert-dialog'
-import { Spinner } from '@/components/ui/spinner'
-import { toast } from '@/components/ui/toast'
+import { DeleteConfirmDialog } from '@/components/delete-confirm-dialog'
 import { useLastRecord } from '@/hooks/use-last-record'
 import { deleteJob, jobKeys, type JobResp } from '@/lib/api/job'
 
@@ -29,66 +11,19 @@ interface JobDeleteDialogProps {
 
 /** Confirms deleting one job. */
 export function JobDeleteDialog({ job, open, onClose }: JobDeleteDialogProps) {
-  const queryClient = useQueryClient()
-  const [isDeleting, setIsDeleting] = React.useState(false)
   const shownJob = useLastRecord(job)
 
-  const handleDelete = async () => {
-    if (job === null) {
-      return
-    }
-
-    setIsDeleting(true)
-
-    try {
-      await deleteJob(job.id)
-
-      onClose()
-      void queryClient.invalidateQueries({ queryKey: jobKeys.lists() })
-      toast.add({ title: '删除成功', type: 'success' })
-    } catch {
-      // The HTTP layer already reported the failure.
-    } finally {
-      setIsDeleting(false)
-    }
-  }
-
   return (
-    <AlertDialog
+    <DeleteConfirmDialog
       open={open}
-      onOpenChange={nextOpen => {
-        // Closing mid-delete would leave the request in flight with no way to report it.
-        if (!nextOpen && !isDeleting) {
-          onClose()
-        }
+      onClose={onClose}
+      title="删除任务"
+      description={shownJob ? `是否确定删除任务「${shownJob.jobName}」？删除后不可恢复` : '是否确定删除该任务？删除后不可恢复'}
+      disabled={!job}
+      action={async () => {
+        if (job) await deleteJob(job.id)
       }}
-    >
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogMedia className="bg-destructive/10 text-destructive">
-            <Trash2 />
-          </AlertDialogMedia>
-          <AlertDialogTitle>删除任务</AlertDialogTitle>
-          <AlertDialogDescription>
-            {shownJob
-              ? `是否确定删除任务「${shownJob.jobName}」？删除后不可恢复`
-              : '是否确定删除该任务？删除后不可恢复'}
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={isDeleting}>取消</AlertDialogCancel>
-          <AlertDialogAction variant="destructive" disabled={isDeleting} onClick={() => void handleDelete()}>
-            {isDeleting ? (
-              <>
-                <Spinner />
-                删除中
-              </>
-            ) : (
-              '删除'
-            )}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+      invalidateKeys={[jobKeys.lists()]}
+    />
   )
 }
