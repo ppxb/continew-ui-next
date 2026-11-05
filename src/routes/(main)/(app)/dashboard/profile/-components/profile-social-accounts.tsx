@@ -7,8 +7,7 @@ import { listSocialBindings, profileKeys } from '@/lib/api/profile'
 export function ProfileSocialAccounts() {
   const query = useQuery({
     queryKey: profileKeys.social(),
-    queryFn: ({ signal }) => listSocialBindings(signal),
-    staleTime: 5 * 60_000
+    queryFn: ({ signal }) => listSocialBindings(signal)
   })
 
   return (

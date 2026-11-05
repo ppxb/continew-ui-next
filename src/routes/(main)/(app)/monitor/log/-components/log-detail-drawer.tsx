@@ -118,7 +118,8 @@ export function LogDetailDrawer({ logId, open, onClose }: LogDetailDrawerProps) 
     queryKey: logKeys.detail(logId),
     queryFn: logId === null ? skipToken : ({ signal }) => getLog(logId, signal),
     enabled: open,
-    staleTime: DETAIL_STALE_TIME_MS
+    staleTime: DETAIL_STALE_TIME_MS,
+    refetchOnMount: 'always'
   })
   const detail = query.data
 

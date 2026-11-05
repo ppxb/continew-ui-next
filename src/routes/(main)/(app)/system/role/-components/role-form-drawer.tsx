@@ -89,12 +89,11 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
   const isCreate = roleId === null
   const formRef = React.useRef<HTMLFormElement>(null)
 
-  const detail = useRoleDetail(roleId, { enabled: open, refreshOnOpen: !isCreate })
+  const detail = useRoleDetail(roleId, { enabled: open })
 
   const depts = useQuery({
     queryKey: deptKeys.trees(),
     queryFn: ({ signal }) => getDeptTree(undefined, signal),
-    staleTime: 5 * 60_000,
     enabled: open
   })
 

@@ -52,9 +52,6 @@ const PHONE_PATTERN = /^(?:0|86|\+86)?1[3-9]\d{9}$/
 /** The backend's `@Email` accepts single-label domains, so only reject malformed input. */
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+$/
 
-/** Departments and roles barely change, so reopening the form should not refetch them. */
-const LOOKUP_STALE_MS = 5 * 60_000
-
 const GENDER_ITEMS = ([0, 1, 2] as const).map(value => ({ value: String(value), label: genderLabel(value) }))
 
 const formSchema = z.object({
@@ -191,19 +188,17 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
   // Shares its key with the detail drawer, so opening either one warms the other. Fetching on open
   // matters more here than there: the form submits every field, so a stale base would overwrite
   // whatever another admin saved in the meantime.
-  const detail = useUserDetail(userId, { enabled: open, refreshOnOpen: !isCreate })
+  const detail = useUserDetail(userId, { enabled: open })
 
   const depts = useQuery({
     queryKey: deptKeys.trees(),
     queryFn: ({ signal }) => getDeptTree(undefined, signal),
-    staleTime: LOOKUP_STALE_MS,
     enabled: open
   })
 
   const roles = useQuery({
     queryKey: roleKeys.dicts(),
     queryFn: ({ signal }) => listRoleDict(signal),
-    staleTime: LOOKUP_STALE_MS,
     enabled: open
   })
 

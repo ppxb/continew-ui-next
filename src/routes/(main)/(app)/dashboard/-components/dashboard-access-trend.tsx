@@ -23,8 +23,6 @@ import {
   type DashboardAccessTrendResp
 } from '@/lib/api/dashboard'
 
-const DASHBOARD_STALE_MS = 5 * 60_000
-
 const RANGE_ITEMS = [
   { value: '7', label: '近 7 天' },
   { value: '30', label: '近 30 天' }
@@ -46,8 +44,7 @@ export function DashboardAccessTrend() {
 
   const query = useQuery({
     queryKey: dashboardKeys.accessTrend(range),
-    queryFn: ({ signal }) => getDashboardAccessTrend(range, signal),
-    staleTime: DASHBOARD_STALE_MS
+    queryFn: ({ signal }) => getDashboardAccessTrend(range, signal)
   })
 
   const data = query.data ?? []

@@ -6,8 +6,6 @@ import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/
 import { Skeleton } from '@/components/ui/skeleton'
 import { dashboardKeys, getDashboardIpOverview, getDashboardPvOverview } from '@/lib/api/dashboard'
 
-const DASHBOARD_STALE_MS = 5 * 60_000
-
 function formatNumber(value: number | undefined) {
   return value === undefined ? '—' : value.toLocaleString('zh-CN')
 }
@@ -40,14 +38,12 @@ function GrowthBadge({ growth }: { growth: number | undefined }) {
 export function DashboardMetrics() {
   const pv = useQuery({
     queryKey: dashboardKeys.overviewPv(),
-    queryFn: ({ signal }) => getDashboardPvOverview(signal),
-    staleTime: DASHBOARD_STALE_MS
+    queryFn: ({ signal }) => getDashboardPvOverview(signal)
   })
 
   const ip = useQuery({
     queryKey: dashboardKeys.overviewIp(),
-    queryFn: ({ signal }) => getDashboardIpOverview(signal),
-    staleTime: DASHBOARD_STALE_MS
+    queryFn: ({ signal }) => getDashboardIpOverview(signal)
   })
 
   return (

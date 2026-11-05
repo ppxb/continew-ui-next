@@ -7,13 +7,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Skeleton } from '@/components/ui/skeleton'
 import { dashboardKeys, getDashboardNotices } from '@/lib/api/dashboard'
 
-const DASHBOARD_STALE_MS = 5 * 60_000
-
 export function DashboardNotices() {
   const query = useQuery({
     queryKey: dashboardKeys.notices(),
-    queryFn: ({ signal }) => getDashboardNotices(signal),
-    staleTime: DASHBOARD_STALE_MS
+    queryFn: ({ signal }) => getDashboardNotices(signal)
   })
 
   return (

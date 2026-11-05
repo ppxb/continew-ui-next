@@ -1,10 +1,10 @@
 import { QueryClient } from '@tanstack/react-query'
 
-/** Default stale time: 1 minute (keeps fast tab/route switching instant). */
-export const DEFAULT_STALE_TIME_MS = 60_000
+/** Default stale time: 5 minutes (list and configuration data change slowly). */
+export const DEFAULT_STALE_TIME_MS = 5 * 60_000
 
-/** Short cache for read-only detail drawers; editors bypass it with refreshOnOpen. */
-export const DETAIL_STALE_TIME_MS = 30_000
+/** Detail drawers must show current data, so their cached record is stale the moment it opens. */
+export const DETAIL_STALE_TIME_MS = 0
 
 /**
  * Shared query client and cache with unified default options.

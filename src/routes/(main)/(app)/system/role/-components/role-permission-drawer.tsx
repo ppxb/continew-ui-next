@@ -60,12 +60,11 @@ export function RolePermissionDrawer({ role, open, onClose }: RolePermissionDraw
   const shownRole = useLastRecord(role)
   const roleId = shownRole?.id ?? null
 
-  const detail = useRoleDetail(roleId, { enabled: open, refreshOnOpen: true })
+  const detail = useRoleDetail(roleId, { enabled: open })
 
   const permTree = useQuery({
     queryKey: roleKeys.permissions(),
     queryFn: ({ signal }) => listRolePermissionTree(signal),
-    staleTime: 5 * 60_000,
     enabled: open
   })
 

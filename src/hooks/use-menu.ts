@@ -21,8 +21,7 @@ export const menuQueryOptions = queryOptions({
     setCachedMenu(routes)
     return routes
   },
-  initialData: () => getCachedMenu() ?? undefined,
-  staleTime: 1000 * 60 * 5
+  initialData: () => getCachedMenu() ?? undefined
 })
 
 export function useMenuRoutes() {

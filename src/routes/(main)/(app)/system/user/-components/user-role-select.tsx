@@ -11,9 +11,6 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Spinner } from '@/components/ui/spinner'
 import { listRoleDict, roleKeys } from '@/lib/api/role'
 
-/** Roles barely change, so reopening the picker should not refetch them. */
-const LOOKUP_STALE_MS = 5 * 60_000
-
 interface UserRoleSelectProps {
   readonly value: string[]
   readonly onChange: (nextValue: string[]) => void
@@ -38,7 +35,6 @@ export function UserRoleSelect({
   const roles = useQuery({
     queryKey: roleKeys.dicts(),
     queryFn: ({ signal }) => listRoleDict(signal),
-    staleTime: LOOKUP_STALE_MS,
     enabled
   })
 

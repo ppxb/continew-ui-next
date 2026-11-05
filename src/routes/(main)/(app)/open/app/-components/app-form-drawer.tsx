@@ -93,7 +93,7 @@ export function AppFormDrawer({ appId, open, onClose }: AppFormDrawerProps) {
   const isCreate = appId === null
   const queryClient = useQueryClient()
   const formRef = React.useRef<HTMLFormElement>(null)
-  const detail = useAppDetail(appId, { enabled: open, refreshOnOpen: !isCreate })
+  const detail = useAppDetail(appId, { enabled: open })
 
   const form = useForm({
     defaultValues: EMPTY_FORM,

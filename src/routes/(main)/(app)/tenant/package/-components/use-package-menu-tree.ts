@@ -3,14 +3,10 @@ import { useQuery } from '@tanstack/react-query'
 import type { TreeNodeData } from '@/components/ui/tree'
 import { getPackageMenuTree, packageKeys, type PackageMenuNode } from '@/lib/api/package'
 
-/** Menus barely change, so they stay cached between openings. */
-const LOOKUP_STALE_MS = 5 * 60_000
-
 export function usePackageMenuTree(enabled: boolean) {
   return useQuery({
     queryKey: packageKeys.menus(),
     queryFn: ({ signal }) => getPackageMenuTree(signal),
-    staleTime: LOOKUP_STALE_MS,
     enabled
   })
 }

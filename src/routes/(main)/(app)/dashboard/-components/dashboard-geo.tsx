@@ -4,13 +4,10 @@ import { dashboardKeys, getDashboardGeo } from '@/lib/api/dashboard'
 
 import { ChartCard, RankBarChart } from './dashboard-charts'
 
-const DASHBOARD_STALE_MS = 5 * 60_000
-
 export function DashboardGeo() {
   const query = useQuery({
     queryKey: dashboardKeys.geo(),
-    queryFn: ({ signal }) => getDashboardGeo(signal),
-    staleTime: DASHBOARD_STALE_MS
+    queryFn: ({ signal }) => getDashboardGeo(signal)
   })
 
   const data = [...(query.data ?? [])]

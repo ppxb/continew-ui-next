@@ -36,9 +36,6 @@ const USERNAME_PATTERN = /^[a-zA-Z][a-zA-Z0-9_]{3,64}$/
 
 const USERNAME_HINT = '管理员用户名长度为 4-64 个字符，支持字母、数字、下划线，且以字母开头'
 
-/** Packages barely change, so reopening the form should not refetch them. */
-const LOOKUP_STALE_MS = 5 * 60_000
-
 const formSchema = z.object({
   name: z.string().trim().min(1, '请输入租户名称').max(30, '名称长度不能超过 30 个字符'),
   domain: z
@@ -124,12 +121,11 @@ export function TenantFormDrawer({ tenantId, open, onClose }: TenantFormDrawerPr
   const formRef = React.useRef<HTMLFormElement>(null)
   const isCreate = tenantId === null
 
-  const detail = useTenantDetail(tenantId, { enabled: open, refreshOnOpen: !isCreate })
+  const detail = useTenantDetail(tenantId, { enabled: open })
 
   const packages = useQuery({
     queryKey: packageKeys.dicts(),
     queryFn: ({ signal }) => listPackageDict(signal),
-    staleTime: LOOKUP_STALE_MS,
     enabled: open
   })
 

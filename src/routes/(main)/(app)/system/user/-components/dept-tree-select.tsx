@@ -5,7 +5,6 @@ import { TreeSelect } from '@/components/ui/tree-select'
 import { deptKeys, getDeptTree, type DeptResp } from '@/lib/api/dept'
 import { toDeptNodeData } from '@/lib/dept-tree'
 
-const LOOKUP_STALE_MS = 5 * 60_000
 const EMPTY_NODES: DeptResp[] = []
 
 export interface DeptTreeSelectProps {
@@ -52,7 +51,6 @@ export function DeptTreeSelect({
   const depts = useQuery({
     queryKey: deptKeys.trees(),
     queryFn: ({ signal }) => getDeptTree(undefined, signal),
-    staleTime: LOOKUP_STALE_MS,
     enabled: enabled && shouldQuery
   })
 

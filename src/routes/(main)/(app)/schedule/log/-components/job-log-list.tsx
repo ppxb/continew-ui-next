@@ -30,9 +30,6 @@ import { createRecentDateRange, toDateTimeRangeQuery } from '@/lib/date-range'
 import { JobLogActionDialog, type JobLogActionTarget } from './job-log-action-dialog'
 import { createJobLogColumns, type JobLogAction } from './job-log-columns'
 
-/** Groups barely change, so the filter stays cached between visits. */
-const LOOKUP_STALE_MS = 5 * 60_000
-
 const SKELETON_WIDTHS: Record<string, string> = {
   index: 'mx-auto w-6',
   groupName: 'w-28',
@@ -71,7 +68,6 @@ export function JobLogList({ initialJobId, initialJobName, initialGroupName }: J
   const groups = useQuery({
     queryKey: jobKeys.groups(),
     queryFn: ({ signal }) => listJobGroups(signal),
-    staleTime: LOOKUP_STALE_MS,
     enabled: canListJobs
   })
 

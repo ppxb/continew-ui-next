@@ -115,7 +115,7 @@ export function NoticeFormDrawer({ noticeId, open, onClose }: NoticeFormDrawerPr
   const { typeOptions, scopeOptions, methodOptions, statusOptions } = useNoticeDicts()
 
   const isEdit = noticeId !== null
-  const detailQuery = useNoticeDetail(noticeId, { enabled: open, refreshOnOpen: true })
+  const detailQuery = useNoticeDetail(noticeId, { enabled: open })
   const detail = detailQuery.data
   const isPublished = detail?.status === 3
 
@@ -198,8 +198,7 @@ export function NoticeFormDrawer({ noticeId, open, onClose }: NoticeFormDrawerPr
     queries: unknownUserIds.map(id => ({
       queryKey: userKeys.detail(id),
       queryFn: ({ signal }) => getUser(id, signal),
-      enabled: open,
-      staleTime: 5 * 60_000
+      enabled: open
     }))
   })
 

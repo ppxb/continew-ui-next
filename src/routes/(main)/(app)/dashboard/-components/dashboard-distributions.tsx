@@ -10,13 +10,10 @@ import {
 
 import { ChartCard, DistributionPieChart, RankBarChart } from './dashboard-charts'
 
-const DASHBOARD_STALE_MS = 5 * 60_000
-
 export function DashboardTimeslot() {
   const query = useQuery({
     queryKey: dashboardKeys.timeslot(),
-    queryFn: ({ signal }) => getDashboardTimeslot(signal),
-    staleTime: DASHBOARD_STALE_MS
+    queryFn: ({ signal }) => getDashboardTimeslot(signal)
   })
 
   const data = query.data ?? []
@@ -38,8 +35,7 @@ export function DashboardTimeslot() {
 export function DashboardModule() {
   const query = useQuery({
     queryKey: dashboardKeys.module(),
-    queryFn: ({ signal }) => getDashboardModule(signal),
-    staleTime: DASHBOARD_STALE_MS
+    queryFn: ({ signal }) => getDashboardModule(signal)
   })
 
   const data = (query.data ?? []).map(item => ({
@@ -64,8 +60,7 @@ export function DashboardModule() {
 export function DashboardOs() {
   const query = useQuery({
     queryKey: dashboardKeys.os(),
-    queryFn: ({ signal }) => getDashboardOs(signal),
-    staleTime: DASHBOARD_STALE_MS
+    queryFn: ({ signal }) => getDashboardOs(signal)
   })
 
   const data = query.data ?? []
@@ -87,8 +82,7 @@ export function DashboardOs() {
 export function DashboardBrowser() {
   const query = useQuery({
     queryKey: dashboardKeys.browser(),
-    queryFn: ({ signal }) => getDashboardBrowser(signal),
-    staleTime: DASHBOARD_STALE_MS
+    queryFn: ({ signal }) => getDashboardBrowser(signal)
   })
 
   const data = query.data ?? []

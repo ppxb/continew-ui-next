@@ -28,9 +28,6 @@ import { userLabel } from './user-display'
 import { useUserDetail } from './use-user-detail'
 import { UserRoleSelect } from './user-role-select'
 
-/** Roles barely change, so reopening the dialog should not refetch them. */
-const LOOKUP_STALE_MS = 5 * 60_000
-
 const formSchema = z.object({
   roleIds: z.array(z.string()).min(1, '请至少选择一个角色')
 })
@@ -64,8 +61,7 @@ function UserAssignRolesForm({ userId, initialRoleIds, onClose }: UserAssignRole
 
   const roles = useQuery({
     queryKey: roleKeys.dicts(),
-    queryFn: ({ signal }) => listRoleDict(signal),
-    staleTime: LOOKUP_STALE_MS
+    queryFn: ({ signal }) => listRoleDict(signal)
   })
 
   // The picker speaks in strings; this map gives the original id back for the request body.
@@ -163,7 +159,7 @@ export function UserAssignRolesDialog({ user, open, onClose }: UserAssignRolesDi
 
   // Shares its key with the detail and edit drawers, so all three read one cached record; the hook
   // refetches it on open, so the picker never seeds from a stale list row.
-  const detail = useUserDetail(userId, { enabled: open, refreshOnOpen: true })
+  const detail = useUserDetail(userId, { enabled: open })
 
   const isDetailLoading = detail.isPending || detail.fetchStatus !== 'idle'
 

@@ -39,9 +39,6 @@ import {
   type JobTriggerType
 } from '@/lib/api/job'
 
-/** The groups barely change, so reopening the form should not refetch them. */
-const LOOKUP_STALE_MS = 5 * 60_000
-
 /** The built-in expressions the Vue client offers in its cron picker. */
 const CRON_PRESETS = [
   { label: '每分钟', value: '0 * * * * ?' },
@@ -162,7 +159,6 @@ export function JobFormDrawer({ job, open, onClose, defaultGroupName }: JobFormD
   const groups = useQuery({
     queryKey: jobKeys.groups(),
     queryFn: ({ signal }) => listJobGroups(signal),
-    staleTime: LOOKUP_STALE_MS,
     enabled: open
   })
 

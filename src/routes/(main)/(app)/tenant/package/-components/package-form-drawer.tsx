@@ -105,7 +105,7 @@ export function PackageFormDrawer({ packageId, open, onClose }: PackageFormDrawe
   const formRef = React.useRef<HTMLFormElement>(null)
   const isCreate = packageId === null
 
-  const detail = usePackageDetail(packageId, { enabled: open && !isCreate, refreshOnOpen: true })
+  const detail = usePackageDetail(packageId, { enabled: open && !isCreate })
 
   const menuTree = usePackageMenuTree(open)
 

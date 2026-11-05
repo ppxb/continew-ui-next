@@ -50,9 +50,6 @@ const SKELETON_WIDTHS: Record<string, string> = {
   actions: 'mx-auto w-8'
 }
 
-/** Groups barely change, so the filter and the form share one cached lookup. */
-const LOOKUP_STALE_MS = 5 * 60_000
-
 export function JobList() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -81,8 +78,7 @@ export function JobList() {
 
   const groups = useQuery({
     queryKey: jobKeys.groups(),
-    queryFn: ({ signal }) => listJobGroups(signal),
-    staleTime: LOOKUP_STALE_MS
+    queryFn: ({ signal }) => listJobGroups(signal)
   })
 
   React.useEffect(() => {

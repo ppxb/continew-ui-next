@@ -20,8 +20,7 @@ export function useSiteOptions() {
       setCachedSiteOptions(options)
       return options
     },
-    initialData: () => getCachedSiteOptions() ?? undefined,
-    staleTime: 5 * 60_000
+    initialData: () => getCachedSiteOptions() ?? undefined
   })
 
   const options = new Map((query.data ?? []).map(option => [option.label, option.value]))

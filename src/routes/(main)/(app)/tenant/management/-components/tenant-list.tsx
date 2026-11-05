@@ -51,9 +51,6 @@ const SKELETON_WIDTHS: Record<string, string> = {
   actions: 'mx-auto w-8'
 }
 
-/** Packages barely change, so the filter and the form share one cached lookup. */
-const LOOKUP_STALE_MS = 5 * 60_000
-
 export function TenantList() {
   const { hasPermission } = usePermission()
   const canCreate = hasPermission('tenant:management:create')
@@ -73,8 +70,7 @@ export function TenantList() {
 
   const packages = useQuery({
     queryKey: packageKeys.dicts(),
-    queryFn: ({ signal }) => listPackageDict(signal),
-    staleTime: LOOKUP_STALE_MS
+    queryFn: ({ signal }) => listPackageDict(signal)
   })
 
   const packageItems = [
