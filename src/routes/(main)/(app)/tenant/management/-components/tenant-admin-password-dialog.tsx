@@ -18,10 +18,7 @@ import { toast } from '@/components/ui/toast'
 import { useLastRecord } from '@/hooks/use-last-record'
 import { updateTenantAdminPassword, type TenantResp } from '@/lib/api/tenant'
 import { encryptByRsa } from '@/lib/crypto'
-
-/** Mirrors `RegexConstants.PASSWORD`: 8 to 32 characters with at least one digit and one lowercase letter. */
-const PASSWORD_PATTERN = /^(?=.*\d)(?=.*[a-z]).{8,32}$/
-const PASSWORD_HINT = '密码长度为 8-32 个字符，且至少包含一个小写字母和一个数字'
+import { PASSWORD_HINT, PASSWORD_PATTERN } from '@/lib/password'
 
 interface TenantAdminPasswordDialogProps {
   readonly tenant: TenantResp | null

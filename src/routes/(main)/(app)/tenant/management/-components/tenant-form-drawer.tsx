@@ -27,17 +27,14 @@ import { useFillFormOnce } from '@/hooks/use-fill-form-once'
 import { listPackageDict, packageKeys } from '@/lib/api/package'
 import { createTenant, tenantKeys, updateTenant, type TenantDetailResp, type TenantReq } from '@/lib/api/tenant'
 import { encryptByRsa } from '@/lib/crypto'
+import { PASSWORD_HINT, PASSWORD_PATTERN } from '@/lib/password'
 
 import { useTenantDetail } from './use-tenant-detail'
 
 /** Mirrors `RegexConstants.USERNAME`: 4-64 chars, letters, digits, underscore, letter first. */
 const USERNAME_PATTERN = /^[a-zA-Z][a-zA-Z0-9_]{3,64}$/
 
-/** Mirrors `RegexConstants.PASSWORD`: 8 to 32 characters with at least one digit and one lowercase letter. */
-const PASSWORD_PATTERN = /^(?=.*\d)(?=.*[a-z]).{8,32}$/
-
 const USERNAME_HINT = '管理员用户名长度为 4-64 个字符，支持字母、数字、下划线，且以字母开头'
-const PASSWORD_HINT = '密码长度为 8-32 个字符，且至少包含一个小写字母和一个数字'
 
 /** Packages barely change, so reopening the form should not refetch them. */
 const LOOKUP_STALE_MS = 5 * 60_000

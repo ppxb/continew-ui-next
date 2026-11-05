@@ -33,6 +33,7 @@ import {
   type UserStatus
 } from '@/lib/api/user'
 import { encryptByRsa } from '@/lib/crypto'
+import { PASSWORD_HINT, PASSWORD_PATTERN } from '@/lib/password'
 
 import { DeptTreeSelect } from './dept-tree-select'
 import { genderLabel } from './user-display'
@@ -50,12 +51,6 @@ const PHONE_PATTERN = /^(?:0|86|\+86)?1[3-9]\d{9}$/
 
 /** The backend's `@Email` accepts single-label domains, so only reject malformed input. */
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+$/
-
-/** Mirrors the backend password policy enforced by the profile and reset flows. */
-const PASSWORD_PATTERN = /^(?=.*\d)(?=.*[a-z]).{8,32}$/
-
-/** Shown under the password field until the value breaks the rule. */
-const PASSWORD_HINT = '密码长度为 8-32 个字符，且至少包含一个小写字母和一个数字'
 
 /** Departments and roles barely change, so reopening the form should not refetch them. */
 const LOOKUP_STALE_MS = 5 * 60_000

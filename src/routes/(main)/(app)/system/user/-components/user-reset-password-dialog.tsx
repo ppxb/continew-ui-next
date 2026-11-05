@@ -21,12 +21,9 @@ import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
 import { resetUserPassword, userKeys, type UserResp } from '@/lib/api/user'
 import { encryptByRsa } from '@/lib/crypto'
+import { PASSWORD_HINT, PASSWORD_PATTERN } from '@/lib/password'
 
 import { userLabel } from './user-display'
-
-/** Backend password policy; the profile form uses the same rule. */
-const PASSWORD_PATTERN = /^(?=.*\d)(?=.*[a-z]).{8,32}$/
-const PASSWORD_HINT = '密码长度为 8-32 个字符，且至少包含一个小写字母和一个数字'
 
 const formSchema = z
   .object({
