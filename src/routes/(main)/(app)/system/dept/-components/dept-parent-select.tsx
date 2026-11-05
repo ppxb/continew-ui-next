@@ -3,31 +3,8 @@ import * as React from 'react'
 import type { TreeKey } from '@/components/ui/tree'
 import { TreeSelect } from '@/components/ui/tree-select'
 import type { DeptResp } from '@/lib/api/dept'
+import { collectSubtreeIds } from '@/lib/collect-subtree-ids'
 import { toDeptNodeData } from '@/lib/dept-tree'
-
-/** Collects the target node and its descendants, so a department can never become its own child. */
-function collectSubtreeIds(nodes: DeptResp[], targetId: string | number): Set<string> {
-  const disabled = new Set<string>()
-  const targetIdStr = String(targetId)
-
-  function findAndMark(list: DeptResp[], foundParent = false) {
-    for (const node of list) {
-      const isTarget = String(node.id) === targetIdStr
-      const shouldMark = foundParent || isTarget
-
-      if (shouldMark) {
-        disabled.add(String(node.id))
-      }
-
-      if (node.children && node.children.length > 0) {
-        findAndMark(node.children, shouldMark)
-      }
-    }
-  }
-
-  findAndMark(nodes)
-  return disabled
-}
 
 interface DeptParentSelectProps {
   readonly value?: string | number | null
@@ -63,9 +40,8 @@ export function DeptParentSelect({
       return
     }
 
-    // Tree keys are strings; keep numeric department IDs numeric for the API.
-    const numeric = Number(nextKey)
-    onChange(Number.isNaN(numeric) ? nextKey : numeric)
+    // Tree keys are the stringified node IDs; keep them as strings so long snowflake IDs are not rounded.
+    onChange(String(nextKey))
   }
 
   return (

@@ -5,31 +5,8 @@ import { FileText, Folder } from 'lucide-react'
 import { TreeSelect } from '@/components/ui/tree-select'
 import type { TreeKey, TreeNodeData } from '@/components/ui/tree'
 import type { MenuResp } from '@/lib/api/menu'
+import { collectSubtreeIds } from '@/lib/collect-subtree-ids'
 import { resolveMenuIcon } from '@/navigation/menu-icons'
-
-/** Collects the target node and its descendants, so a menu can never become its own child. */
-function collectSubtreeIds(nodes: MenuResp[], targetId: string | number): Set<string> {
-  const disabled = new Set<string>()
-  const targetIdStr = String(targetId)
-
-  function findAndMark(list: MenuResp[], foundParent = false) {
-    for (const node of list) {
-      const isTarget = String(node.id) === targetIdStr
-      const shouldMark = foundParent || isTarget
-
-      if (shouldMark) {
-        disabled.add(String(node.id))
-      }
-
-      if (node.children && node.children.length > 0) {
-        findAndMark(node.children, shouldMark)
-      }
-    }
-  }
-
-  findAndMark(nodes)
-  return disabled
-}
 
 /** Transforms menu tree nodes into generic TreeNodeData for TreeSelect. */
 function toMenuTreeNodeData(nodes: MenuResp[], disabledIds: Set<string>): TreeNodeData<MenuResp>[] {
@@ -81,9 +58,8 @@ export function MenuParentSelect({
       return
     }
 
-    // Tree keys are strings; keep numeric menu IDs numeric for the API.
-    const numeric = Number(nextKey)
-    onChange(Number.isNaN(numeric) ? nextKey : numeric)
+    // Tree keys are the stringified node IDs; keep them as strings so long snowflake IDs are not rounded.
+    onChange(String(nextKey))
   }
 
   return (
