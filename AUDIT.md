@@ -54,7 +54,7 @@
 | D02  | 撤回（2026-11-05）                | `schedule/job/-components/job-form-drawer.tsx:159,264`；已安装 Form 1.33.5                                                              | submitLockRef 覆盖前置异步校验和提交。当前 Form 库在 pending 时重复调用 handleSubmit 的内存复现中，提交回调执行两次，isSubmitting 并非可靠互斥锁 | 保留现有锁；只有统一提交入口、验证同等防重入能力后才可移除                        |
 | D03  | P3（条件性优化，2026-11-05 更正） | `tenant/management/-components/tenant-form-drawer.tsx:215`、`system/config/-components/use-option-form.ts` 及同类表单                   | 先 validate 再 handleSubmit 存在重复工作，但当前 Form 实现会在字段校验失败后提前返回，前置整体校验可用于同时显示跨字段错误，不能认定完全无用     | 先统一字段与整体校验规则及错误展示，再减少重复；保留首次提交全量报错与焦点行为    |
 | D04  | P3（2026-11-05 更正）             | `components/table-search.tsx:32`、`hooks/use-debounced-value.ts:5`                                                                      | 两处均使用定时器，但 TableSearch 还承担 trim 去重、清除立即触发、回调引用更新；不等同于纯防抖值 hook，也不是已证实的过度防御                     | 只有在保留不重复搜索、即时清除和受控模式契约后才复用；当前小实现可保留            |
-| D05  | P3                                | `file-detail-drawer.tsx:21-29`、`file-delete-dialog.tsx:30-38`、`file-preview-dialog.tsx:28-36`、`user-reset-password-dialog.tsx:54-64` | 手写 `useState(lastX)+useEffect` 保留上一条记录，项目已有 `hooks/use-last-record`                                                                | 改用 `useLastRecord(record)`                                                      |
+| D05  | P3（✅ 已修复 2026-11-06） `file-detail-drawer.tsx:21-29`、`file-delete-dialog.tsx:30-38`、`file-preview-dialog.tsx:28-36`、`user-reset-password-dialog.tsx:54-64` | 手写 `useState(lastX)+useEffect` 保留上一条记录，项目已有 `hooks/use-last-record`                                                                | 已改用 `useLastRecord`；`file-delete-dialog` 此前已是该写法，剩余 3 处已统一                                                      |
 
 ---
 
@@ -199,6 +199,7 @@
 | 2026-11-06 | F10 + R11   | 角色选人改为服务端搜索 + 无限加载（每页 100），与公告选人共用新的 `UserPicker`；分页/选择契约统一 | 新增 `src/components/user-picker.tsx`；改 `system/role/-components/role-user-add-dialog.tsx`、`system/notice/-components/notice-user-picker.tsx`；备份 `backups/R11__*.20261106-161120.bak`；typecheck/lint/format 均通过 |
 | 2026-11-06 | F07 + R09   | `DataTable` 改用最终 `getRowModel()`，修复客户端分页；角色序号改为 `row.index + 1`；R09 的重复分页随 demo 路由下线而消失 | 改 `src/components/data-table.tsx`、`system/role/-components/role-list.tsx`、`role-columns.tsx`；备份 `backups/F07__*.20261106-161957.bak`；typecheck/lint/format 均通过 |
 | 2026-11-06 | R15         | TreeSelect 复用 Tree 的 `index` 入口，只建一次索引；`buildTreeIndex` 增加 `cascade` 选项，单选树跳过 `descendantsMap` | 改 `components/ui/tree.tsx`、`components/ui/tree-select.tsx`；备份 `backups/R15__*.20261106-162604.bak`；typecheck/lint/format 均通过 |
+| 2026-11-06 | D05         | 3 处手写“保留上一条记录”改为 `useLastRecord`，删除多余的 `useState`/`useEffect` | 改 `system/file/-components/file-detail-drawer.tsx`、`file-preview-dialog.tsx`、`system/user/-components/user-reset-password-dialog.tsx`；备份 `backups/D05__*.20261106-162914.bak`；typecheck/lint/format 均通过 |
 
 ---
 

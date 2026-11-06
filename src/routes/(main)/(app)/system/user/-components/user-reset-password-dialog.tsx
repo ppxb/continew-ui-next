@@ -19,6 +19,7 @@ import {
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
+import { useLastRecord } from '@/hooks/use-last-record'
 import { resetUserPassword, userKeys, type UserResp } from '@/lib/api/user'
 import { encryptByRsa } from '@/lib/crypto'
 import { PASSWORD_HINT, PASSWORD_PATTERN } from '@/lib/password'
@@ -48,17 +49,10 @@ interface UserResetPasswordDialogProps {
 
 export function UserResetPasswordDialog({ user, open, onClose }: UserResetPasswordDialogProps) {
   const queryClient = useQueryClient()
-  const [lastUser, setLastUser] = React.useState<UserResp | null>(null)
   const formRef = React.useRef<HTMLFormElement>(null)
 
   // Keep the last user during the close animation, matching the delete dialog.
-  React.useEffect(() => {
-    if (user) {
-      setLastUser(user)
-    }
-  }, [user])
-
-  const shownUser = user ?? lastUser
+  const shownUser = useLastRecord(user)
   const shownLabel = userLabel(shownUser)
 
   const form = useForm({

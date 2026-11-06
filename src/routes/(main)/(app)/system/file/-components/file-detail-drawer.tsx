@@ -1,8 +1,7 @@
-import * as React from 'react'
-
 import { CopyableText } from '@/components/copyable-text'
 import { DetailField, DetailGrid } from '@/components/detail-field'
 import { EntityDrawer } from '@/components/entity-drawer'
+import { useLastRecord } from '@/hooks/use-last-record'
 import type { FileResp } from '@/lib/api/file'
 import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 
@@ -17,16 +16,8 @@ interface FileDetailDrawerProps {
 
 /** Read-only field panel for one file or folder. */
 export function FileDetailDrawer({ file, open, onClose }: FileDetailDrawerProps) {
-  // Keep a copy for the exit animation, because the parent clears the prop when it closes.
-  const [lastFile, setLastFile] = React.useState<FileResp | null>(null)
-
-  React.useEffect(() => {
-    if (file) {
-      setLastFile(file)
-    }
-  }, [file])
-
-  const shownFile = file ?? lastFile
+  // Keep the last file during the exit animation, because the parent clears the prop when it closes.
+  const shownFile = useLastRecord(file)
 
   return (
     <EntityDrawer

@@ -1,5 +1,3 @@
-import * as React from 'react'
-
 import { Download } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -11,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog'
+import { useLastRecord } from '@/hooks/use-last-record'
 import type { FileResp } from '@/lib/api/file'
 
 import { formatFileSize } from './file-display'
@@ -25,15 +24,7 @@ interface FilePreviewDialogProps {
 
 /** Full-size image preview; non-image files open through their URL instead. */
 export function FilePreviewDialog({ file, open, canDownload, onClose, onDownload }: FilePreviewDialogProps) {
-  const [lastFile, setLastFile] = React.useState<FileResp | null>(null)
-
-  React.useEffect(() => {
-    if (file) {
-      setLastFile(file)
-    }
-  }, [file])
-
-  const shownFile = file ?? lastFile
+  const shownFile = useLastRecord(file)
 
   return (
     <Dialog
