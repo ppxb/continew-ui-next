@@ -6,7 +6,14 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { Tree, TreeSkeleton, type TreeKey, type TreeNodeData, type TreeProps } from '@/components/ui/tree'
+import {
+  buildTreeIndex,
+  Tree,
+  TreeSkeleton,
+  type TreeKey,
+  type TreeNodeData,
+  type TreeProps
+} from '@/components/ui/tree'
 
 export interface TreeSelectProps<T = Record<string, unknown>> {
   data: TreeNodeData<T>[]
@@ -67,25 +74,10 @@ export function TreeSelect<T = Record<string, unknown>>({
   const [searchKeyword, setSearchKeyword] = React.useState('')
   const [expandedKeys, setExpandedKeys] = React.useState<TreeKey[] | undefined>(undefined)
 
-  const { nodeMap, ancestorsMap, allKeys } = React.useMemo(() => {
-    const map = new Map<TreeKey, TreeNodeData<T>>()
-    const aMap = new Map<TreeKey, TreeKey[]>()
-    const keys: TreeKey[] = []
-
-    function traverse(nodes: TreeNodeData<T>[], ancestors: TreeKey[]) {
-      for (const node of nodes) {
-        map.set(node.id, node)
-        aMap.set(node.id, ancestors)
-        keys.push(node.id)
-        if (node.children && node.children.length > 0) {
-          traverse(node.children, [...ancestors, node.id])
-        }
-      }
-    }
-
-    traverse(data, [])
-    return { nodeMap: map, ancestorsMap: aMap, allKeys: keys }
-  }, [data])
+  // Build the index once and hand it to the inner Tree, so the same data is not traversed twice.
+  // A single-select tree never cascades, so the descendant relations can be skipped.
+  const index = React.useMemo(() => buildTreeIndex(data, { cascade: false }), [data])
+  const { nodeMap, ancestorsMap, allKeys } = index
 
   const selectedNode = value !== undefined && value !== null ? nodeMap.get(value) : null
   const hasValue = Boolean(selectedNode)
@@ -259,6 +251,7 @@ export function TreeSelect<T = Record<string, unknown>>({
           ) : (
             <Tree
               data={data}
+              index={index}
               selectedKey={value}
               onSelect={handleSelect}
               expandedKeys={expandedKeys}

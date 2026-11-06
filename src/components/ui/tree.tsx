@@ -68,7 +68,12 @@ export interface TreeIndex<T> {
   allKeys: TreeKey[]
 }
 
-export function buildTreeIndex<T>(nodes: TreeNodeData<T>[]): TreeIndex<T> {
+export interface TreeIndexOptions {
+  /** Build the descendant relations cascade checkboxes need; single-select trees can skip them. */
+  cascade?: boolean
+}
+
+export function buildTreeIndex<T>(nodes: TreeNodeData<T>[], { cascade = true }: TreeIndexOptions = {}): TreeIndex<T> {
   const nodeMap = new Map<TreeKey, TreeNodeData<T>>()
   const parentMap = new Map<TreeKey, TreeKey | null>()
   const directChildrenMap = new Map<TreeKey, TreeKey[]>()
@@ -95,20 +100,22 @@ export function buildTreeIndex<T>(nodes: TreeNodeData<T>[]): TreeIndex<T> {
 
   traverse(nodes, [], null)
 
-  for (let i = allKeys.length - 1; i >= 0; i--) {
-    const key = allKeys[i]
-    const children = directChildrenMap.get(key) ?? []
-    const descendants: TreeKey[] = []
-    for (const childKey of children) {
-      descendants.push(childKey)
-      const childDescendants = descendantsMap.get(childKey)
-      if (childDescendants) {
-        for (let j = 0; j < childDescendants.length; j++) {
-          descendants.push(childDescendants[j])
+  if (cascade) {
+    for (let i = allKeys.length - 1; i >= 0; i--) {
+      const key = allKeys[i]
+      const children = directChildrenMap.get(key) ?? []
+      const descendants: TreeKey[] = []
+      for (const childKey of children) {
+        descendants.push(childKey)
+        const childDescendants = descendantsMap.get(childKey)
+        if (childDescendants) {
+          for (let j = 0; j < childDescendants.length; j++) {
+            descendants.push(childDescendants[j])
+          }
         }
       }
+      descendantsMap.set(key, descendants)
     }
-    descendantsMap.set(key, descendants)
   }
 
   return { nodeMap, parentMap, directChildrenMap, descendantsMap, ancestorsMap, allKeys }
