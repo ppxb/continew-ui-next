@@ -46,7 +46,9 @@ export function DataTable<TRow extends RowData>({
   showPagination = true,
   containerClassName
 }: DataTableProps<TRow>) {
-  const rows = table.getExpandedRowModel().rows
+  // The final row model applies filtering, sorting, expansion and pagination. Reading the expanded
+  // model alone skipped pagination, so a client-paginated table rendered every row on every page.
+  const rows = table.getRowModel().rows
   const columnCount = table.getVisibleLeafColumns().length
   const rowCount = table.getRowCount()
   const hasFooter = showPagination && rowCount > 0

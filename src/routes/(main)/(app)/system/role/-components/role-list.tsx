@@ -53,7 +53,6 @@ export function RoleList() {
   })
 
   const roles = query.data ?? EMPTY_ROWS
-  const rowOffset = pagination.pageIndex * pagination.pageSize
 
   usePageClamp(roles.length, pagination, setPagination)
 
@@ -83,7 +82,7 @@ export function RoleList() {
     }
   }, [])
 
-  const columns = React.useMemo(() => createRoleColumns(handleRowAction, rowOffset), [handleRowAction, rowOffset])
+  const columns = React.useMemo(() => createRoleColumns(handleRowAction), [handleRowAction])
 
   const table = useTable({
     features: dataTableFeatures,

@@ -78,19 +78,16 @@ function RowActions({ role, onAction }: { role: RoleResp; onAction: (action: Rol
   )
 }
 
-/**
- * Builds the role table columns; `rowOffset` keeps the serial number continuous across pages.
- */
+/** Builds the role table columns; the serial number follows the row's index in the full data set. */
 export function createRoleColumns(
-  onAction: (action: RoleAction, role: RoleResp) => void,
-  rowOffset: number
+  onAction: (action: RoleAction, role: RoleResp) => void
 ): ColumnDef<DataTableFeatures, RoleResp>[] {
   return [
     {
       id: 'index',
       header: '序号',
       enableHiding: false,
-      cell: ({ row }) => <span className="tabular-nums">{rowOffset + row.index + 1}</span>
+      cell: ({ row }) => <span className="tabular-nums">{row.index + 1}</span>
     },
     {
       accessorKey: 'name',
