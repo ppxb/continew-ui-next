@@ -12,12 +12,6 @@ import type { StorageResp } from '@/lib/api/storage'
 
 import type { StorageColumn } from './columns'
 
-/** Keeps the horizontal scrollbar as thin as the infrastructure table's. */
-const SCROLL_CONTAINER_CLASS =
-  'scrollbar-thin [scrollbar-color:var(--border)_transparent] overflow-x-auto **:data-[slot=table-container]:overflow-visible [&::-webkit-scrollbar]:h-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent'
-
-const TABLE_CLASS = "table-fixed **:data-[slot='table-cell']:px-5 **:data-[slot='table-head']:px-5"
-
 interface StorageGroupPanelProps {
   readonly title: string
   readonly icon: ReactNode
@@ -79,8 +73,8 @@ function StorageTable({
   minWidth: string
 }) {
   return (
-    <div className={SCROLL_CONTAINER_CLASS}>
-      <Table className={cn(TABLE_CLASS, minWidth)}>
+    <div className="scrollbar-thin [scrollbar-color:var(--border)_transparent] overflow-x-auto **:data-[slot=table-container]:overflow-visible [&::-webkit-scrollbar]:h-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent">
+      <Table className={cn("table-fixed **:data-[slot='table-cell']:px-5 **:data-[slot='table-head']:px-5", minWidth)}>
         <StorageColGroup columns={columns} />
 
         <TableHeader className="bg-muted/50 [&_tr]:border-y">
@@ -109,8 +103,8 @@ function StorageTable({
 
 function StorageTableSkeleton({ columns, minWidth }: { columns: StorageColumn[]; minWidth: string }) {
   return (
-    <div className={SCROLL_CONTAINER_CLASS}>
-      <Table className={cn(TABLE_CLASS, minWidth)}>
+    <div className="scrollbar-thin [scrollbar-color:var(--border)_transparent] overflow-x-auto **:data-[slot=table-container]:overflow-visible [&::-webkit-scrollbar]:h-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent">
+      <Table className={cn("table-fixed **:data-[slot='table-cell']:px-5 **:data-[slot='table-head']:px-5", minWidth)}>
         <StorageColGroup columns={columns} />
 
         <TableHeader className="bg-muted/50 [&_tr]:border-y">

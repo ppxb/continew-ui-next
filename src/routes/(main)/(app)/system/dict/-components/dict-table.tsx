@@ -9,12 +9,6 @@ import type { DictItemResp } from '@/lib/api/dict'
 
 import { type DictItemColumn, DICT_ITEM_TABLE_MIN_WIDTH } from './dict-columns'
 
-/** Keeps the horizontal scrollbar as thin as the storage and infrastructure tables. */
-const SCROLL_CONTAINER_CLASS =
-  'scrollbar-thin [scrollbar-color:var(--border)_transparent] overflow-x-auto **:data-[slot=table-container]:overflow-visible [&::-webkit-scrollbar]:h-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent'
-
-const TABLE_CLASS = "table-fixed **:data-[slot='table-cell']:px-5 **:data-[slot='table-head']:px-5"
-
 const STATE_CLASS = 'min-h-24 rounded-none border-t bg-muted/50 p-4'
 
 interface DictTableProps {
@@ -71,8 +65,13 @@ function DictTableSkeleton({ columns }: { columns: DictItemColumn[] }) {
 /** The scroll container, fixed layout and header that the data and skeleton tables share. */
 function DictTableShell({ columns, children }: { columns: DictItemColumn[]; children: ReactNode }) {
   return (
-    <div className={SCROLL_CONTAINER_CLASS}>
-      <Table className={cn(TABLE_CLASS, DICT_ITEM_TABLE_MIN_WIDTH)}>
+    <div className="scrollbar-thin [scrollbar-color:var(--border)_transparent] overflow-x-auto **:data-[slot=table-container]:overflow-visible [&::-webkit-scrollbar]:h-1 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-track]:bg-transparent">
+      <Table
+        className={cn(
+          "table-fixed **:data-[slot='table-cell']:px-5 **:data-[slot='table-head']:px-5",
+          DICT_ITEM_TABLE_MIN_WIDTH
+        )}
+      >
         <colgroup>
           {columns.map(column => (
             <col key={column.id} className={column.width} />

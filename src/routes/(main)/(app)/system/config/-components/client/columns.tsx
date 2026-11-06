@@ -20,10 +20,7 @@ import type { ClientResp } from '@/lib/api/client'
 import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 
-/** Labels for the enum codes, derived so the option list stays the single source. */
-function toLabelMap(options: readonly { value: string; label: string }[]): Record<string, string> {
-  return Object.fromEntries(options.map(option => [option.value, option.label] as const))
-}
+import { toLabelMap } from '../use-dict-options'
 
 export const AUTH_TYPE_OPTIONS = [
   { label: '账号密码', value: 'ACCOUNT' },
