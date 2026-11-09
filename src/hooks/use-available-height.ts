@@ -14,7 +14,6 @@ export function useAvailableHeight<T extends HTMLElement>(ref: RefObject<T | nul
 
     const root = document.documentElement
     let frame = 0
-    let bottomChrome = 0
 
     const apply = () => {
       frame = 0
@@ -28,16 +27,20 @@ export function useAvailableHeight<T extends HTMLElement>(ref: RefObject<T | nul
       // scrollY to `top` while subtracting from innerHeight undercounts by the scroll offset, which
       // collapses the table to 0 once the page has scrolled.)
       const top = element.getBoundingClientRect().top
-      let available = Math.max(0, Math.round(window.innerHeight - top - bottomChrome))
+      // Start from the full space below the area, then subtract the chrome below it (page paddings
+      // and borders) by however far the page still overflows. This offset is recomputed from scratch
+      // on every run rather than accumulated: a run in a shorter or mobile layout used to grow it
+      // without bound, so switching back to the desktop layout collapsed the table to 0px.
+      let chrome = 0
+      let available = Math.max(0, Math.round(window.innerHeight - top))
       element.style.setProperty(variable, `${available}px`)
 
-      // Whatever the document overflows by is the chrome below the element (paddings, borders). A
-      // delta correction makes the page end exactly at the viewport and converges in one step, so
-      // repeated runs (from the element's own resize) stop instead of drifting.
-      const overflow = root.scrollHeight - root.clientHeight
-      if (overflow !== 0) {
-        bottomChrome = Math.max(0, bottomChrome + overflow)
-        available = Math.max(0, Math.round(window.innerHeight - top - bottomChrome))
+      // A few bounded passes let the page end exactly at the viewport without drifting over time.
+      for (let pass = 0; pass < 3; pass += 1) {
+        const overflow = root.scrollHeight - root.clientHeight
+        if (overflow <= 0) break
+        chrome += overflow
+        available = Math.max(0, Math.round(window.innerHeight - top - chrome))
         element.style.setProperty(variable, `${available}px`)
       }
     }
