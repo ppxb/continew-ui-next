@@ -4,7 +4,7 @@ import { revalidateLogic, useForm, useSelector } from '@tanstack/react-form'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { z } from 'zod'
 
-import { Shield } from 'lucide-react'
+import { UserShield } from 'lucide-react'
 
 import { type CheckableTreeNode, CheckableTree } from '@/components/checkable-tree'
 import { EntityDrawer } from '@/components/entity-drawer'
@@ -214,7 +214,7 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
       open={open}
       onClose={onClose}
       title={isCreate ? '新增角色' : '修改角色'}
-      icon={<Shield className="size-4" />}
+      icon={<UserShield className="size-4" />}
       width={32}
       closeDisabled={isSubmitting}
     >
