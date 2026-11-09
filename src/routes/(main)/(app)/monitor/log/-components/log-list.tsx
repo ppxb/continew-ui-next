@@ -66,12 +66,19 @@ export function LogList({ mode }: LogListProps) {
   const [ip, setIp] = React.useState('')
   const [status, setStatus] = React.useState<LogStatus | undefined>(undefined)
   const [createTime, setCreateTime] = React.useState<DateRange | undefined>(createRecentDateRange)
-  const [detailId, setDetailId] = React.useState<string | number | null>(null)
-  const [isDetailOpen, setIsDetailOpen] = React.useState(false)
+  // `id` and `open` live in one atomic state so they cannot drift apart. Closing only flips
+  // `open` and keeps `id`: the drawer still renders the last log while its exit animation runs,
+  // so blanking `id` here would flash a skeleton during the slide-out.
+  const [detailView, setDetailView] = React.useState<{ readonly id: string | number | null; readonly open: boolean }>(
+    { id: null, open: false }
+  )
 
   const handleDetail = React.useCallback((log: LogResp) => {
-    setDetailId(log.id)
-    setIsDetailOpen(true)
+    setDetailView({ id: log.id, open: true })
+  }, [])
+
+  const closeDetail = React.useCallback(() => {
+    setDetailView(prev => ({ ...prev, open: false }))
   }, [])
 
   const buildQuery = React.useCallback(
@@ -193,7 +200,7 @@ export function LogList({ mode }: LogListProps) {
       </ListPageCard>
 
       {!isLogin && canViewDetail ? (
-        <LogDetailDrawer logId={detailId} open={isDetailOpen} onClose={() => setIsDetailOpen(false)} />
+        <LogDetailDrawer logId={detailView.id} open={detailView.open} onClose={closeDetail} />
       ) : null}
     </>
   )
