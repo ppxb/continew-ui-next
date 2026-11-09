@@ -26,6 +26,8 @@ interface DataTableProps<TRow extends RowData> {
   readonly showPagination?: boolean
   /** Layout classes for the wrapper, used by the tree screens for their scroll height. */
   readonly containerClassName?: string
+  /** Fill the remaining height and scroll the rows inside the table instead of the page. */
+  readonly fillHeight?: boolean
 }
 
 /**
@@ -44,7 +46,8 @@ export function DataTable<TRow extends RowData>({
   className,
   stickyHeader = false,
   showPagination = true,
-  containerClassName
+  containerClassName,
+  fillHeight = false
 }: DataTableProps<TRow>) {
   // The final row model applies filtering, sorting, expansion and pagination. Reading the expanded
   // model alone skipped pagination, so a client-paginated table rendered every row on every page.
@@ -56,7 +59,16 @@ export function DataTable<TRow extends RowData>({
   return (
     // The pagination footer owns the bottom padding; without a footer the shell supplies the same
     // 16px itself.
-    <div className={cn('flex flex-1 flex-col', !hasFooter && 'pb-4', containerClassName)}>
+    <div
+      className={cn(
+        'flex flex-1 flex-col',
+        fillHeight && 'min-h-0',
+        fillHeight &&
+          '*:data-[slot=table-container]:min-h-0 *:data-[slot=table-container]:flex-1 *:data-[slot=table-container]:overflow-auto',
+        !hasFooter && 'pb-4',
+        containerClassName
+      )}
+    >
       <Table
         className={cn(
           "**:data-[slot='table-cell']:px-4 **:data-[slot='table-head']:px-4",
@@ -93,7 +105,7 @@ export function DataTable<TRow extends RowData>({
           ))}
         </TableHeader>
 
-        <TableBody>
+        <TableBody className={cn(fillHeight && '[&_tr:last-child]:border-b')}>
           {rows.length ? (
             rows.map(row => (
               <TableRow key={row.id} className={cn(row.getIsSelected() && 'bg-muted/30')}>
@@ -120,7 +132,7 @@ export function DataTable<TRow extends RowData>({
         </TableBody>
       </Table>
 
-      {showPagination ? <TablePagination table={table} /> : null}
+      {showPagination ? <TablePagination table={table} showTopBorder={!fillHeight} /> : null}
     </div>
   )
 }

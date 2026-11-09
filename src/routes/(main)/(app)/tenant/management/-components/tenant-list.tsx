@@ -8,6 +8,7 @@ import { Plus } from 'lucide-react'
 import { DataTable } from '@/components/data-table'
 import { FilterSelect } from '@/components/filter-select'
 import { ListPageCard } from '@/components/list-page-card'
+import { TableFillArea } from '@/components/table-fill-area'
 import { TableSearch } from '@/components/table-search'
 import { TableToolbar } from '@/components/table-toolbar'
 import { Button } from '@/components/ui/button'
@@ -181,14 +182,17 @@ export function TenantList() {
         actions={actions}
         fullscreen={fullscreen}
       >
-        <DataTable
-          table={table}
-          skeletonWidths={table.getVisibleLeafColumns().map(column => SKELETON_WIDTHS[column.id] ?? 'w-24')}
-          isLoading={query.isPending}
-          isError={query.isError}
-          isShowingPreviousRows={query.isPlaceholderData}
-          onRetry={() => void query.refetch()}
-        />
+        <TableFillArea fullscreen={fullscreen}>
+          <DataTable
+            table={table}
+            skeletonWidths={table.getVisibleLeafColumns().map(column => SKELETON_WIDTHS[column.id] ?? 'w-24')}
+            isLoading={query.isPending}
+            isError={query.isError}
+            isShowingPreviousRows={query.isPlaceholderData}
+            onRetry={() => void query.refetch()}
+            fillHeight
+          />
+        </TableFillArea>
       </ListPageCard>
 
       <TenantDetailDrawer tenantId={detailId} open={detailId !== null} onClose={() => setDetailId(null)} />

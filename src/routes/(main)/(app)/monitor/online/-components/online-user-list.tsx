@@ -5,6 +5,7 @@ import type { DateRange } from 'react-day-picker'
 
 import { DateRangeFilter } from '@/components/date-range-filter'
 import { ListPageCard } from '@/components/list-page-card'
+import { TableFillArea } from '@/components/table-fill-area'
 import { TableSearch } from '@/components/table-search'
 import { TableToolbar } from '@/components/table-toolbar'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
@@ -110,13 +111,16 @@ export function OnlineUserList() {
         actions={actions}
         fullscreen={fullscreen}
       >
-        <OnlineUserTable
-          table={table}
-          isLoading={query.isPending}
-          isError={query.isError}
-          isShowingPreviousRows={query.isPlaceholderData}
-          onRetry={() => void query.refetch()}
-        />
+        <TableFillArea fullscreen={fullscreen}>
+          <OnlineUserTable
+            table={table}
+            isLoading={query.isPending}
+            isError={query.isError}
+            isShowingPreviousRows={query.isPlaceholderData}
+            onRetry={() => void query.refetch()}
+            fillHeight
+          />
+        </TableFillArea>
       </ListPageCard>
 
       <OnlineUserKickoutDialog user={kickingUser} open={kickingUser !== null} onClose={() => setKickingUser(null)} />

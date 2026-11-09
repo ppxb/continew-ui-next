@@ -10,6 +10,7 @@ import { DataTable } from '@/components/data-table'
 import { DateRangeFilter } from '@/components/date-range-filter'
 import { FilterSelect } from '@/components/filter-select'
 import { ListPageCard } from '@/components/list-page-card'
+import { TableFillArea } from '@/components/table-fill-area'
 import { TableSearch } from '@/components/table-search'
 import { TableToolbar } from '@/components/table-toolbar'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
@@ -200,14 +201,17 @@ export function JobLogList({ initialJobId, initialJobName, initialGroupName }: J
         actions={actions}
         fullscreen={fullscreen}
       >
-        <DataTable
-          table={table}
-          isLoading={query.isPending}
-          isError={query.isError}
-          isShowingPreviousRows={query.isPlaceholderData}
-          onRetry={() => void query.refetch()}
-          skeletonWidths={table.getVisibleLeafColumns().map(column => SKELETON_WIDTHS[column.id] ?? 'w-24')}
-        />
+        <TableFillArea fullscreen={fullscreen}>
+          <DataTable
+            table={table}
+            isLoading={query.isPending}
+            isError={query.isError}
+            isShowingPreviousRows={query.isPlaceholderData}
+            onRetry={() => void query.refetch()}
+            fillHeight
+            skeletonWidths={table.getVisibleLeafColumns().map(column => SKELETON_WIDTHS[column.id] ?? 'w-24')}
+          />
+        </TableFillArea>
       </ListPageCard>
 
       <JobLogActionDialog action={actionTarget} open={actionTarget !== null} onClose={() => setActionTarget(null)} />

@@ -23,6 +23,7 @@ interface OnlineUserTableProps {
   readonly isError: boolean
   readonly isShowingPreviousRows: boolean
   readonly onRetry?: () => void
+  readonly fillHeight?: boolean
 }
 
 export function OnlineUserTable({ table, ...rest }: OnlineUserTableProps) {

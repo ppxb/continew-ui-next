@@ -9,6 +9,7 @@ import { Plus } from 'lucide-react'
 import { DataTable } from '@/components/data-table'
 import { FilterSelect } from '@/components/filter-select'
 import { ListPageCard } from '@/components/list-page-card'
+import { TableFillArea } from '@/components/table-fill-area'
 import { TableSearch } from '@/components/table-search'
 import { TableToolbar } from '@/components/table-toolbar'
 import { Button } from '@/components/ui/button'
@@ -258,14 +259,17 @@ export function JobList() {
         actions={actions}
         fullscreen={fullscreen}
       >
-        <DataTable
-          table={table}
-          isLoading={query.isPending || !groupReady}
-          isError={query.isError}
-          isShowingPreviousRows={query.isPlaceholderData}
-          onRetry={() => void query.refetch()}
-          skeletonWidths={table.getVisibleLeafColumns().map(column => SKELETON_WIDTHS[column.id] ?? 'w-24')}
-        />
+        <TableFillArea fullscreen={fullscreen}>
+          <DataTable
+            table={table}
+            isLoading={query.isPending || !groupReady}
+            isError={query.isError}
+            isShowingPreviousRows={query.isPlaceholderData}
+            onRetry={() => void query.refetch()}
+            fillHeight
+            skeletonWidths={table.getVisibleLeafColumns().map(column => SKELETON_WIDTHS[column.id] ?? 'w-24')}
+          />
+        </TableFillArea>
       </ListPageCard>
 
       <JobDetailDrawer job={liveDetailJob} open={detailJob !== null} onClose={() => setDetailJob(null)} />

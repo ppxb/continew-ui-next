@@ -132,7 +132,7 @@ export function DictItemPanel({
         isShowingPreviousRows={query.isPlaceholderData}
         onRetry={() => void query.refetch()}
         emptyTitle="暂无字典项"
-        containerClassName="min-h-0 *:data-[slot=table-container]:min-h-0 *:data-[slot=table-container]:flex-1 *:data-[slot=table-container]:overflow-auto"
+        fillHeight
         skeletonWidths={[
           'mx-auto w-6',
           'w-16',

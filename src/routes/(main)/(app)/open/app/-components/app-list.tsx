@@ -6,6 +6,7 @@ import { Download, Plus } from 'lucide-react'
 
 import { DataTable } from '@/components/data-table'
 import { ListPageCard } from '@/components/list-page-card'
+import { TableFillArea } from '@/components/table-fill-area'
 import { TableSearch } from '@/components/table-search'
 import { TableToolbar } from '@/components/table-toolbar'
 import { Button } from '@/components/ui/button'
@@ -141,14 +142,17 @@ export function AppList() {
         actions={actions}
         fullscreen={fullscreen}
       >
-        <DataTable
-          table={table}
-          isLoading={query.isPending}
-          isError={query.isError}
-          isShowingPreviousRows={query.isPlaceholderData}
-          onRetry={() => void query.refetch()}
-          skeletonWidths={['mx-auto w-4', 'mx-auto w-6', 'w-24', 'w-36', 'mx-auto w-12 rounded-full', 'w-24']}
-        />
+        <TableFillArea fullscreen={fullscreen}>
+          <DataTable
+            table={table}
+            isLoading={query.isPending}
+            isError={query.isError}
+            isShowingPreviousRows={query.isPlaceholderData}
+            onRetry={() => void query.refetch()}
+            fillHeight
+            skeletonWidths={['mx-auto w-4', 'mx-auto w-6', 'w-24', 'w-36', 'mx-auto w-12 rounded-full', 'w-24']}
+          />
+        </TableFillArea>
       </ListPageCard>
 
       <AppDetailDrawer appId={detailAppId} open={detailAppId !== null} onClose={() => setDetailAppId(null)} />

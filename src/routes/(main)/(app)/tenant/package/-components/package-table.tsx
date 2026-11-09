@@ -24,6 +24,7 @@ interface PackageTableProps {
   readonly isError: boolean
   readonly isShowingPreviousRows: boolean
   readonly onRetry?: () => void
+  readonly fillHeight?: boolean
 }
 
 export function PackageTable({ table, ...rest }: PackageTableProps) {

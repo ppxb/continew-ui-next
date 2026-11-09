@@ -2,6 +2,8 @@ import type { MouseEvent } from 'react'
 
 import type { ReactTable, RowData } from '@tanstack/react-table'
 
+import { cn } from 'cn'
+
 import { PaginationArrow } from '@/components/pagination-arrow'
 import {
   Pagination,
@@ -43,10 +45,12 @@ function preventPaginationNavigation(event: MouseEvent<HTMLAnchorElement>) {
 
 interface TablePaginationProps<TRow extends RowData> {
   readonly table: ReactTable<DataTableFeatures, TRow>
+  /** A fill-height table keeps the last row's border, so the footer drops its own top border. */
+  readonly showTopBorder?: boolean
 }
 
 /** The pagination footer shared by the table screens: page size, row count and the page links. */
-export function TablePagination<TRow extends RowData>({ table }: TablePaginationProps<TRow>) {
+export function TablePagination<TRow extends RowData>({ table, showTopBorder = true }: TablePaginationProps<TRow>) {
   const rowCount = table.getRowCount()
 
   if (rowCount === 0) {
@@ -58,7 +62,7 @@ export function TablePagination<TRow extends RowData>({ table }: TablePagination
   const pageNumbers = getPageNumbers(currentPage, pageCount)
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 border-t px-4 py-4">
+    <div className={cn('flex flex-wrap items-center justify-between gap-3 px-4 py-4', showTopBorder && 'border-t')}>
       <div className="flex items-center gap-4 text-sm text-muted-foreground">
         <div className="flex items-center gap-2">
           <span>每页</span>

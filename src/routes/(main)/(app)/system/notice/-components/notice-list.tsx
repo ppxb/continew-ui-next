@@ -7,6 +7,7 @@ import { Plus, RefreshCw } from 'lucide-react'
 import { DataTable } from '@/components/data-table'
 import { FilterSelect } from '@/components/filter-select'
 import { ListPageCard } from '@/components/list-page-card'
+import { TableFillArea } from '@/components/table-fill-area'
 import { TableSearch } from '@/components/table-search'
 import { TableToolbar } from '@/components/table-toolbar'
 import { Button } from '@/components/ui/button'
@@ -176,14 +177,17 @@ export function NoticeList() {
         actions={actions}
         fullscreen={fullscreen}
       >
-        <DataTable
-          table={table}
-          isLoading={query.isPending}
-          isError={query.isError}
-          isShowingPreviousRows={query.isPlaceholderData}
-          onRetry={() => void query.refetch()}
-          skeletonWidths={SKELETON_WIDTHS}
-        />
+        <TableFillArea fullscreen={fullscreen}>
+          <DataTable
+            table={table}
+            isLoading={query.isPending}
+            isError={query.isError}
+            isShowingPreviousRows={query.isPlaceholderData}
+            onRetry={() => void query.refetch()}
+            fillHeight
+            skeletonWidths={SKELETON_WIDTHS}
+          />
+        </TableFillArea>
       </ListPageCard>
 
       <NoticeDetailDrawer noticeId={detailId} open={detailId !== null} onClose={() => setDetailId(null)} />

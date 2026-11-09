@@ -5,6 +5,7 @@ import { Plus } from 'lucide-react'
 
 import { FilterSelect } from '@/components/filter-select'
 import { ListPageCard } from '@/components/list-page-card'
+import { TableFillArea } from '@/components/table-fill-area'
 import { TableSearch } from '@/components/table-search'
 import { TableToolbar } from '@/components/table-toolbar'
 import { Button } from '@/components/ui/button'
@@ -155,13 +156,16 @@ export function PackageList() {
         actions={actions}
         fullscreen={fullscreen}
       >
-        <PackageTable
-          table={table}
-          isLoading={query.isPending}
-          isError={query.isError}
-          isShowingPreviousRows={query.isPlaceholderData}
-          onRetry={() => void query.refetch()}
-        />
+        <TableFillArea fullscreen={fullscreen}>
+          <PackageTable
+            table={table}
+            isLoading={query.isPending}
+            isError={query.isError}
+            isShowingPreviousRows={query.isPlaceholderData}
+            onRetry={() => void query.refetch()}
+            fillHeight
+          />
+        </TableFillArea>
       </ListPageCard>
 
       <PackageDetailDrawer packageId={detailId} open={detailId !== null} onClose={() => setDetailId(null)} />

@@ -22,6 +22,7 @@ interface SmsLogTableProps {
   readonly isError: boolean
   readonly isShowingPreviousRows: boolean
   readonly onRetry?: () => void
+  readonly fillHeight?: boolean
 }
 
 export function SmsLogTable({ table, ...rest }: SmsLogTableProps) {

@@ -7,6 +7,7 @@ import type { DateRange } from 'react-day-picker'
 import { DateRangeFilter } from '@/components/date-range-filter'
 import { FilterSelect } from '@/components/filter-select'
 import { ListPageCard } from '@/components/list-page-card'
+import { TableFillArea } from '@/components/table-fill-area'
 import { TableSearch } from '@/components/table-search'
 import { TableToolbar } from '@/components/table-toolbar'
 import { Button } from '@/components/ui/button'
@@ -69,9 +70,10 @@ export function LogList({ mode }: LogListProps) {
   // `id` and `open` live in one atomic state so they cannot drift apart. Closing only flips
   // `open` and keeps `id`: the drawer still renders the last log while its exit animation runs,
   // so blanking `id` here would flash a skeleton during the slide-out.
-  const [detailView, setDetailView] = React.useState<{ readonly id: string | number | null; readonly open: boolean }>(
-    { id: null, open: false }
-  )
+  const [detailView, setDetailView] = React.useState<{ readonly id: string | number | null; readonly open: boolean }>({
+    id: null,
+    open: false
+  })
 
   const handleDetail = React.useCallback((log: LogResp) => {
     setDetailView({ id: log.id, open: true })
@@ -190,13 +192,16 @@ export function LogList({ mode }: LogListProps) {
   return (
     <>
       <ListPageCard filters={filters} actions={actions} fullscreen={fullscreen}>
-        <LogTable
-          table={table}
-          isLoading={query.isPending}
-          isError={query.isError}
-          isShowingPreviousRows={query.isPlaceholderData}
-          onRetry={() => void query.refetch()}
-        />
+        <TableFillArea fullscreen={fullscreen}>
+          <LogTable
+            table={table}
+            isLoading={query.isPending}
+            isError={query.isError}
+            isShowingPreviousRows={query.isPlaceholderData}
+            onRetry={() => void query.refetch()}
+            fillHeight
+          />
+        </TableFillArea>
       </ListPageCard>
 
       {!isLogin && canViewDetail ? (
