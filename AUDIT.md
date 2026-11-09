@@ -69,7 +69,7 @@
 | O05  | P3（✅ 已修复 2026-11-09）       | `hooks/use-page-clamp.ts:6`、`hooks/use-list-table.ts:60-66`                                                                   | 后续页刷新成功返回 total=0 时，total>0 条件阻止回退，旧 pageIndex 与 pageCount=1 不一致；加载中也用 0 兜底                                                                   | 用 `undefined` 表示总数未知、`0` 表示确认空结果：仅拿到真实 total 时回退页码，`total=0` 也能回退到第一页 |
 | O06  | 待验证（2026-11-05 新增）   | `hooks/use-fill-form-once.ts:74` 及用户/租户表单的 version 传入                                                                 | dataUpdatedAt 改变会无条件 reset，若编辑期间同一详情缓存更新，草稿可能被覆盖；当前检查路径关闭 focus/reconnect 自动刷新且打开时等待回源，未证实常规输入会丢失                | 保留 version 解决旧缓存回填；确认编辑期间缓存更新入口后，再设计一次性初始化或脏状态保护 |
 | O07  | P3（✅ 已修复 2026-11-09） | `components/ui/tree.tsx:338-345,409-411,455-478`；`components/checkable-tree.tsx:131-167`                                          | 搜索时展开图标和可见节点由 searchExpandedKeys 决定，但箭头/批量展开仍只更新 expandedKeySet，点击后界面不变；键盘 →/← 同样无效                                               | 按"搜索强制展开"既定交互：搜索时箭头改静态不可点占位、键盘 →/← 跳过、展开/折叠全部隐藏                                   |
-| O08  | P3（2026-11-05 树组件补审） | `components/ui/tree.tsx:286`                                                                                                    | selectedKey 在 data=[] 时已写入 lastAutoExpandedKey；数据异步到达后同 key 被提前返回，祖先不自动展开。TreeSelect 用 loading 骨架可规避，不能泛化为所有调用均失败             | 仅在索引已包含选中节点并处理其祖先后记录；验证空数据到就绪数据的同 key 场景             |
+| O08  | P3（✅ 已修复 2026-11-09） | `components/ui/tree.tsx:293-309`                                                                                                | selectedKey 在 data=[] 时已写入 lastAutoExpandedKey；数据异步到达后同 key 被提前返回，祖先不自动展开。TreeSelect 用 loading 骨架可规避，不能泛化为所有调用均失败             | 仅在索引已包含选中节点（`ancestorsMap.has`）后才记录并展开祖先；空数据→就绪的同 key 场景可正常展开             |
 | O09  | P3（组件边界，2026-11-05）  | `components/ui/tree-select.tsx:133,140,239,260`                                                                                 | disabled 只控制触发按钮；弹层已打开后切为 disabled，内部 Tree 与全部选项仍可 onChange。当前限定调用点未证实实际触发                                                          | 使已打开内容同步不可交互或关闭弹层；无需增加无关状态机                                  |
 
 ---
@@ -205,6 +205,7 @@
 | 2026-11-09 | O03         | 租户表单"取消"按钮移入 `form.Subscribe`，与"保存"共享 `isSubmitting`，保存中同步禁用；不再直接 `onClose` 绕过关闭守卫 | 改 `tenant/management/-components/tenant-form-drawer.tsx`；typecheck/lint/format 均通过 |
 | 2026-11-09 | O05         | 页码回退区分“未知总数”与“确认空”：`use-list-table` 的 total 改为 `undefined`（加载中）/真实值，`use-page-clamp` 仅在拿到真实 total 时回退，`total=0` 也会回到第一页 | 改 `hooks/use-list-table.ts`、`hooks/use-page-clamp.ts`；typecheck/lint/format 均通过 |
 | 2026-11-09 | O07         | 搜索态下树展开控件无效：搜索时箭头改为静态不可点占位、键盘 →/← 跳过展开、CheckableTree 展开/折叠全部按钮在搜索时隐藏 | 改 `components/ui/tree.tsx`、`components/checkable-tree.tsx`；typecheck/lint/format 均通过 |
+| 2026-11-09 | O08         | 异步数据下选中项祖先不展开：仅在索引已包含 selectedKey 后才记录 `lastAutoExpandedKey` 并展开祖先 | 改 `components/ui/tree.tsx`；typecheck/lint/format 均通过 |
 
 ---
 

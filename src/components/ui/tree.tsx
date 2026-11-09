@@ -296,6 +296,9 @@ export function Tree<T = Record<string, unknown>>({
       lastAutoExpandedKey.current = undefined
       return
     }
+    // The data can arrive after the selected key (async load). Do not record the key until its node
+    // is in the index, or the same key would be skipped once its ancestors show up.
+    if (!index.ancestorsMap.has(selectedKey)) return
     if (lastAutoExpandedKey.current === selectedKey) return
     lastAutoExpandedKey.current = selectedKey
     const ancestors = index.ancestorsMap.get(selectedKey) ?? []
