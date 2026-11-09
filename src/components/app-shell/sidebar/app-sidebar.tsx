@@ -18,6 +18,7 @@ import { usePreferencesStore } from '@/stores/preferences/preferences-provider'
 
 import { NavMain } from './nav-main'
 import { SupportCard } from './support-card'
+import { SupportCarousel } from './support-carousel'
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { sidebarVariant, sidebarCollapsible, isSynced } = usePreferencesStore(
@@ -49,6 +50,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={groups} />
       </SidebarContent>
       <SidebarFooter>
+        <SupportCarousel />
         <SupportCard />
       </SidebarFooter>
     </Sidebar>
