@@ -30,6 +30,8 @@ interface EntityDrawerProps {
   /** A secondary line under the title. */
   readonly description?: string
   readonly width?: EntityDrawerWidth
+  /** Extra classes for the drawer panel, such as a mobile width override. */
+  readonly contentClassName?: string
   /** Disables the close button outright, for states that re-render while saving. */
   readonly closeDisabled?: boolean
   /** Return false to keep the drawer open, such as while a save is in flight. */
@@ -50,6 +52,7 @@ export function EntityDrawer({
   badge,
   description,
   width = 32,
+  contentClassName,
   closeDisabled = false,
   canClose,
   children
@@ -64,7 +67,7 @@ export function EntityDrawer({
       }}
       swipeDirection="right"
     >
-      <DrawerContent className={WIDTH_CLASSES[width]}>
+      <DrawerContent className={cn(WIDTH_CLASSES[width], contentClassName)}>
         <DrawerHeader
           className={cn(
             'flex-row justify-between gap-2 border-b p-4 md:gap-2',

@@ -69,18 +69,13 @@ function createMemberColumns({
     },
     {
       accessorKey: 'nickname',
-      header: '用户',
-      cell: ({ row }) => {
-        const user = row.original
-        const name = user.nickname || user.username
-
-        return (
-          <div className="flex flex-col leading-tight">
-            <span>{name}</span>
-            <span>{user.username}</span>
-          </div>
-        )
-      }
+      header: '昵称',
+      cell: ({ row }) => <span>{row.original.nickname || EMPTY_PLACEHOLDER}</span>
+    },
+    {
+      accessorKey: 'username',
+      header: '用户名',
+      cell: ({ row }) => <span>{row.original.username || EMPTY_PLACEHOLDER}</span>
     },
     {
       accessorKey: 'deptName',
@@ -97,7 +92,7 @@ function createMemberColumns({
       header: () => <div className="text-center">操作</div>,
       cell: ({ row }) => (
         <div className="flex items-center justify-center">
-          <Button variant="destructive" size="sm" disabled={isUnassigning} onClick={() => onUnassign(row.original)}>
+          <Button variant="destructive" disabled={isUnassigning} onClick={() => onUnassign(row.original)}>
             取消授权
           </Button>
         </div>
@@ -219,6 +214,7 @@ export function RoleUserDrawer({ role, open, onClose }: RoleUserDrawerProps) {
         icon={<Users className="size-4" />}
         badge={shownRole ? <Badge variant="secondary">{shownRole.name}</Badge> : undefined}
         width={40}
+        contentClassName="data-[swipe-axis=x]:[--drawer-content-width:90%]"
       >
         <div className="flex min-h-0 flex-1 flex-col gap-3 p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -242,7 +238,7 @@ export function RoleUserDrawer({ role, open, onClose }: RoleUserDrawerProps) {
             </div>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto rounded-md border">
+          <div className="flex min-h-0 flex-1 flex-col rounded-md border *:data-[slot=table-container]:min-h-0 *:data-[slot=table-container]:flex-1 *:data-[slot=table-container]:overflow-auto">
             <Table>
               <TableHeader>
                 {table.getHeaderGroups().map(headerGroup => (
@@ -261,7 +257,7 @@ export function RoleUserDrawer({ role, open, onClose }: RoleUserDrawerProps) {
                   table.getRowModel().rows.map(row => (
                     <TableRow key={row.id} className={row.getIsSelected() ? 'bg-muted/30' : undefined}>
                       {row.getVisibleCells().map(cell => (
-                        <TableCell key={cell.id} className="py-2.5 text-xs">
+                        <TableCell key={cell.id}>
                           <table.FlexRender cell={cell} />
                         </TableCell>
                       ))}
