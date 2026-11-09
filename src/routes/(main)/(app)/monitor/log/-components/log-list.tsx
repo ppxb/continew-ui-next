@@ -157,7 +157,12 @@ export function LogList({ mode }: LogListProps) {
         placeholder={placeholders.ip}
         onSearch={handleIpSearch}
       />
-      <DateRangeFilter value={createTime} onChange={handleCreateTimeChange} placeholder={placeholders.date} />
+      <DateRangeFilter
+        value={createTime}
+        onChange={handleCreateTimeChange}
+        placeholder={placeholders.date}
+        className="col-span-2"
+      />
       <FilterSelect
         label="状态"
         options={STATUS_OPTIONS}

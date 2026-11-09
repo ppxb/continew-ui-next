@@ -86,7 +86,7 @@ export function OnlineUserList() {
         placeholder="搜索用户名、昵称"
         onSearch={handleSearch}
       />
-      <DateRangeFilter value={loginTime} onChange={handleLoginTimeChange} placeholder="登录时间" />
+      <DateRangeFilter value={loginTime} onChange={handleLoginTimeChange} placeholder="登录时间" className="col-span-2" />
     </>
   )
 

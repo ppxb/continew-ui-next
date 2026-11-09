@@ -175,7 +175,7 @@ export function JobLogList({ initialJobId, initialJobName, initialGroupName }: J
         onValueChange={handleStatusChange}
         className="w-full sm:w-32"
       />
-      <DateRangeFilter value={dateRange} onChange={handleDateRangeChange} />
+      <DateRangeFilter value={dateRange} onChange={handleDateRangeChange} className="col-span-2" />
     </>
   )
 
