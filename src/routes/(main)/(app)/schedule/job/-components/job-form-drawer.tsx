@@ -122,22 +122,39 @@ function toFormValues(job: JobResp): FormValues {
   }
 }
 
+/** One editable shard parameter; the stable id keeps the row's DOM/focus when others are removed. */
+interface ShardArg {
+  readonly id: string
+  readonly value: string
+}
+
+let shardArgSeq = 0
+
+function nextShardArgId() {
+  shardArgSeq += 1
+  return `shard-arg-${shardArgSeq}`
+}
+
+function toShardArgs(values: readonly string[]): ShardArg[] {
+  return values.map(value => ({ id: nextShardArgId(), value }))
+}
+
 /** Static-slice jobs store their shard parameters as a JSON array of strings. */
-function parseShardArgs(argsStr: string | null): string[] {
+function parseShardArgs(argsStr: string | null): ShardArg[] {
   if (!argsStr) {
-    return ['']
+    return toShardArgs([''])
   }
 
   try {
     const parsed: unknown = JSON.parse(argsStr)
     if (Array.isArray(parsed) && parsed.every(item => typeof item === 'string')) {
-      return parsed
+      return toShardArgs(parsed)
     }
   } catch {
     // A hand-edited value that is not JSON falls back to one empty row.
   }
 
-  return ['']
+  return toShardArgs([''])
 }
 
 interface JobFormDrawerProps {
@@ -169,7 +186,7 @@ export function JobFormDrawer({ job, open, onClose, defaultGroupName }: JobFormD
 
   const groupItems = React.useMemo(() => groupOptions.map(group => ({ value: group, label: group })), [groupOptions])
 
-  const [args, setArgs] = React.useState<string[]>([''])
+  const [args, setArgs] = React.useState<ShardArg[]>(() => toShardArgs(['']))
   const [argsError, setArgsError] = React.useState<string | null>(null)
   const [triggerError, setTriggerError] = React.useState<string | null>(null)
 
@@ -187,7 +204,7 @@ export function JobFormDrawer({ job, open, onClose, defaultGroupName }: JobFormD
         executorType: value.executorType,
         taskType: Number(value.taskType) as JobTaskType,
         executorInfo: value.executorInfo.trim(),
-        argsStr: value.taskType === '3' ? JSON.stringify(args) : value.argsStr,
+        argsStr: value.taskType === '3' ? JSON.stringify(args.map(arg => arg.value)) : value.argsStr,
         argsType: value.argsType,
         routeKey: Number(value.routeKey) as JobRouteKey,
         blockStrategy: Number(value.blockStrategy) as JobBlockStrategy,
@@ -223,7 +240,7 @@ export function JobFormDrawer({ job, open, onClose, defaultGroupName }: JobFormD
       editing && record ? toFormValues(record) : { ...EMPTY_FORM, groupName: defaultGroupName ?? '' },
     apply: values => form.reset(values, { keepDefaultValues: true }),
     onFilled: ({ isEdit: editing, record }) => {
-      setArgs(editing && record ? parseShardArgs(record.argsStr) : [''])
+      setArgs(editing && record ? parseShardArgs(record.argsStr) : toShardArgs(['']))
       setArgsError(null)
       setTriggerError(null)
     },
@@ -242,18 +259,18 @@ export function JobFormDrawer({ job, open, onClose, defaultGroupName }: JobFormD
     }
   }, [open, job, groups.data, form])
 
-  const updateArg = (index: number, value: string) => {
-    setArgs(current => current.map((item, itemIndex) => (itemIndex === index ? value : item)))
+  const updateArg = (id: string, value: string) => {
+    setArgs(current => current.map(item => (item.id === id ? { ...item, value } : item)))
     setArgsError(null)
   }
 
   const addArg = () => {
-    setArgs(current => [...current, ''])
+    setArgs(current => [...current, { id: nextShardArgId(), value: '' }])
     setArgsError(null)
   }
 
-  const removeArg = (index: number) => {
-    setArgs(current => current.filter((_, itemIndex) => itemIndex !== index))
+  const removeArg = (id: string) => {
+    setArgs(current => current.filter(item => item.id !== id))
     setArgsError(null)
   }
 
@@ -276,7 +293,7 @@ export function JobFormDrawer({ job, open, onClose, defaultGroupName }: JobFormD
       setTriggerError(nextTriggerError)
 
       let nextArgsError: string | null = null
-      if (values.taskType === '3' && (args.length === 0 || args.some(arg => !arg.trim()))) {
+      if (values.taskType === '3' && (args.length === 0 || args.some(arg => !arg.value.trim()))) {
         nextArgsError = '请填写完整的分片参数'
       }
       setArgsError(nextArgsError)
@@ -659,10 +676,10 @@ export function JobFormDrawer({ job, open, onClose, defaultGroupName }: JobFormD
                       <FieldLabel>任务参数</FieldLabel>
                       <div className="flex flex-col gap-2">
                         {args.map((arg, index) => (
-                          <div key={index} className="flex items-center gap-2">
+                          <div key={arg.id} className="flex items-center gap-2">
                             <Input
-                              value={arg}
-                              onChange={event => updateArg(index, event.target.value)}
+                              value={arg.value}
+                              onChange={event => updateArg(arg.id, event.target.value)}
                               placeholder={`请输入分片参数 ${index + 1}`}
                               aria-invalid={Boolean(argsError)}
                             />
@@ -673,7 +690,7 @@ export function JobFormDrawer({ job, open, onClose, defaultGroupName }: JobFormD
                                     type="button"
                                     variant="outline"
                                     size="icon-sm"
-                                    onClick={() => removeArg(index)}
+                                    onClick={() => removeArg(arg.id)}
                                   />
                                 }
                               >
