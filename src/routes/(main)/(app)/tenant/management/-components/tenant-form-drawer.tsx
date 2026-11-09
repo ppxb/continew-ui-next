@@ -2,6 +2,7 @@ import * as React from 'react'
 
 import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { Link } from '@tanstack/react-router'
 import { z } from 'zod'
 
 import { Building2, PackageOpen } from 'lucide-react'
@@ -430,7 +431,22 @@ export function TenantFormDrawer({ tenantId, open, onClose }: TenantFormDrawerPr
                                 </EmptyMedia>
                                 <EmptyTitle>{packages.isError ? '套餐加载失败' : '暂无可用套餐'}</EmptyTitle>
                                 <EmptyDescription>
-                                  {packages.isError ? '请关闭抽屉后重新打开重试' : '请先在「套餐管理」中创建并启用套餐'}
+                                  {packages.isError ? (
+                                    '请关闭抽屉后重新打开重试'
+                                  ) : (
+                                    <>
+                                      {'请先在「'}
+                                      <Button
+                                        nativeButton={false}
+                                        variant="link"
+                                        className="h-auto p-0 align-baseline text-sm font-normal"
+                                        render={<Link to="/tenant/package" />}
+                                      >
+                                        套餐管理
+                                      </Button>
+                                      {'」中创建并启用套餐'}
+                                    </>
+                                  )}
                                 </EmptyDescription>
                               </EmptyHeader>
                             </Empty>
