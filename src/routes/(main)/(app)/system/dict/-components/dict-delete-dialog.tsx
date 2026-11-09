@@ -37,7 +37,9 @@ export function DictDeleteDialog({ target, open, onClose }: DictDeleteDialogProp
           await deleteDictItem(target.item.id)
         }
       }}
-      invalidateKeys={[dictKeys.lists(), dictKeys.items()]}
+      // Deleting a dictionary only changes the dictionary list; its item page disappears with the
+      // panel, so refetching `dictKeys.items()` there would hit a just-deleted dictionary for nothing.
+      invalidateKeys={target?.type === 'item' ? [dictKeys.items()] : [dictKeys.lists()]}
     />
   )
 }

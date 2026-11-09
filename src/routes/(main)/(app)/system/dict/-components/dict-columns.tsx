@@ -1,5 +1,4 @@
-import type { ReactNode } from 'react'
-
+import type { ColumnDef } from '@tanstack/react-table'
 import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
 
 import { StatusCell } from '@/components/status-cell'
@@ -15,19 +14,11 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import type { DictItemResp } from '@/lib/api/dict'
+import type { DataTableFeatures } from '@/lib/data-table-features'
 
 import { DictLabelBadge } from './dict-display'
 
 export type DictItemAction = 'update' | 'delete'
-
-export interface DictItemColumn {
-  readonly id: string
-  readonly header: string
-  /** `colgroup` width; the tables use a fixed layout so long text truncates. */
-  readonly width: string
-  readonly headerClassName?: string
-  readonly cell: (item: DictItemResp, index: number) => ReactNode
-}
 
 interface DictItemColumnOptions {
   readonly canUpdate: boolean
@@ -35,14 +26,11 @@ interface DictItemColumnOptions {
   readonly onAction: (action: DictItemAction, item: DictItemResp) => void
 }
 
-/** Sum of the item column widths, so the fixed layout keeps them instead of squeezing. */
-export const DICT_ITEM_TABLE_MIN_WIDTH = 'min-w-[1040px]'
-
 function RowActions({ item, options }: { item: DictItemResp; options: DictItemColumnOptions }) {
   const { canUpdate, canDelete, onAction } = options
 
   return (
-    <div className="flex items-center justify-end">
+    <div className="flex items-center justify-center">
       <DropdownMenu>
         <Tooltip>
           <TooltipTrigger render={<DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />} />}>
@@ -76,60 +64,56 @@ function RowActions({ item, options }: { item: DictItemResp; options: DictItemCo
   )
 }
 
-/** The visible columns of the Vue item table: audit users and update time stay hidden. */
-export function createDictItemColumns(options: DictItemColumnOptions): DictItemColumn[] {
-  const columns: DictItemColumn[] = [
+/** Builds the dictionary item table columns; `rowOffset` keeps the serial number continuous across pages. */
+export function createDictItemColumns(
+  options: DictItemColumnOptions,
+  rowOffset: number
+): ColumnDef<DataTableFeatures, DictItemResp>[] {
+  const columns: ColumnDef<DataTableFeatures, DictItemResp>[] = [
     {
       id: 'index',
       header: '序号',
-      width: 'w-16',
-      cell: (_item, index) => <span>{index + 1}</span>
+      enableHiding: false,
+      cell: ({ row }) => <div className="tabular-nums">{rowOffset + row.index + 1}</div>
     },
     {
-      id: 'label',
+      accessorKey: 'label',
       header: '标签',
-      width: 'w-32',
-      cell: item => <DictLabelBadge label={item.label} color={item.color} />
+      cell: ({ row }) => <DictLabelBadge label={row.original.label} color={row.original.color} />
     },
     {
-      id: 'value',
+      accessorKey: 'value',
       header: '值',
-      width: 'w-40',
-      cell: item => <TextCell value={item.value} />
+      cell: ({ row }) => <TextCell value={row.original.value} />
     },
     {
-      id: 'status',
+      accessorKey: 'status',
       header: '状态',
-      width: 'w-24',
-      cell: item => <StatusCell status={item.status} />
+      cell: ({ row }) => <StatusCell status={row.original.status} />
     },
     {
-      id: 'sort',
+      accessorKey: 'sort',
       header: '排序',
-      width: 'w-20',
-      cell: item => <div>{item.sort}</div>
+      cell: ({ row }) => <div>{row.original.sort}</div>
     },
     {
-      id: 'description',
+      accessorKey: 'description',
       header: '描述',
-      width: 'w-64',
-      cell: item => <TextCell value={item.description} />
+      cell: ({ row }) => <TextCell value={row.original.description} />
     },
     {
-      id: 'createTime',
+      accessorKey: 'createTime',
       header: '创建时间',
-      width: 'w-44',
-      cell: item => <TextCell value={item.createTime} />
+      cell: ({ row }) => <TextCell value={row.original.createTime} />
     }
   ]
 
   if (options.canUpdate || options.canDelete) {
     columns.push({
       id: 'actions',
-      header: '操作',
-      width: 'w-20',
-      headerClassName: 'text-right',
-      cell: item => <RowActions item={item} options={options} />
+      header: () => <div className="text-center">操作</div>,
+      enableHiding: false,
+      cell: ({ row }) => <RowActions item={row.original} options={options} />
     })
   }
 

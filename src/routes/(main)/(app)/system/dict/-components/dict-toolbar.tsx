@@ -1,41 +1,30 @@
-import { Maximize, Minimize, Plus, RefreshCw, Trash2 } from 'lucide-react'
+import { Maximize, Minimize, RefreshCw, Trash2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 
 interface DictToolbarProps {
-  readonly canCreate: boolean
   readonly canClearCache: boolean
   readonly isClearingCache: boolean
   readonly isRefreshing: boolean
   readonly isFullscreen: boolean
-  readonly onCreate: () => void
   readonly onClearCache: () => void
   readonly onRefresh: () => void
   readonly onToggleFullscreen: () => void
 }
 
-/** The dictionary page's actions, rendered in the list card's toolbar slot. */
+/** The dictionary page's global actions, rendered in the list card's toolbar slot. */
 export function DictToolbar({
-  canCreate,
   canClearCache,
   isClearingCache,
   isRefreshing,
   isFullscreen,
-  onCreate,
   onClearCache,
   onRefresh,
   onToggleFullscreen
 }: DictToolbarProps) {
   return (
     <>
-      {canCreate && (
-        <Button className="w-full sm:w-auto" onClick={onCreate}>
-          <Plus />
-          新增字典
-        </Button>
-      )}
-
       {canClearCache && (
         <Button
           variant="outline"
