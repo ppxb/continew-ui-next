@@ -11,6 +11,7 @@ import { getClientCookie } from '@/lib/cookie'
 import { parsePreference } from '@/lib/preferences/preferences-config'
 
 import { FullscreenToggle } from './header/fullscreen-toggle'
+import { GithubHelp } from './header/github-help'
 import { HeaderTabs } from './header/header-tabs'
 import { LayoutControls } from './header/layout-controls'
 import { SearchDialog } from './header/search-dialog'
@@ -104,6 +105,7 @@ export function AppShell({ defaultOpen, variant, collapsible, children }: ShellP
             {/* Right: Controls */}
             <div className="flex shrink-0 items-center gap-3">
               <LayoutControls />
+              <GithubHelp />
               <ThemeSwitcher />
               <FullscreenToggle />
               <UserMenu />

@@ -17,7 +17,6 @@ import { useSiteOptions } from '@/hooks/use-site-options'
 import { usePreferencesStore } from '@/stores/preferences/preferences-provider'
 
 import { NavMain } from './nav-main'
-import { SupportCard } from './support-card'
 import { SupportCarousel } from './support-carousel'
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -51,7 +50,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
       <SidebarFooter>
         <SupportCarousel />
-        <SupportCard />
       </SidebarFooter>
     </Sidebar>
   )
