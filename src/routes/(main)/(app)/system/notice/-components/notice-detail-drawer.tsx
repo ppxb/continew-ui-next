@@ -54,7 +54,7 @@ export function NoticeDetailDrawer({ noticeId, open, onClose }: NoticeDetailDraw
         ) : (
           <DetailGrid>
             <DetailField label="ID" className="sm:col-span-2">
-              <span className="font-mono text-xs">{detail.id}</span>
+              {detail.id}
             </DetailField>
             <TextDetail label="标题" value={detail.title} />
             <DetailField label="分类">
