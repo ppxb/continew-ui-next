@@ -18,6 +18,12 @@ export function useAvailableHeight<T extends HTMLElement>(ref: RefObject<T | nul
 
     const apply = () => {
       frame = 0
+      // A hidden panel (for example an inactive tab) has no client rects. Measuring it would write
+      // an innerHeight-sized value into the variable; keep the last good value instead and let the
+      // ResizeObserver re-measure the moment the panel becomes visible (its box goes 0 -> real).
+      if (element.getClientRects().length === 0) {
+        return
+      }
       // Viewport coordinates: the space to the viewport bottom is innerHeight - rect.top. (Adding
       // scrollY to `top` while subtracting from innerHeight undercounts by the scroll offset, which
       // collapses the table to 0 once the page has scrolled.)

@@ -1,6 +1,10 @@
+import * as React from 'react'
+
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { ClipboardList, LogIn } from 'lucide-react'
 import { z } from 'zod'
+
+import { cn } from 'cn'
 
 import { Tabs, TabsContent, TabsIndicator, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
@@ -24,6 +28,15 @@ function SystemLogPage() {
   const { tab } = Route.useSearch()
   const navigate = useNavigate({ from: Route.fullPath })
   const activeTab = TABS.find(item => item.mode === tab)?.mode ?? 'login'
+
+  // Keep a tab's list mounted after its first visit: unmounting it on tab change throws away its
+  // filters, pagination and fetched rows, so switching back looked like the data had disappeared.
+  // Mounting is lazy, so the hidden tab's query does not fire until that tab is first opened.
+  const [visitedTabs, setVisitedTabs] = React.useState<ReadonlySet<string>>(() => new Set([activeTab]))
+
+  React.useEffect(() => {
+    setVisitedTabs(previous => (previous.has(activeTab) ? previous : new Set(previous).add(activeTab)))
+  }, [activeTab])
 
   const handleTabChange = (value: string) => {
     navigate({ search: previous => ({ ...previous, tab: value }) })
@@ -53,11 +66,17 @@ function SystemLogPage() {
         </div>
 
         <div className="px-4 md:px-6">
-          {TABS.map(({ mode }) => (
-            <TabsContent key={mode} value={mode} className="py-4">
-              <LogList mode={mode} />
-            </TabsContent>
-          ))}
+          {TABS.map(({ mode }) => {
+            // `keepMounted` keeps the panel DOM alive across tab changes; the explicit `hidden`
+            // class makes only the active panel take part in layout. Without it the exiting panel
+            // shares the flex column for a frame, pushing the entering table down and corrupting
+            // the fill-height measurement (`ResizeObserver` only reacts to size, not position).
+            return (
+              <TabsContent key={mode} value={mode} keepMounted className={cn('py-4', mode !== activeTab && 'hidden')}>
+                {visitedTabs.has(mode) || mode === activeTab ? <LogList mode={mode} /> : null}
+              </TabsContent>
+            )
+          })}
         </div>
       </Tabs>
     </div>
