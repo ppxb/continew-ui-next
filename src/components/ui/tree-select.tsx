@@ -100,7 +100,16 @@ export function TreeSelect<T = Record<string, unknown>>({
     }
   }, [open])
 
+  // The trigger is disabled, but the popup can already be open when the prop flips (e.g. a form
+  // starts saving); close it so the still-mounted tree cannot change the value.
+  React.useEffect(() => {
+    if (disabled && open) {
+      setOpen(false)
+    }
+  }, [disabled, open])
+
   const handleSelect = (key: TreeKey, node: TreeNodeData<T>) => {
+    if (disabled) return
     onChange?.(key, node)
     setOpen(false)
   }
@@ -108,6 +117,7 @@ export function TreeSelect<T = Record<string, unknown>>({
   const handleClear = (e: React.MouseEvent) => {
     e.stopPropagation()
     e.preventDefault()
+    if (disabled) return
     onChange?.(null, null)
   }
 
@@ -233,6 +243,7 @@ export function TreeSelect<T = Record<string, unknown>>({
               type="button"
               variant="ghost"
               onClick={() => {
+                if (disabled) return
                 onChange?.(null, null)
                 setOpen(false)
               }}
