@@ -6,15 +6,14 @@ import { type ColumnDef, type PaginationState, type RowSelectionState, useTable 
 import { Plus, Trash2, Users } from 'lucide-react'
 
 import { EntityDrawer } from '@/components/entity-drawer'
-import { PaginationArrow } from '@/components/pagination-arrow'
 import { QueryState } from '@/components/query-state'
 import { StatusCell } from '@/components/status-cell'
+import { TablePagination } from '@/components/table-pagination'
 import { TableSearch } from '@/components/table-search'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { DrawerFooter } from '@/components/ui/drawer'
-import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { toast } from '@/components/ui/toast'
@@ -23,7 +22,7 @@ import { listRoleUsers, roleKeys, type RoleResp, type RoleUserResp, unassignRole
 import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 import { dataTableFeatures, type DataTableFeatures } from '@/lib/data-table-features'
 
-import { RoleUserAddDialog } from './role-user-add-dialog'
+import { RoleUserAddDrawer } from './role-user-add-drawer'
 
 const EMPTY_MEMBERS: RoleUserResp[] = []
 
@@ -36,11 +35,14 @@ interface RoleUserDrawerProps {
 interface MemberColumnOptions {
   readonly isUnassigning: boolean
   readonly onUnassign: (member: RoleUserResp) => void
+  /** Rows already shown on earlier pages, so the serial number keeps counting across pages. */
+  readonly rowOffset: number
 }
 
 function createMemberColumns({
   isUnassigning,
-  onUnassign
+  onUnassign,
+  rowOffset
 }: MemberColumnOptions): ColumnDef<DataTableFeatures, RoleUserResp>[] {
   return [
     {
@@ -66,6 +68,12 @@ function createMemberColumns({
       ),
       enableSorting: false,
       size: 36
+    },
+    {
+      id: 'index',
+      header: '序号',
+      enableSorting: false,
+      cell: ({ row }) => <span className="tabular-nums">{rowOffset + row.index + 1}</span>
     },
     {
       accessorKey: 'nickname',
@@ -119,6 +127,7 @@ export function RoleUserDrawer({ role, open, onClose }: RoleUserDrawerProps) {
     setPagination({ pageIndex: 0, pageSize: 10 })
     setRowSelection({})
     setKeyword('')
+    setIsAddOpen(false)
   }, [open])
 
   const memberParams = {
@@ -184,8 +193,13 @@ export function RoleUserDrawer({ role, open, onClose }: RoleUserDrawerProps) {
   }
 
   const columns = React.useMemo(
-    () => createMemberColumns({ isUnassigning, onUnassign: handleUnassignSingle }),
-    [isUnassigning, handleUnassignSingle]
+    () =>
+      createMemberColumns({
+        isUnassigning,
+        onUnassign: handleUnassignSingle,
+        rowOffset: pagination.pageIndex * pagination.pageSize
+      }),
+    [isUnassigning, handleUnassignSingle, pagination.pageIndex, pagination.pageSize]
   )
 
   const table = useTable({
@@ -205,6 +219,9 @@ export function RoleUserDrawer({ role, open, onClose }: RoleUserDrawerProps) {
 
   const selectedCount = Object.keys(rowSelection).length
 
+  // Panel widths come from custom CSS vars: 90% below desktop and 48rem on desktop. The nested add
+  // drawer uses 89% / 47.5rem, so the two panels keep a small, even stack peek at every breakpoint
+  // rather than the nested one covering this drawer.
   return (
     <>
       <EntityDrawer
@@ -213,8 +230,7 @@ export function RoleUserDrawer({ role, open, onClose }: RoleUserDrawerProps) {
         title="角色成员管理"
         icon={<Users className="size-4" />}
         badge={shownRole ? <Badge variant="secondary">{shownRole.name}</Badge> : undefined}
-        width={40}
-        contentClassName="data-[swipe-axis=x]:[--drawer-content-width:90%]"
+        contentClassName="data-[swipe-axis=x]:[--drawer-content-width:90%] data-[swipe-axis=x]:sm:[--drawer-content-width:90%] data-[swipe-axis=x]:md:[--drawer-content-width:48rem]"
       >
         <div className="flex min-h-0 flex-1 flex-col gap-3 p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -233,7 +249,7 @@ export function RoleUserDrawer({ role, open, onClose }: RoleUserDrawerProps) {
                 onClick={handleUnassignBatch}
               >
                 <Trash2 />
-                批量取消授权
+                {selectedCount > 0 ? `批量取消 ${selectedCount} 个授权` : '批量取消授权'}
               </Button>
             </div>
           </div>
@@ -288,34 +304,7 @@ export function RoleUserDrawer({ role, open, onClose }: RoleUserDrawerProps) {
             </Table>
           </div>
 
-          {total > 0 && (
-            <div className="flex items-center justify-between pt-1 text-xs text-muted-foreground">
-              <span>共 {total} 名成员</span>
-              <Pagination className="mx-0 w-auto">
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationArrow
-                      direction="previous"
-                      text="上一页"
-                      disabled={!table.getCanPreviousPage()}
-                      onClick={() => table.previousPage()}
-                    />
-                  </PaginationItem>
-                  <span className="tabular-nums">
-                    {pagination.pageIndex + 1} / {pageCount}
-                  </span>
-                  <PaginationItem>
-                    <PaginationArrow
-                      direction="next"
-                      text="下一页"
-                      disabled={!table.getCanNextPage()}
-                      onClick={() => table.nextPage()}
-                    />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
-            </div>
-          )}
+          <TablePagination table={table} showTopBorder={false} />
         </div>
 
         <DrawerFooter className="flex-row justify-end border-t p-4">
@@ -323,9 +312,14 @@ export function RoleUserDrawer({ role, open, onClose }: RoleUserDrawerProps) {
             关闭
           </Button>
         </DrawerFooter>
-      </EntityDrawer>
 
-      <RoleUserAddDialog role={role} open={isAddOpen} onClose={() => setIsAddOpen(false)} onSuccess={refreshMembers} />
+        <RoleUserAddDrawer
+          role={role}
+          open={isAddOpen}
+          onClose={() => setIsAddOpen(false)}
+          onSuccess={refreshMembers}
+        />
+      </EntityDrawer>
     </>
   )
 }

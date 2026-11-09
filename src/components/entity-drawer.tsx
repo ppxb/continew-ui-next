@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 
 /** The drawer widths the screens use; the Tailwind class must stay a literal to be generated. */
-type EntityDrawerWidth = 30 | 32 | 36 | 38 | 40 | 44 | 48
+type EntityDrawerWidth = 30 | 32 | 36 | 38 | 40 | 42 | 44 | 46 | 48
 
 const WIDTH_CLASSES: Record<EntityDrawerWidth, string> = {
   30: 'data-[swipe-axis=x]:sm:[--drawer-content-width:30rem]',
@@ -16,7 +16,9 @@ const WIDTH_CLASSES: Record<EntityDrawerWidth, string> = {
   36: 'data-[swipe-axis=x]:sm:[--drawer-content-width:36rem]',
   38: 'data-[swipe-axis=x]:sm:[--drawer-content-width:38rem]',
   40: 'data-[swipe-axis=x]:sm:[--drawer-content-width:40rem]',
+  42: 'data-[swipe-axis=x]:sm:[--drawer-content-width:42rem]',
   44: 'data-[swipe-axis=x]:sm:[--drawer-content-width:44rem]',
+  46: 'data-[swipe-axis=x]:sm:[--drawer-content-width:46rem]',
   48: 'data-[swipe-axis=x]:sm:[--drawer-content-width:48rem]'
 }
 
