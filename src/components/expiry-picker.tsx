@@ -4,6 +4,8 @@ import { addDays, addYears, format } from 'date-fns'
 
 import { Calendar as CalendarIcon, X } from 'lucide-react'
 
+import { cn } from 'cn'
+
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Input } from '@/components/ui/input'
@@ -86,7 +88,7 @@ export function ExpiryPicker({
               id={id}
               variant="outline"
               disabled={disabled}
-              className="w-full justify-between pr-8 font-normal"
+              className={cn('w-full justify-between font-normal', value ? 'pr-8' : 'pr-2.5')}
               aria-invalid={invalid}
               onBlur={onBlur}
             />
@@ -105,7 +107,6 @@ export function ExpiryPicker({
             }}
             disabled={disabled}
             className="absolute right-2.5 z-10 text-muted-foreground transition-colors hover:text-foreground"
-            title={`清空并设为${neverLabel}`}
           >
             <X className="size-3.5" />
           </button>
