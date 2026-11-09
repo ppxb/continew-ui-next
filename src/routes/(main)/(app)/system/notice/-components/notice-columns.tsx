@@ -40,11 +40,7 @@ function yesNoColumn(key: 'isTiming' | 'isTop', header: string): ColumnDef<DataT
   return {
     accessorKey: key,
     header,
-    cell: ({ row }) => (
-      <div className="flex justify-center">
-        <FlagBadge active={row.original[key]} activeLabel="是" inactiveLabel="否" />
-      </div>
-    )
+    cell: ({ row }) => <FlagBadge active={row.original[key]} activeLabel="是" inactiveLabel="否" />
   }
 }
 
@@ -144,20 +140,12 @@ export function createNoticeColumns(
     {
       accessorKey: 'type',
       header: '分类',
-      cell: ({ row }) => (
-        <div className="flex justify-center">
-          <NoticeTypeBadge type={row.original.type} options={dicts.typeOptions} />
-        </div>
-      )
+      cell: ({ row }) => <NoticeTypeBadge type={row.original.type} options={dicts.typeOptions} />
     },
     {
       accessorKey: 'status',
       header: '状态',
-      cell: ({ row }) => (
-        <div className="flex justify-center">
-          <NoticeStatusBadge status={row.original.status} options={dicts.statusOptions} />
-        </div>
-      )
+      cell: ({ row }) => <NoticeStatusBadge status={row.original.status} options={dicts.statusOptions} />
     },
     yesNoColumn('isTiming', '是否定时'),
     {
