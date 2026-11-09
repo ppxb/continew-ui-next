@@ -57,7 +57,10 @@ export function useListTable<TRow extends RowData, TData extends PageData<TRow>>
     enabled
   })
 
-  const total = query.data?.total ?? 0
+  // Keep `undefined` while the total is unknown (first load / page change) so the page clamp does
+  // not treat the 0 stand-in as a confirmed empty result; `rowCount` still feeds the table a number.
+  const total = query.data?.total
+  const rowCount = total ?? 0
   const rowOffset = pagination.pageIndex * pagination.pageSize
 
   usePageClamp(total, pagination, setPagination)
@@ -70,8 +73,8 @@ export function useListTable<TRow extends RowData, TData extends PageData<TRow>>
     columns,
     state: { columnVisibility, pagination },
     manualPagination: true,
-    rowCount: total,
-    pageCount: Math.max(Math.ceil(total / pagination.pageSize), 1),
+    rowCount,
+    pageCount: Math.max(Math.ceil(rowCount / pagination.pageSize), 1),
     autoResetPageIndex: false,
     onColumnVisibilityChange: setColumnVisibility,
     onPaginationChange: setPagination,
