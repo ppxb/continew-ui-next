@@ -4,6 +4,8 @@ import { type ColumnVisibilityState, type PaginationState } from '@tanstack/reac
 
 import { Download, Plus, Upload } from 'lucide-react'
 
+import { cn } from 'cn'
+
 import { DataTable } from '@/components/data-table'
 import { FilterSelect } from '@/components/filter-select'
 import { ListPageCard } from '@/components/list-page-card'
@@ -12,6 +14,7 @@ import { TableToolbar } from '@/components/table-toolbar'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
+import { useAvailableHeight } from '@/hooks/use-available-height'
 import { useExport } from '@/hooks/use-export'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
 import { useListTable } from '@/hooks/use-list-table'
@@ -55,6 +58,8 @@ export function UserList() {
   const [deletingUser, setDeletingUser] = React.useState<UserResp | null>(null)
   const fullscreen = useFullscreenTransition()
   const { isExporting, exportData } = useExport(exportUsers)
+  const tableAreaRef = React.useRef<HTMLDivElement>(null)
+  useAvailableHeight(tableAreaRef, '--user-table-available-height')
 
   const handleRowAction = React.useCallback((action: UserAction, user: UserResp) => {
     if (action === 'detail') {
@@ -196,15 +201,26 @@ export function UserList() {
         actions={actions}
         fullscreen={fullscreen}
       >
-        <DataTable
-          table={table}
-          className={hasManyColumns ? 'min-w-[1600px]' : undefined}
-          isLoading={query.isPending}
-          isError={query.isError}
-          isShowingPreviousRows={query.isPlaceholderData}
-          onRetry={() => void query.refetch()}
-          skeletonWidths={['mx-auto w-6', 'w-24', 'w-20', 'mx-auto w-12 rounded-full', 'mx-auto w-8', 'w-12']}
-        />
+        <div ref={tableAreaRef} className="flex min-h-0 flex-1 flex-col">
+          <div
+            className={cn(
+              'flex min-h-0 flex-col',
+              fullscreen.isFullscreen ? 'h-[calc(100vh-6.5rem)]' : 'md:h-[var(--user-table-available-height)]'
+            )}
+          >
+            <DataTable
+              table={table}
+              className={hasManyColumns ? 'min-w-[1600px]' : undefined}
+              isLoading={query.isPending}
+              isError={query.isError}
+              isShowingPreviousRows={query.isPlaceholderData}
+              onRetry={() => void query.refetch()}
+              stickyHeader
+              containerClassName="min-h-0 *:data-[slot=table-container]:min-h-0 *:data-[slot=table-container]:flex-1 *:data-[slot=table-container]:overflow-auto"
+              skeletonWidths={['mx-auto w-6', 'w-24', 'w-20', 'mx-auto w-12 rounded-full', 'mx-auto w-8', 'w-12']}
+            />
+          </div>
+        </div>
       </ListPageCard>
 
       <UserDetailDrawer userId={detailUserId} open={detailUserId !== null} onClose={() => setDetailUserId(null)} />
