@@ -7,7 +7,6 @@ import type { DateRange } from 'react-day-picker'
 import { DateRangeFilter } from '@/components/date-range-filter'
 import { FilterSelect } from '@/components/filter-select'
 import { ListPageCard } from '@/components/list-page-card'
-import { TableFillArea } from '@/components/table-fill-area'
 import { TableSearch } from '@/components/table-search'
 import { TableToolbar } from '@/components/table-toolbar'
 import { Button } from '@/components/ui/button'
@@ -192,16 +191,13 @@ export function LogList({ mode }: LogListProps) {
   return (
     <>
       <ListPageCard filters={filters} actions={actions} fullscreen={fullscreen}>
-        <TableFillArea fullscreen={fullscreen}>
-          <LogTable
-            table={table}
-            isLoading={query.isPending}
-            isError={query.isError}
-            isShowingPreviousRows={query.isPlaceholderData}
-            onRetry={() => void query.refetch()}
-            fillHeight
-          />
-        </TableFillArea>
+        <LogTable
+          table={table}
+          isLoading={query.isPending}
+          isError={query.isError}
+          isShowingPreviousRows={query.isPlaceholderData}
+          onRetry={() => void query.refetch()}
+        />
       </ListPageCard>
 
       {!isLogin && canViewDetail ? (

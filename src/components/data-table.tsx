@@ -55,6 +55,8 @@ export function DataTable<TRow extends RowData>({
   const columnCount = table.getVisibleLeafColumns().length
   const rowCount = table.getRowCount()
   const hasFooter = showPagination && rowCount > 0
+  // A table that scrolls inside the card must pin its header; force it for fill-height tables.
+  const isSticky = stickyHeader || fillHeight
 
   return (
     // The pagination footer owns the bottom padding; without a footer the shell supplies the same
@@ -76,8 +78,8 @@ export function DataTable<TRow extends RowData>({
           className
         )}
       >
-        {/* The sticky cells below draw their own top edge, so the row must not add one. */}
-        <TableHeader className={cn(!stickyHeader && '[&_tr]:border-t')}>
+        {/* The sticky cells below draw their own edges, so the row must not add them. */}
+        <TableHeader className={cn(!isSticky && '[&_tr]:border-t', isSticky && '[&_tr]:border-b-0')}>
           {table.getHeaderGroups().map(headerGroup => (
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map(header => (
@@ -90,7 +92,7 @@ export function DataTable<TRow extends RowData>({
                     // A collapsed table paints its borders as one grid below the sticky cell, so the
                     // header draws its edges itself: the bottom one sits on the collapsed border it
                     // replaces, the top one just inside the cell where the scroll port cannot clip it.
-                    stickyHeader &&
+                    isSticky &&
                       cn(
                         'sticky top-0 z-10',
                         "before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-border before:content-['']",

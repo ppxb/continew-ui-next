@@ -25,7 +25,6 @@ interface LogTableProps {
   readonly isError: boolean
   readonly isShowingPreviousRows: boolean
   readonly onRetry?: () => void
-  readonly fillHeight?: boolean
 }
 
 export function LogTable({ table, ...rest }: LogTableProps) {
