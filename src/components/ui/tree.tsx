@@ -452,12 +452,12 @@ export function Tree<T = Record<string, unknown>>({
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault()
                 handleSelect(node)
-              } else if (e.key === 'ArrowRight' && hasChildren && !isExpanded) {
+              } else if (e.key === 'ArrowRight' && hasChildren && !isExpanded && !searchMatchInfo) {
                 e.preventDefault()
                 const next = new Set(expandedKeySet)
                 next.add(node.id)
                 updateExpandedKeys(next)
-              } else if (e.key === 'ArrowLeft' && hasChildren && isExpanded) {
+              } else if (e.key === 'ArrowLeft' && hasChildren && isExpanded && !searchMatchInfo) {
                 e.preventDefault()
                 const next = new Set(expandedKeySet)
                 next.delete(node.id)
@@ -466,16 +466,31 @@ export function Tree<T = Record<string, unknown>>({
             }}
           >
             {hasChildren ? (
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-xs"
-                tabIndex={-1}
-                className="-ml-1 size-6 shrink-0 touch-manipulation text-muted-foreground hover:text-foreground sm:ml-0 sm:size-4"
-                onClick={e => toggleExpand(node.id, e)}
-              >
-                <ChevronRight className={cn('size-3.5 transition-transform duration-150', isExpanded && 'rotate-90')} />
-              </Button>
+              searchMatchInfo ? (
+                // Search forces the matched path open; the toggle would be a no-op, so show a
+                // static, non-interactive caret instead of a dead button.
+                <span
+                  aria-hidden
+                  className="-ml-1 flex size-6 shrink-0 items-center justify-center text-muted-foreground/40 sm:ml-0 sm:size-4"
+                >
+                  <ChevronRight
+                    className={cn('size-3.5 transition-transform duration-150', isExpanded && 'rotate-90')}
+                  />
+                </span>
+              ) : (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-xs"
+                  tabIndex={-1}
+                  className="-ml-1 size-6 shrink-0 touch-manipulation text-muted-foreground hover:text-foreground sm:ml-0 sm:size-4"
+                  onClick={e => toggleExpand(node.id, e)}
+                >
+                  <ChevronRight
+                    className={cn('size-3.5 transition-transform duration-150', isExpanded && 'rotate-90')}
+                  />
+                </Button>
+              )
             ) : (
               <span className="-ml-1 size-6 shrink-0 sm:ml-0 sm:size-4" />
             )}

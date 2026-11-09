@@ -98,6 +98,8 @@ export function CheckableTree<T = Record<string, unknown>>({
     onCheckedChange(Array.from(next))
   }
 
+  const isSearching = search.trim().length > 0
+
   if (loading) {
     return <TreeSkeleton rows={7} className={cn(fillHeight && 'min-h-0 flex-1', className)} />
   }
@@ -129,7 +131,7 @@ export function CheckableTree<T = Record<string, unknown>>({
         )}
 
         <div className="flex shrink-0 items-center gap-0.5">
-          {showExpandActions && (
+          {showExpandActions && !isSearching && (
             <>
               <Tooltip>
                 <TooltipTrigger
