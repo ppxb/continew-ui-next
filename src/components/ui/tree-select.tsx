@@ -1,12 +1,13 @@
 import * as React from 'react'
 import { cn } from 'cn'
-import { ChevronsDownUp, ChevronsUpDown, ChevronDown, Search, X } from 'lucide-react'
+import { ChevronDown, Search, X } from 'lucide-react'
 
+import { TreeExpandActions } from '@/components/tree-expand-actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { buildTreeIndex, Tree, TreeSkeleton, type TreeKey, type TreeNodeData } from '@/components/ui/tree'
+import { useTreeExpansion } from '@/hooks/use-tree-expansion'
 
 export interface TreeSelectProps<T = Record<string, unknown>> {
   data: TreeNodeData<T>[]
@@ -59,12 +60,12 @@ export function TreeSelect<T = Record<string, unknown>>({
 }: TreeSelectProps<T>) {
   const [open, setOpen] = React.useState(false)
   const [searchKeyword, setSearchKeyword] = React.useState('')
-  const [expandedKeys, setExpandedKeys] = React.useState<TreeKey[] | undefined>(undefined)
 
   // Build the index once and hand it to the inner Tree, so the same data is not traversed twice.
   // A single-select tree never cascades, so the descendant relations can be skipped.
   const index = React.useMemo(() => buildTreeIndex(data, { cascade: false }), [data])
   const { nodeMap, ancestorsMap, allKeys } = index
+  const { expandedKeys, setExpandedKeys, expandAll, collapseAll } = useTreeExpansion({ keys: allKeys })
 
   const selectedNode = value !== undefined && value !== null ? nodeMap.get(value) : null
   const hasValue = Boolean(selectedNode)
@@ -110,12 +111,12 @@ export function TreeSelect<T = Record<string, unknown>>({
 
   const handleExpandAll = (e: React.MouseEvent) => {
     e.stopPropagation()
-    setExpandedKeys(allKeys)
+    expandAll()
   }
 
   const handleCollapseAll = (e: React.MouseEvent) => {
     e.stopPropagation()
-    setExpandedKeys([])
+    collapseAll()
   }
 
   return (
@@ -201,25 +202,7 @@ export function TreeSelect<T = Record<string, unknown>>({
             )}
 
             {showExpandActions && !searchKeyword && (
-              <div className="flex shrink-0 items-center gap-0.5">
-                <Tooltip>
-                  <TooltipTrigger
-                    render={<Button type="button" variant="ghost" size="icon-xs" onClick={handleExpandAll} />}
-                  >
-                    <ChevronsUpDown className="size-3" />
-                  </TooltipTrigger>
-                  <TooltipContent side="top">全部展开</TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger
-                    render={<Button type="button" variant="ghost" size="icon-xs" onClick={handleCollapseAll} />}
-                  >
-                    <ChevronsDownUp className="size-3" />
-                  </TooltipTrigger>
-                  <TooltipContent side="top">全部收起</TooltipContent>
-                </Tooltip>
-              </div>
+              <TreeExpandActions onExpandAll={handleExpandAll} onCollapseAll={handleCollapseAll} />
             )}
           </div>
         )}

@@ -5,22 +5,11 @@ import { Check, ChevronRight, Folder, FolderOpen } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Skeleton } from '@/components/ui/skeleton'
+import { toggleCheckedKeys } from '@/lib/tree-check'
+import { buildTreeIndex, type TreeIndex, type TreeKey, type TreeNodeData } from '@/lib/tree-index'
 
-/** Ids are strings: callers convert with `String(id)` so Snowflake ids keep their precision and map lookups match. */
-export type TreeKey = string
-
-export interface TreeNodeData<T = Record<string, unknown>> {
-  id: TreeKey
-  parentId?: TreeKey | null
-  label: string
-  disabled?: boolean
-  icon?: React.ComponentType<{ className?: string }> | React.ReactNode
-  tag?: React.ReactNode
-  subtitle?: React.ReactNode
-  searchTerms?: string
-  children?: TreeNodeData<T>[]
-  data?: T
-}
+export { buildTreeIndex } from '@/lib/tree-index'
+export type { TreeIndex, TreeIndexOptions, TreeKey, TreeNodeData } from '@/lib/tree-index'
 
 export interface TreeProps<T = Record<string, unknown>> {
   data: TreeNodeData<T>[]
@@ -38,68 +27,6 @@ export interface TreeProps<T = Record<string, unknown>> {
   showIcons?: boolean
   emptyText?: React.ReactNode
   className?: string
-}
-
-export interface TreeIndex<T> {
-  nodeMap: Map<TreeKey, TreeNodeData<T>>
-  parentMap: Map<TreeKey, TreeKey | null>
-  directChildrenMap: Map<TreeKey, TreeKey[]>
-  descendantsMap: Map<TreeKey, TreeKey[]>
-  ancestorsMap: Map<TreeKey, TreeKey[]>
-  allKeys: TreeKey[]
-}
-
-export interface TreeIndexOptions {
-  /** Build the descendant relations cascade checkboxes need; single-select trees can skip them. */
-  cascade?: boolean
-}
-
-export function buildTreeIndex<T>(nodes: TreeNodeData<T>[], { cascade = true }: TreeIndexOptions = {}): TreeIndex<T> {
-  const nodeMap = new Map<TreeKey, TreeNodeData<T>>()
-  const parentMap = new Map<TreeKey, TreeKey | null>()
-  const directChildrenMap = new Map<TreeKey, TreeKey[]>()
-  const descendantsMap = new Map<TreeKey, TreeKey[]>()
-  const ancestorsMap = new Map<TreeKey, TreeKey[]>()
-  const allKeys: TreeKey[] = []
-
-  function traverse(list: TreeNodeData<T>[], parentAncestors: TreeKey[], parentId: TreeKey | null) {
-    for (const node of list) {
-      nodeMap.set(node.id, node)
-      parentMap.set(node.id, parentId)
-      ancestorsMap.set(node.id, parentAncestors)
-      allKeys.push(node.id)
-
-      const children = node.children ?? []
-      const childKeys = children.map(c => c.id)
-      directChildrenMap.set(node.id, childKeys)
-
-      if (children.length > 0) {
-        traverse(children, [...parentAncestors, node.id], node.id)
-      }
-    }
-  }
-
-  traverse(nodes, [], null)
-
-  if (cascade) {
-    for (let i = allKeys.length - 1; i >= 0; i--) {
-      const key = allKeys[i]
-      const children = directChildrenMap.get(key) ?? []
-      const descendants: TreeKey[] = []
-      for (const childKey of children) {
-        descendants.push(childKey)
-        const childDescendants = descendantsMap.get(childKey)
-        if (childDescendants) {
-          for (let j = 0; j < childDescendants.length; j++) {
-            descendants.push(childDescendants[j])
-          }
-        }
-      }
-      descendantsMap.set(key, descendants)
-    }
-  }
-
-  return { nodeMap, parentMap, directChildrenMap, descendantsMap, ancestorsMap, allKeys }
 }
 
 export function HighlightText({ text, keyword }: { text?: string; keyword?: string }) {
@@ -207,53 +134,16 @@ export function Tree<T = Record<string, unknown>>({
 
   const handleToggleCheck = React.useCallback(
     (nodeId: TreeKey) => {
-      const isCurrentlyChecked = checkedKeySet.has(nodeId)
-      const nextChecked = new Set(checkedKeySet)
-
-      if (checkStrictly) {
-        if (isCurrentlyChecked) {
-          nextChecked.delete(nodeId)
-        } else {
-          nextChecked.add(nodeId)
-        }
-      } else {
-        // Locked nodes keep their checked state through every cascade path, so the descendants
-        // and ancestors handled here exclude them.
-        const descendants = (index.descendantsMap.get(nodeId) ?? []).filter(d => !disabledKeySet.has(d))
-        const ancestors = index.ancestorsMap.get(nodeId) ?? []
-
-        if (isCurrentlyChecked) {
-          nextChecked.delete(nodeId)
-          for (const d of descendants) {
-            nextChecked.delete(d)
-          }
-          for (const a of ancestors) {
-            if (!disabledKeySet.has(a)) {
-              nextChecked.delete(a)
-            }
-          }
-        } else {
-          nextChecked.add(nodeId)
-          for (const d of descendants) {
-            nextChecked.add(d)
-          }
-          // Walk from the nearest parent up to the root, so each ancestor sees its children's new state.
-          for (let i = ancestors.length - 1; i >= 0; i--) {
-            const a = ancestors[i]
-            if (disabledKeySet.has(a)) {
-              continue
-            }
-
-            const children = (index.directChildrenMap.get(a) ?? []).filter(c => !disabledKeySet.has(c))
-            const allChecked = children.every(c => nextChecked.has(c))
-            if (allChecked) {
-              nextChecked.add(a)
-            }
-          }
-        }
-      }
-
-      onCheckedChange?.(Array.from(nextChecked))
+      onCheckedChange?.(
+        toggleCheckedKeys({
+          index,
+          nodeId,
+          checked: checkedKeySet.has(nodeId),
+          checkedKeys: checkedKeySet,
+          checkStrictly,
+          disabledKeys: disabledKeySet
+        })
+      )
     },
     [checkedKeySet, checkStrictly, disabledKeySet, index, onCheckedChange]
   )

@@ -1,13 +1,15 @@
 import * as React from 'react'
 
-import { ChevronsDownUp, ChevronsUpDown, Search, Square, SquareCheck, X } from 'lucide-react'
+import { Search, Square, SquareCheck, X } from 'lucide-react'
 
 import { cn } from 'cn'
 
+import { TreeExpandActions } from '@/components/tree-expand-actions'
 import { Button } from '@/components/ui/button'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { buildTreeIndex, Tree, type TreeKey, type TreeNodeData, TreeSkeleton } from '@/components/ui/tree'
+import { buildTreeIndex, Tree, type TreeNodeData, TreeSkeleton } from '@/components/ui/tree'
+import { useTreeExpansion } from '@/hooks/use-tree-expansion'
 
 export type CheckableTreeNode<T = Record<string, unknown>> = TreeNodeData<T>
 
@@ -46,10 +48,12 @@ export function CheckableTree<T = Record<string, unknown>>({
   emptyText = '暂无匹配节点'
 }: CheckableTreeProps<T>) {
   const [search, setSearch] = React.useState('')
-  const [expandedKeys, setExpandedKeys] = React.useState<TreeKey[]>([])
-  const hasInitializedExpanded = React.useRef(false)
 
   const index = React.useMemo(() => buildTreeIndex(data), [data])
+  const { expandedKeys, setExpandedKeys, expandAll, collapseAll } = useTreeExpansion({
+    keys: index.allKeys,
+    autoExpandOnLoad: true
+  })
   // The props stay `string | number` for the callers' form types; Tree keys are strings.
   const checkedKeyStrings = React.useMemo(() => checkedKeys.map(String), [checkedKeys])
 
@@ -58,31 +62,6 @@ export function CheckableTree<T = Record<string, unknown>>({
     () => index.allKeys.filter(key => !index.nodeMap.get(key)?.disabled),
     [index]
   )
-
-  // Expand everything on the first non-empty load; later data updates only drop keys that no
-  // longer exist, so a refresh keeps the branches the user opened or closed.
-  React.useEffect(() => {
-    if (index.allKeys.length === 0) {
-      return
-    }
-
-    if (!hasInitializedExpanded.current) {
-      hasInitializedExpanded.current = true
-      setExpandedKeys(index.allKeys)
-      return
-    }
-
-    const validKeys = new Set(index.allKeys)
-    setExpandedKeys(prev => prev.filter(key => validKeys.has(key)))
-  }, [index])
-
-  const handleExpandAll = () => {
-    setExpandedKeys(index.allKeys)
-  }
-
-  const handleCollapseAll = () => {
-    setExpandedKeys([])
-  }
 
   const handleSelectAll = () => {
     const next = new Set(checkedKeyStrings)
@@ -134,41 +113,7 @@ export function CheckableTree<T = Record<string, unknown>>({
 
         <div className="flex shrink-0 items-center gap-0.5">
           {showExpandActions && !isSearching && (
-            <>
-              <Tooltip>
-                <TooltipTrigger
-                  render={
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-xs"
-                      aria-label="展开全部"
-                      onClick={handleExpandAll}
-                    />
-                  }
-                >
-                  <ChevronsUpDown className="size-3.5" />
-                </TooltipTrigger>
-                <TooltipContent side="top">展开全部</TooltipContent>
-              </Tooltip>
-
-              <Tooltip>
-                <TooltipTrigger
-                  render={
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon-xs"
-                      aria-label="折叠全部"
-                      onClick={handleCollapseAll}
-                    />
-                  }
-                >
-                  <ChevronsDownUp className="size-3.5" />
-                </TooltipTrigger>
-                <TooltipContent side="top">折叠全部</TooltipContent>
-              </Tooltip>
-            </>
+            <TreeExpandActions onExpandAll={expandAll} onCollapseAll={collapseAll} />
           )}
 
           {showSelectActions && (
