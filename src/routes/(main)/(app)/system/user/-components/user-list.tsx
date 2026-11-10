@@ -192,7 +192,7 @@ export function UserList() {
     <>
       <ListPageCard
         title="用户管理"
-        description="维护系统用户，查看用户的基本信息"
+        description="对当前系统用户的基本信息进行管理"
         filters={filters}
         actions={actions}
         fullscreen={fullscreen}

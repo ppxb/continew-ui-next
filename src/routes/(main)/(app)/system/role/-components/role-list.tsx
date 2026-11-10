@@ -119,7 +119,7 @@ export function RoleList() {
     <>
       <ListPageCard
         title="角色管理"
-        description="管理系统角色、数据权限范围及角色成员关联"
+        description="管理系统角色、数据权限范围及关联角色"
         filters={filters}
         actions={actions}
         fullscreen={fullscreen}

@@ -200,7 +200,7 @@ export function DeptList() {
     <>
       <ListPageCard
         title="部门管理"
-        description="管理系统组织架构、部门层级与人员归属"
+        description="管理系统组织架构及部门层级"
         filters={filters}
         actions={actions}
         fullscreen={fullscreen}

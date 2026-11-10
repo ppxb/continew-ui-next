@@ -153,7 +153,7 @@ export function SmsLogList() {
     <>
       <ListPageCard
         title="短信日志"
-        description="查看短信发送记录、发送状态与短信服务商返回数据"
+        description="查看和管理短信发送记录"
         filters={filters}
         actions={actions}
         fullscreen={fullscreen}

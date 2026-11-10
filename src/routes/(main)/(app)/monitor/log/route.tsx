@@ -46,7 +46,7 @@ function SystemLogPage() {
     <div className="flex flex-col gap-4 pb-4" data-content-padding="false">
       <div className="px-4 pt-4 md:px-6">
         <h1 className="text-xl font-semibold tracking-tight">系统日志</h1>
-        <p className="mt-1 text-sm text-muted-foreground">查看登录日志与操作日志，支持按人员、IP、状态和时间范围筛选</p>
+        <p className="mt-1 text-sm text-muted-foreground">查看和管理登录日志与操作日志</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="min-h-0 flex-1 gap-0">

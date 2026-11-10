@@ -86,7 +86,12 @@ export function OnlineUserList() {
         placeholder="搜索用户名、昵称"
         onSearch={handleSearch}
       />
-      <DateRangeFilter value={loginTime} onChange={handleLoginTimeChange} placeholder="登录时间" className="col-span-2" />
+      <DateRangeFilter
+        value={loginTime}
+        onChange={handleLoginTimeChange}
+        placeholder="登录时间"
+        className="col-span-2"
+      />
     </>
   )
 
@@ -106,7 +111,7 @@ export function OnlineUserList() {
     <>
       <ListPageCard
         title="在线用户"
-        description="查看当前登录的会话，可将指定会话强制退出"
+        description="管理当前系统登录的会话"
         filters={filters}
         actions={actions}
         fullscreen={fullscreen}

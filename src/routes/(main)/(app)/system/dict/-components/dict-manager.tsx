@@ -292,12 +292,7 @@ export function DictManager() {
 
   return (
     <>
-      <ListPageCard
-        title="字典管理"
-        description="维护系统字典和字典项，支持搜索、启停与清除缓存"
-        actions={actions}
-        fullscreen={fullscreen}
-      >
+      <ListPageCard title="字典管理" description="维护和管理系统字典和字典项" actions={actions} fullscreen={fullscreen}>
         <div ref={areaRef} className="flex min-h-0 flex-1 flex-col">
           {body}
         </div>

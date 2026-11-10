@@ -172,7 +172,7 @@ export function NoticeList() {
     <>
       <ListPageCard
         title="通知公告"
-        description="发布系统通知与公告，支持定时发布、置顶和定向通知"
+        description="管理系统内部的通知与公告"
         filters={filters}
         actions={actions}
         fullscreen={fullscreen}
