@@ -270,8 +270,10 @@ export function Tree<T = Record<string, unknown>>({
           for (const d of descendants) {
             nextChecked.add(d)
           }
+          // Walk from the nearest parent up to the root, so each ancestor sees its children's new state.
           const ancestors = (index.ancestorsMap.get(nodeId) ?? []).map(String)
-          for (const a of ancestors) {
+          for (let i = ancestors.length - 1; i >= 0; i--) {
+            const a = ancestors[i]
             if (disabledKeySet.has(a)) {
               continue
             }
