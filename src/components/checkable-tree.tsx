@@ -50,6 +50,8 @@ export function CheckableTree<T = Record<string, unknown>>({
   const hasInitializedExpanded = React.useRef(false)
 
   const index = React.useMemo(() => buildTreeIndex(data), [data])
+  // Tree keys are strings; callers may still hold numeric ids from older records.
+  const checkedKeyStrings = React.useMemo(() => checkedKeys.map(String), [checkedKeys])
 
   /** Disabled nodes are locked, so the batch actions below leave them untouched. */
   const enabledKeys = React.useMemo(
@@ -209,7 +211,7 @@ export function CheckableTree<T = Record<string, unknown>>({
           data={data}
           index={index}
           checkable
-          checkedKeys={checkedKeys}
+          checkedKeys={checkedKeyStrings}
           onCheckedChange={onCheckedChange}
           checkStrictly={checkStrictly}
           expandedKeys={expandedKeys}

@@ -6,14 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import {
-  buildTreeIndex,
-  Tree,
-  TreeSkeleton,
-  type TreeKey,
-  type TreeNodeData,
-  type TreeProps
-} from '@/components/ui/tree'
+import { buildTreeIndex, Tree, TreeSkeleton, type TreeKey, type TreeNodeData } from '@/components/ui/tree'
 
 export interface TreeSelectProps<T = Record<string, unknown>> {
   data: TreeNodeData<T>[]
@@ -28,14 +21,11 @@ export interface TreeSelectProps<T = Record<string, unknown>> {
   searchPlaceholder?: string
   showExpandActions?: boolean
   showIcons?: boolean
-  selectableLeafOnly?: boolean
   showPathInTrigger?: boolean
   pathSeparator?: string
   className?: string
   popupClassName?: string
   emptyText?: React.ReactNode
-  renderLabel?: TreeProps<T>['renderLabel']
-  renderIcon?: TreeProps<T>['renderIcon']
   size?: 'default' | 'sm'
   triggerPrefix?: React.ReactNode
   showAllOption?: boolean
@@ -56,14 +46,11 @@ export function TreeSelect<T = Record<string, unknown>>({
   searchPlaceholder = '搜索节点',
   showExpandActions = true,
   showIcons = true,
-  selectableLeafOnly = false,
   showPathInTrigger = false,
   pathSeparator = ' / ',
   className,
   popupClassName,
   emptyText = '暂无匹配节点',
-  renderLabel,
-  renderIcon,
   size = 'default',
   triggerPrefix,
   showAllOption = false,
@@ -269,10 +256,7 @@ export function TreeSelect<T = Record<string, unknown>>({
               onExpandedKeysChange={setExpandedKeys}
               searchKeyword={searchKeyword}
               showIcons={showIcons}
-              selectableLeafOnly={selectableLeafOnly}
               emptyText={emptyText}
-              renderLabel={renderLabel}
-              renderIcon={renderIcon}
             />
           )}
         </div>

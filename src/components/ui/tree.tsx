@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Skeleton } from '@/components/ui/skeleton'
 
-export type TreeKey = string | number
+/** Ids are strings: callers convert with `String(id)` so Snowflake ids keep their precision and map lookups match. */
+export type TreeKey = string
 
 export interface TreeNodeData<T = Record<string, unknown>> {
   id: TreeKey
@@ -21,20 +22,6 @@ export interface TreeNodeData<T = Record<string, unknown>> {
   data?: T
 }
 
-export interface TreeRenderNodeProps<T = Record<string, unknown>> {
-  node: TreeNodeData<T>
-  depth: number
-  isExpanded: boolean
-  isSelected: boolean
-  isChecked?: boolean
-  isIndeterminate?: boolean
-  hasChildren: boolean
-  searchKeyword?: string
-  toggleExpand: (e: React.MouseEvent) => void
-  selectNode: () => void
-  toggleCheck?: () => void
-}
-
 export interface TreeProps<T = Record<string, unknown>> {
   data: TreeNodeData<T>[]
   index?: TreeIndex<T>
@@ -45,18 +32,12 @@ export interface TreeProps<T = Record<string, unknown>> {
   onCheckedChange?: (keys: TreeKey[]) => void
   checkStrictly?: boolean
   expandedKeys?: TreeKey[]
-  defaultExpandedKeys?: TreeKey[]
   onExpandedKeysChange?: (keys: TreeKey[]) => void
   defaultExpandAll?: boolean
   searchKeyword?: string
   showIcons?: boolean
-  selectableLeafOnly?: boolean
-  renderLabel?: (props: TreeRenderNodeProps<T>) => React.ReactNode
-  renderIcon?: (props: TreeRenderNodeProps<T>) => React.ReactNode
-  renderAction?: (props: TreeRenderNodeProps<T>) => React.ReactNode
   emptyText?: React.ReactNode
   className?: string
-  indentRem?: number
 }
 
 export interface TreeIndex<T> {
@@ -159,18 +140,12 @@ export function Tree<T = Record<string, unknown>>({
   onCheckedChange,
   checkStrictly = false,
   expandedKeys: controlledExpandedKeys,
-  defaultExpandedKeys,
   onExpandedKeysChange,
   defaultExpandAll = false,
   searchKeyword = '',
   showIcons = true,
-  selectableLeafOnly = false,
-  renderLabel,
-  renderIcon,
-  renderAction,
   emptyText = '暂无匹配数据',
-  className,
-  indentRem = 1.125
+  className
 }: TreeProps<T>) {
   const index = React.useMemo(() => externalIndex ?? buildTreeIndex(data), [externalIndex, data])
 
@@ -178,15 +153,12 @@ export function Tree<T = Record<string, unknown>>({
     if (defaultExpandAll) {
       return new Set(index.allKeys)
     }
-    if (defaultExpandedKeys) {
-      return new Set(defaultExpandedKeys)
-    }
     if (selectedKey !== undefined && selectedKey !== null) {
       const ancestors = index.ancestorsMap.get(selectedKey) ?? []
       return new Set(ancestors)
     }
     return new Set<TreeKey>()
-  }, [defaultExpandAll, defaultExpandedKeys, selectedKey, index])
+  }, [defaultExpandAll, selectedKey, index])
 
   const [uncontrolledExpandedKeys, setUncontrolledExpandedKeys] = React.useState<Set<TreeKey>>(initialExpandedKeys)
 
@@ -205,32 +177,28 @@ export function Tree<T = Record<string, unknown>>({
     [isControlledExpanded, onExpandedKeysChange]
   )
 
-  const checkedKeySet = React.useMemo(() => {
-    return new Set((controlledCheckedKeys ?? []).map(String))
-  }, [controlledCheckedKeys])
+  const checkedKeySet = React.useMemo(() => new Set(controlledCheckedKeys), [controlledCheckedKeys])
 
   /** Disabled nodes are locked: only `checkedKeys` decides their state, never a user action. */
   const disabledKeySet = React.useMemo(() => {
-    const set = new Set<string>()
+    const set = new Set<TreeKey>()
     for (const [key, node] of index.nodeMap.entries()) {
       if (node.disabled) {
-        set.add(String(key))
+        set.add(key)
       }
     }
     return set
   }, [index])
 
   const indeterminateKeySet = React.useMemo(() => {
-    if (!checkable || checkStrictly || checkedKeySet.size === 0) {
-      return new Set<string>()
+    const set = new Set<TreeKey>()
+    if (!checkable || checkStrictly) {
+      return set
     }
-    const set = new Set<string>()
-    for (const keyStr of checkedKeySet) {
-      const ancestors = index.ancestorsMap.get(keyStr) ?? index.ancestorsMap.get(Number(keyStr)) ?? []
-      for (const a of ancestors) {
-        const aStr = String(a)
-        if (!checkedKeySet.has(aStr)) {
-          set.add(aStr)
+    for (const key of checkedKeySet) {
+      for (const a of index.ancestorsMap.get(key) ?? []) {
+        if (!checkedKeySet.has(a)) {
+          set.add(a)
         }
       }
     }
@@ -239,46 +207,44 @@ export function Tree<T = Record<string, unknown>>({
 
   const handleToggleCheck = React.useCallback(
     (nodeId: TreeKey) => {
-      const keyStr = String(nodeId)
-      const isCurrentlyChecked = checkedKeySet.has(keyStr)
+      const isCurrentlyChecked = checkedKeySet.has(nodeId)
       const nextChecked = new Set(checkedKeySet)
 
       if (checkStrictly) {
         if (isCurrentlyChecked) {
-          nextChecked.delete(keyStr)
+          nextChecked.delete(nodeId)
         } else {
-          nextChecked.add(keyStr)
+          nextChecked.add(nodeId)
         }
       } else {
         // Locked nodes keep their checked state through every cascade path, so the descendants
         // and ancestors handled here exclude them.
-        const descendants = (index.descendantsMap.get(nodeId) ?? []).map(String).filter(d => !disabledKeySet.has(d))
+        const descendants = (index.descendantsMap.get(nodeId) ?? []).filter(d => !disabledKeySet.has(d))
+        const ancestors = index.ancestorsMap.get(nodeId) ?? []
 
         if (isCurrentlyChecked) {
-          nextChecked.delete(keyStr)
+          nextChecked.delete(nodeId)
           for (const d of descendants) {
             nextChecked.delete(d)
           }
-          const ancestors = (index.ancestorsMap.get(nodeId) ?? []).map(String)
           for (const a of ancestors) {
             if (!disabledKeySet.has(a)) {
               nextChecked.delete(a)
             }
           }
         } else {
-          nextChecked.add(keyStr)
+          nextChecked.add(nodeId)
           for (const d of descendants) {
             nextChecked.add(d)
           }
           // Walk from the nearest parent up to the root, so each ancestor sees its children's new state.
-          const ancestors = (index.ancestorsMap.get(nodeId) ?? []).map(String)
           for (let i = ancestors.length - 1; i >= 0; i--) {
             const a = ancestors[i]
             if (disabledKeySet.has(a)) {
               continue
             }
 
-            const children = (index.directChildrenMap.get(a) ?? []).map(String).filter(c => !disabledKeySet.has(c))
+            const children = (index.directChildrenMap.get(a) ?? []).filter(c => !disabledKeySet.has(c))
             const allChecked = children.every(c => nextChecked.has(c))
             if (allChecked) {
               nextChecked.add(a)
@@ -382,13 +348,23 @@ export function Tree<T = Record<string, unknown>>({
         handleToggleCheck(node.id)
         return
       }
-      if (selectableLeafOnly && node.children && node.children.length > 0) {
-        return
-      }
       onSelect?.(node.id, node)
     },
-    [checkable, handleToggleCheck, onSelect, selectableLeafOnly]
+    [checkable, handleToggleCheck, onSelect]
   )
+
+  // Roving tabindex: only one item is in the Tab order, and the arrow keys move between items.
+  const [focusedKey, setFocusedKey] = React.useState<TreeKey | null>(null)
+  const itemRefs = React.useRef(new Map<TreeKey, HTMLDivElement>())
+  const focusableKeys = visibleNodes.filter(({ node }) => !node.disabled).map(({ node }) => node.id)
+  const tabStopKey = [focusedKey, selectedKey].find(k => k != null && focusableKeys.includes(k)) ?? focusableKeys[0]
+
+  const moveFocus = (from: TreeKey, step: 1 | -1) => {
+    const next = focusableKeys[focusableKeys.indexOf(from) + step]
+    if (next === undefined) return
+    setFocusedKey(next)
+    itemRefs.current.get(next)?.focus()
+  }
 
   if (visibleNodes.length === 0) {
     return (
@@ -408,55 +384,47 @@ export function Tree<T = Record<string, unknown>>({
       )}
     >
       {visibleNodes.map(({ node, depth, hasChildren }) => {
-        const keyStr = String(node.id)
-        const isSelected = selectedKey !== undefined && selectedKey !== null && String(selectedKey) === keyStr
-        const isChecked = checkable ? checkedKeySet.has(keyStr) : false
+        const isSelected = selectedKey === node.id
+        const isChecked = checkable && checkedKeySet.has(node.id)
         const isExpanded = searchMatchInfo
           ? searchMatchInfo.searchExpandedKeys.has(node.id)
           : expandedKeySet.has(node.id)
 
         const isIndeterminate =
-          checkable && !checkStrictly && !isChecked && hasChildren ? indeterminateKeySet.has(keyStr) : false
-
-        const renderContext: TreeRenderNodeProps<T> = {
-          node,
-          depth,
-          isExpanded,
-          isSelected,
-          isChecked,
-          isIndeterminate,
-          hasChildren,
-          searchKeyword: trimmedSearch,
-          toggleExpand: e => toggleExpand(node.id, e),
-          selectNode: () => handleSelect(node),
-          toggleCheck: () => handleToggleCheck(node.id)
-        }
-
-        const isClickable = !node.disabled && (checkable || !selectableLeafOnly || !hasChildren)
+          checkable && !checkStrictly && !isChecked && hasChildren && indeterminateKeySet.has(node.id)
 
         return (
           <div
-            key={keyStr}
+            key={node.id}
+            ref={el => {
+              if (el) itemRefs.current.set(node.id, el)
+              return () => {
+                itemRefs.current.delete(node.id)
+              }
+            }}
             role="treeitem"
-            aria-selected={isSelected || isChecked}
+            aria-selected={checkable ? undefined : isSelected}
+            aria-checked={checkable ? (isIndeterminate ? 'mixed' : isChecked) : undefined}
             aria-expanded={hasChildren ? isExpanded : undefined}
-            tabIndex={node.disabled ? -1 : 0}
+            aria-disabled={node.disabled || undefined}
+            tabIndex={node.id === tabStopKey ? 0 : -1}
             className={cn(
-              'group/tree-item relative flex min-h-8 w-fit min-w-full items-center gap-1.5 rounded-md px-1.5 py-1 text-sm transition-colors outline-none sm:min-h-7.5',
-              isClickable ? 'cursor-pointer' : 'cursor-default',
+              'relative flex min-h-8 w-fit min-w-full items-center gap-1.5 rounded-md px-1.5 py-1 text-sm transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50 sm:min-h-7.5',
+              node.disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
               !checkable && isSelected
                 ? 'bg-accent font-medium text-accent-foreground'
-                : 'text-foreground hover:bg-accent/60 hover:text-accent-foreground',
-              node.disabled && 'cursor-not-allowed opacity-50'
+                : 'text-foreground hover:bg-accent/60 hover:text-accent-foreground'
             )}
-            style={{
-              paddingLeft: `calc(${depth} * var(--tree-indent, ${indentRem}rem) + 0.375rem)`
-            }}
+            style={{ paddingLeft: `calc(${depth} * var(--tree-indent) + 0.375rem)` }}
+            onFocus={() => setFocusedKey(node.id)}
             onClick={() => handleSelect(node)}
             onKeyDown={e => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault()
                 handleSelect(node)
+              } else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                e.preventDefault()
+                moveFocus(node.id, e.key === 'ArrowDown' ? 1 : -1)
               } else if (e.key === 'ArrowRight' && hasChildren && !isExpanded && !searchMatchInfo) {
                 e.preventDefault()
                 const next = new Set(expandedKeySet)
@@ -488,7 +456,7 @@ export function Tree<T = Record<string, unknown>>({
                   variant="ghost"
                   size="icon-xs"
                   tabIndex={-1}
-                  className="-ml-1 size-6 shrink-0 touch-manipulation text-muted-foreground hover:text-foreground sm:ml-0 sm:size-4"
+                  className="-ml-1 touch-manipulation text-muted-foreground sm:ml-0 sm:size-4"
                   onClick={e => toggleExpand(node.id, e)}
                 >
                   <ChevronRight
@@ -501,22 +469,21 @@ export function Tree<T = Record<string, unknown>>({
             )}
 
             {checkable && (
+              // The treeitem carries `aria-checked` and the focus, so the checkbox is mouse-only.
               <Checkbox
                 checked={isChecked}
                 indeterminate={isIndeterminate}
                 disabled={node.disabled}
                 onCheckedChange={() => handleToggleCheck(node.id)}
                 onClick={e => e.stopPropagation()}
-                className="size-4 shrink-0"
-                aria-label={node.label}
+                tabIndex={-1}
+                aria-hidden
               />
             )}
 
-            {showIcons && (node.icon || renderIcon || hasChildren) && (
+            {showIcons && (node.icon || hasChildren) && (
               <span className="flex size-4 shrink-0 items-center justify-center text-muted-foreground">
-                {renderIcon ? (
-                  renderIcon(renderContext)
-                ) : node.icon ? (
+                {node.icon ? (
                   React.isValidElement(node.icon) ? (
                     node.icon
                   ) : (
@@ -535,14 +502,12 @@ export function Tree<T = Record<string, unknown>>({
             )}
 
             <div className="flex items-center gap-1.5 whitespace-nowrap">
-              <span className="shrink-0 font-normal text-foreground">
-                {renderLabel ? renderLabel(renderContext) : <HighlightText text={node.label} keyword={trimmedSearch} />}
+              <span className="shrink-0">
+                <HighlightText text={node.label} keyword={trimmedSearch} />
               </span>
               {node.tag}
               {node.subtitle}
             </div>
-
-            {renderAction && renderAction(renderContext)}
 
             {!checkable && isSelected && <Check className="size-4 shrink-0 text-primary" />}
           </div>

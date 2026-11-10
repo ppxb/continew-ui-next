@@ -142,7 +142,7 @@ export function UserList() {
       />
       <DeptTreeSelect
         triggerPrefix="部门"
-        placeholder="全部"
+        placeholder="全部部门"
         placeholderColor="foreground"
         showAllOption
         allOptionLabel="全部部门"
