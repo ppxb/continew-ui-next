@@ -2,6 +2,8 @@
 
 WIP.
 
+Anyway, thanks for the tokens, [莫愁](https://github.com/zk020106).
+
 # LICENSE
 
-[Mit](./LICENSE)
+[MIT](./LICENSE)
