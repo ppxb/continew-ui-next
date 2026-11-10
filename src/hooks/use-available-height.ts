@@ -1,4 +1,4 @@
-import { type RefObject, useLayoutEffect } from 'react'
+import { type RefObject, useCallback, useLayoutEffect, useRef } from 'react'
 
 /**
  * Measures the vertical space left below `ref` and exposes it as a CSS variable, so a descendant can
@@ -6,8 +6,15 @@ import { type RefObject, useLayoutEffect } from 'react'
  *
  * The measurement is idempotent and re-runs when the element's box changes (for example a tab panel
  * that mounts hidden then becomes visible), not only on viewport resize.
+ *
+ * Returns a `remeasure` callback. Call it from a layout effect when the content height changes
+ * (rows expanded, filtered or loaded): the observer-driven run lands after the frame that painted
+ * the taller content, which briefly overflows the page and shifts the whole shell by a
+ * scrollbar width. A layout-effect call corrects the height before that frame is painted.
  */
 export function useAvailableHeight<T extends HTMLElement>(ref: RefObject<T | null>, variable: string) {
+  const applyRef = useRef<() => void>(() => {})
+
   useLayoutEffect(() => {
     const element = ref.current
     if (!element) return
@@ -50,6 +57,7 @@ export function useAvailableHeight<T extends HTMLElement>(ref: RefObject<T | nul
       frame = requestAnimationFrame(apply)
     }
 
+    applyRef.current = apply
     apply()
     const observer = new ResizeObserver(schedule)
     observer.observe(root)
@@ -63,6 +71,9 @@ export function useAvailableHeight<T extends HTMLElement>(ref: RefObject<T | nul
       window.removeEventListener('resize', schedule)
       window.removeEventListener('scroll', schedule)
       element.style.removeProperty(variable)
+      applyRef.current = () => {}
     }
   }, [ref, variable])
+
+  return useCallback(() => applyRef.current(), [])
 }

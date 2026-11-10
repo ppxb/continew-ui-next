@@ -71,7 +71,7 @@ export function DeptList() {
   const fullscreen = useFullscreenTransition()
 
   const tableAreaRef = React.useRef<HTMLDivElement>(null)
-  useAvailableHeight(tableAreaRef, '--table-available-height')
+  const remeasureTableArea = useAvailableHeight(tableAreaRef, '--table-available-height')
 
   const query = useQuery({
     queryKey: deptKeys.trees(),
@@ -122,6 +122,14 @@ export function DeptList() {
     onExpandedChange: setExpanded,
     onColumnVisibilityChange: setColumnVisibility
   })
+
+  // Expansion, filtering and loading change the row count in the same commit that paints the new
+  // rows. Measure before that paint, otherwise the page overflows for one frame (the observer-driven
+  // correction is deferred to the next frame) and the whole shell shifts by a scrollbar width.
+  const rowCount = table.getRowModel().rows.length
+  React.useLayoutEffect(() => {
+    remeasureTableArea()
+  }, [remeasureTableArea, rowCount])
 
   const exportMutation = useMutation({
     mutationFn: () => exportDept({ description: keyword || undefined }),
