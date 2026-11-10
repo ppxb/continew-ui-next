@@ -1,17 +1,12 @@
 import type { MouseEvent } from 'react'
 
 import type { ReactTable, RowData } from '@tanstack/react-table'
+import { Root as AnimatePagination } from '@animate-ui/react/primitives/pagination'
 
 import { cn } from 'cn'
 
 import { PaginationArrow } from '@/components/pagination-arrow'
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink
-} from '@/components/ui/pagination'
+import { PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink } from '@/components/ui/pagination'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 
@@ -89,7 +84,11 @@ export function TablePagination<TRow extends RowData>({ table, showTopBorder = t
         </span>
       </div>
 
-      <Pagination className="mx-0 w-auto justify-start md:justify-end">
+      <AnimatePagination
+        role="navigation"
+        aria-label="pagination"
+        className="mx-0 flex w-auto justify-start md:justify-end"
+      >
         <PaginationContent>
           <PaginationItem>
             <PaginationArrow
@@ -122,7 +121,7 @@ export function TablePagination<TRow extends RowData>({ table, showTopBorder = t
             <PaginationArrow direction="next" disabled={!table.getCanNextPage()} onClick={() => table.nextPage()} />
           </PaginationItem>
         </PaginationContent>
-      </Pagination>
+      </AnimatePagination>
     </div>
   )
 }
