@@ -66,12 +66,13 @@ export function DataTable<TRow extends RowData>({
         'flex flex-1 flex-col',
         fillHeight && 'min-h-0',
         fillHeight &&
-          '*:data-[slot=table-container]:min-h-0 *:data-[slot=table-container]:flex-1 *:data-[slot=table-container]:overflow-auto',
+          '*:data-[slot=table-container]:min-h-0 *:data-[slot=table-container]:flex-1',
         !hasFooter && 'pb-4',
         containerClassName
       )}
     >
       <Table
+        scrollArea
         className={cn(
           "**:data-[slot='table-cell']:px-4 **:data-[slot='table-head']:px-4",
           isShowingPreviousRows && !isError && 'opacity-60 transition-opacity',
