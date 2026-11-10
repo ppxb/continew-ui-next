@@ -71,7 +71,7 @@ export function MenuList() {
   const fullscreen = useFullscreenTransition()
 
   const tableAreaRef = React.useRef<HTMLDivElement>(null)
-  useAvailableHeight(tableAreaRef, '--table-available-height')
+  const remeasureTableArea = useAvailableHeight(tableAreaRef, '--table-available-height')
 
   const query = useQuery({
     queryKey: menuKeys.trees(),
@@ -122,6 +122,13 @@ export function MenuList() {
     onExpandedChange: setExpanded,
     onColumnVisibilityChange: setColumnVisibility
   })
+
+  // Same as the department tree: expansion and filtering change the row count in the commit that
+  // paints the new rows, so measure before paint instead of letting the page overflow for one frame.
+  const rowCount = table.getRowModel().rows.length
+  React.useLayoutEffect(() => {
+    remeasureTableArea()
+  }, [remeasureTableArea, rowCount])
 
   const clearCacheMutation = useMutation({
     mutationFn: () => clearMenuCache(),
