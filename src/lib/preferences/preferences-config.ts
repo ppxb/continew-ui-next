@@ -60,7 +60,7 @@ export const PREFERENCE_REGISTRY = {
 
   theme_color: definePreference({
     values: THEME_COLOR_VALUES,
-    defaultValue: 'default',
+    defaultValue: 'blue',
     persistence: 'client-cookie',
     attribute: 'data-theme-color'
   }),
@@ -95,7 +95,7 @@ export const PREFERENCE_REGISTRY = {
 
   radius: defineBootPreference({
     values: RADIUS_VALUES,
-    defaultValue: '1',
+    defaultValue: '0.5',
     persistence: 'client-cookie',
     attribute: 'data-radius'
   })
