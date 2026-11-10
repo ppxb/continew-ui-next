@@ -63,7 +63,11 @@ function createMemberColumns({
       },
       cell: ({ row }) => (
         <div className="flex items-center justify-center">
-          <Checkbox checked={row.getIsSelected()} onCheckedChange={value => row.toggleSelected(Boolean(value))} />
+          <Checkbox
+            checked={row.getIsSelected()}
+            disabled={Boolean(row.original.isSystem)}
+            onCheckedChange={value => row.toggleSelected(Boolean(value))}
+          />
         </div>
       ),
       enableSorting: false,
@@ -100,7 +104,11 @@ function createMemberColumns({
       header: () => <div className="text-center">操作</div>,
       cell: ({ row }) => (
         <div className="flex items-center justify-center">
-          <Button variant="destructive" disabled={isUnassigning} onClick={() => onUnassign(row.original)}>
+          <Button
+            variant="destructive"
+            disabled={isUnassigning || Boolean(row.original.isSystem)}
+            onClick={() => onUnassign(row.original)}
+          >
             取消授权
           </Button>
         </div>
@@ -211,7 +219,7 @@ export function RoleUserDrawer({ role, open, onClose }: RoleUserDrawerProps) {
     rowCount: total,
     pageCount,
     autoResetPageIndex: false,
-    enableRowSelection: true,
+    enableRowSelection: row => !row.original.isSystem,
     onPaginationChange: setPagination,
     onRowSelectionChange: setRowSelection,
     getRowId: row => String(row.id)
@@ -239,7 +247,7 @@ export function RoleUserDrawer({ role, open, onClose }: RoleUserDrawerProps) {
             </div>
 
             <div className="flex items-center gap-2">
-              <Button onClick={() => setIsAddOpen(true)}>
+              <Button disabled={Boolean(shownRole?.isSystem)} onClick={() => setIsAddOpen(true)}>
                 <Plus />
                 添加成员
               </Button>
