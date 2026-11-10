@@ -59,11 +59,11 @@ function RowActions({ role, onAction }: { role: RoleResp; onAction: (action: Rol
             <PenLine />
             修改角色
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onAction('permission', role)}>
+          <DropdownMenuItem disabled={isSystem} onClick={() => onAction('permission', role)}>
             <KeyRound />
             功能权限
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onAction('members', role)}>
+          <DropdownMenuItem disabled={isSystem} onClick={() => onAction('members', role)}>
             <Users />
             关联用户
           </DropdownMenuItem>
