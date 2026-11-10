@@ -20,14 +20,9 @@ export const THEME_COLOR_OPTIONS = [
     primary: { light: 'oklch(0.5624 0.0947 203.2755)', dark: 'oklch(0.8520 0.1269 195.0354)' }
   },
   {
-    value: 'teal',
-    label: '蓝绿',
-    primary: { light: 'oklch(0.600 0.118 184.704)', dark: 'oklch(0.777 0.152 181.912)' }
-  },
-  {
     value: 'emerald',
-    label: '翠绿',
-    primary: { light: 'oklch(0.596 0.145 163.225)', dark: 'oklch(0.765 0.177 163.223)' }
+    label: '竹青',
+    primary: { light: 'oklch(0.7227 0.1920 149.5793)', dark: 'oklch(0.7729 0.1535 163.2231)' }
   },
   {
     value: 'amber',
