@@ -229,7 +229,7 @@ export function DictManager() {
                     {(canUpdateDict || (canDeleteDict && !dict.isSystem)) && (
                       <div className="pointer-events-none absolute top-1/2 right-1 -translate-y-1/2 opacity-0 transition-opacity group-hover/dict:pointer-events-auto group-hover/dict:opacity-100 focus-within:pointer-events-auto focus-within:opacity-100">
                         <DropdownMenu>
-                          <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" aria-label="字典操作" />}>
+                          <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />}>
                             <MoreHorizontal className="size-4" />
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-36">

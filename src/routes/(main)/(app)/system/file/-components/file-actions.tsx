@@ -1,15 +1,7 @@
-import { Download, ExternalLink, Eye, FolderOpen, Info, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
+import { Download, ExternalLink, Eye, FolderOpen, Info, Pencil, Trash2 } from 'lucide-react'
 
-import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { RowActionsMenu } from '@/components/row-actions-menu'
+import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import type { FileResp } from '@/lib/api/file'
 
 import { isImageFile } from './file-display'
@@ -38,51 +30,43 @@ export function FileActions({ file, canDownload, canUpdate, canDelete, handlers 
 
   return (
     <div className="flex items-center justify-end">
-      <DropdownMenu>
-        <Tooltip>
-          <TooltipTrigger render={<DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />} />}>
-            <MoreHorizontal />
-          </TooltipTrigger>
-          <TooltipContent side="top">更多操作</TooltipContent>
-        </Tooltip>
-        <DropdownMenuContent align="end" className="w-40">
-          <DropdownMenuGroup>
-            <DropdownMenuItem
-              onClick={() => (isDir || !isImageFile(file.type) ? handlers.onOpen(file) : handlers.onPreview(file))}
-            >
-              {isDir ? <FolderOpen /> : isImageFile(file.type) ? <Eye /> : <ExternalLink />}
-              {isDir ? '打开' : isImageFile(file.type) ? '预览' : '打开'}
+      <RowActionsMenu>
+        <DropdownMenuGroup>
+          <DropdownMenuItem
+            onClick={() => (isDir || !isImageFile(file.type) ? handlers.onOpen(file) : handlers.onPreview(file))}
+          >
+            {isDir ? <FolderOpen /> : isImageFile(file.type) ? <Eye /> : <ExternalLink />}
+            {isDir ? '打开' : isImageFile(file.type) ? '预览' : '打开'}
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handlers.onDetail(file)}>
+            <Info />
+            详情
+          </DropdownMenuItem>
+          {!isDir && canDownload ? (
+            <DropdownMenuItem onClick={() => handlers.onDownload(file)}>
+              <Download />
+              下载
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handlers.onDetail(file)}>
-              <Info />
-              详情
-            </DropdownMenuItem>
-            {!isDir && canDownload ? (
-              <DropdownMenuItem onClick={() => handlers.onDownload(file)}>
-                <Download />
-                下载
-              </DropdownMenuItem>
-            ) : null}
-            {canUpdate ? (
-              <DropdownMenuItem onClick={() => handlers.onRename(file)}>
-                <Pencil />
-                重命名
-              </DropdownMenuItem>
-            ) : null}
-          </DropdownMenuGroup>
-          {canDelete ? (
-            <>
-              <DropdownMenuSeparator />
-              <DropdownMenuGroup>
-                <DropdownMenuItem variant="destructive" onClick={() => handlers.onDelete(file)}>
-                  <Trash2 />
-                  删除
-                </DropdownMenuItem>
-              </DropdownMenuGroup>
-            </>
           ) : null}
-        </DropdownMenuContent>
-      </DropdownMenu>
+          {canUpdate ? (
+            <DropdownMenuItem onClick={() => handlers.onRename(file)}>
+              <Pencil />
+              重命名
+            </DropdownMenuItem>
+          ) : null}
+        </DropdownMenuGroup>
+        {canDelete ? (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              <DropdownMenuItem variant="destructive" onClick={() => handlers.onDelete(file)}>
+                <Trash2 />
+                删除
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+          </>
+        ) : null}
+      </RowActionsMenu>
     </div>
   )
 }

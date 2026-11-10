@@ -1,18 +1,10 @@
 import type { ColumnDef } from '@tanstack/react-table'
-import { Eye, MoreHorizontal, Pen, Trash2 } from 'lucide-react'
+import { Eye, Pen, Trash2 } from 'lucide-react'
 
+import { RowActionsMenu } from '@/components/row-actions-menu'
 import { StatusCell } from '@/components/status-cell'
 import { TextCell } from '@/components/text-cell'
-import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import type { PackageResp } from '@/lib/api/package'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 
@@ -62,45 +54,37 @@ function RowActions({
 
   return (
     <div className="flex items-center justify-center">
-      <DropdownMenu>
-        <Tooltip>
-          <TooltipTrigger render={<DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />} />}>
-            <MoreHorizontal />
-          </TooltipTrigger>
-          <TooltipContent side="top">更多操作</TooltipContent>
-        </Tooltip>
-        <DropdownMenuContent align="end">
-          {hasPrimary ? (
-            <DropdownMenuGroup>
-              {canGet ? (
-                <DropdownMenuItem onClick={() => onAction('detail', pkg)}>
-                  <Eye />
-                  详情
-                </DropdownMenuItem>
-              ) : null}
-              {canUpdate ? (
-                <DropdownMenuItem onClick={() => onAction('edit', pkg)}>
-                  <Pen />
-                  修改
-                </DropdownMenuItem>
-              ) : null}
-            </DropdownMenuGroup>
-          ) : null}
-          {hasPrimary && canDelete ? <DropdownMenuSeparator /> : null}
-          {canDelete ? (
-            <DropdownMenuGroup>
-              <DropdownMenuItem
-                variant="destructive"
-                disabled={Boolean(pkg.disabled)}
-                onClick={() => onAction('delete', pkg)}
-              >
-                <Trash2 />
-                删除
+      <RowActionsMenu>
+        {hasPrimary ? (
+          <DropdownMenuGroup>
+            {canGet ? (
+              <DropdownMenuItem onClick={() => onAction('detail', pkg)}>
+                <Eye />
+                详情
               </DropdownMenuItem>
-            </DropdownMenuGroup>
-          ) : null}
-        </DropdownMenuContent>
-      </DropdownMenu>
+            ) : null}
+            {canUpdate ? (
+              <DropdownMenuItem onClick={() => onAction('edit', pkg)}>
+                <Pen />
+                修改
+              </DropdownMenuItem>
+            ) : null}
+          </DropdownMenuGroup>
+        ) : null}
+        {hasPrimary && canDelete ? <DropdownMenuSeparator /> : null}
+        {canDelete ? (
+          <DropdownMenuGroup>
+            <DropdownMenuItem
+              variant="destructive"
+              disabled={Boolean(pkg.disabled)}
+              onClick={() => onAction('delete', pkg)}
+            >
+              <Trash2 />
+              删除
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
+        ) : null}
+      </RowActionsMenu>
     </div>
   )
 }

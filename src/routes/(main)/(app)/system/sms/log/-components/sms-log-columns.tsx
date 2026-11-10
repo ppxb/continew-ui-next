@@ -1,17 +1,10 @@
 import type { ColumnDef } from '@tanstack/react-table'
-import { MoreHorizontal, Trash2 } from 'lucide-react'
+import { Trash2 } from 'lucide-react'
 
+import { RowActionsMenu } from '@/components/row-actions-menu'
 import { SuccessFailureCell } from '@/components/status-cell'
 import { TextCell } from '@/components/text-cell'
-import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { DropdownMenuGroup, DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import type { SmsLogResp } from '@/lib/api/sms-log'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 
@@ -42,22 +35,14 @@ function textColumn(key: TextColumnKey, header: string): SmsLogColumn {
 function RowActions({ log, onDelete }: { log: SmsLogResp; onDelete: (log: SmsLogResp) => void }) {
   return (
     <div className="flex items-center justify-center">
-      <DropdownMenu>
-        <Tooltip>
-          <TooltipTrigger render={<DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />} />}>
-            <MoreHorizontal />
-          </TooltipTrigger>
-          <TooltipContent side="top">更多操作</TooltipContent>
-        </Tooltip>
-        <DropdownMenuContent align="end">
-          <DropdownMenuGroup>
-            <DropdownMenuItem variant="destructive" disabled={Boolean(log.disabled)} onClick={() => onDelete(log)}>
-              <Trash2 />
-              删除
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <RowActionsMenu>
+        <DropdownMenuGroup>
+          <DropdownMenuItem variant="destructive" disabled={Boolean(log.disabled)} onClick={() => onDelete(log)}>
+            <Trash2 />
+            删除
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+      </RowActionsMenu>
     </div>
   )
 }

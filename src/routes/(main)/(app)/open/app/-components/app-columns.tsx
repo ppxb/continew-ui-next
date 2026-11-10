@@ -1,19 +1,11 @@
 import type { ColumnDef } from '@tanstack/react-table'
 
-import { Eye, KeyRound, MoreHorizontal, Pen, RotateCcw, Trash2 } from 'lucide-react'
+import { Eye, KeyRound, Pen, RotateCcw, Trash2 } from 'lucide-react'
 
+import { RowActionsMenu } from '@/components/row-actions-menu'
 import { StatusCell } from '@/components/status-cell'
 import { TextCell } from '@/components/text-cell'
-import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import type { AppResp } from '@/lib/api/app'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 
@@ -37,42 +29,34 @@ function RowActions({ app, onAction }: { app: AppResp; onAction: (action: AppAct
 
   return (
     <div className="flex items-center">
-      <DropdownMenu>
-        <Tooltip>
-          <TooltipTrigger render={<DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />} />}>
-            <MoreHorizontal />
-          </TooltipTrigger>
-          <TooltipContent side="top">更多操作</TooltipContent>
-        </Tooltip>
-        <DropdownMenuContent align="end">
-          <DropdownMenuGroup>
-            <DropdownMenuItem onClick={() => onAction('detail', app)}>
-              <Eye />
-              应用详情
-            </DropdownMenuItem>
-            <DropdownMenuItem disabled={isLocked} onClick={() => onAction('edit', app)}>
-              <Pen />
-              修改应用
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-          <DropdownMenuSeparator />
-          <DropdownMenuGroup>
-            <DropdownMenuItem onClick={() => onAction('secret', app)}>
-              <KeyRound />
-              查看密钥
-            </DropdownMenuItem>
-            <DropdownMenuItem disabled={isLocked} onClick={() => onAction('resetSecret', app)}>
-              <RotateCcw />
-              重置密钥
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem variant="destructive" disabled={isLocked} onClick={() => onAction('delete', app)}>
-            <Trash2 />
-            删除
+      <RowActionsMenu>
+        <DropdownMenuGroup>
+          <DropdownMenuItem onClick={() => onAction('detail', app)}>
+            <Eye />
+            应用详情
           </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+          <DropdownMenuItem disabled={isLocked} onClick={() => onAction('edit', app)}>
+            <Pen />
+            修改应用
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuItem onClick={() => onAction('secret', app)}>
+            <KeyRound />
+            查看密钥
+          </DropdownMenuItem>
+          <DropdownMenuItem disabled={isLocked} onClick={() => onAction('resetSecret', app)}>
+            <RotateCcw />
+            重置密钥
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem variant="destructive" disabled={isLocked} onClick={() => onAction('delete', app)}>
+          <Trash2 />
+          删除
+        </DropdownMenuItem>
+      </RowActionsMenu>
     </div>
   )
 }

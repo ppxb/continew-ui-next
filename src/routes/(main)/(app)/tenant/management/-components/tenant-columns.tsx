@@ -1,19 +1,11 @@
 import { type ColumnDef } from '@tanstack/react-table'
-import { Eye, KeyRound, MoreHorizontal, Pen, Trash2 } from 'lucide-react'
+import { Eye, KeyRound, Pen, Trash2 } from 'lucide-react'
 
 import { CopyableText } from '@/components/copyable-text'
+import { RowActionsMenu } from '@/components/row-actions-menu'
 import { StatusCell } from '@/components/status-cell'
 import { TextCell } from '@/components/text-cell'
-import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import type { TenantResp } from '@/lib/api/tenant'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 
@@ -58,53 +50,45 @@ function RowActions({ tenant, canGet, canUpdate, canUpdateAdminPassword, canDele
 
   return (
     <div className="flex items-center justify-center">
-      <DropdownMenu>
-        <Tooltip>
-          <TooltipTrigger render={<DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />} />}>
-            <MoreHorizontal />
-          </TooltipTrigger>
-          <TooltipContent side="top">更多操作</TooltipContent>
-        </Tooltip>
-        <DropdownMenuContent align="end">
-          {hasPrimary ? (
-            <DropdownMenuGroup>
-              {canGet ? (
-                <DropdownMenuItem onClick={() => onAction('detail', tenant)}>
-                  <Eye />
-                  详情
-                </DropdownMenuItem>
-              ) : null}
-              {canUpdate ? (
-                <DropdownMenuItem onClick={() => onAction('edit', tenant)}>
-                  <Pen />
-                  修改
-                </DropdownMenuItem>
-              ) : null}
-            </DropdownMenuGroup>
-          ) : null}
-          {hasPrimary && hasSecondary ? <DropdownMenuSeparator /> : null}
-          {hasSecondary ? (
-            <DropdownMenuGroup>
-              {canUpdateAdminPassword ? (
-                <DropdownMenuItem onClick={() => onAction('adminPassword', tenant)}>
-                  <KeyRound />
-                  修改管理员密码
-                </DropdownMenuItem>
-              ) : null}
-              {canDelete ? (
-                <DropdownMenuItem
-                  variant="destructive"
-                  disabled={Boolean(tenant.disabled)}
-                  onClick={() => onAction('delete', tenant)}
-                >
-                  <Trash2 />
-                  删除
-                </DropdownMenuItem>
-              ) : null}
-            </DropdownMenuGroup>
-          ) : null}
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <RowActionsMenu>
+        {hasPrimary ? (
+          <DropdownMenuGroup>
+            {canGet ? (
+              <DropdownMenuItem onClick={() => onAction('detail', tenant)}>
+                <Eye />
+                详情
+              </DropdownMenuItem>
+            ) : null}
+            {canUpdate ? (
+              <DropdownMenuItem onClick={() => onAction('edit', tenant)}>
+                <Pen />
+                修改
+              </DropdownMenuItem>
+            ) : null}
+          </DropdownMenuGroup>
+        ) : null}
+        {hasPrimary && hasSecondary ? <DropdownMenuSeparator /> : null}
+        {hasSecondary ? (
+          <DropdownMenuGroup>
+            {canUpdateAdminPassword ? (
+              <DropdownMenuItem onClick={() => onAction('adminPassword', tenant)}>
+                <KeyRound />
+                修改管理员密码
+              </DropdownMenuItem>
+            ) : null}
+            {canDelete ? (
+              <DropdownMenuItem
+                variant="destructive"
+                disabled={Boolean(tenant.disabled)}
+                onClick={() => onAction('delete', tenant)}
+              >
+                <Trash2 />
+                删除
+              </DropdownMenuItem>
+            ) : null}
+          </DropdownMenuGroup>
+        ) : null}
+      </RowActionsMenu>
     </div>
   )
 }

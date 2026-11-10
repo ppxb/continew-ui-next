@@ -1,16 +1,9 @@
 import { type ColumnDef } from '@tanstack/react-table'
-import { MoreHorizontal, RotateCcw, Square } from 'lucide-react'
+import { RotateCcw, Square } from 'lucide-react'
 
+import { RowActionsMenu } from '@/components/row-actions-menu'
 import { TextCell } from '@/components/text-cell'
-import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { DropdownMenuGroup, DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import type { JobLogResp } from '@/lib/api/job-log'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 
@@ -43,30 +36,22 @@ function RowActions({
 
   return (
     <div className="flex items-center justify-center">
-      <DropdownMenu>
-        <Tooltip>
-          <TooltipTrigger render={<DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />} />}>
-            <MoreHorizontal />
-          </TooltipTrigger>
-          <TooltipContent side="top">更多操作</TooltipContent>
-        </Tooltip>
-        <DropdownMenuContent align="end">
-          <DropdownMenuGroup>
-            {canStop ? (
-              <DropdownMenuItem disabled={!canStopNow} onClick={() => onAction('stop', log)}>
-                <Square />
-                停止
-              </DropdownMenuItem>
-            ) : null}
-            {canRetry ? (
-              <DropdownMenuItem disabled={!canRetryNow} onClick={() => onAction('retry', log)}>
-                <RotateCcw />
-                重试
-              </DropdownMenuItem>
-            ) : null}
-          </DropdownMenuGroup>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <RowActionsMenu>
+        <DropdownMenuGroup>
+          {canStop ? (
+            <DropdownMenuItem disabled={!canStopNow} onClick={() => onAction('stop', log)}>
+              <Square />
+              停止
+            </DropdownMenuItem>
+          ) : null}
+          {canRetry ? (
+            <DropdownMenuItem disabled={!canRetryNow} onClick={() => onAction('retry', log)}>
+              <RotateCcw />
+              重试
+            </DropdownMenuItem>
+          ) : null}
+        </DropdownMenuGroup>
+      </RowActionsMenu>
     </div>
   )
 }

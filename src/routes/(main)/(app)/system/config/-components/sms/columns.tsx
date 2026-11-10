@@ -1,17 +1,12 @@
 import type { ColumnDef } from '@tanstack/react-table'
-import { MoreHorizontal, Star, Trash2 } from 'lucide-react'
+import { Star, Trash2 } from 'lucide-react'
 
 import { CopyableText } from '@/components/copyable-text'
+import { RowActionsMenu } from '@/components/row-actions-menu'
 import { DefaultBadge, StatusCell } from '@/components/status-cell'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
+import { DropdownMenuGroup, DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import { usePermission } from '@/hooks/use-permission'
 import type { SmsConfigResp } from '@/lib/api/sms'
 import type { DataTableFeatures } from '@/lib/data-table-features'
@@ -38,31 +33,22 @@ function RowActions({
       )}
 
       {(canSetDefault || canDelete) && (
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <Button size="icon" variant="ghost" className="size-8">
-                <MoreHorizontal className="size-4" />
-              </Button>
-            }
-          />
-          <DropdownMenuContent align="end">
-            <DropdownMenuGroup>
-              {canSetDefault && !record.isDefault && (
-                <DropdownMenuItem onClick={() => onAction('setDefault', record)}>
-                  <Star className="size-4" />
-                  设为默认
-                </DropdownMenuItem>
-              )}
-              {canDelete && (
-                <DropdownMenuItem variant="destructive" onClick={() => onAction('delete', record)}>
-                  <Trash2 className="size-4" />
-                  删除
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <RowActionsMenu>
+          <DropdownMenuGroup>
+            {canSetDefault && !record.isDefault && (
+              <DropdownMenuItem onClick={() => onAction('setDefault', record)}>
+                <Star className="size-4" />
+                设为默认
+              </DropdownMenuItem>
+            )}
+            {canDelete && (
+              <DropdownMenuItem variant="destructive" onClick={() => onAction('delete', record)}>
+                <Trash2 className="size-4" />
+                删除
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuGroup>
+        </RowActionsMenu>
       )}
     </div>
   )

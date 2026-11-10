@@ -1,19 +1,11 @@
 import type { ColumnDef } from '@tanstack/react-table'
 
-import { Building2, ChevronRight, MoreHorizontal, PenLine, Plus, Trash2 } from 'lucide-react'
+import { Building2, ChevronRight, PenLine, Plus, Trash2 } from 'lucide-react'
 
 import { FlagBadge } from '@/components/data-badge'
+import { RowActionsMenu } from '@/components/row-actions-menu'
 import { StatusCell } from '@/components/status-cell'
-import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import { usePermission } from '@/hooks/use-permission'
 import type { DeptResp } from '@/lib/api/dept'
 import { EMPTY_PLACEHOLDER } from '@/lib/constants'
@@ -37,47 +29,37 @@ function RowActions({ dept, onAction }: { dept: DeptResp; onAction: (action: Dep
 
   return (
     <div className="flex items-center justify-center">
-      <DropdownMenu>
-        <Tooltip>
-          <TooltipTrigger render={<DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />} />}>
-            <MoreHorizontal className="size-4" />
-          </TooltipTrigger>
-          <TooltipContent side="top" sideOffset={8}>
-            更多操作
-          </TooltipContent>
-        </Tooltip>
-        <DropdownMenuContent align="end" className="w-36">
-          <DropdownMenuGroup>
-            {hasPermission('system:dept:update') && (
-              <DropdownMenuItem onClick={() => onAction('edit', dept)}>
-                <PenLine />
-                修改部门
-              </DropdownMenuItem>
-            )}
-            {hasPermission('system:dept:create') && (
-              <DropdownMenuItem onClick={() => onAction('add-child', dept)}>
-                <Plus />
-                添加下级
-              </DropdownMenuItem>
-            )}
-          </DropdownMenuGroup>
-          {hasPermission('system:dept:delete') && (
-            <>
-              <DropdownMenuSeparator />
-              <DropdownMenuGroup>
-                <DropdownMenuItem
-                  variant="destructive"
-                  disabled={dept.isSystem}
-                  onClick={() => onAction('delete', dept)}
-                >
-                  <Trash2 />
-                  {dept.isSystem ? '内置部门' : '删除'}
-                </DropdownMenuItem>
-              </DropdownMenuGroup>
-            </>
+      <RowActionsMenu>
+        <DropdownMenuGroup>
+          {hasPermission('system:dept:update') && (
+            <DropdownMenuItem onClick={() => onAction('edit', dept)}>
+              <PenLine />
+              修改部门
+            </DropdownMenuItem>
           )}
-        </DropdownMenuContent>
-      </DropdownMenu>
+          {hasPermission('system:dept:create') && (
+            <DropdownMenuItem onClick={() => onAction('add-child', dept)}>
+              <Plus />
+              添加下级
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuGroup>
+        {hasPermission('system:dept:delete') && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              <DropdownMenuItem
+                variant="destructive"
+                disabled={dept.isSystem}
+                onClick={() => onAction('delete', dept)}
+              >
+                <Trash2 />
+                {dept.isSystem ? '内置部门' : '删除'}
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+          </>
+        )}
+      </RowActionsMenu>
     </div>
   )
 }

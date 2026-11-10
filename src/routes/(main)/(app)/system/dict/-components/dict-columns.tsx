@@ -1,18 +1,10 @@
 import type { ColumnDef } from '@tanstack/react-table'
-import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
+import { Pencil, Trash2 } from 'lucide-react'
 
+import { RowActionsMenu } from '@/components/row-actions-menu'
 import { StatusCell } from '@/components/status-cell'
 import { TextCell } from '@/components/text-cell'
-import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import type { DictItemResp } from '@/lib/api/dict'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 
@@ -31,35 +23,27 @@ function RowActions({ item, options }: { item: DictItemResp; options: DictItemCo
 
   return (
     <div className="flex items-center justify-center">
-      <DropdownMenu>
-        <Tooltip>
-          <TooltipTrigger render={<DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />} />}>
-            <MoreHorizontal />
-          </TooltipTrigger>
-          <TooltipContent side="top">更多操作</TooltipContent>
-        </Tooltip>
-        <DropdownMenuContent align="end" className="w-36">
-          {canUpdate && (
+      <RowActionsMenu>
+        {canUpdate && (
+          <DropdownMenuGroup>
+            <DropdownMenuItem onClick={() => onAction('update', item)}>
+              <Pencil />
+              修改
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
+        )}
+        {canDelete && (
+          <>
+            {canUpdate && <DropdownMenuSeparator />}
             <DropdownMenuGroup>
-              <DropdownMenuItem onClick={() => onAction('update', item)}>
-                <Pencil />
-                修改
+              <DropdownMenuItem variant="destructive" onClick={() => onAction('delete', item)}>
+                <Trash2 />
+                删除
               </DropdownMenuItem>
             </DropdownMenuGroup>
-          )}
-          {canDelete && (
-            <>
-              {canUpdate && <DropdownMenuSeparator />}
-              <DropdownMenuGroup>
-                <DropdownMenuItem variant="destructive" onClick={() => onAction('delete', item)}>
-                  <Trash2 />
-                  删除
-                </DropdownMenuItem>
-              </DropdownMenuGroup>
-            </>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
+          </>
+        )}
+      </RowActionsMenu>
     </div>
   )
 }

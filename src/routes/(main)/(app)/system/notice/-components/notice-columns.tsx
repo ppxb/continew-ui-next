@@ -1,19 +1,11 @@
 import type { ColumnDef, ColumnVisibilityState } from '@tanstack/react-table'
 
-import { Eye, FileText, MoreHorizontal, Pen, Trash2 } from 'lucide-react'
+import { Eye, FileText, Pen, Trash2 } from 'lucide-react'
 
 import { FlagBadge } from '@/components/data-badge'
+import { RowActionsMenu } from '@/components/row-actions-menu'
 import { TextCell } from '@/components/text-cell'
-import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import { usePermission } from '@/hooks/use-permission'
 import type { NoticeResp } from '@/lib/api/notice'
 import type { DataTableFeatures } from '@/lib/data-table-features'
@@ -59,47 +51,39 @@ function RowActions({
 
   return (
     <div className="flex items-center justify-center">
-      <DropdownMenu>
-        <Tooltip>
-          <TooltipTrigger render={<DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />} />}>
-            <MoreHorizontal />
-          </TooltipTrigger>
-          <TooltipContent side="top">更多操作</TooltipContent>
-        </Tooltip>
-        <DropdownMenuContent align="end">
-          <DropdownMenuGroup>
-            {hasPermission('system:notice:get') && (
-              <DropdownMenuItem onClick={() => onAction('detail', notice)}>
-                <FileText />
-                详情
-              </DropdownMenuItem>
-            )}
-            {hasPermission('system:notice:view') && (
-              <DropdownMenuItem onClick={() => onAction('view', notice)}>
-                <Eye />
-                查看
-              </DropdownMenuItem>
-            )}
-            {hasPermission('system:notice:update') && (
-              <DropdownMenuItem onClick={() => onAction('edit', notice)}>
-                <Pen />
-                修改
-              </DropdownMenuItem>
-            )}
-          </DropdownMenuGroup>
-          {hasPermission('system:notice:delete') && (
-            <>
-              <DropdownMenuSeparator />
-              <DropdownMenuGroup>
-                <DropdownMenuItem variant="destructive" onClick={() => onAction('delete', notice)}>
-                  <Trash2 />
-                  删除
-                </DropdownMenuItem>
-              </DropdownMenuGroup>
-            </>
+      <RowActionsMenu>
+        <DropdownMenuGroup>
+          {hasPermission('system:notice:get') && (
+            <DropdownMenuItem onClick={() => onAction('detail', notice)}>
+              <FileText />
+              详情
+            </DropdownMenuItem>
           )}
-        </DropdownMenuContent>
-      </DropdownMenu>
+          {hasPermission('system:notice:view') && (
+            <DropdownMenuItem onClick={() => onAction('view', notice)}>
+              <Eye />
+              查看
+            </DropdownMenuItem>
+          )}
+          {hasPermission('system:notice:update') && (
+            <DropdownMenuItem onClick={() => onAction('edit', notice)}>
+              <Pen />
+              修改
+            </DropdownMenuItem>
+          )}
+        </DropdownMenuGroup>
+        {hasPermission('system:notice:delete') && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              <DropdownMenuItem variant="destructive" onClick={() => onAction('delete', notice)}>
+                <Trash2 />
+                删除
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+          </>
+        )}
+      </RowActionsMenu>
     </div>
   )
 }

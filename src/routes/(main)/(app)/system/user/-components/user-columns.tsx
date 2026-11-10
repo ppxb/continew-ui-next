@@ -1,20 +1,12 @@
 import type { ColumnDef } from '@tanstack/react-table'
-import { Eye, KeyRound, MoreHorizontal, Pen, ShieldCheck, Trash2 } from 'lucide-react'
+import { Eye, KeyRound, Pen, ShieldCheck, Trash2 } from 'lucide-react'
 
 import { FlagBadge } from '@/components/data-badge'
+import { RowActionsMenu } from '@/components/row-actions-menu'
 import { StatusCell } from '@/components/status-cell'
 import { TextCell } from '@/components/text-cell'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import type { UserResp } from '@/lib/api/user'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 import { getInitials } from '@/lib/utils'
@@ -61,42 +53,34 @@ function RowActions({ user, onAction }: { user: UserResp; onAction: (action: Use
 
   return (
     <div className="flex items-center">
-      <DropdownMenu>
-        <Tooltip>
-          <TooltipTrigger render={<DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />} />}>
-            <MoreHorizontal />
-          </TooltipTrigger>
-          <TooltipContent side="top">更多操作</TooltipContent>
-        </Tooltip>
-        <DropdownMenuContent align="end">
-          <DropdownMenuGroup>
-            <DropdownMenuItem onClick={() => onAction('detail', user)}>
-              <Eye />
-              用户详情
-            </DropdownMenuItem>
-            <DropdownMenuItem disabled={isLocked} onClick={() => onAction('edit', user)}>
-              <Pen />
-              修改用户
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-          <DropdownMenuSeparator />
-          <DropdownMenuGroup>
-            <DropdownMenuItem disabled={isLocked} onClick={() => onAction('resetPassword', user)}>
-              <KeyRound />
-              重置密码
-            </DropdownMenuItem>
-            <DropdownMenuItem disabled={isLocked} onClick={() => onAction('assignRoles', user)}>
-              <ShieldCheck />
-              分配角色
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem variant="destructive" disabled={isLocked} onClick={() => onAction('delete', user)}>
-            <Trash2 />
-            删除
+      <RowActionsMenu>
+        <DropdownMenuGroup>
+          <DropdownMenuItem onClick={() => onAction('detail', user)}>
+            <Eye />
+            用户详情
           </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+          <DropdownMenuItem disabled={isLocked} onClick={() => onAction('edit', user)}>
+            <Pen />
+            修改用户
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuItem disabled={isLocked} onClick={() => onAction('resetPassword', user)}>
+            <KeyRound />
+            重置密码
+          </DropdownMenuItem>
+          <DropdownMenuItem disabled={isLocked} onClick={() => onAction('assignRoles', user)}>
+            <ShieldCheck />
+            分配角色
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem variant="destructive" disabled={isLocked} onClick={() => onAction('delete', user)}>
+          <Trash2 />
+          删除
+        </DropdownMenuItem>
+      </RowActionsMenu>
     </div>
   )
 }

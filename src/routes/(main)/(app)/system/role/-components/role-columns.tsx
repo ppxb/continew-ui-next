@@ -1,18 +1,10 @@
 import type { ColumnDef } from '@tanstack/react-table'
 
-import { KeyRound, MoreHorizontal, PenLine, ShieldCheck, Trash2, Users } from 'lucide-react'
+import { KeyRound, PenLine, ShieldCheck, Trash2, Users } from 'lucide-react'
 
 import { FlagBadge, TypeBadge, type TypeTone } from '@/components/data-badge'
-import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { RowActionsMenu } from '@/components/row-actions-menu'
+import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import { DATA_SCOPE_MAP, type DataScope, type RoleResp } from '@/lib/api/role'
 import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 import type { DataTableFeatures } from '@/lib/data-table-features'
@@ -46,35 +38,27 @@ function RowActions({ role, onAction }: { role: RoleResp; onAction: (action: Rol
   const isSystem = Boolean(role.isSystem)
 
   return (
-    <DropdownMenu>
-      <Tooltip>
-        <TooltipTrigger render={<DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />} />}>
-          <MoreHorizontal />
-        </TooltipTrigger>
-        <TooltipContent side="top">更多操作</TooltipContent>
-      </Tooltip>
-      <DropdownMenuContent align="end" className="w-36">
-        <DropdownMenuGroup>
-          <DropdownMenuItem disabled={isSystem} onClick={() => onAction('edit', role)}>
-            <PenLine />
-            修改角色
-          </DropdownMenuItem>
-          <DropdownMenuItem disabled={isSystem} onClick={() => onAction('permission', role)}>
-            <KeyRound />
-            功能权限
-          </DropdownMenuItem>
-          <DropdownMenuItem disabled={isSystem} onClick={() => onAction('members', role)}>
-            <Users />
-            关联用户
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem variant="destructive" disabled={isSystem} onClick={() => onAction('delete', role)}>
-          <Trash2 />
-          删除
+    <RowActionsMenu>
+      <DropdownMenuGroup>
+        <DropdownMenuItem disabled={isSystem} onClick={() => onAction('edit', role)}>
+          <PenLine />
+          修改角色
         </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+        <DropdownMenuItem disabled={isSystem} onClick={() => onAction('permission', role)}>
+          <KeyRound />
+          功能权限
+        </DropdownMenuItem>
+        <DropdownMenuItem disabled={isSystem} onClick={() => onAction('members', role)}>
+          <Users />
+          关联用户
+        </DropdownMenuItem>
+      </DropdownMenuGroup>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem variant="destructive" disabled={isSystem} onClick={() => onAction('delete', role)}>
+        <Trash2 />
+        删除
+      </DropdownMenuItem>
+    </RowActionsMenu>
   )
 }
 

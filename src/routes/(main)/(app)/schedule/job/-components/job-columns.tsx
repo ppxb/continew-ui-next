@@ -1,17 +1,9 @@
 import { type ColumnDef } from '@tanstack/react-table'
-import { Eye, MoreHorizontal, Pen, Play, ScrollText, Trash2 } from 'lucide-react'
+import { Eye, Pen, Play, ScrollText, Trash2 } from 'lucide-react'
 
+import { RowActionsMenu } from '@/components/row-actions-menu'
 import { TextCell } from '@/components/text-cell'
-import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import type { JobResp, JobStatus } from '@/lib/api/job'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 
@@ -53,51 +45,43 @@ function RowActions({
 
   return (
     <div className="flex items-center justify-center">
-      <DropdownMenu>
-        <Tooltip>
-          <TooltipTrigger render={<DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" />} />}>
-            <MoreHorizontal />
-          </TooltipTrigger>
-          <TooltipContent side="top">更多操作</TooltipContent>
-        </Tooltip>
-        <DropdownMenuContent align="end">
-          {hasPrimary ? (
-            <DropdownMenuGroup>
-              {canGet ? (
-                <DropdownMenuItem onClick={() => onAction('detail', job)}>
-                  <Eye />
-                  详情
-                </DropdownMenuItem>
-              ) : null}
-              {canTrigger ? (
-                <DropdownMenuItem onClick={() => onAction('trigger', job)}>
-                  <Play />
-                  执行
-                </DropdownMenuItem>
-              ) : null}
-              {canUpdate ? (
-                <DropdownMenuItem onClick={() => onAction('edit', job)}>
-                  <Pen />
-                  修改
-                </DropdownMenuItem>
-              ) : null}
-              {canViewLogs ? (
-                <DropdownMenuItem onClick={() => onAction('logs', job)}>
-                  <ScrollText />
-                  查看日志
-                </DropdownMenuItem>
-              ) : null}
-            </DropdownMenuGroup>
-          ) : null}
-          {hasPrimary && canDelete ? <DropdownMenuSeparator /> : null}
-          {canDelete ? (
-            <DropdownMenuItem variant="destructive" onClick={() => onAction('delete', job)}>
-              <Trash2 />
-              删除
-            </DropdownMenuItem>
-          ) : null}
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <RowActionsMenu>
+        {hasPrimary ? (
+          <DropdownMenuGroup>
+            {canGet ? (
+              <DropdownMenuItem onClick={() => onAction('detail', job)}>
+                <Eye />
+                详情
+              </DropdownMenuItem>
+            ) : null}
+            {canTrigger ? (
+              <DropdownMenuItem onClick={() => onAction('trigger', job)}>
+                <Play />
+                执行
+              </DropdownMenuItem>
+            ) : null}
+            {canUpdate ? (
+              <DropdownMenuItem onClick={() => onAction('edit', job)}>
+                <Pen />
+                修改
+              </DropdownMenuItem>
+            ) : null}
+            {canViewLogs ? (
+              <DropdownMenuItem onClick={() => onAction('logs', job)}>
+                <ScrollText />
+                查看日志
+              </DropdownMenuItem>
+            ) : null}
+          </DropdownMenuGroup>
+        ) : null}
+        {hasPrimary && canDelete ? <DropdownMenuSeparator /> : null}
+        {canDelete ? (
+          <DropdownMenuItem variant="destructive" onClick={() => onAction('delete', job)}>
+            <Trash2 />
+            删除
+          </DropdownMenuItem>
+        ) : null}
+      </RowActionsMenu>
     </div>
   )
 }

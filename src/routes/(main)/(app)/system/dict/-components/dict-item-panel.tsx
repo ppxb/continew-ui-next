@@ -2,13 +2,13 @@ import * as React from 'react'
 
 import type { PaginationState } from '@tanstack/react-table'
 
-import { MoreHorizontal, Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2 } from 'lucide-react'
 
 import { DataTable } from '@/components/data-table'
+import { RowActionsMenu } from '@/components/row-actions-menu'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import { useListTable } from '@/hooks/use-list-table'
 import { dictKeys, listDictItems, type DictItemQuery, type DictItemResp, type DictResp } from '@/lib/api/dict'
 import type { PageResp } from '@/lib/api/types'
@@ -105,22 +105,12 @@ export function DictItemPanel({
           )}
 
           {canDeleteThisDict && (
-            <DropdownMenu>
-              <Tooltip>
-                <TooltipTrigger render={<DropdownMenuTrigger render={<Button variant="outline" size="icon" />} />}>
-                  <MoreHorizontal className="size-4" />
-                </TooltipTrigger>
-                <TooltipContent side="top" sideOffset={8}>
-                  更多操作
-                </TooltipContent>
-              </Tooltip>
-              <DropdownMenuContent align="end" className="w-36">
-                <DropdownMenuItem variant="destructive" onClick={() => onDeleteDict(dict)}>
-                  <Trash2 />
-                  删除字典
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <RowActionsMenu triggerVariant="outline" triggerSize="icon">
+              <DropdownMenuItem variant="destructive" onClick={() => onDeleteDict(dict)}>
+                <Trash2 />
+                删除字典
+              </DropdownMenuItem>
+            </RowActionsMenu>
           )}
         </div>
       </div>
