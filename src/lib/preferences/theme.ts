@@ -5,14 +5,14 @@ export type ResolvedThemeMode = 'light' | 'dark'
 
 export const THEME_COLOR_OPTIONS = [
   {
-    value: 'default',
-    label: '默认',
-    primary: { light: 'oklch(0.205 0 0)', dark: 'oklch(0.922 0 0)' }
-  },
-  {
     value: 'blue',
     label: '霁蓝',
     primary: { light: 'oklch(0.6231 0.188 259.8145)', dark: 'oklch(0.6231 0.188 259.8145)' }
+  },
+  {
+    value: 'default',
+    label: '墨染',
+    primary: { light: 'oklch(0.205 0 0)', dark: 'oklch(0.922 0 0)' }
   },
   {
     value: 'cyan',
