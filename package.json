@@ -14,7 +14,9 @@
     "lint:fix": "oxlint --fix",
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@animate-ui/react": "^2.4.1",
@@ -70,6 +72,7 @@
     "shadcn": "^4.23.0",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2",
-    "vite": "8.0.5"
+    "vite": "8.0.5",
+    "vitest": "^5.1.0"
   }
 }

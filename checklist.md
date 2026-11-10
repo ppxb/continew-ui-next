@@ -17,7 +17,7 @@
 
 ### P1
 
-- [ ] **【已核实】树级联勾选漏掉祖先节点**：`components/ui/tree.tsx:273-284`。`ancestorsMap` 中的顺序是从根到父（见 `:88`），向上补齐时先判断根节点，此时直接父节点还没加入 `nextChecked`，根节点因此被判为未全选。以 R→P→L 单链为例，勾选 L 后结果为 {L, P}，R 显示半选，提交的 menuIds/deptIds 会缺少上层节点。建议改为从父节点向根逆序遍历（`ancestors.toReversed()`）。
+- [x] **【已核实】树级联勾选漏掉祖先节点**：`components/ui/tree.tsx:273-284`。`ancestorsMap` 中的顺序是从根到父（见 `:88`），向上补齐时先判断根节点，此时直接父节点还没加入 `nextChecked`，根节点因此被判为未全选。以 R→P→L 单链为例，勾选 L 后结果为 {L, P}，R 显示半选，提交的 menuIds/deptIds 会缺少上层节点。建议改为从父节点向根逆序遍历（`ancestors.toReversed()`）。**2026-11-10 复核：已修复**，现按“最近父 → 根”逆序补齐，级联逻辑抽至 `lib/tree-check.ts`，回归用例见 `tests/tree-cascade.test.ts`。
 - [ ] **【已核实】站点配置缓存不会刷新**：`hooks/use-site-options.ts:16-24`、`lib/query-client.ts:18-22`、`(app)/system/config/-components/use-option-form.ts:70,92`。`initialData` 读自 localStorage，又没有设置 `initialDataUpdatedAt`，再叠加全局 `refetchOnMount:false`，只要本地有缓存就不会发请求。保存配置时也只失效了 `optionKeys.list`。结果是修改标题、Logo、版权后，侧栏和登录页一直显示旧值。建议给该查询加 `initialDataUpdatedAt: 0`（或改用 `placeholderData`），保存 SITE 分类时同时失效 `siteOptionKeys.all`。
 - [ ] **【已核实】菜单编辑读到旧缓存，保存会覆盖上次修改**：`(app)/system/menu/-components/menu-form-drawer.tsx:178-185,164`。详情用的是裸 `useQuery`，继承 5 分钟 staleTime 和 `refetchOnMount:false`；保存后只失效了 `menuKeys.trees()`。5 分钟内再次编辑同一菜单，表单回填的是修改前的数据。建议改用 `useDetailQuery`，并失效 `menuKeys.all`。
 - [ ] **【已核实】【待确认后端是否净化】公告 HTML 未净化即渲染**：`components/rich-text-editor.tsx:29-34`。`RichTextContent` 直接用 `dangerouslySetInnerHTML` 渲染后端内容，调用点为 `(app)/system/notice/-components/notice-view-drawer.tsx:58`。只要有人绕过编辑器直接调接口写入 `<img onerror>`，就构成存储型 XSS。建议用 DOMPurify 净化，或改用 `editable:false` 的 tiptap 渲染。
@@ -44,6 +44,7 @@
 - [ ] **用户/角色页没有前端权限控制**：`(app)/system/user/-components/user-list.tsx:174-185`、`user-columns.tsx:73-97`、`(app)/system/role/-components/role-list.tsx:110`、`role-columns.tsx:58-75`。dept/menu 页面用 `hasPermission` 控制按钮显隐，user/role 页面完全没有。建议统一使用 `Can`/`usePermission`。
 - [ ] **退出后重新登录不再提示密码过期**：`stores/auth/auth-provider.tsx:23,36-42`。`passwordExpiryNotified` 置 true 后从不复位，同一标签页换账号登录时不会提示。
 - [ ] **改了字典项，其他页面的字典选项不刷新**：`(app)/system/dict/-components/dict-item-form-drawer.tsx:86`、`dict-delete-dialog.tsx:42`。没有失效 `dictKeys.code(code)`。**【待确认】** 后端字典缓存的清除时机。
+- [ ] **【待确认】关闭“父子联动”后套餐仍补齐祖先菜单**：`(app)/tenant/package/-components/package-form-drawer.tsx:119-130`。`menuCheckStrictly=true` 时树只勾叶子，但提交前 `selectedMenuIds()` 仍补全所有祖先；级联修复后这段对非 strict 模式也是冗余。同一文件还为兜底单独 `buildTreeIndex` 了一次（`:113`），与 `CheckableTree` 内部重复。建议确认后端是否强制要求祖先 id，再决定删除或只在非 strict 时补。
 - [ ] **【待确认】回跳地址校验不严**：`(main)/auth/-components/login-form.tsx:77`、`(main)/social/callback/route.tsx:41`。只校验了 `startsWith('/')`，`//evil.com` 也能通过。`hooks/use-site-options.ts:11` 已经排除了 `//`。建议抽一个共用的 `isSafeRedirect`。
 - [ ] **【待确认】任意 403 都会整页跳转**：`lib/http.ts:293-295,358-360`。按钮操作、字典这类次要请求返回 403 也会跳到 `/unauthorized`，用户会丢失当前页面状态。
 - [ ] **【待确认】短信 Secret Key 明文提交**：`(app)/system/config/-components/sms/form-drawer.tsx:157`。存储配置会先 `encryptByRsa`，短信这里没有。同时 `undefined!` 绕过了类型检查。
@@ -276,7 +277,7 @@
 - [ ] **P3** 加载指示器不统一：`(main)/social/callback/route.tsx:46` 用 `Loader2Icon size-6`，AuthPending 用 `Spinner size-5`，captcha 也用裸 Loader。
 - [ ] **P3** 焦点环不统一：`(app)/system/file/-components/file-manager.tsx:373,397` 用 `ring-2`，项目统一的是 `ring-3 ring-ring/50`；`components/rich-text-editor.tsx:149` 编辑器没有 focus-within 焦点环。
 - [ ] **P3** 同一份数据在列表和详情中渲染方式不同：`(app)/system/config/-components/client/detail-drawer.tsx:52,83-85` 用 `Badge outline`，`client/columns.tsx:157-160,211` 用 `TypeBadge`/`FlagBadge`。
-- [ ] **P3** TreeSelect 与 CheckableTree 的展开/收起按钮文案（"全部展开" / "展开全部"）、图标尺寸（size-3 / size-3.5）、aria-label 不一致：`components/ui/tree-select.tsx:789-805`、`components/checkable-tree.tsx:148-193`。
+- [x] **P3** TreeSelect 与 CheckableTree 的展开/收起按钮文案（"全部展开" / "展开全部"）、图标尺寸（size-3 / size-3.5）、aria-label 不一致：`components/ui/tree-select.tsx:789-805`、`components/checkable-tree.tsx:148-193`。**2026-11-10 已统一**：抽 `TreeExpandActions`，图标统一 `size-3`，文案统一“展开全部 / 折叠全部”，两个调用方均带 aria-label；展开状态抽到 `hooks/use-tree-expansion.ts`。
 - [ ] **P3** 同类列表页工具栏的响应式写法不同：`(app)/tenant/management/-components/tenant-list.tsx:157,167` 与 `(app)/schedule/job/-components/job-list.tsx:235,244`；tenant 的序号列和状态列没有居中（`tenant-columns.tsx:126,148`）。
 - [ ] **P3** `(app)/dashboard/index.tsx:50-55`：Geo 卡片没有 `h-full`，同一行左右两张卡片底部不齐。
 - [ ] **P3** `(app)/system/config/-components/config-panel-header.tsx:52-54`：card 变体的标题和描述排版与其他 tab 不同。
