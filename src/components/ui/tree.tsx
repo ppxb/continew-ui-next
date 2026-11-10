@@ -356,7 +356,8 @@ export function Tree<T = Record<string, unknown>>({
   // Roving tabindex: only one item is in the Tab order, and the arrow keys move between items.
   const [focusedKey, setFocusedKey] = React.useState<TreeKey | null>(null)
   const itemRefs = React.useRef(new Map<TreeKey, HTMLDivElement>())
-  const focusableKeys = visibleNodes.filter(({ node }) => !node.disabled).map(({ node }) => node.id)
+  // Disabled items stay reachable (they announce `aria-disabled`); `handleSelect` already ignores them.
+  const focusableKeys = visibleNodes.map(({ node }) => node.id)
   const tabStopKey = [focusedKey, selectedKey].find(k => k != null && focusableKeys.includes(k)) ?? focusableKeys[0]
 
   const moveFocus = (from: TreeKey, step: 1 | -1) => {
@@ -469,15 +470,14 @@ export function Tree<T = Record<string, unknown>>({
             )}
 
             {checkable && (
-              // The treeitem carries `aria-checked` and the focus, so the checkbox is mouse-only.
+              // Display only: the treeitem owns focus, clicks and `aria-checked`.
               <Checkbox
                 checked={isChecked}
                 indeterminate={isIndeterminate}
                 disabled={node.disabled}
-                onCheckedChange={() => handleToggleCheck(node.id)}
-                onClick={e => e.stopPropagation()}
                 tabIndex={-1}
                 aria-hidden
+                className="pointer-events-none"
               />
             )}
 

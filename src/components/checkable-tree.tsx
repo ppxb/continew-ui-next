@@ -50,12 +50,12 @@ export function CheckableTree<T = Record<string, unknown>>({
   const hasInitializedExpanded = React.useRef(false)
 
   const index = React.useMemo(() => buildTreeIndex(data), [data])
-  // Tree keys are strings; callers may still hold numeric ids from older records.
+  // The props stay `string | number` for the callers' form types; Tree keys are strings.
   const checkedKeyStrings = React.useMemo(() => checkedKeys.map(String), [checkedKeys])
 
   /** Disabled nodes are locked, so the batch actions below leave them untouched. */
   const enabledKeys = React.useMemo(
-    () => index.allKeys.filter(key => !index.nodeMap.get(key)?.disabled).map(key => String(key)),
+    () => index.allKeys.filter(key => !index.nodeMap.get(key)?.disabled),
     [index]
   )
 
@@ -72,8 +72,8 @@ export function CheckableTree<T = Record<string, unknown>>({
       return
     }
 
-    const validKeys = new Set(index.allKeys.map(String))
-    setExpandedKeys(prev => prev.filter(key => validKeys.has(String(key))))
+    const validKeys = new Set(index.allKeys)
+    setExpandedKeys(prev => prev.filter(key => validKeys.has(key)))
   }, [index])
 
   const handleExpandAll = () => {
@@ -85,7 +85,7 @@ export function CheckableTree<T = Record<string, unknown>>({
   }
 
   const handleSelectAll = () => {
-    const next = new Set(checkedKeys.map(String))
+    const next = new Set(checkedKeyStrings)
     for (const key of enabledKeys) {
       next.add(key)
     }
@@ -93,7 +93,7 @@ export function CheckableTree<T = Record<string, unknown>>({
   }
 
   const handleClearAll = () => {
-    const next = new Set(checkedKeys.map(String))
+    const next = new Set(checkedKeyStrings)
     for (const key of enabledKeys) {
       next.delete(key)
     }
@@ -203,7 +203,6 @@ export function CheckableTree<T = Record<string, unknown>>({
       <div
         className={cn(
           'overflow-auto overscroll-contain rounded-md border bg-background/50 p-1.5 select-none',
-          '[&_[data-slot=checkbox]]:after:hidden',
           treeContainerClassName || (fillHeight ? 'min-h-0 flex-1' : 'max-h-72 min-h-36')
         )}
       >
