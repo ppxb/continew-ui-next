@@ -36,8 +36,8 @@ export const THEME_COLOR_OPTIONS = [
   },
   {
     value: 'rose',
-    label: '玫红',
-    primary: { light: 'oklch(0.586 0.253 17.585)', dark: 'oklch(0.712 0.194 13.428)' }
+    label: '朱砂',
+    primary: { light: 'oklch(0.5778 0.2282 26.5713)', dark: 'oklch(0.5778 0.2282 26.5713)' }
   },
   {
     value: 'fuchsia',
