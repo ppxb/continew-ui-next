@@ -16,8 +16,8 @@ export const THEME_COLOR_OPTIONS = [
   },
   {
     value: 'cyan',
-    label: '青色',
-    primary: { light: 'oklch(0.609 0.126 221.723)', dark: 'oklch(0.789 0.154 211.530)' }
+    label: '天青',
+    primary: { light: 'oklch(0.5624 0.0947 203.2755)', dark: 'oklch(0.8520 0.1269 195.0354)' }
   },
   {
     value: 'teal',
