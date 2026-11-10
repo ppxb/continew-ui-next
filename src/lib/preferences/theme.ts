@@ -31,8 +31,8 @@ export const THEME_COLOR_OPTIONS = [
   },
   {
     value: 'orange',
-    label: '橙色',
-    primary: { light: 'oklch(0.646 0.222 41.116)', dark: 'oklch(0.750 0.183 55.934)' }
+    label: '丹霞',
+    primary: { light: 'oklch(0.7357 0.1641 34.7091)', dark: 'oklch(0.7357 0.1641 34.7091)' }
   },
   {
     value: 'rose',
