@@ -46,8 +46,8 @@ export const THEME_COLOR_OPTIONS = [
   },
   {
     value: 'violet',
-    label: '紫罗兰',
-    primary: { light: 'oklch(0.541 0.281 293.009)', dark: 'oklch(0.702 0.183 293.541)' }
+    label: '暮紫',
+    primary: { light: 'oklch(0.6056 0.2189 292.7172)', dark: 'oklch(0.6056 0.2189 292.7172)' }
   },
   {
     value: 'slate',
