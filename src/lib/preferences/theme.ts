@@ -41,8 +41,8 @@ export const THEME_COLOR_OPTIONS = [
   },
   {
     value: 'fuchsia',
-    label: '品红',
-    primary: { light: 'oklch(0.591 0.293 322.896)', dark: 'oklch(0.740 0.238 322.160)' }
+    label: '霓虹',
+    primary: { light: 'oklch(0.6726 0.2904 341.4084)', dark: 'oklch(0.6726 0.2904 341.4084)' }
   },
   {
     value: 'violet',
