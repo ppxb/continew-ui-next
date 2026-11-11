@@ -5,6 +5,7 @@ import { type PaginationState } from '@tanstack/react-table'
 
 import { UserPlus, X } from 'lucide-react'
 
+import { DeptTreeSelect } from '@/components/dept-tree-select'
 import { EntityDrawer } from '@/components/entity-drawer'
 import { PaginationArrow } from '@/components/pagination-arrow'
 import { QueryState } from '@/components/query-state'
@@ -24,7 +25,6 @@ import { assignRoleToUsers, listRoleUserIds, roleKeys, type RoleResp } from '@/l
 import { listUsers, userKeys, type UserResp } from '@/lib/api/user'
 import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 import { getInitials } from '@/lib/utils'
-import { DeptTreeSelect } from '@/routes/(main)/(app)/system/user/-components/dept-tree-select'
 
 const PAGE_SIZE = 20
 const DEFAULT_SORT = 't1.id,desc'

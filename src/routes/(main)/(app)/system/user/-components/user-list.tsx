@@ -5,6 +5,7 @@ import { type ColumnVisibilityState, type PaginationState } from '@tanstack/reac
 import { Download, Plus, Upload } from 'lucide-react'
 
 import { DataTable } from '@/components/data-table'
+import { DeptTreeSelect } from '@/components/dept-tree-select'
 import { FilterSelect } from '@/components/filter-select'
 import { ListPageCard } from '@/components/list-page-card'
 import { TableFillArea } from '@/components/table-fill-area'
@@ -20,7 +21,6 @@ import { usePermission } from '@/hooks/use-permission'
 import { exportUsers, listUsers, userKeys, type UserResp, type UserStatus } from '@/lib/api/user'
 import type { PageResp } from '@/lib/api/types'
 
-import { DeptTreeSelect } from './dept-tree-select'
 import { UserAssignRolesDialog } from './user-assign-roles-dialog'
 import { createUserColumns, type UserAction } from './user-columns'
 import { UserDeleteDialog } from './user-delete-dialog'

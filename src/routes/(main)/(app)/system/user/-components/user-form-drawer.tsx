@@ -6,6 +6,7 @@ import { z } from 'zod'
 
 import { Pen, User2 } from 'lucide-react'
 
+import { DeptTreeSelect } from '@/components/dept-tree-select'
 import { EntityDrawer } from '@/components/entity-drawer'
 import { PasswordInput } from '@/components/password-input'
 import { QueryState } from '@/components/query-state'
@@ -35,7 +36,6 @@ import {
 import { encryptByRsa } from '@/lib/crypto'
 import { PASSWORD_HINT, PASSWORD_PATTERN } from '@/lib/password'
 
-import { DeptTreeSelect } from './dept-tree-select'
 import { genderLabel } from './user-display'
 import { useUserDetail } from './use-user-detail'
 import { UserRoleSelect } from './user-role-select'

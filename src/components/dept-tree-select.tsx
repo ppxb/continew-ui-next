@@ -9,26 +9,34 @@ const EMPTY_NODES: DeptResp[] = []
 
 export interface DeptTreeSelectProps {
   readonly value?: string | number | null
-  readonly onChange?: (nextValue: string) => void
+  readonly onChange: (nextValue: string) => void
   readonly disabled?: boolean
   readonly invalid?: boolean
   readonly placeholder?: string
-  /** Gates the fallback query when external `data` is not available yet. */
+  /**
+   * Gates the fallback query.
+   *
+   * Callers that fetch the tree themselves and pass it as `data` should pass their open flag:
+   * the query then waits until `data` appears instead of racing the caller.
+   */
   readonly enabled?: boolean
   readonly className?: string
-  readonly showPathInTrigger?: boolean
-  /** Optional pre-fetched department tree data */
+  /** Pre-fetched department tree, for forms that already load it. */
   readonly data?: DeptResp[]
-  /** Optional loading state if data is fetched externally */
+  /** Loading state of `data`, when the caller fetches it. */
   readonly loading?: boolean
-  readonly size?: 'default' | 'sm'
   readonly triggerPrefix?: React.ReactNode
   readonly showAllOption?: boolean
   readonly allOptionLabel?: string
   readonly placeholderColor?: 'muted' | 'foreground'
 }
 
-/** Department tree select backed by the shared dept query; accepts pre-fetched data for forms. */
+/**
+ * Department picker over the shared dept tree query.
+ *
+ * Without `data` it fetches the tree itself, which suits list filters; forms pass their own
+ * `data` so the picker never issues a second request.
+ */
 export function DeptTreeSelect({
   value,
   onChange,
@@ -37,10 +45,8 @@ export function DeptTreeSelect({
   placeholder = '请选择所属部门',
   enabled = true,
   className,
-  showPathInTrigger = false,
   data: externalData,
   loading: externalLoading,
-  size = 'default',
   triggerPrefix,
   showAllOption = false,
   allOptionLabel = '全部',
@@ -58,14 +64,12 @@ export function DeptTreeSelect({
   const isLoading = externalLoading ?? (shouldQuery && depts.isPending)
   const isError = shouldQuery && depts.isError
 
-  const treeData = React.useMemo(() => {
-    return toDeptNodeData(rawNodes)
-  }, [rawNodes])
+  const treeData = React.useMemo(() => toDeptNodeData(rawNodes), [rawNodes])
 
   const selectedValue = value !== undefined && value !== null && value !== '' ? String(value) : null
 
   const handleChange = (nextKey: string | number | null) => {
-    onChange?.(nextKey ? String(nextKey) : '')
+    onChange(nextKey ? String(nextKey) : '')
   }
 
   return (
@@ -79,9 +83,7 @@ export function DeptTreeSelect({
       placeholder={isLoading ? '部门加载中' : isError ? '部门加载失败' : placeholder}
       searchPlaceholder="搜索部门"
       emptyText="未找到相关部门"
-      showPathInTrigger={showPathInTrigger}
       className={className}
-      size={size}
       triggerPrefix={triggerPrefix}
       showAllOption={showAllOption}
       allOptionLabel={allOptionLabel}
