@@ -54,9 +54,10 @@ interface UserAssignRolesFormProps {
   readonly userId: string | number
   readonly initialRoleIds: string[]
   readonly onClose: () => void
+  readonly onSubmittingChange: (isSubmitting: boolean) => void
 }
 
-function UserAssignRolesForm({ userId, initialRoleIds, onClose }: UserAssignRolesFormProps) {
+function UserAssignRolesForm({ userId, initialRoleIds, onClose, onSubmittingChange }: UserAssignRolesFormProps) {
   const queryClient = useQueryClient()
 
   const roles = useQuery({
@@ -91,6 +92,11 @@ function UserAssignRolesForm({ userId, initialRoleIds, onClose }: UserAssignRole
   })
 
   const isSubmitting = useSelector(form.store, state => state.isSubmitting)
+
+  // The dialog shell owns the close guard, so it needs this flag while the form is mounted.
+  React.useEffect(() => {
+    onSubmittingChange(isSubmitting)
+  }, [isSubmitting, onSubmittingChange])
 
   const submit = async () => {
     await form.validate('submit')
@@ -153,9 +159,18 @@ interface UserAssignRolesDialogProps {
 
 /** Replaces one user's roles; the current set is fetched when the dialog opens. */
 export function UserAssignRolesDialog({ user, open, onClose }: UserAssignRolesDialogProps) {
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
   const userId = user?.id ?? null
   const shownUser = useLastRecord(user)
   const shownLabel = userLabel(shownUser)
+
+  // The form lives inside the dialog body and dies with it; clear the flag on open so a value left
+  // over from the previous run cannot block the next close.
+  React.useEffect(() => {
+    if (open) {
+      setIsSubmitting(false)
+    }
+  }, [open])
 
   // Shares its key with the detail and edit drawers, so all three read one cached record; the hook
   // refetches it on open, so the picker never seeds from a stale list row.
@@ -167,7 +182,8 @@ export function UserAssignRolesDialog({ user, open, onClose }: UserAssignRolesDi
     <Dialog
       open={open}
       onOpenChange={nextOpen => {
-        if (!nextOpen) {
+        // Closing mid-save would leave the request in flight with no way to report it.
+        if (!nextOpen && !isSubmitting) {
           onClose()
         }
       }}
@@ -198,6 +214,7 @@ export function UserAssignRolesDialog({ user, open, onClose }: UserAssignRolesDi
             userId={detail.data.id}
             initialRoleIds={(detail.data.roleIds ?? []).map(String)}
             onClose={onClose}
+            onSubmittingChange={setIsSubmitting}
           />
         )}
       </DialogContent>

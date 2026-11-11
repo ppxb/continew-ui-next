@@ -48,12 +48,57 @@ interface UserResetPasswordDialogProps {
 }
 
 export function UserResetPasswordDialog({ user, open, onClose }: UserResetPasswordDialogProps) {
-  const queryClient = useQueryClient()
-  const formRef = React.useRef<HTMLFormElement>(null)
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
 
   // Keep the last user during the close animation, matching the delete dialog.
   const shownUser = useLastRecord(user)
   const shownLabel = userLabel(shownUser)
+
+  // The form lives inside the dialog body and dies with it; clear the flag on open so a value left
+  // over from the previous run cannot block the next close.
+  React.useEffect(() => {
+    if (open) {
+      setIsSubmitting(false)
+    }
+  }, [open])
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={nextOpen => {
+        // Closing mid-save would leave the request in flight with no way to report it.
+        if (!nextOpen && !isSubmitting) {
+          onClose()
+        }
+      }}
+    >
+      <DialogContent>
+        <DialogHeader>
+          <div className="flex items-center gap-2">
+            <KeyRound className="size-4" />
+            <DialogTitle>重置密码</DialogTitle>
+          </div>
+          <DialogDescription>
+            {shownUser ? `为用户「${shownLabel}」设置新的登录密码` : '为该用户设置新的登录密码'}
+          </DialogDescription>
+        </DialogHeader>
+
+        <ResetPasswordForm user={user} onClose={onClose} onSubmittingChange={setIsSubmitting} />
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+interface ResetPasswordFormProps {
+  readonly user: UserResp | null
+  readonly onClose: () => void
+  readonly onSubmittingChange: (isSubmitting: boolean) => void
+}
+
+/** Mounted with the dialog body, so every opening starts from `EMPTY_FORM`. */
+function ResetPasswordForm({ user, onClose, onSubmittingChange }: ResetPasswordFormProps) {
+  const queryClient = useQueryClient()
+  const formRef = React.useRef<HTMLFormElement>(null)
 
   const form = useForm({
     defaultValues: EMPTY_FORM,
@@ -90,13 +135,10 @@ export function UserResetPasswordDialog({ user, open, onClose }: UserResetPasswo
 
   const isSubmitting = useSelector(form.store, state => state.isSubmitting)
 
-  // This component stays mounted while the dialog is closed, so every opening starts clean
-  // rather than showing whatever was typed the last time.
+  // The dialog shell owns the close guard, so it needs this flag while the body is mounted.
   React.useEffect(() => {
-    if (open) {
-      form.reset({ ...EMPTY_FORM }, { keepDefaultValues: true })
-    }
-  }, [open, form])
+    onSubmittingChange(isSubmitting)
+  }, [isSubmitting, onSubmittingChange])
 
   const submit = async () => {
     await form.validate('submit')
@@ -109,105 +151,83 @@ export function UserResetPasswordDialog({ user, open, onClose }: UserResetPasswo
   }
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={nextOpen => {
-        // Closing mid-save would leave the request in flight with no way to report it.
-        if (!nextOpen && !isSubmitting) {
-          onClose()
-        }
+    <form
+      ref={formRef}
+      noValidate
+      className="flex flex-col gap-4"
+      onSubmit={event => {
+        event.preventDefault()
+        void submit()
       }}
     >
-      <DialogContent>
-        <DialogHeader>
-          <div className="flex items-center gap-2">
-            <KeyRound className="size-4" />
-            <DialogTitle>重置密码</DialogTitle>
-          </div>
-          <DialogDescription>
-            {shownUser ? `为用户「${shownLabel}」设置新的登录密码` : '为该用户设置新的登录密码'}
-          </DialogDescription>
-        </DialogHeader>
+      <FieldGroup>
+        <form.Field name="newPassword">
+          {field => {
+            const invalid = field.state.meta.errors.length > 0
 
-        <form
-          ref={formRef}
-          noValidate
-          className="flex flex-col gap-4"
-          onSubmit={event => {
-            event.preventDefault()
-            void submit()
+            return (
+              <Field data-invalid={invalid}>
+                <FieldLabel htmlFor="user-password-new">新密码</FieldLabel>
+                <PasswordInput
+                  id="user-password-new"
+                  name="newPassword"
+                  value={field.state.value}
+                  onChange={event => field.handleChange(event.target.value)}
+                  onBlur={field.handleBlur}
+                  maxLength={32}
+                  autoComplete="new-password"
+                  placeholder="请输入新密码"
+                  disabled={isSubmitting}
+                  aria-invalid={invalid}
+                />
+                <FieldDescription>{PASSWORD_HINT}</FieldDescription>
+                <FieldError errors={field.state.meta.errors} />
+              </Field>
+            )
           }}
-        >
-          <FieldGroup>
-            <form.Field name="newPassword">
-              {field => {
-                const invalid = field.state.meta.errors.length > 0
+        </form.Field>
 
-                return (
-                  <Field data-invalid={invalid}>
-                    <FieldLabel htmlFor="user-password-new">新密码</FieldLabel>
-                    <PasswordInput
-                      id="user-password-new"
-                      name="newPassword"
-                      value={field.state.value}
-                      onChange={event => field.handleChange(event.target.value)}
-                      onBlur={field.handleBlur}
-                      maxLength={32}
-                      autoComplete="new-password"
-                      placeholder="请输入新密码"
-                      disabled={isSubmitting}
-                      aria-invalid={invalid}
-                    />
-                    <FieldDescription>{PASSWORD_HINT}</FieldDescription>
-                    <FieldError errors={field.state.meta.errors} />
-                  </Field>
-                )
-              }}
-            </form.Field>
+        <form.Field name="confirmPassword">
+          {field => {
+            const invalid = field.state.meta.errors.length > 0
 
-            <form.Field name="confirmPassword">
-              {field => {
-                const invalid = field.state.meta.errors.length > 0
+            return (
+              <Field data-invalid={invalid}>
+                <FieldLabel htmlFor="user-password-confirm">确认密码</FieldLabel>
+                <PasswordInput
+                  id="user-password-confirm"
+                  name="confirmPassword"
+                  value={field.state.value}
+                  onChange={event => field.handleChange(event.target.value)}
+                  onBlur={field.handleBlur}
+                  maxLength={32}
+                  autoComplete="new-password"
+                  placeholder="请再次输入新密码"
+                  disabled={isSubmitting}
+                  aria-invalid={invalid}
+                />
+                <FieldError errors={field.state.meta.errors} />
+              </Field>
+            )
+          }}
+        </form.Field>
+      </FieldGroup>
 
-                return (
-                  <Field data-invalid={invalid}>
-                    <FieldLabel htmlFor="user-password-confirm">确认密码</FieldLabel>
-                    <PasswordInput
-                      id="user-password-confirm"
-                      name="confirmPassword"
-                      value={field.state.value}
-                      onChange={event => field.handleChange(event.target.value)}
-                      onBlur={field.handleBlur}
-                      maxLength={32}
-                      autoComplete="new-password"
-                      placeholder="请再次输入新密码"
-                      disabled={isSubmitting}
-                      aria-invalid={invalid}
-                    />
-                    <FieldError errors={field.state.meta.errors} />
-                  </Field>
-                )
-              }}
-            </form.Field>
-          </FieldGroup>
-
-          <DialogFooter>
-            <Button type="button" variant="outline" disabled={isSubmitting} onClick={onClose}>
-              取消
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <Spinner />
-                  保存中
-                </>
-              ) : (
-                '保存'
-              )}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+      <DialogFooter>
+        <Button type="button" variant="outline" disabled={isSubmitting} onClick={onClose}>
+          取消
+        </Button>
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? (
+            <>
+              <Spinner />
+              保存中
+            </>
+          ) : (
+            '保存'
+          )}
+        </Button>
+      </DialogFooter>
+    </form>
   )
 }
