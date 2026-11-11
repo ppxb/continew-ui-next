@@ -61,7 +61,7 @@ export function TableSearch({
   }
 
   return (
-    <InputGroup className={cn('h-7 w-full md:w-64', className)}>
+    <InputGroup className={cn('h-8 w-full md:w-64', className)}>
       <InputGroupAddon align="inline-start">
         <Search className="size-3.5" />
       </InputGroupAddon>

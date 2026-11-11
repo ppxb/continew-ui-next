@@ -140,11 +140,7 @@ export function UserList() {
 
   const filters = (
     <>
-      <TableSearch
-        className="col-span-2 h-8 w-full sm:w-64"
-        placeholder="搜索用户名、昵称、描述"
-        onSearch={handleSearch}
-      />
+      <TableSearch className="col-span-2 sm:w-64" placeholder="搜索用户名、昵称、描述" onSearch={handleSearch} />
       <DeptTreeSelect
         triggerPrefix="部门"
         placeholder="全部部门"
@@ -153,14 +149,14 @@ export function UserList() {
         allOptionLabel="全部部门"
         value={deptId}
         onChange={handleDeptChange}
-        className="w-full sm:w-44"
+        className="sm:w-44"
       />
       <FilterSelect
         label="状态"
         options={STATUS_OPTIONS}
         value={status === undefined ? 'all' : String(status)}
         onValueChange={handleStatusChange}
-        className="w-full sm:w-32"
+        className="sm:w-32"
       />
     </>
   )

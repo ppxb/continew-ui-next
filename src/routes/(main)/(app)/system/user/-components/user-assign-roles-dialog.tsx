@@ -37,7 +37,7 @@ function UserAssignRolesSkeleton({ onClose }: { onClose: () => void }) {
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-1.5">
         <Skeleton className="h-4 w-12" />
-        <Skeleton className="h-9 w-full" />
+        <Skeleton className="h-8 w-full" />
       </div>
 
       <DialogFooter>

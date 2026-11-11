@@ -40,11 +40,13 @@ function NicknameCell({ user }: { user: UserResp }) {
 
   return (
     <div className="flex items-center gap-2">
-      <Avatar className="size-8">
+      <Avatar>
         <AvatarImage src={user.avatar ?? undefined} />
         <AvatarFallback>{getInitials(name)}</AvatarFallback>
       </Avatar>
-      <span className="truncate">{name}</span>
+      <span className="max-w-56 min-w-0 truncate" title={name}>
+        {name}
+      </span>
     </div>
   )
 }

@@ -14,7 +14,7 @@ import { useUserDetail } from './use-user-detail'
 
 function UserDetailSkeleton() {
   return (
-    <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+    <DetailGrid>
       <div className="flex flex-col gap-1 sm:col-span-2">
         <Skeleton className="h-3.5 w-10" />
         <Skeleton className="h-5 w-48" />
@@ -49,7 +49,7 @@ function UserDetailSkeleton() {
       </div>
       <div className="flex flex-col gap-1">
         <Skeleton className="h-3.5 w-10" />
-        <Skeleton className="h-5 w-20 rounded-md" />
+        <Skeleton className="h-5 w-20" />
       </div>
       <div className="flex flex-col gap-1 sm:col-span-2">
         <Skeleton className="h-3.5 w-10" />
@@ -71,7 +71,7 @@ function UserDetailSkeleton() {
         <Skeleton className="h-3.5 w-16" />
         <Skeleton className="h-5 w-36" />
       </div>
-    </div>
+    </DetailGrid>
   )
 }
 

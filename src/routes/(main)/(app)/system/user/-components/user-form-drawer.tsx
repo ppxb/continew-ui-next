@@ -155,7 +155,7 @@ function UserFormSkeleton({ onClose }: { onClose: () => void }) {
         </div>
       </div>
 
-      <DrawerFooter className="flex-row justify-end gap-2 border-t p-4">
+      <DrawerFooter>
         <Button type="button" variant="outline" onClick={onClose}>
           取消
         </Button>
@@ -524,7 +524,7 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
             </FieldGroup>
           </div>
 
-          <DrawerFooter className="flex-row justify-end gap-2 border-t p-4">
+          <DrawerFooter className="flex-row justify-end">
             <form.Subscribe selector={state => state.isSubmitting}>
               {isSubmitting => (
                 <>
