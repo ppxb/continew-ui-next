@@ -171,17 +171,19 @@ export function UserList() {
       onResetColumns={resetColumns}
       actions={
         <>
-          <Button className="w-full sm:w-auto" onClick={() => setFormTarget({ userId: null })}>
+          <Button onClick={() => setFormTarget({ userId: null })}>
             <Plus />
             新增用户
           </Button>
-          <Button variant="outline" onClick={() => toast.add({ title: '导入数据功能开发中', type: 'info' })}>
+          <Button
+            size="icon"
+            variant="outline"
+            onClick={() => toast.add({ title: '导入数据功能开发中', type: 'info' })}
+          >
             <Upload />
-            导入数据
           </Button>
-          <Button variant="outline" disabled={isExporting} onClick={() => void exportData(queryFilters)}>
+          <Button size="icon" variant="outline" disabled={isExporting} onClick={() => void exportData(queryFilters)}>
             {isExporting ? <Spinner /> : <Download />}
-            导出
           </Button>
         </>
       }

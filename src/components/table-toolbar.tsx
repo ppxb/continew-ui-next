@@ -49,15 +49,13 @@ export function TableToolbar<TRow extends RowData>({
     <div className={cn('flex flex-wrap items-center gap-2', className)}>
       {actions}
 
-      <Button variant="outline" disabled={isRefreshing} onClick={onRefresh}>
+      <Button variant="outline" size="icon" disabled={isRefreshing} onClick={onRefresh}>
         {isRefreshing ? <Spinner /> : <RefreshCw />}
-        刷新
       </Button>
 
       <DropdownMenu>
-        <DropdownMenuTrigger render={<Button variant="outline" />}>
+        <DropdownMenuTrigger render={<Button variant="outline" size="icon" />}>
           <SlidersHorizontal />
-          隐藏列
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="min-w-44">
           <DropdownMenuGroup>
@@ -88,9 +86,8 @@ export function TableToolbar<TRow extends RowData>({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <Button variant="outline" onClick={onToggleFullscreen}>
+      <Button variant="outline" onClick={onToggleFullscreen} size="icon">
         {isFullscreen ? <Minimize /> : <Maximize />}
-        表格全屏
       </Button>
     </div>
   )
