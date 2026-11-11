@@ -1,13 +1,19 @@
-import { useId } from 'react'
+import * as React from 'react'
 
 import { useQuery } from '@tanstack/react-query'
-import { ChevronDown } from 'lucide-react'
 
 import { QueryState } from '@/components/query-state'
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Label } from '@/components/ui/label'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import {
+  Combobox,
+  ComboboxChip,
+  ComboboxChips,
+  ComboboxChipsInput,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxItem,
+  ComboboxList,
+  useComboboxAnchor
+} from '@/components/ui/combobox'
 import { Spinner } from '@/components/ui/spinner'
 import { listRoleDict, roleKeys } from '@/lib/api/role'
 
@@ -16,12 +22,22 @@ interface UserRoleSelectProps {
   readonly onChange: (nextValue: string[]) => void
   readonly disabled?: boolean
   readonly invalid?: boolean
-  /** Controlled open flag to enable lazy querying when dialog or drawer opens. */
+  /** Gates the query until the drawer or dialog hosting the picker is open. */
   readonly enabled?: boolean
 }
 
+interface RoleOption {
+  value: string | number
+  label: string
+}
+
+const EMPTY_OPTIONS: RoleOption[] = []
+
 /**
- * Reusable role multi-select popover used by both the user form drawer and the assign-roles dialog.
+ * Role multi-select over the shared role dictionary.
+ *
+ * Selected roles render as removable chips and typing filters the list, so a long role list
+ * stays searchable without leaving the field.
  */
 export function UserRoleSelect({
   value,
@@ -30,7 +46,7 @@ export function UserRoleSelect({
   invalid = false,
   enabled = true
 }: UserRoleSelectProps) {
-  const idPrefix = useId()
+  const anchor = useComboboxAnchor()
 
   const roles = useQuery({
     queryKey: roleKeys.dicts(),
@@ -38,68 +54,53 @@ export function UserRoleSelect({
     enabled
   })
 
-  const roleOptions = roles.data ?? []
+  const options = roles.data ?? EMPTY_OPTIONS
 
-  const selectedRoleNames = roleOptions.filter(role => value.includes(String(role.value))).map(role => role.label)
+  const selected = React.useMemo(
+    () => value.flatMap(id => options.find(option => String(option.value) === id) ?? []),
+    [value, options]
+  )
 
   return (
-    <Popover>
-      <PopoverTrigger
-        render={
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full justify-between font-normal"
-            aria-invalid={invalid}
-            disabled={disabled}
-          />
-        }
-      >
-        <span className={selectedRoleNames.length ? 'truncate' : 'truncate text-muted-foreground'}>
-          {roles.isPending
-            ? '加载中…'
-            : roles.isError
-              ? '角色加载失败'
-              : selectedRoleNames.length
-                ? selectedRoleNames.join('、')
-                : '请选择角色'}
-        </span>
-        <ChevronDown className="size-4 opacity-60" />
-      </PopoverTrigger>
+    <Combobox
+      multiple
+      items={options}
+      value={selected}
+      onValueChange={next => onChange(next.map(option => String(option.value)))}
+      itemToStringLabel={option => option.label}
+      disabled={disabled}
+    >
+      <ComboboxChips ref={anchor}>
+        {selected.map(option => (
+          <ComboboxChip key={String(option.value)}>{option.label}</ComboboxChip>
+        ))}
+        <ComboboxChipsInput
+          placeholder={selected.length === 0 ? '请选择角色' : ''}
+          disabled={disabled}
+          aria-invalid={invalid}
+        />
+      </ComboboxChips>
 
-      <PopoverContent align="start" className="max-h-60 w-64 gap-0 overflow-y-auto overscroll-contain p-1">
+      <ComboboxContent anchor={anchor}>
         {roles.isPending ? (
           <div className="flex items-center justify-center p-2">
             <Spinner />
           </div>
         ) : roles.isError ? (
           <QueryState state="error" title="角色加载失败" onRetry={() => void roles.refetch()} className="p-2" />
-        ) : roleOptions.length === 0 ? (
-          <p className="px-2 py-1.5 text-sm text-muted-foreground">暂无可选角色</p>
         ) : (
-          roleOptions.map(role => {
-            const roleVal = String(role.value)
-            const checked = value.includes(roleVal)
-            const optionId = `${idPrefix}-role-${roleVal}`
-
-            return (
-              <div key={roleVal} className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-accent">
-                <Checkbox
-                  id={optionId}
-                  checked={checked}
-                  disabled={disabled}
-                  onCheckedChange={next =>
-                    onChange(next ? [...value, roleVal] : value.filter(item => item !== roleVal))
-                  }
-                />
-                <Label htmlFor={optionId} className="flex-1 cursor-pointer text-sm font-normal">
-                  {role.label}
-                </Label>
-              </div>
-            )
-          })
+          <>
+            <ComboboxEmpty>暂无可选角色</ComboboxEmpty>
+            <ComboboxList>
+              {(option: RoleOption) => (
+                <ComboboxItem key={String(option.value)} value={option}>
+                  {option.label}
+                </ComboboxItem>
+              )}
+            </ComboboxList>
+          </>
         )}
-      </PopoverContent>
-    </Popover>
+      </ComboboxContent>
+    </Combobox>
   )
 }
