@@ -3,12 +3,22 @@ import { createFileRoute, Outlet } from '@tanstack/react-router'
 import { AppShell, loadAppShell } from '@/components/app-shell'
 import { PagePending } from '@/components/app-shell/page-pending'
 import { QueryState } from '@/components/query-state'
+import { ensureMenuLoaded } from '@/hooks/use-menu'
 import { requireAuth } from '@/lib/auth-guard'
+import { requireRouteAccess } from '@/lib/route-access'
 import { NotFound } from '@/routes/-components/not-found'
 import { useAuthStore } from '@/stores/auth/auth-provider'
 
 export const Route = createFileRoute('/(main)/(app)')({
-  beforeLoad: requireAuth,
+  beforeLoad: async ({ location, matches }) => {
+    requireAuth({ location })
+
+    // The menu decides which pages exist for this user, so it has to settle before the shell
+    // renders; a session that expired during that request must not slip through.
+    const routes = await ensureMenuLoaded()
+    requireAuth({ location })
+    requireRouteAccess(location.pathname, matches, routes)
+  },
   loader: loadAppShell,
   component: AppLayout,
   notFoundComponent: NotFound

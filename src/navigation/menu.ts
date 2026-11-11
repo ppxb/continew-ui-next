@@ -3,6 +3,7 @@ import type { LucideIcon } from 'lucide-react'
 import type { RouteResp } from '@/lib/api/types'
 
 import { resolveMenuIcon } from './menu-icons'
+import { STATIC_ROUTE_TITLES } from './route-titles'
 
 export interface MenuItem {
   id: string
@@ -131,4 +132,22 @@ export function findMenuTrail(nodes: readonly RouteResp[], pathname: string): Ro
 /** Finds the menu entry behind a pathname, so placeholders can show its title. */
 export function findMenuByPath(nodes: readonly RouteResp[], pathname: string) {
   return findMenuTrail(nodes, pathname).at(-1)
+}
+
+/** Normalizes a pathname for menu matching: no query string, no trailing slash. */
+function normalizePathname(pathname: string) {
+  const path = toPathname(pathname).replace(/\/+$/, '')
+  return path || '/'
+}
+
+/**
+ * Whether the current user may open `pathname`.
+ *
+ * App-owned static pages stay reachable for everyone; every other page has to be present in
+ * the menu the backend already filtered by permission. The check walks the raw nodes, so a
+ * menu hidden from the sidebar (but still routable) also counts as reachable.
+ */
+export function isPathAllowed(nodes: readonly RouteResp[], pathname: string) {
+  const path = normalizePathname(pathname)
+  return path in STATIC_ROUTE_TITLES || Boolean(findMenuByPath(nodes, path))
 }

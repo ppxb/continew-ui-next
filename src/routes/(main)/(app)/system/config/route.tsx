@@ -5,7 +5,7 @@ import { Globe, HardDrive, Lock, Mail, MessageSquare, ShieldCheck, Smartphone } 
 import { z } from 'zod'
 
 import { Tabs, TabsContent, TabsIndicator, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { hasPermission, usePermission } from '@/hooks/use-permission'
+import { usePermission } from '@/hooks/use-permission'
 
 import { ConfigClient } from './-components/client/config-client'
 import { ConfigLogin } from './-components/config-login'
@@ -87,12 +87,11 @@ const ALL_TABS: ConfigTabItem[] = [
 function SystemConfigPage() {
   const { tab: queryTab } = Route.useSearch()
   const navigate = useNavigate({ from: Route.fullPath })
-  const { permissions } = usePermission()
+  const { hasPermission } = usePermission()
 
-  // The bound `hasPermission` is a new closure each render, so the permission list is the dep.
   const visibleTabs = React.useMemo(
-    () => ALL_TABS.filter(tab => hasPermission(permissions, tab.permission)),
-    [permissions]
+    () => ALL_TABS.filter(tab => hasPermission(tab.permission)),
+    [hasPermission]
   )
 
   const activeTab = visibleTabs.some(tab => tab.key === queryTab) ? queryTab : visibleTabs[0]?.key

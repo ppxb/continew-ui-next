@@ -5,8 +5,6 @@ import { cn } from 'cn'
 
 import { Separator } from '@/components/ui/separator'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
-import { ensureMenuLoaded } from '@/hooks/use-menu'
-import { requireAuth } from '@/lib/auth-guard'
 import { getClientCookie } from '@/lib/cookie'
 import { parsePreference } from '@/lib/preferences/preferences-config'
 
@@ -36,21 +34,13 @@ export function readShellPreferences() {
 
 export type ShellPreferences = ReturnType<typeof readShellPreferences>
 
-type ShellLoaderContext = {
-  location: { href: string; pathname: string }
-}
-
 /**
  * Route loader for the shell layouts.
  *
- * Waits for the menu so the sidebar's first paint already holds every entry. The auth
- * guard runs before the request, so the session is re-checked afterwards: a session
- * that expired while the menu was loading must not render the shell.
+ * The menu and the access checks run in `beforeLoad`, so this only reads the sidebar
+ * preferences the first paint needs.
  */
-export async function loadAppShell({ location }: ShellLoaderContext): Promise<ShellPreferences> {
-  await ensureMenuLoaded()
-  requireAuth({ location })
-
+export function loadAppShell(): ShellPreferences {
   return readShellPreferences()
 }
 
