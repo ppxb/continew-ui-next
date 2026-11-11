@@ -307,7 +307,7 @@ export function RoleUserDrawer({ role, open, onClose }: RoleUserDrawerProps) {
           <TablePagination table={table} showTopBorder={false} />
         </div>
 
-        <DrawerFooter className="flex-row justify-end border-t p-4">
+        <DrawerFooter>
           <Button variant="outline" onClick={onClose}>
             关闭
           </Button>

@@ -330,7 +330,7 @@ export function PackageFormDrawer({ packageId, open, onClose }: PackageFormDrawe
             </FieldGroup>
           </div>
 
-          <DrawerFooter className="shrink-0 flex-row justify-end gap-2 border-t p-4">
+          <DrawerFooter>
             <Button type="button" variant="outline" disabled={form.state.isSubmitting} onClick={onClose}>
               取消
             </Button>

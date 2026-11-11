@@ -502,7 +502,7 @@ export function MenuFormDrawer({ menuId, defaultParentId, open, onClose, menuTre
             </FieldGroup>
           </div>
 
-          <DrawerFooter className="flex-row justify-end gap-2 border-t p-4">
+          <DrawerFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
               取消
             </Button>

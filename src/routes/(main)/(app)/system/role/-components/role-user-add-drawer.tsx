@@ -413,7 +413,7 @@ export function RoleUserAddDrawer({ role, open, onClose, onSuccess }: RoleUserAd
         </div>
       </div>
 
-      <DrawerFooter className="flex-row justify-end border-t p-4">
+      <DrawerFooter>
         <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
           取消
         </Button>

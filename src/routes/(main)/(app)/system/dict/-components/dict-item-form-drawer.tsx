@@ -290,7 +290,7 @@ export function DictItemFormDrawer({ item, dictId, open, onClose }: DictItemForm
           </FieldGroup>
         </div>
 
-        <DrawerFooter className="flex-row justify-end gap-2 border-t p-4">
+        <DrawerFooter>
           <form.Subscribe selector={state => state.isSubmitting}>
             {isSubmitting => (
               <>

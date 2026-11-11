@@ -114,7 +114,7 @@ function ClientFormSkeleton({ onClose }: { onClose: () => void }) {
         </div>
       </div>
 
-      <DrawerFooter className="flex-row justify-end gap-2 border-t p-4">
+      <DrawerFooter>
         <Button type="button" variant="outline" onClick={onClose}>
           取消
         </Button>
@@ -670,7 +670,7 @@ export function ClientFormDrawer({
             </FieldGroup>
           </div>
 
-          <DrawerFooter className="flex-row justify-end gap-2 border-t p-4">
+          <DrawerFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
               取消
             </Button>

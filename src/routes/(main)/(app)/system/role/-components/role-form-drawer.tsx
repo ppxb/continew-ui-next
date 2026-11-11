@@ -383,7 +383,7 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
             </FieldGroup>
           </div>
 
-          <DrawerFooter className="flex-row justify-end gap-2 border-t p-4">
+          <DrawerFooter>
             <Button type="button" variant="outline" disabled={isSubmitting} onClick={onClose}>
               取消
             </Button>

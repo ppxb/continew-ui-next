@@ -162,7 +162,7 @@ export function RolePermissionDrawer({ role, open, onClose }: RolePermissionDraw
             />
           </div>
 
-          <DrawerFooter className="shrink-0 flex-row justify-end gap-2 border-t p-4">
+          <DrawerFooter>
             <Button type="button" variant="outline" disabled={isSubmitting} onClick={onClose}>
               取消
             </Button>

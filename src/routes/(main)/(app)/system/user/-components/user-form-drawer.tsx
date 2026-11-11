@@ -524,7 +524,7 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
             </FieldGroup>
           </div>
 
-          <DrawerFooter className="flex-row justify-end">
+          <DrawerFooter>
             <form.Subscribe selector={state => state.isSubmitting}>
               {isSubmitting => (
                 <>

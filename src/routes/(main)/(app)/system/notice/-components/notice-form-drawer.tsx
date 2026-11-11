@@ -486,7 +486,7 @@ export function NoticeFormDrawer({ noticeId, open, onClose }: NoticeFormDrawerPr
             </FieldGroup>
           </div>
 
-          <DrawerFooter className="flex-row justify-end gap-2 border-t p-4">
+          <DrawerFooter>
             <form.Subscribe selector={state => state.isSubmitting}>
               {isSubmitting => (
                 <>
@@ -518,7 +518,7 @@ export function NoticeFormDrawer({ noticeId, open, onClose }: NoticeFormDrawerPr
       ) : detailQuery.isError ? (
         <div className="flex min-h-0 flex-1 flex-col">
           <QueryState state="error" className="p-6" onRetry={() => void detailQuery.refetch()} />
-          <DrawerFooter className="flex-row justify-end gap-2 border-t p-4">
+          <DrawerFooter>
             <Button type="button" variant="outline" onClick={onClose}>
               取消
             </Button>
@@ -557,7 +557,7 @@ function NoticeFormSkeleton({ onClose }: { onClose: () => void }) {
           ))}
         </div>
       </div>
-      <DrawerFooter className="flex-row justify-end gap-2 border-t p-4">
+      <DrawerFooter>
         <Button type="button" variant="outline" onClick={onClose}>
           取消
         </Button>
