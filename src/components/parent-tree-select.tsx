@@ -5,7 +5,6 @@ import { TreeSelect } from '@/components/ui/tree-select'
 import { collectSubtreeIds } from '@/lib/collect-subtree-ids'
 
 interface ParentTreeSelectProps<T extends { id: string | number; children?: T[] }> {
-  /** The tree the parent is picked from. */
   readonly data: T[]
   /** The record being edited; its own subtree is disabled so it cannot become its own parent. */
   readonly currentId?: string | number | null

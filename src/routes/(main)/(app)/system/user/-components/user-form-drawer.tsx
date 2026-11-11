@@ -78,7 +78,6 @@ type TextFieldName = 'nickname' | 'username' | 'phone' | 'email'
 /** Whether the schema rejects an empty value, which is what the marker tells the user. */
 const isRequired = (field: keyof FormValues) => !formSchema.shape[field].safeParse('').success
 
-/** Create-only password rule; edit mode carries an empty value but never renders the field. */
 const createPasswordRule = z.string().min(1, '密码不能为空').regex(PASSWORD_PATTERN, PASSWORD_HINT)
 
 const EMPTY_FORM: FormValues = {
@@ -210,7 +209,6 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
     [roles.data]
   )
 
-  /** The body both modes send; only a create adds a password to it. */
   const toUserReq = (values: FormValues): UserReq => ({
     nickname: values.nickname.trim(),
     username: values.username.trim(),

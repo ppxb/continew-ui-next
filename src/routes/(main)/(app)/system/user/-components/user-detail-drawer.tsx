@@ -90,7 +90,6 @@ interface UserDetailDrawerProps {
   readonly onClose: () => void
 }
 
-/** Read-only user detail panel. */
 export function UserDetailDrawer({ userId, open, onClose }: UserDetailDrawerProps) {
   // The read-only drawer can reuse the short detail cache; edit and role flows force a fresh read.
   const query = useUserDetail(userId, { enabled: open })
