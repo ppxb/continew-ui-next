@@ -282,7 +282,7 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
     label: string,
     input: { maxLength: number; placeholder: string; autoComplete?: string }
   ) => (
-    <form.Field name={name} validators={{ onDynamic: formSchema.shape[name] }}>
+    <form.Field name={name}>
       {field => {
         const invalid = field.state.meta.errors.length > 0
 
@@ -395,7 +395,7 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
                 autoComplete: 'off'
               })}
 
-              <form.Field name="gender" validators={{ onDynamic: formSchema.shape.gender }}>
+              <form.Field name="gender">
                 {field => {
                   const invalid = field.state.meta.errors.length > 0
 
@@ -426,7 +426,7 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
                 }}
               </form.Field>
 
-              <form.Field name="deptId" validators={{ onDynamic: formSchema.shape.deptId }}>
+              <form.Field name="deptId">
                 {field => {
                   const invalid = field.state.meta.errors.length > 0
 
@@ -456,7 +456,7 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
                 }}
               </form.Field>
 
-              <form.Field name="roleIds" validators={{ onDynamic: formSchema.shape.roleIds }}>
+              <form.Field name="roleIds">
                 {field => {
                   const invalid = field.state.meta.errors.length > 0
 
@@ -475,7 +475,7 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
                 }}
               </form.Field>
 
-              <form.Field name="description" validators={{ onDynamic: formSchema.shape.description }}>
+              <form.Field name="description">
                 {field => {
                   const invalid = field.state.meta.errors.length > 0
 
@@ -498,7 +498,7 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
                 }}
               </form.Field>
 
-              <form.Field name="status" validators={{ onDynamic: formSchema.shape.status }}>
+              <form.Field name="status">
                 {field => {
                   const invalid = field.state.meta.errors.length > 0
 

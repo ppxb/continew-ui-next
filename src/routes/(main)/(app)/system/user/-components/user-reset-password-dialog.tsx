@@ -139,7 +139,7 @@ export function UserResetPasswordDialog({ user, open, onClose }: UserResetPasswo
           }}
         >
           <FieldGroup>
-            <form.Field name="newPassword" validators={{ onDynamic: formSchema.shape.newPassword }}>
+            <form.Field name="newPassword">
               {field => {
                 const invalid = field.state.meta.errors.length > 0
 
@@ -165,7 +165,7 @@ export function UserResetPasswordDialog({ user, open, onClose }: UserResetPasswo
               }}
             </form.Field>
 
-            <form.Field name="confirmPassword" validators={{ onDynamic: formSchema.shape.confirmPassword }}>
+            <form.Field name="confirmPassword">
               {field => {
                 const invalid = field.state.meta.errors.length > 0
 

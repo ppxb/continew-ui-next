@@ -106,7 +106,7 @@ function UserAssignRolesForm({ userId, initialRoleIds, onClose }: UserAssignRole
         void submit()
       }}
     >
-      <form.Field name="roleIds" validators={{ onDynamic: formSchema.shape.roleIds }}>
+      <form.Field name="roleIds">
         {field => {
           const invalid = field.state.meta.errors.length > 0
 
