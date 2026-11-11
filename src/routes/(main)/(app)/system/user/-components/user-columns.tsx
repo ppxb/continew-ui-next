@@ -7,6 +7,7 @@ import { StatusCell } from '@/components/status-cell'
 import { TextCell } from '@/components/text-cell'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
+import { hasPermission } from '@/hooks/use-permission'
 import type { UserResp } from '@/lib/api/user'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 import { getInitials } from '@/lib/utils'
@@ -48,8 +49,19 @@ function NicknameCell({ user }: { user: UserResp }) {
   )
 }
 
-function RowActions({ user, onAction }: { user: UserResp; onAction: (action: UserAction, user: UserResp) => void }) {
+function RowActions({
+  user,
+  onAction,
+  permissions
+}: {
+  user: UserResp
+  onAction: (action: UserAction, user: UserResp) => void
+  /** The permission codes granted to the signed-in user, checked per row without subscribing. */
+  permissions: readonly string[]
+}) {
   const isLocked = Boolean(user.disabled)
+  const canResetPassword = hasPermission(permissions, 'system:user:resetPwd')
+  const canAssignRoles = hasPermission(permissions, 'system:user:updateRole')
 
   return (
     <div className="flex items-center">
@@ -59,36 +71,55 @@ function RowActions({ user, onAction }: { user: UserResp; onAction: (action: Use
             <Eye />
             用户详情
           </DropdownMenuItem>
-          <DropdownMenuItem disabled={isLocked} onClick={() => onAction('edit', user)}>
-            <Pen />
-            修改用户
-          </DropdownMenuItem>
+          {hasPermission(permissions, 'system:user:update') && (
+            <DropdownMenuItem disabled={isLocked} onClick={() => onAction('edit', user)}>
+              <Pen />
+              修改用户
+            </DropdownMenuItem>
+          )}
         </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuGroup>
-          <DropdownMenuItem disabled={isLocked} onClick={() => onAction('resetPassword', user)}>
-            <KeyRound />
-            重置密码
-          </DropdownMenuItem>
-          <DropdownMenuItem disabled={isLocked} onClick={() => onAction('assignRoles', user)}>
-            <ShieldCheck />
-            分配角色
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem variant="destructive" disabled={isLocked} onClick={() => onAction('delete', user)}>
-          <Trash2 />
-          删除
-        </DropdownMenuItem>
+        {(canResetPassword || canAssignRoles) && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              {canResetPassword && (
+                <DropdownMenuItem disabled={isLocked} onClick={() => onAction('resetPassword', user)}>
+                  <KeyRound />
+                  重置密码
+                </DropdownMenuItem>
+              )}
+              {canAssignRoles && (
+                <DropdownMenuItem disabled={isLocked} onClick={() => onAction('assignRoles', user)}>
+                  <ShieldCheck />
+                  分配角色
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuGroup>
+          </>
+        )}
+        {hasPermission(permissions, 'system:user:delete') && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem variant="destructive" disabled={isLocked} onClick={() => onAction('delete', user)}>
+              <Trash2 />
+              删除
+            </DropdownMenuItem>
+          </>
+        )}
       </RowActionsMenu>
     </div>
   )
 }
 
 /**
- * Builds the user table columns; `rowOffset` keeps the serial number continuous across pages.
+ * Builds the user table columns; `rowOffset` keeps the serial number continuous across pages,
+ * and `permissions` are the codes the rows are checked against.
  */
-export function createUserColumns(onAction: (action: UserAction, user: UserResp) => void, rowOffset: number) {
+export function createUserColumns(
+  onAction: (action: UserAction, user: UserResp) => void,
+  rowOffset: number,
+  permissions: readonly string[]
+) {
   const columns: ColumnDef<DataTableFeatures, UserResp>[] = [
     {
       id: 'index',
@@ -138,7 +169,7 @@ export function createUserColumns(onAction: (action: UserAction, user: UserResp)
       id: 'actions',
       header: '操作',
       enableHiding: false,
-      cell: ({ row }) => <RowActions user={row.original} onAction={onAction} />
+      cell: ({ row }) => <RowActions user={row.original} onAction={onAction} permissions={permissions} />
     }
   ]
 

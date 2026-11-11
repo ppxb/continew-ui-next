@@ -16,6 +16,7 @@ import { toast } from '@/components/ui/toast'
 import { useExport } from '@/hooks/use-export'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
 import { useListTable } from '@/hooks/use-list-table'
+import { usePermission } from '@/hooks/use-permission'
 import { exportUsers, listUsers, userKeys, type UserResp, type UserStatus } from '@/lib/api/user'
 import type { PageResp } from '@/lib/api/types'
 
@@ -56,6 +57,10 @@ export function UserList() {
   const [deletingUser, setDeletingUser] = React.useState<UserResp | null>(null)
   const fullscreen = useFullscreenTransition()
   const { isExporting, exportData } = useExport(exportUsers)
+
+  // One store subscription for the page; every row only receives the granted codes and
+  // compares against them, so a list of N users never becomes N subscriptions.
+  const { permissions, hasPermission } = usePermission()
 
   const handleRowAction = React.useCallback((action: UserAction, user: UserResp) => {
     if (action === 'detail') {
@@ -99,8 +104,8 @@ export function UserList() {
   )
 
   const buildColumns = React.useCallback(
-    (rowOffset: number) => createUserColumns(handleRowAction, rowOffset),
-    [handleRowAction]
+    (rowOffset: number) => createUserColumns(handleRowAction, rowOffset, permissions),
+    [handleRowAction, permissions]
   )
 
   const { query, table, resetPage, resetColumns } = useListTable<UserResp, PageResp<UserResp>>({
@@ -171,20 +176,26 @@ export function UserList() {
       onResetColumns={resetColumns}
       actions={
         <>
-          <Button onClick={() => setFormTarget({ userId: null })}>
-            <Plus />
-            新增用户
-          </Button>
-          <Button
-            size="icon"
-            variant="outline"
-            onClick={() => toast.add({ title: '导入数据功能开发中', type: 'info' })}
-          >
-            <Upload />
-          </Button>
-          <Button size="icon" variant="outline" disabled={isExporting} onClick={() => void exportData(queryFilters)}>
-            {isExporting ? <Spinner /> : <Download />}
-          </Button>
+          {hasPermission('system:user:create') && (
+            <Button onClick={() => setFormTarget({ userId: null })}>
+              <Plus />
+              新增用户
+            </Button>
+          )}
+          {hasPermission('system:user:import') && (
+            <Button
+              size="icon"
+              variant="outline"
+              onClick={() => toast.add({ title: '导入数据功能开发中', type: 'info' })}
+            >
+              <Upload />
+            </Button>
+          )}
+          {hasPermission('system:user:export') && (
+            <Button size="icon" variant="outline" disabled={isExporting} onClick={() => void exportData(queryFilters)}>
+              {isExporting ? <Spinner /> : <Download />}
+            </Button>
+          )}
         </>
       }
     />
