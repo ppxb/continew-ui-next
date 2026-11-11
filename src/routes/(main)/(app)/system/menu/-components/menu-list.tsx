@@ -192,9 +192,8 @@ export function MenuList() {
             </Button>
           )}
 
-          <Button variant="outline" onClick={handleToggleExpandAll}>
+          <Button variant="outline" onClick={handleToggleExpandAll} size="icon">
             {isAllExpanded ? <ChevronsDownUp /> : <ChevronsUpDown />}
-            {isAllExpanded ? '折叠全部' : '展开全部'}
           </Button>
         </>
       }

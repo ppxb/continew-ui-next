@@ -181,15 +181,18 @@ export function DeptList() {
           )}
 
           {hasExportPermission && (
-            <Button variant="outline" disabled={exportMutation.isPending} onClick={() => exportMutation.mutate()}>
+            <Button
+              variant="outline"
+              size="icon"
+              disabled={exportMutation.isPending}
+              onClick={() => exportMutation.mutate()}
+            >
               {exportMutation.isPending ? <Spinner /> : <Download />}
-              导出
             </Button>
           )}
 
-          <Button variant="outline" onClick={handleToggleExpandAll}>
+          <Button variant="outline" size="icon" onClick={handleToggleExpandAll}>
             {isAllExpanded ? <ChevronsDownUp /> : <ChevronsUpDown />}
-            {isAllExpanded ? '折叠全部' : '展开全部'}
           </Button>
         </>
       }

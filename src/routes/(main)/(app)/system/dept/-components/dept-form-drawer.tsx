@@ -7,6 +7,7 @@ import { z } from 'zod'
 import { Building2 } from 'lucide-react'
 
 import { EntityDrawer } from '@/components/entity-drawer'
+import { ParentTreeSelect } from '@/components/parent-tree-select'
 import { QueryState } from '@/components/query-state'
 import { RequiredMark } from '@/components/required-mark'
 import { Button } from '@/components/ui/button'
@@ -20,8 +21,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/components/ui/toast'
 import { useFillFormOnce } from '@/hooks/use-fill-form-once'
 import { createDept, deptKeys, getDept, type DeptReq, type DeptResp, updateDept } from '@/lib/api/dept'
-
-import { DeptParentSelect } from './dept-parent-select'
+import { toDeptNodeData } from '@/lib/dept-tree'
 
 const formSchema = z.object({
   parentId: z
@@ -182,13 +182,17 @@ export function DeptFormDrawer({ deptId, defaultParentId, open, deptTree, onClos
                           上级部门
                           <RequiredMark />
                         </FieldLabel>
-                        <DeptParentSelect
+                        <ParentTreeSelect
                           value={field.state.value}
                           onChange={next => field.handleChange(next ?? '')}
-                          deptTree={deptTree}
-                          currentDeptId={deptId}
+                          data={deptTree}
+                          currentId={deptId}
+                          toNodeData={toDeptNodeData}
                           disabled={isSubmitting}
                           invalid={invalid}
+                          placeholder="选择上级部门"
+                          searchPlaceholder="搜索上级部门"
+                          emptyText="未找到相关部门"
                         />
                         <FieldError errors={field.state.meta.errors} />
                       </Field>

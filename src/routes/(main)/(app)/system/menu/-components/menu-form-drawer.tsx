@@ -7,6 +7,7 @@ import { z } from 'zod'
 import { FileText, Folder, MousePointerClick } from 'lucide-react'
 
 import { EntityDrawer } from '@/components/entity-drawer'
+import { ParentTreeSelect } from '@/components/parent-tree-select'
 import { QueryState } from '@/components/query-state'
 import { RequiredMark } from '@/components/required-mark'
 import { Button } from '@/components/ui/button'
@@ -23,7 +24,7 @@ import { useFillFormOnce } from '@/hooks/use-fill-form-once'
 import { createMenu, getMenu, menuKeys, type MenuReq, type MenuResp, updateMenu } from '@/lib/api/menu'
 import { cn } from 'cn'
 
-import { MenuParentSelect } from './menu-parent-select'
+import { toMenuNodeData } from './menu-tree'
 
 const IconPicker = React.lazy(() => import('./icon-picker').then(mod => ({ default: mod.IconPicker })))
 
@@ -350,13 +351,18 @@ export function MenuFormDrawer({ menuId, defaultParentId, open, onClose, menuTre
                   return (
                     <Field data-invalid={invalid}>
                       <FieldLabel>上级菜单</FieldLabel>
-                      <MenuParentSelect
+                      <ParentTreeSelect
                         value={field.state.value}
                         onChange={field.handleChange}
-                        menuTree={menuTree}
-                        currentMenuId={menuId}
+                        data={menuTree}
+                        currentId={menuId}
+                        toNodeData={toMenuNodeData}
                         disabled={isSubmitting}
                         invalid={invalid}
+                        placeholder="选择上级菜单（默认根目录）"
+                        searchPlaceholder="搜索上级菜单"
+                        emptyText="未找到相关菜单"
+                        allOptionLabel="根目录"
                       />
                       <FieldError errors={field.state.meta.errors} />
                     </Field>
