@@ -28,6 +28,12 @@ export type AuthState = {
   user: UserInfoResp | null
   permissions: string[]
   roles: string[]
+  /**
+   * True until the profile of a restored session has been fetched, successfully or not.
+   *
+   * It starts true whenever a token survived a reload, because `user` and `permissions`
+   * are empty at that point and callers must not read them as "no permissions".
+   */
   isLoadingUser: boolean
   login: (params: LoginParams) => Promise<void>
   socialLogin: (params: SocialLoginParams) => Promise<void>
@@ -74,7 +80,9 @@ export const createAuthStore = () => {
       user: null,
       permissions: [],
       roles: [],
-      isLoadingUser: false,
+      // A restored token means the profile is still unknown, so a fresh page load must
+      // wait for `loadUser` before painting anything that depends on permissions.
+      isLoadingUser: getAccessToken() !== null,
 
       login: async ({ username, password, captcha, uuid, persist }) => {
         const response = await loginRequest({
