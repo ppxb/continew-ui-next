@@ -54,11 +54,11 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+$/
 
 const GENDER_ITEMS = ([0, 1, 2] as const).map(value => ({ value: String(value), label: genderLabel(value) }))
 
-const formSchema = z.object({
+const baseSchema = z.object({
   nickname: z.string().regex(NAME_PATTERN, '昵称长度为 2-30 个字符，支持中文、字母、数字、下划线、短横线'),
   username: z.string().regex(USERNAME_PATTERN, '用户名长度为 4-64 个字符，支持大小写字母、数字、下划线，且以字母开头'),
-  // Edits carry an empty value; the create-only rule below rejects an empty password.
-  password: z.string().refine(value => value === '' || PASSWORD_PATTERN.test(value), PASSWORD_HINT),
+  // Filled only when creating; `createSchema` adds the non-empty rule.
+  password: z.string(),
   phone: z.string().refine(value => value === '' || PHONE_PATTERN.test(value), '手机号格式不正确'),
   email: z
     .string()
@@ -71,14 +71,17 @@ const formSchema = z.object({
   status: z.number().int().min(1).max(2)
 })
 
-type FormValues = z.infer<typeof formSchema>
+/** Creating a user requires a password; editing never sends one, so the field stays optional. */
+const createSchema = baseSchema.extend({
+  password: z.string().min(1, '密码不能为空').regex(PASSWORD_PATTERN, PASSWORD_HINT)
+})
+
+type FormValues = z.infer<typeof baseSchema>
 
 type TextFieldName = 'nickname' | 'username' | 'phone' | 'email'
 
 /** Whether the schema rejects an empty value, which is what the marker tells the user. */
-const isRequired = (field: keyof FormValues) => !formSchema.shape[field].safeParse('').success
-
-const createPasswordRule = z.string().min(1, '密码不能为空').regex(PASSWORD_PATTERN, PASSWORD_HINT)
+const isRequired = (field: keyof FormValues) => !baseSchema.shape[field].safeParse('').success
 
 const EMPTY_FORM: FormValues = {
   nickname: '',
@@ -184,6 +187,9 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
   const formRef = React.useRef<HTMLFormElement>(null)
   const isCreate = userId === null
 
+  // A new schema object on every render would re-register the validators, so it is tied to the mode.
+  const validationSchema = React.useMemo(() => (isCreate ? createSchema : baseSchema), [isCreate])
+
   // Shares its key with the detail drawer, so opening either one warms the other. Fetching on open
   // matters more here than there: the form submits every field, so a stale base would overwrite
   // whatever another admin saved in the meantime.
@@ -233,7 +239,7 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
   const form = useForm({
     defaultValues: EMPTY_FORM,
     validationLogic: revalidateLogic(),
-    validators: { onDynamic: formSchema },
+    validators: { onDynamic: validationSchema },
     onSubmit: async ({ value }) => {
       if (userId === null) {
         let password: string
@@ -351,7 +357,7 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
               })}
 
               {isCreate ? (
-                <form.Field name="password" validators={{ onDynamic: createPasswordRule }}>
+                <form.Field name="password">
                   {field => {
                     const invalid = field.state.meta.errors.length > 0
 
