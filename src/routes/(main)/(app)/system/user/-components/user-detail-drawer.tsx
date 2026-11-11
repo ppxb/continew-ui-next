@@ -109,7 +109,7 @@ export function UserDetailDrawer({ userId, open, onClose }: UserDetailDrawerProp
         ) : (
           <DetailGrid>
             <DetailField label="ID" className="sm:col-span-2">
-              <CopyableText value={String(detail.id)} label="复制 ID" className="break-all" />
+              <CopyableText value={String(detail.id)} label="复制 ID" />
             </DetailField>
             <DetailField label="用户名">{detail.username}</DetailField>
             <DetailField label="昵称">{detail.nickname}</DetailField>
@@ -121,7 +121,7 @@ export function UserDetailDrawer({ userId, open, onClose }: UserDetailDrawerProp
             <TextDetail label="邮箱" value={detail.email} />
             <TextDetail label="所属部门" value={detail.deptName} />
             <DetailField label="角色">
-              <RoleCell roleNames={detail.roleNames ?? []} />
+              <RoleCell roleNames={detail.roleNames} />
             </DetailField>
             <TextDetail label="描述" value={detail.description} className="sm:col-span-2" />
             <TextDetail label="创建人" value={detail.createUserString} />

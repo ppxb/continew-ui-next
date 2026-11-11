@@ -12,8 +12,8 @@ interface DetailFieldProps {
 export function DetailField({ label, className, children }: DetailFieldProps) {
   return (
     <div className={cn('flex flex-col gap-1', className)}>
-      <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className="text-sm wrap-break-word text-foreground">{children}</dd>
+      <dt className="text-muted-foreground">{label}</dt>
+      <dd className="wrap-break-word">{children}</dd>
     </div>
   )
 }

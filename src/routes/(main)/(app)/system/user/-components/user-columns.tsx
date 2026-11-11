@@ -39,9 +39,9 @@ function NicknameCell({ user }: { user: UserResp }) {
   const name = user.nickname || user.username
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-2">
       <Avatar className="size-8">
-        <AvatarImage src={user.avatar ?? undefined} alt="" />
+        <AvatarImage src={user.avatar ?? undefined} />
         <AvatarFallback>{getInitials(name)}</AvatarFallback>
       </Avatar>
       <span className="truncate">{name}</span>
@@ -64,50 +64,48 @@ function RowActions({
   const canAssignRoles = hasPermission(permissions, 'system:user:updateRole')
 
   return (
-    <div className="flex items-center">
-      <RowActionsMenu>
-        <DropdownMenuGroup>
-          <DropdownMenuItem onClick={() => onAction('detail', user)}>
-            <Eye />
-            用户详情
+    <RowActionsMenu>
+      <DropdownMenuGroup>
+        <DropdownMenuItem onClick={() => onAction('detail', user)}>
+          <Eye />
+          用户详情
+        </DropdownMenuItem>
+        {hasPermission(permissions, 'system:user:update') && (
+          <DropdownMenuItem disabled={isLocked} onClick={() => onAction('edit', user)}>
+            <Pen />
+            修改用户
           </DropdownMenuItem>
-          {hasPermission(permissions, 'system:user:update') && (
-            <DropdownMenuItem disabled={isLocked} onClick={() => onAction('edit', user)}>
-              <Pen />
-              修改用户
-            </DropdownMenuItem>
-          )}
-        </DropdownMenuGroup>
-        {(canResetPassword || canAssignRoles) && (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              {canResetPassword && (
-                <DropdownMenuItem disabled={isLocked} onClick={() => onAction('resetPassword', user)}>
-                  <KeyRound />
-                  重置密码
-                </DropdownMenuItem>
-              )}
-              {canAssignRoles && (
-                <DropdownMenuItem disabled={isLocked} onClick={() => onAction('assignRoles', user)}>
-                  <ShieldCheck />
-                  分配角色
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuGroup>
-          </>
         )}
-        {hasPermission(permissions, 'system:user:delete') && (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive" disabled={isLocked} onClick={() => onAction('delete', user)}>
-              <Trash2 />
-              删除
-            </DropdownMenuItem>
-          </>
-        )}
-      </RowActionsMenu>
-    </div>
+      </DropdownMenuGroup>
+      {(canResetPassword || canAssignRoles) && (
+        <>
+          <DropdownMenuSeparator />
+          <DropdownMenuGroup>
+            {canResetPassword && (
+              <DropdownMenuItem disabled={isLocked} onClick={() => onAction('resetPassword', user)}>
+                <KeyRound />
+                重置密码
+              </DropdownMenuItem>
+            )}
+            {canAssignRoles && (
+              <DropdownMenuItem disabled={isLocked} onClick={() => onAction('assignRoles', user)}>
+                <ShieldCheck />
+                分配角色
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuGroup>
+        </>
+      )}
+      {hasPermission(permissions, 'system:user:delete') && (
+        <>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem variant="destructive" disabled={isLocked} onClick={() => onAction('delete', user)}>
+            <Trash2 />
+            删除
+          </DropdownMenuItem>
+        </>
+      )}
+    </RowActionsMenu>
   )
 }
 
@@ -151,7 +149,7 @@ export function createUserColumns(
     {
       accessorKey: 'roleNames',
       header: '角色',
-      cell: ({ row }) => <RoleCell roleNames={row.original.roleNames ?? []} max={1} />
+      cell: ({ row }) => <RoleCell roleNames={row.original.roleNames} max={1} />
     },
     textColumn('phone', '手机号'),
     textColumn('email', '邮箱'),

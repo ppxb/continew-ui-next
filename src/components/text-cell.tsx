@@ -15,12 +15,8 @@ interface TextCellProps {
 /** A compact table cell: empty values become the shared placeholder, full value stays on title. */
 export function TextCell({ value, className, maxWidth = 'max-w-56', truncate = true }: TextCellProps) {
   if (value === null || value === undefined || value === '') {
-    return <span className="text-sm text-muted-foreground">{EMPTY_PLACEHOLDER}</span>
+    return <span>{EMPTY_PLACEHOLDER}</span>
   }
 
-  return (
-    <span className={cn('block text-sm', truncate && 'truncate', maxWidth, className)} title={String(value)}>
-      {value}
-    </span>
-  )
+  return <span className={cn(truncate && 'truncate', maxWidth, className)}>{value}</span>
 }
