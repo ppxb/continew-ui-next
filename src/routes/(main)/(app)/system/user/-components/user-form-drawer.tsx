@@ -22,8 +22,7 @@ import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/components/ui/toast'
 import { useFillFormOnce } from '@/hooks/use-fill-form-once'
-import { deptKeys, flattenDepts, getDeptTree } from '@/lib/api/dept'
-import { listRoleDict, roleKeys } from '@/lib/api/role'
+import { deptKeys, getDeptTree } from '@/lib/api/dept'
 import {
   createUser,
   updateUser,
@@ -201,26 +200,12 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
     enabled: open
   })
 
-  const roles = useQuery({
-    queryKey: roleKeys.dicts(),
-    queryFn: ({ signal }) => listRoleDict(signal),
-    enabled: open
-  })
-
-  const deptOptions = React.useMemo(() => flattenDepts(depts.data ?? []), [depts.data])
-  // The pickers speak in strings; these maps give the original id back for the request body.
-  const deptIdByValue = React.useMemo(() => new Map(deptOptions.map(dept => [String(dept.id), dept.id])), [deptOptions])
-  const roleIdByValue = React.useMemo(
-    () => new Map((roles.data ?? []).map(role => [String(role.value), role.value])),
-    [roles.data]
-  )
-
   const toUserReq = (values: FormValues): UserReq => ({
     nickname: values.nickname.trim(),
     username: values.username.trim(),
     gender: values.gender as UserGender,
-    deptId: deptIdByValue.get(values.deptId) ?? values.deptId,
-    roleIds: values.roleIds.map(value => roleIdByValue.get(value) ?? value),
+    deptId: values.deptId,
+    roleIds: values.roleIds,
     status: values.status as UserStatus,
     // Trim empty strings to undefined so they are omitted from JSON, preventing unique
     // index constraint violations on MySQL (which allows multiple NULLs but only one '').

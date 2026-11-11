@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 import { revalidateLogic, useForm, useSelector } from '@tanstack/react-form'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 import { z } from 'zod'
 
 import { ShieldCheck } from 'lucide-react'
@@ -21,7 +21,6 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
 import { useLastRecord } from '@/hooks/use-last-record'
-import { listRoleDict, roleKeys } from '@/lib/api/role'
 import { assignUserRoles, userKeys, type UserResp } from '@/lib/api/user'
 
 import { userLabel } from './user-display'
@@ -60,26 +59,13 @@ interface UserAssignRolesFormProps {
 function UserAssignRolesForm({ userId, initialRoleIds, onClose, onSubmittingChange }: UserAssignRolesFormProps) {
   const queryClient = useQueryClient()
 
-  const roles = useQuery({
-    queryKey: roleKeys.dicts(),
-    queryFn: ({ signal }) => listRoleDict(signal)
-  })
-
-  // The picker speaks in strings; this map gives the original id back for the request body.
-  const roleIdByValue = React.useMemo(
-    () => new Map((roles.data ?? []).map(role => [String(role.value), role.value])),
-    [roles.data]
-  )
-
   const form = useForm({
     defaultValues: { roleIds: initialRoleIds },
     validationLogic: revalidateLogic(),
     validators: { onDynamic: formSchema },
     onSubmit: async ({ value }) => {
       try {
-        await assignUserRoles(userId, {
-          roleIds: value.roleIds.map(selected => roleIdByValue.get(selected) ?? selected)
-        })
+        await assignUserRoles(userId, { roleIds: value.roleIds })
       } catch {
         // The HTTP layer already reported the failure.
         return
