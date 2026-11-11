@@ -6,6 +6,7 @@
 - 路径约定：`(app)/` 表示 `src/routes/(main)/(app)/`，其余路径相对 `src/`。
 - 标记：
   - **【已核实】**：已逐行复核代码。
+  - **【有意为之】**：经确认属产品设计意图，不按问题处理。
   - **【待确认】**：结论依赖后端行为或运行时验证。
   - 未标记：审计时读过代码并给出行号，但未做第二轮复核。
 - 严重度：**P1** 缺陷、安全问题或明显性能问题；**P2** 明显的维护性或一致性问题；**P3** 小优化。
@@ -22,7 +23,6 @@
 - [ ] **【已核实】菜单编辑读到旧缓存，保存会覆盖上次修改**：`(app)/system/menu/-components/menu-form-drawer.tsx:178-185,164`。详情用的是裸 `useQuery`，继承 5 分钟 staleTime 和 `refetchOnMount:false`；保存后只失效了 `menuKeys.trees()`。5 分钟内再次编辑同一菜单，表单回填的是修改前的数据。建议改用 `useDetailQuery`，并失效 `menuKeys.all`。
 - [ ] **【已核实】【待确认后端是否净化】公告 HTML 未净化即渲染**：`components/rich-text-editor.tsx:29-34`。`RichTextContent` 直接用 `dangerouslySetInnerHTML` 渲染后端内容，调用点为 `(app)/system/notice/-components/notice-view-drawer.tsx:58`。只要有人绕过编辑器直接调接口写入 `<img onerror>`，就构成存储型 XSS。建议用 DOMPurify 净化，或改用 `editable:false` 的 tiptap 渲染。
 - [ ] **【已核实】个人资料页把 mock 数据当作用户数据展示**：`(app)/dashboard/profile/-components/profile-record.ts:70-97`、`profile-data.ts:61-133`。`user` 为 null 时整份返回 mock；字段为空时回退为他人的头像、邮箱、电话和英文简介。文档 tab 是假数据，按钮也没有 onClick；状态固定显示"启用"。建议字段缺失时显示 `EMPTY_PLACEHOLDER`，删除没有数据来源的字段和 tab。
-- [ ] **【已核实】生产包内置登录默认凭据**：`(main)/auth/-components/login-form.tsx:29-35`。`DEFAULT_FORM` 预填了演示账号和密码，没有按环境隔离。建议仅在 `import.meta.env.DEV` 下预填，生产环境默认值置空。
 
 ### P2
 
@@ -66,6 +66,10 @@
 - [ ] **【待确认】下载受 30s 超时限制**：`lib/http.ts:69,274-282`。超时还会被报成"网络连接失败"。
 - [ ] **【待确认】清空字段可能不生效**：`(app)/open/app/-components/app-form-drawer.tsx:106-107`。清空描述时发送的是 `undefined`，取决于后端的更新策略。
 - [ ] **【待确认】最后登录时间可能取错**：`(app)/dashboard/profile/-components/profile-status-sidebar.tsx:25-42`。如果 `createUserString` 是模糊匹配，可能命中其他用户的记录。
+
+### 经确认属设计意图（不按问题处理）
+
+- [x] **【有意为之】** 生产包内置登录默认凭据：`(main)/auth/-components/login-form.tsx:29-35`。`DEFAULT_FORM` 预填演示账号和密码，是让生产包开箱即可进入演示环境的有意设计，不需要按环境隔离，也不再列入处理顺序。**2026-11-11 确认：保持现状。**
 
 ---
 
@@ -348,7 +352,7 @@
 
 ## 建议的处理顺序
 
-1. 第一节 P1：树级联、站点配置缓存、菜单详情缓存、公告 HTML 净化、个人资料 mock 数据、生产默认凭据。
+1. 第一节 P1：树级联、站点配置缓存、菜单详情缓存、公告 HTML 净化、个人资料 mock 数据。
 2. 第一节 P2 中用户能直接看到的问题：数字框回填、重新加载无效、提交中可取消、重复提示、发布时间显示错误、弹窗宽度。
 3. 删除第二节的死代码和无用依赖（fullcalendar、flags.css、json-viewer 主题表），减小包体积。
 4. 修正几个默认值：TableSearch、PasswordInput 的高度，`globals.css` 的全局字号规则，Field/DrawerFooter 的间距。改完后可以删掉调用方大量的覆盖 class。
