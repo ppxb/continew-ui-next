@@ -16,7 +16,7 @@ import { SearchDialog } from './header/search-dialog'
 import { ThemeSwitcher } from './header/theme-switcher'
 import { UserMenu } from './header/user-menu'
 import { AppSidebar } from './sidebar/app-sidebar'
-import { AppBreadcrumb, useBreadcrumbTrail } from './app-breadcrumb'
+import { BreadcrumbView, useBreadcrumbTrail } from './app-breadcrumb'
 
 export { AppBreadcrumb, useBreadcrumbTrail } from './app-breadcrumb'
 
@@ -128,11 +128,12 @@ function PageFrame({ children }: { children: ReactNode }) {
  * itself takes no router state and does not re-render on navigation.
  */
 function ShellContent({ children }: { children: ReactNode }) {
-  const hasBreadcrumb = useBreadcrumbTrail().length > 0
+  const breadcrumbItems = useBreadcrumbTrail()
+  const hasBreadcrumb = breadcrumbItems.length > 0
 
   return (
     <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden">
-      <AppBreadcrumb />
+      <BreadcrumbView items={breadcrumbItems} />
       <div
         className={cn(
           'min-h-0 min-w-0 flex-1 p-4 has-data-[content-padding=false]:p-0 md:p-6 md:has-data-[content-padding=false]:p-0',

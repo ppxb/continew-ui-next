@@ -100,9 +100,7 @@ export function useBreadcrumbTrail(): BreadcrumbItemData[] {
   }, [pathname, menuRoutes, router])
 }
 
-export function AppBreadcrumb({ className }: { className?: string }) {
-  const items = useBreadcrumbTrail()
-
+export function BreadcrumbView({ items, className }: { items: BreadcrumbItemData[]; className?: string }) {
   if (items.length === 0) {
     return null
   }
@@ -227,4 +225,11 @@ export function AppBreadcrumb({ className }: { className?: string }) {
       </Breadcrumb>
     </div>
   )
+}
+
+/** Breadcrumb bound to the current route; the trail is computed here and handed to the view. */
+export function AppBreadcrumb({ className }: { className?: string }) {
+  const items = useBreadcrumbTrail()
+
+  return <BreadcrumbView items={items} className={className} />
 }
