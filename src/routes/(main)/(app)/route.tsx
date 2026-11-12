@@ -1,11 +1,12 @@
 import { createFileRoute, Outlet } from '@tanstack/react-router'
 
-import { AppShell, loadAppShell } from '@/components/app-shell'
+import { AppShell } from '@/components/app-shell'
 import { PagePending } from '@/components/app-shell/page-pending'
 import { QueryState } from '@/components/query-state'
 import { ensureMenuLoaded } from '@/hooks/use-menu'
 import { requireAuth } from '@/lib/auth-guard'
 import { requireRouteAccess } from '@/lib/route-access'
+import { loadAppShell } from '@/lib/shell-preferences'
 import { NotFound } from '@/routes/-components/not-found'
 import { useAuthStore } from '@/stores/auth/auth-provider'
 
