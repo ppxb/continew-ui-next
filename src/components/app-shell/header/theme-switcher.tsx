@@ -27,6 +27,8 @@ export function ThemeSwitcher({ showTooltip = true }: { readonly showTooltip?: b
         const nextTheme = THEME_CYCLE[(THEME_CYCLE.indexOf(effective) + 1) % THEME_CYCLE.length]
 
         const changeTheme = () => {
+          // When the next mode equals the currently resolved theme (e.g. system→light while the
+          // system is already light), a toggle would be a no-op, so commit the explicit mode.
           if (nextTheme !== 'system' && nextTheme === resolved) {
             setPreference('theme_mode', nextTheme)
             return
@@ -36,9 +38,8 @@ export function ThemeSwitcher({ showTooltip = true }: { readonly showTooltip?: b
         }
 
         const trigger = (
-          <Button variant="outline" size="icon-sm" onClick={changeTheme}>
+          <Button variant="outline" size="icon-sm" aria-label="切换主题" onClick={changeTheme}>
             {effective === 'system' ? <Monitor /> : resolved === 'dark' ? <Sun /> : <Moon />}
-            {showTooltip ? null : <span className="sr-only">切换主题</span>}
           </Button>
         )
 
