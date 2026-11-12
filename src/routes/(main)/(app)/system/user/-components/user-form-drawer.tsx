@@ -98,17 +98,17 @@ const EMPTY_FORM: FormValues = {
 /** `deptId` and `roleIds` become strings so they can drive the pickers. */
 function toFormValues(user: UserDetailResp): FormValues {
   return {
-    nickname: user.nickname ?? '',
-    username: user.username ?? '',
+    nickname: user.nickname,
+    username: user.username,
     // The backend never returns a stored password, so it stays empty and never reaches the body.
     password: '',
     phone: user.phone ?? '',
     email: user.email ?? '',
-    gender: user.gender ?? 1,
-    deptId: user.deptId === null || user.deptId === undefined ? '' : String(user.deptId),
-    roleIds: (user.roleIds ?? []).map(String),
+    gender: user.gender,
+    deptId: user.deptId === null ? '' : String(user.deptId),
+    roleIds: user.roleIds.map(String),
     description: user.description ?? '',
-    status: user.status ?? 1
+    status: user.status
   }
 }
 
@@ -209,9 +209,9 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
     status: values.status as UserStatus,
     // Trim empty strings to undefined so they are omitted from JSON, preventing unique
     // index constraint violations on MySQL (which allows multiple NULLs but only one '').
-    email: values.email?.trim() || undefined,
-    phone: values.phone?.trim() || undefined,
-    description: values.description?.trim() || undefined
+    email: values.email.trim() || undefined,
+    phone: values.phone.trim() || undefined,
+    description: values.description.trim() || undefined
   })
 
   const finish = (message: string) => {
