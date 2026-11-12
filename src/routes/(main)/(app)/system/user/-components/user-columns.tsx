@@ -14,7 +14,6 @@ import { getInitials } from '@/lib/utils'
 
 import { genderLabel } from './user-display'
 
-/** The row actions the table raises. */
 export type UserAction = 'detail' | 'edit' | 'resetPassword' | 'assignRoles' | 'delete'
 
 type TextColumnKey =
@@ -58,7 +57,6 @@ function RowActions({
 }: {
   user: UserResp
   onAction: (action: UserAction, user: UserResp) => void
-  /** The permission codes granted to the signed-in user, checked per row without subscribing. */
   permissions: readonly string[]
 }) {
   const isLocked = Boolean(user.disabled)
@@ -111,10 +109,6 @@ function RowActions({
   )
 }
 
-/**
- * Builds the user table columns; `rowOffset` keeps the serial number continuous across pages,
- * and `permissions` are the codes the rows are checked against.
- */
 export function createUserColumns(
   onAction: (action: UserAction, user: UserResp) => void,
   rowOffset: number,
