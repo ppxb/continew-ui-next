@@ -1,7 +1,7 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import { Eye, KeyRound, Pen, ShieldCheck, Trash2 } from 'lucide-react'
 
-import { FlagBadge } from '@/components/data-badge'
+import { FlagBadge, TagList } from '@/components/data-badge'
 import { RowActionsMenu } from '@/components/row-actions-menu'
 import { StatusCell } from '@/components/status-cell'
 import { TextCell } from '@/components/text-cell'
@@ -12,7 +12,7 @@ import type { DataTableFeatures } from '@/lib/data-table-features'
 import { hasPermission } from '@/lib/permission'
 import { getInitials } from '@/lib/utils'
 
-import { genderLabel, RoleCell } from './user-display'
+import { genderLabel } from './user-display'
 
 /** The row actions the table raises. */
 export type UserAction = 'detail' | 'edit' | 'resetPassword' | 'assignRoles' | 'delete'
@@ -151,7 +151,7 @@ export function createUserColumns(
     {
       accessorKey: 'roleNames',
       header: '角色',
-      cell: ({ row }) => <RoleCell roleNames={row.original.roleNames} max={1} />
+      cell: ({ row }) => <TagList items={row.original.roleNames} max={1} />
     },
     textColumn('phone', '手机号'),
     textColumn('email', '邮箱'),

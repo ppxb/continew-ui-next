@@ -1,6 +1,7 @@
 import { Eye } from 'lucide-react'
 
 import { CopyableText } from '@/components/copyable-text'
+import { TagList } from '@/components/data-badge'
 import { DetailField, DetailGrid } from '@/components/detail-field'
 import { EntityDrawer } from '@/components/entity-drawer'
 import { QueryState } from '@/components/query-state'
@@ -9,7 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useLastRecord } from '@/hooks/use-last-record'
 import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 
-import { genderLabel, RoleCell } from './user-display'
+import { genderLabel } from './user-display'
 import { useUserDetail } from './use-user-detail'
 
 function UserDetailSkeleton() {
@@ -120,7 +121,7 @@ export function UserDetailDrawer({ userId, open, onClose }: UserDetailDrawerProp
             <TextDetail label="邮箱" value={detail.email} />
             <TextDetail label="所属部门" value={detail.deptName} />
             <DetailField label="角色">
-              <RoleCell roleNames={detail.roleNames} />
+              <TagList items={detail.roleNames} />
             </DetailField>
             <TextDetail label="描述" value={detail.description} className="sm:col-span-2" />
             <TextDetail label="创建人" value={detail.createUserString} />
