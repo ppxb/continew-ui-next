@@ -13,15 +13,16 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator
 } from '@/components/ui/breadcrumb'
+import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { useMenuRoutes } from '@/hooks/use-menu'
 import { findMenuTrail, toPathname } from '@/navigation/menu'
 import { formatSegmentTitle, STATIC_ROUTE_TITLES } from '@/navigation/route-titles'
 
 export interface BreadcrumbItemData {
-  id: string
-  title: string
-  url?: string
+  readonly id: string
+  readonly title: string
+  readonly url?: string
 }
 
 export function useBreadcrumbTrail(): BreadcrumbItemData[] {
@@ -36,12 +37,11 @@ export function useBreadcrumbTrail(): BreadcrumbItemData[] {
       url: '/dashboard'
     }
 
-    // Dashboard root: no breadcrumb needed on the home overview
+    // The dashboard is the home overview, so it has no trail.
     if (pathname === '/dashboard' || pathname === '/dashboard/') {
       return []
     }
 
-    // Dynamic backend menu matching
     const menuTrail = findMenuTrail(menuRoutes ?? [], pathname)
     if (menuTrail.length > 0) {
       const trailItems: BreadcrumbItemData[] = menuTrail.map((node, index) => {
@@ -64,7 +64,6 @@ export function useBreadcrumbTrail(): BreadcrumbItemData[] {
       return [homeItem, ...trailItems]
     }
 
-    // Static route matching
     if (STATIC_ROUTE_TITLES[pathname]) {
       return [
         homeItem,
@@ -75,8 +74,7 @@ export function useBreadcrumbTrail(): BreadcrumbItemData[] {
       ]
     }
 
-    // General fallback: split pathname segments for real routes only. Unknown paths are 404s,
-    // so they must not produce a synthetic breadcrumb.
+    // Fall back to path segments for real routes only; unknown paths are 404s and get no trail.
     if (!(pathname in router.routesByPath)) {
       return []
     }
@@ -100,27 +98,41 @@ export function useBreadcrumbTrail(): BreadcrumbItemData[] {
   }, [pathname, menuRoutes, router])
 }
 
-export function BreadcrumbView({ items, className }: { items: BreadcrumbItemData[]; className?: string }) {
-  if (items.length === 0) {
-    return null
+interface BreadcrumbViewProps {
+  readonly items: BreadcrumbItemData[]
+  readonly className?: string
+}
+
+/** The home crumb: a link when it has a target, otherwise muted text. */
+function HomeCrumb({ title, url }: { title: string; url?: string }) {
+  const content = (
+    <>
+      <Home className="size-3.5" />
+      <span>{title}</span>
+    </>
+  )
+
+  if (!url) {
+    return <span className="flex items-center gap-1.5 text-muted-foreground">{content}</span>
   }
 
-  // Single item fallback (if any other single-level route exists)
-  if (items.length === 1) {
-    return (
-      <div className={cn('px-4 pt-3.5 pb-2 md:px-6 md:pt-4', className)}>
-        <Breadcrumb className="select-none">
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbPage className="flex items-center gap-1.5 font-medium">
-                <Home className="size-3.5" />
-                <span>{items[0].title}</span>
-              </BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
-      </div>
-    )
+  return (
+    <BreadcrumbLink
+      render={
+        <Link<RegisteredRouter, string, string>
+          href={url}
+          className="flex items-center gap-1.5 transition-colors hover:text-foreground"
+        />
+      }
+    >
+      {content}
+    </BreadcrumbLink>
+  )
+}
+
+export function BreadcrumbView({ items, className }: BreadcrumbViewProps) {
+  if (items.length === 0) {
+    return null
   }
 
   const firstItem = items[0]
@@ -131,32 +143,12 @@ export function BreadcrumbView({ items, className }: { items: BreadcrumbItemData
     <div className={cn('px-4 pt-3.5 pb-2 md:px-6 md:pt-4', className)}>
       <Breadcrumb className="select-none">
         <BreadcrumbList>
-          {/* First item: Home */}
           <BreadcrumbItem>
-            {firstItem.url ? (
-              <BreadcrumbLink
-                render={
-                  <Link<RegisteredRouter, string, string>
-                    href={firstItem.url}
-                    className="flex items-center gap-1.5 transition-colors hover:text-foreground"
-                  />
-                }
-              >
-                <Home className="size-3.5" />
-                <span>{firstItem.title}</span>
-              </BreadcrumbLink>
-            ) : (
-              <span className="flex items-center gap-1.5 text-muted-foreground">
-                <Home className="size-3.5" />
-                <span>{firstItem.title}</span>
-              </span>
-            )}
+            <HomeCrumb title={firstItem.title} url={firstItem.url} />
           </BreadcrumbItem>
 
-          {/* When there are middle items */}
           {middleItems.length > 0 && (
             <>
-              {/* Desktop: Render all intermediate items */}
               {middleItems.map(item => (
                 <React.Fragment key={item.id}>
                   <BreadcrumbSeparator className="hidden md:inline-flex" />
@@ -179,16 +171,18 @@ export function BreadcrumbView({ items, className }: { items: BreadcrumbItemData
                 </React.Fragment>
               ))}
 
-              {/* Mobile: Collapse intermediate items into BreadcrumbEllipsis with DropdownMenu */}
+              {/* Intermediate items fold into a menu on mobile. */}
               <BreadcrumbSeparator className="md:hidden" />
               <BreadcrumbItem className="md:hidden">
                 <DropdownMenu>
                   <DropdownMenuTrigger
                     render={
-                      <button
+                      <Button
                         type="button"
+                        variant="ghost"
+                        size="icon-xs"
                         aria-label="展开路径"
-                        className="flex size-5 items-center justify-center rounded-xs transition-colors hover:bg-muted"
+                        className="size-5 rounded-xs"
                       />
                     }
                   >
@@ -216,7 +210,6 @@ export function BreadcrumbView({ items, className }: { items: BreadcrumbItemData
             </>
           )}
 
-          {/* Last item: Current page with active highlight */}
           <BreadcrumbSeparator />
           <BreadcrumbItem>
             <BreadcrumbPage className="font-medium text-foreground">{lastItem.title}</BreadcrumbPage>
