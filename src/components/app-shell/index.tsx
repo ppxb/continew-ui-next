@@ -46,9 +46,6 @@ export function loadAppShell(): ShellPreferences {
 
 /** Application shell shared by every authenticated section. */
 export function AppShell({ defaultOpen, variant, collapsible, children }: ShellPreferences & { children: ReactNode }) {
-  const hasBreadcrumb = useBreadcrumbTrail().length > 0
-  const pathname = useRouterState({ select: state => state.location.pathname })
-
   return (
     <SidebarProvider
       defaultOpen={defaultOpen}
@@ -103,24 +100,47 @@ export function AppShell({ defaultOpen, variant, collapsible, children }: ShellP
           </div>
         </header>
         {/* Pages can set data-content-padding="false" to render full-bleed app layouts. */}
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden">
-          <AppBreadcrumb />
-          <div
-            className={cn(
-              'min-h-0 min-w-0 flex-1 p-4 has-data-[content-padding=false]:p-0 md:p-6 md:has-data-[content-padding=false]:p-0',
-              hasBreadcrumb ? 'pt-1.5 md:pt-2' : 'pt-4 md:pt-6'
-            )}
-          >
-            {/* Content-only entrance, so the sidebar and header keep rendering live. */}
-            <div
-              key={pathname}
-              className="motion-safe:animate-in motion-safe:duration-150 motion-safe:blur-in-4 motion-safe:fade-in motion-safe:slide-in-from-bottom-1"
-            >
-              {children}
-            </div>
-          </div>
-        </div>
+        <ShellContent>{children}</ShellContent>
       </SidebarInset>
     </SidebarProvider>
+  )
+}
+
+/**
+ * The page body's entrance animation, isolated so only this subtree re-renders when the pathname
+ * changes; the sidebar and header above it stay put.
+ */
+function PageFrame({ children }: { children: ReactNode }) {
+  const pathname = useRouterState({ select: state => state.location.pathname })
+
+  return (
+    <div
+      key={pathname}
+      className="motion-safe:animate-in motion-safe:duration-150 motion-safe:fade-in motion-safe:slide-in-from-bottom-1"
+    >
+      {children}
+    </div>
+  )
+}
+
+/**
+ * Breadcrumb plus the padded content area. Owns the breadcrumb pathname subscription so `AppShell`
+ * itself takes no router state and does not re-render on navigation.
+ */
+function ShellContent({ children }: { children: ReactNode }) {
+  const hasBreadcrumb = useBreadcrumbTrail().length > 0
+
+  return (
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden">
+      <AppBreadcrumb />
+      <div
+        className={cn(
+          'min-h-0 min-w-0 flex-1 p-4 has-data-[content-padding=false]:p-0 md:p-6 md:has-data-[content-padding=false]:p-0',
+          hasBreadcrumb ? 'pt-1.5 md:pt-2' : undefined
+        )}
+      >
+        <PageFrame>{children}</PageFrame>
+      </div>
+    </div>
   )
 }
