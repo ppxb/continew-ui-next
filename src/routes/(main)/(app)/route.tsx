@@ -64,7 +64,7 @@ function AuthenticatedOutlet() {
     <QueryState
       state="error"
       title="用户信息加载失败"
-      className="min-h-[calc(100dvh-8rem)]"
+      className="min-h-svh"
       onRetry={() => void loadUser()}
     />
   )
