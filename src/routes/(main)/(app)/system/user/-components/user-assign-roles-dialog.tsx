@@ -6,7 +6,7 @@ import { z } from 'zod'
 
 import { ShieldCheck } from 'lucide-react'
 
-import { QueryState } from '@/components/query-state'
+import { DetailGate } from '@/components/detail-gate'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -162,8 +162,6 @@ export function UserAssignRolesDialog({ user, open, onClose }: UserAssignRolesDi
   // refetches it on open, so the picker never seeds from a stale list row.
   const detail = useUserDetail(userId, { enabled: open })
 
-  const isDetailLoading = detail.isPending || detail.fetchStatus !== 'idle'
-
   return (
     <Dialog
       open={open}
@@ -183,26 +181,28 @@ export function UserAssignRolesDialog({ user, open, onClose }: UserAssignRolesDi
           <DialogDescription>{shownUser ? `为用户「${shownLabel}」分配角色` : '为该用户分配角色'}</DialogDescription>
         </DialogHeader>
 
-        {isDetailLoading ? (
-          <UserAssignRolesSkeleton onClose={onClose} />
-        ) : detail.isError || !detail.data ? (
-          <div className="flex flex-col gap-4">
-            <QueryState state="error" title="用户角色加载失败" onRetry={() => void detail.refetch()} />
+        <DetailGate
+          query={detail}
+          errorTitle="用户角色加载失败"
+          errorFooter={
             <DialogFooter>
               <Button type="button" variant="outline" onClick={onClose}>
                 取消
               </Button>
             </DialogFooter>
-          </div>
-        ) : (
-          <UserAssignRolesForm
-            key={String(detail.data.id)}
-            userId={detail.data.id}
-            initialRoleIds={(detail.data.roleIds ?? []).map(String)}
-            onClose={onClose}
-            onSubmittingChange={setIsSubmitting}
-          />
-        )}
+          }
+          skeleton={<UserAssignRolesSkeleton onClose={onClose} />}
+        >
+          {data => (
+            <UserAssignRolesForm
+              key={String(data.id)}
+              userId={data.id}
+              initialRoleIds={(data.roleIds ?? []).map(String)}
+              onClose={onClose}
+              onSubmittingChange={setIsSubmitting}
+            />
+          )}
+        </DetailGate>
       </DialogContent>
     </Dialog>
   )

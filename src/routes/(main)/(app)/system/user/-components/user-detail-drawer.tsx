@@ -3,8 +3,8 @@ import { Eye } from 'lucide-react'
 import { CopyableText } from '@/components/copyable-text'
 import { TagList } from '@/components/data-badge'
 import { DetailField, DetailGrid } from '@/components/detail-field'
+import { DetailGate } from '@/components/detail-gate'
 import { EntityDrawer } from '@/components/entity-drawer'
-import { QueryState } from '@/components/query-state'
 import { StatusCell } from '@/components/status-cell'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useLastRecord } from '@/hooks/use-last-record'
@@ -100,36 +100,40 @@ export function UserDetailDrawer({ userId, open, onClose }: UserDetailDrawerProp
   const detail = query.data ?? (open ? null : lastDetail)
 
   return (
-    <EntityDrawer open={open} onClose={onClose} title="用户详情" icon={<Eye className="size-4" />} width={32}>
+    <EntityDrawer open={open} onClose={onClose} title="用户详情" icon={<Eye className="size-4" />}>
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
-        {!detail && query.isPending ? (
-          <UserDetailSkeleton />
-        ) : query.isError || !detail ? (
-          <QueryState state="error" onRetry={() => void query.refetch()} />
-        ) : (
-          <DetailGrid>
-            <DetailField label="ID" className="sm:col-span-2">
-              <CopyableText value={String(detail.id)} label="复制 ID" />
-            </DetailField>
-            <DetailField label="用户名">{detail.username}</DetailField>
-            <DetailField label="昵称">{detail.nickname}</DetailField>
-            <DetailField label="性别">{genderLabel(detail.gender)}</DetailField>
-            <DetailField label="状态">
-              <StatusCell status={detail.status} />
-            </DetailField>
-            <TextDetail label="手机号" value={detail.phone} />
-            <TextDetail label="邮箱" value={detail.email} />
-            <TextDetail label="所属部门" value={detail.deptName} />
-            <DetailField label="角色">
-              <TagList items={detail.roleNames} />
-            </DetailField>
-            <TextDetail label="描述" value={detail.description} className="sm:col-span-2" />
-            <TextDetail label="创建人" value={detail.createUserString} />
-            <TextDetail label="修改人" value={detail.updateUserString} />
-            <TextDetail label="创建时间" value={detail.createTime} />
-            <TextDetail label="修改时间" value={detail.updateTime} />
-          </DetailGrid>
-        )}
+        <DetailGate
+          query={query}
+          data={detail}
+          requireFresh={false}
+          errorTitle="用户加载失败"
+          skeleton={<UserDetailSkeleton />}
+        >
+          {record => (
+            <DetailGrid>
+              <DetailField label="ID" className="sm:col-span-2">
+                <CopyableText value={String(record.id)} label="复制 ID" />
+              </DetailField>
+              <DetailField label="用户名">{record.username}</DetailField>
+              <DetailField label="昵称">{record.nickname}</DetailField>
+              <DetailField label="性别">{genderLabel(record.gender)}</DetailField>
+              <DetailField label="状态">
+                <StatusCell status={record.status} />
+              </DetailField>
+              <TextDetail label="手机号" value={record.phone} />
+              <TextDetail label="邮箱" value={record.email} />
+              <TextDetail label="所属部门" value={record.deptName} />
+              <DetailField label="角色">
+                <TagList items={record.roleNames} />
+              </DetailField>
+              <TextDetail label="描述" value={record.description} className="sm:col-span-2" />
+              <TextDetail label="创建人" value={record.createUserString} />
+              <TextDetail label="修改人" value={record.updateUserString} />
+              <TextDetail label="创建时间" value={record.createTime} />
+              <TextDetail label="修改时间" value={record.updateTime} />
+            </DetailGrid>
+          )}
+        </DetailGate>
       </div>
     </EntityDrawer>
   )
