@@ -6,6 +6,7 @@ import { RowActionsMenu } from '@/components/row-actions-menu'
 import { StatusCell } from '@/components/status-cell'
 import { TextCell } from '@/components/text-cell'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
 import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import type { UserResp } from '@/lib/api/user'
 import type { DataTableFeatures } from '@/lib/data-table-features'
@@ -60,23 +61,35 @@ function RowActions({
   permissions: readonly string[]
 }) {
   const isLocked = Boolean(user.disabled)
+  const canUpdate = hasPermission(permissions, 'system:user:update')
   const canResetPassword = hasPermission(permissions, 'system:user:resetPwd')
   const canAssignRoles = hasPermission(permissions, 'system:user:updateRole')
+  const canDelete = hasPermission(permissions, 'system:user:delete')
+  const hasSecondaryActions = canUpdate || canResetPassword || canAssignRoles || canDelete
 
   return (
-    <RowActionsMenu>
-      <DropdownMenuGroup>
-        <DropdownMenuItem onClick={() => onAction('detail', user)}>
+    <RowActionsMenu
+      showMenu={hasSecondaryActions}
+      primary={
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-label="用户详情"
+          title="用户详情"
+          onClick={() => onAction('detail', user)}
+        >
           <Eye />
-          用户详情
-        </DropdownMenuItem>
-        {hasPermission(permissions, 'system:user:update') && (
+        </Button>
+      }
+    >
+      {canUpdate && (
+        <DropdownMenuGroup>
           <DropdownMenuItem disabled={isLocked} onClick={() => onAction('edit', user)}>
             <Pen />
             修改用户
           </DropdownMenuItem>
-        )}
-      </DropdownMenuGroup>
+        </DropdownMenuGroup>
+      )}
       {(canResetPassword || canAssignRoles) && (
         <>
           <DropdownMenuSeparator />
@@ -96,7 +109,7 @@ function RowActions({
           </DropdownMenuGroup>
         </>
       )}
-      {hasPermission(permissions, 'system:user:delete') && (
+      {canDelete && (
         <>
           <DropdownMenuSeparator />
           <DropdownMenuItem variant="destructive" disabled={isLocked} onClick={() => onAction('delete', user)}>
