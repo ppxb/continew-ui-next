@@ -135,7 +135,7 @@ export function createUserColumns(
     {
       accessorKey: 'username',
       header: '用户名',
-      cell: ({ row }) => <span>{row.original.username}</span>
+      cell: ({ row }) => row.original.username
     },
     {
       accessorKey: 'status',
@@ -145,7 +145,7 @@ export function createUserColumns(
     {
       accessorKey: 'gender',
       header: '性别',
-      cell: ({ row }) => <span>{genderLabel(row.original.gender)}</span>
+      cell: ({ row }) => genderLabel(row.original.gender)
     },
     textColumn('deptName', '所属部门'),
     {
