@@ -88,19 +88,18 @@ export function UserList() {
     }
   }, [])
 
+  // Shared by the list request and the export request, so the two can never drift apart.
+  const queryFilters = React.useMemo(
+    () => ({ status, deptId, description: keyword || undefined, sort: DEFAULT_SORT }),
+    [status, deptId, keyword]
+  )
+
   const buildQuery = React.useCallback(
     (pagination: PaginationState) => {
-      const params = {
-        page: pagination.pageIndex + 1,
-        size: pagination.pageSize,
-        status,
-        deptId,
-        description: keyword || undefined,
-        sort: DEFAULT_SORT
-      }
+      const params = { page: pagination.pageIndex + 1, size: pagination.pageSize, ...queryFilters }
       return { queryKey: userKeys.list(params), queryFn: (signal: AbortSignal) => listUsers(params, signal) }
     },
-    [status, deptId, keyword]
+    [queryFilters]
   )
 
   const buildColumns = React.useCallback(
@@ -135,8 +134,6 @@ export function UserList() {
     setStatus(!value || value === 'all' ? undefined : (Number(value) as UserStatus))
     resetPage()
   }
-
-  const queryFilters = { status, deptId, description: keyword || undefined, sort: DEFAULT_SORT }
 
   const filters = (
     <>
