@@ -31,9 +31,7 @@ export function AppShell({ defaultOpen, variant, collapsible, children }: ShellP
       <AppSidebar variant={variant} collapsible={collapsible} />
       <SidebarInset
         className={cn(
-          '[html[data-content-layout=centered]_&>*]:mx-auto',
-          '[html[data-content-layout=centered]_&>*]:w-full',
-          '[html[data-content-layout=centered]_&>*]:max-w-screen-2xl',
+          '[html[data-content-layout=centered]_&>*]:mx-auto [html[data-content-layout=centered]_&>*]:w-full [html[data-content-layout=centered]_&>*]:max-w-screen-2xl',
           'peer-data-[variant=inset]:border',
           '[--dashboard-header-height:--spacing(12)]',
           'min-w-0 overflow-x-clip'
@@ -41,13 +39,12 @@ export function AppShell({ defaultOpen, variant, collapsible, children }: ShellP
       >
         <header
           className={cn(
-            'flex h-12 shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12',
-            // Handle sticky navbar style with conditional classes so blur, background, z-index, and rounded corners remain consistent across all SidebarVariant layouts.
+            'flex h-12 shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear',
+            // Sticky navbar styling; keeps the glass/border consistent across sidebar variants.
             '[html[data-navbar-style=sticky]_&]:sticky [html[data-navbar-style=sticky]_&]:top-0 [html[data-navbar-style=sticky]_&]:z-50 [html[data-navbar-style=sticky]_&]:overflow-hidden [html[data-navbar-style=sticky]_&]:rounded-t-[inherit] [html[data-navbar-style=sticky]_&]:bg-background/50 [html[data-navbar-style=sticky]_&]:backdrop-blur-md'
           )}
         >
           <div className="flex w-full items-center justify-between gap-2 px-4 lg:px-6">
-            {/* Left: SidebarTrigger + Separator + SearchDialog */}
             <div className="flex shrink-0 items-center gap-1 lg:gap-2">
               <SidebarTrigger className="-ml-1" />
               <Separator
@@ -57,12 +54,10 @@ export function AppShell({ defaultOpen, variant, collapsible, children }: ShellP
               <SearchDialog />
             </div>
 
-            {/* Center: In-Header Tabs (Flex layout, centered in remaining space) */}
             <div className="hidden min-w-0 flex-1 items-center justify-center px-2 md:flex">
               <HeaderTabs />
             </div>
 
-            {/* Right: Controls */}
             <div className="flex shrink-0 items-center gap-3">
               <LayoutControls />
               <GithubHelp />
