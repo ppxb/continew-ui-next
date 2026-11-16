@@ -154,7 +154,9 @@ export function AppShell({ defaultOpen, variant, collapsible, children }: ShellP
 
   // In the split mixed layout, a leaf root (dashboard) has no sub-menu to list: hide the sidebar.
   const splitEmpty = layout === 'mixed-nav' && p.navigationSplit && (!selectedRoot || Boolean(selectedRoot.link))
-  const sidebarKind = splitEmpty ? null : flags.sidebar
+  // A mixed sidebar with nothing to list (e.g. header-mixed on a leaf root) is pointless: hide it.
+  const mixedEmpty = flags.sidebar === 'mixed' && mixedEntries.length === 0
+  const sidebarKind = splitEmpty || mixedEmpty ? null : flags.sidebar
 
   const headerMenu = flags.headerMenu
     ? { roots, mode: flags.headerMenu, selectedId, onSelect: flags.headerMenu === 'select' ? openRoot : undefined }
