@@ -8,6 +8,7 @@ import { cn } from 'cn'
 import { ArrowLeftToLine, ArrowRightToLine, Ban, Ellipsis, Layers, Pin, PinOff, RotateCw, X } from 'lucide-react'
 import { useShallow } from 'zustand/react/shallow'
 
+import { Button } from '@/components/ui/button'
 import {
   ContextMenu,
   ContextMenuContent,
@@ -253,18 +254,6 @@ const Tab = React.memo(function Tab({
   )
 })
 
-function TabbarTool({ label, ...props }: React.ComponentProps<'button'> & { label: string }) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      title={label}
-      {...props}
-      className="flex h-full w-9 shrink-0 items-center justify-center border-l text-muted-foreground transition-colors hover:bg-accent hover:text-foreground [&_svg]:size-3.5"
-    />
-  )
-}
-
 /**
  * Multi-tab bar under the header. Adds a tab for every page the user opens, keeps it in step
  * with the router, and supports pin, drag sorting, wheel scrolling and the close menu.
@@ -378,21 +367,23 @@ export function Tabbar() {
       </DragDropProvider>
 
       {prefs.showMore && activeTab && (
-        <DropdownMenu>
-          <DropdownMenuTrigger render={<TabbarTool label="更多操作" />}>
-            <Ellipsis />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="min-w-36">
-            <TabMenuItems
-              tab={activeTab}
-              index={activeIndex}
-              tabs={tabs}
-              actions={actions}
-              Item={DropdownMenuItem}
-              Separator={DropdownMenuSeparator}
-            />
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex shrink-0 items-center px-1.5">
+          <DropdownMenu>
+            <DropdownMenuTrigger render={<Button variant="outline" size="icon-sm" aria-label="更多操作" />}>
+              <Ellipsis />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-36">
+              <TabMenuItems
+                tab={activeTab}
+                index={activeIndex}
+                tabs={tabs}
+                actions={actions}
+                Item={DropdownMenuItem}
+                Separator={DropdownMenuSeparator}
+              />
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       )}
     </div>
   )
