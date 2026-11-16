@@ -16,6 +16,7 @@ import {
   CommandList,
   CommandSeparator
 } from '@/components/ui/command'
+import { Kbd, KbdGroup } from '@/components/ui/kbd'
 import { useMenuGroups } from '@/hooks/use-menu'
 import type { MenuGroup, MenuItem } from '@/navigation/menu'
 
@@ -27,6 +28,9 @@ interface SearchItem {
   icon?: MenuItem['icon']
   external?: boolean
 }
+
+/** macOS shows ⌘; every other platform uses Ctrl, matching the handler below. */
+const MODIFIER_KEY = /Mac|iPhone|iPad|iPod/.test(navigator.platform) ? '⌘' : 'Ctrl'
 
 function toSearchItems(groups: readonly MenuGroup[]): SearchItem[] {
   return groups.flatMap(group =>
@@ -82,10 +86,11 @@ export function SearchDialog() {
   const [query, setQuery] = React.useState('')
   const navigate = useNavigate()
   const { groups } = useMenuGroups()
-  const searchItems = React.useMemo(() => toSearchItems(groups), [groups])
+  const groupedItems = React.useMemo(() => groupBy(toSearchItems(groups)), [groups])
 
   React.useEffect(() => {
     const down = (e: KeyboardEvent) => {
+      if (e.repeat) return
       if (e.key === 'j' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault()
         setOpen(prev => !prev)
@@ -112,12 +117,12 @@ export function SearchDialog() {
     void navigate({ href: item.url })
   }
 
-  const renderGroups = (items: SearchItem[]) =>
-    groupBy(items).map(({ group, items: groupItems }, index) => (
+  const renderGroups = () =>
+    groupedItems.map(({ group, items }, index) => (
       <React.Fragment key={group}>
         {index > 0 && <CommandSeparator />}
         <CommandGroup heading={group}>
-          {groupItems.map(item => (
+          {items.map(item => (
             <CommandItem
               key={`${group}-${item.id}`}
               value={`${item.group} ${item.label}`}
@@ -142,16 +147,17 @@ export function SearchDialog() {
       >
         <Search data-icon="inline-start" />
         搜索
-        <kbd className="inline-flex h-5 items-center gap-1 rounded border bg-muted px-1.5 text-[10px] font-medium select-none">
-          <span className="text-xs">⌘</span>J
-        </kbd>
+        <KbdGroup>
+          <Kbd>{MODIFIER_KEY}</Kbd>
+          <Kbd>J</Kbd>
+        </KbdGroup>
       </Button>
-      <CommandDialog open={open} onOpenChange={handleOpenChange}>
+      <CommandDialog open={open} onOpenChange={handleOpenChange} title="搜索" description="搜索目录或页面">
         <Command>
-          <CommandInput placeholder="搜索目录" value={query} onValueChange={setQuery} />
+          <CommandInput placeholder="搜索目录或页面" value={query} onValueChange={setQuery} />
           <FadingCommandList>
             <CommandEmpty>没有找到结果</CommandEmpty>
-            {renderGroups(searchItems)}
+            {renderGroups()}
           </FadingCommandList>
         </Command>
       </CommandDialog>
