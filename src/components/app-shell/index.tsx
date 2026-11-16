@@ -14,6 +14,7 @@ import { BreadcrumbView, useBreadcrumbTrail } from './app-breadcrumb'
 import { FullscreenToggle } from './header/fullscreen-toggle'
 import { GithubHelp } from './header/github-help'
 import { LayoutControls } from './header/layout-controls'
+import { NotificationButton } from './header/notification-button'
 import { SearchDialog } from './header/search-dialog'
 import { ThemeSwitcher } from './header/theme-switcher'
 import { UserMenu } from './header/user-menu'
@@ -70,6 +71,7 @@ export function AppShell({ defaultOpen, variant, collapsible, children }: ShellP
 
               <div className="flex shrink-0 items-center gap-3">
                 <LayoutControls />
+                <NotificationButton />
                 <GithubHelp />
                 <ThemeSwitcher />
                 <FullscreenToggle />
