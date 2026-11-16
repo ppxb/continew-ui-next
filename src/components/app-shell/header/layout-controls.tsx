@@ -28,6 +28,8 @@ import { THEME_COLOR_OPTIONS, type ThemeColor, type ThemeMode } from '@/lib/pref
 import { useLogout } from '@/hooks/use-logout'
 import { usePreferencesStore } from '@/stores/preferences/preferences-provider'
 
+import { LayoutModePicker } from './layout-mode-picker'
+
 /** Discrete root font sizes offered in the panel; the underlying preference stays a number. */
 const FONT_SIZE_OPTIONS = [
   { label: '小', value: '14' },
@@ -120,6 +122,7 @@ export function LayoutControls() {
   const {
     theme_mode: themeMode,
     theme_color: themeColor,
+    layout: layoutMode,
     content_layout: contentLayout,
     navbar_style: navbarStyle,
     sidebar_variant: variant,
@@ -187,6 +190,7 @@ export function LayoutControls() {
         title="偏好设置"
         icon={<Settings className="size-4" />}
         description="自定义仪表盘的外观与布局"
+        width={30}
       >
         <Tabs.Root defaultValue="appearance" className="flex min-h-0 flex-1 flex-col gap-0">
           <div className="px-4 pt-3 pb-1">
@@ -309,6 +313,10 @@ export function LayoutControls() {
 
             <Tabs.Panel value="layout" className="py-3">
               <PreferenceSection title="布局">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium">布局模式</Label>
+                  <LayoutModePicker value={layoutMode} onChange={mode => setPreference('layout', mode)} />
+                </div>
                 <PreferenceField label="页面布局">
                   <ToggleGroup
                     size="sm"

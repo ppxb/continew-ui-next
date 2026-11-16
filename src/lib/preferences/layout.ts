@@ -50,3 +50,24 @@ export const TABBAR_STYLE_OPTIONS = [
 ] as const
 export const TABBAR_STYLE_VALUES = TABBAR_STYLE_OPTIONS.map(v => v.value)
 export type TabbarStyle = (typeof TABBAR_STYLE_VALUES)[number]
+
+// Layout mode
+export const LAYOUT_MODE_OPTIONS = [
+  { label: '垂直', value: 'sidebar-nav', description: '侧边菜单布局' },
+  { label: '双列菜单', value: 'sidebar-mixed-nav', description: '垂直双列菜单模式' },
+  { label: '水平', value: 'header-nav', description: '菜单全部显示在顶部' },
+  { label: '侧边导航', value: 'header-sidebar-nav', description: '顶部通栏，侧边导航' },
+  { label: '混合垂直', value: 'mixed-nav', description: '垂直水平菜单共存' },
+  { label: '混合双列', value: 'header-mixed-nav', description: '双列、水平菜单共存' },
+  { label: '内容全屏', value: 'full-content', description: '不显示菜单，只显示内容' }
+] as const
+export const LAYOUT_MODE_VALUES = LAYOUT_MODE_OPTIONS.map(v => v.value)
+export type LayoutMode = (typeof LAYOUT_MODE_VALUES)[number]
+
+export const HEADER_MENU_ALIGN_OPTIONS = [
+  { label: '左侧', value: 'start' },
+  { label: '居中', value: 'center' },
+  { label: '右侧', value: 'end' }
+] as const
+export const HEADER_MENU_ALIGN_VALUES = HEADER_MENU_ALIGN_OPTIONS.map(v => v.value)
+export type HeaderMenuAlign = (typeof HEADER_MENU_ALIGN_VALUES)[number]

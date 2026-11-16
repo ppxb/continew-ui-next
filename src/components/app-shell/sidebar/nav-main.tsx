@@ -40,6 +40,7 @@ interface NavLinkItemProps {
   readonly item: MenuItem
   readonly isActive: boolean
   readonly showIconFallback: boolean
+  readonly tooltip: string | undefined
 }
 
 interface NavDropdownItemProps {
@@ -81,7 +82,7 @@ interface RenderItemLinkOptions {
  * `Link` only makes `to` optional once its `TTo` parameter is `string`, so the type
  * arguments are pinned; without them every `href`-only link is a type error.
  */
-function renderItemLink(item: MenuItem, options?: RenderItemLinkOptions) {
+export function renderItemLink(item: MenuItem, options?: RenderItemLinkOptions) {
   if (item.external) {
     return <a href={item.url} target="_blank" rel="noreferrer" {...options} />
   }
@@ -163,7 +164,14 @@ function NavItem({ item, isItemActive, isSubItemActive, isSubmenuOpen }: NavItem
   const isCollapsedDesktop = state === 'collapsed' && !isMobile
 
   if (!hasSubItems(item)) {
-    return <NavLinkItem item={item} isActive={isItemActive(item)} showIconFallback={isCollapsedDesktop} />
+    return (
+      <NavLinkItem
+        item={item}
+        isActive={isItemActive(item)}
+        showIconFallback={isCollapsedDesktop}
+        tooltip={isCollapsedDesktop ? item.title : undefined}
+      />
+    )
   }
 
   if (isCollapsedDesktop) {
@@ -180,10 +188,10 @@ function NavItem({ item, isItemActive, isSubItemActive, isSubmenuOpen }: NavItem
   )
 }
 
-function NavLinkItem({ item, isActive, showIconFallback }: NavLinkItemProps) {
+function NavLinkItem({ item, isActive, showIconFallback, tooltip }: NavLinkItemProps) {
   return (
     <SidebarMenuItem>
-      <SidebarMenuButton render={renderItemLink(item)} tooltip={item.title} isActive={isActive}>
+      <SidebarMenuButton render={renderItemLink(item)} tooltip={tooltip} isActive={isActive}>
         <NavLinkIcon item={item} showFallback={showIconFallback} />
         <span>{item.title}</span>
       </SidebarMenuButton>
@@ -251,7 +259,7 @@ function NavCollapsibleItem({ item, isActive, defaultOpen, isSubItemActive }: Na
       defaultOpen={defaultOpen}
       className="group/collapsible"
     >
-      <CollapsibleTrigger render={<SidebarMenuButton tooltip={item.title} isActive={isActive} />}>
+      <CollapsibleTrigger render={<SidebarMenuButton isActive={isActive} />}>
         {Icon && <Icon />}
         <span>{item.title}</span>
         <ChevronRight className="ml-auto transition-transform duration-200 group-data-panel-open/menu-button:rotate-90" />

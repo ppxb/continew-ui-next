@@ -16,6 +16,8 @@
 
 import {
   CONTENT_LAYOUT_VALUES,
+  HEADER_MENU_ALIGN_VALUES,
+  LAYOUT_MODE_VALUES,
   NAVBAR_STYLE_VALUES,
   RADIUS_VALUES,
   SIDEBAR_COLLAPSIBLE_VALUES,
@@ -94,6 +96,12 @@ export const PREFERENCE_REGISTRY = {
   radius: enumPref(RADIUS_VALUES, '0.5', cookie('data-radius')),
   // Root font size, in px: drives the whole rem-based type scale.
   font_size: numberPref(16, 14, 18, { ...local, cssVar: '--app-font-size', unit: 'px' }),
+
+  // Layout
+  layout: enumPref(LAYOUT_MODE_VALUES, 'sidebar-nav', { ...local, attribute: 'data-layout' }),
+  header_menu_align: enumPref(HEADER_MENU_ALIGN_VALUES, 'start', local),
+  navigation_split: boolPref(true),
+  sidebar_auto_activate_child: boolPref(false),
 
   // Tabbar
   tabbar_enable: boolPref(true),

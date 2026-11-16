@@ -19,6 +19,20 @@ export interface MenuItem {
 export interface MenuGroup {
   id: string
   label?: string
+  icon?: LucideIcon
+  items: MenuItem[]
+}
+
+/**
+ * A top-level navigation entry for the horizontal and two-column layouts: a labelled group
+ * becomes one root with its items, and every loose item becomes a root of its own.
+ */
+export interface MenuRoot {
+  id: string
+  title: string
+  icon?: LucideIcon
+  /** Set when the root is a page itself instead of a container. */
+  link?: MenuItem
   items: MenuItem[]
 }
 
@@ -100,7 +114,7 @@ export function toMenuGroups(nodes: readonly RouteResp[]): MenuGroup[] {
       )
 
     if (items.length > 0) {
-      groups.push({ id: String(node.id), label: node.title, items })
+      groups.push({ id: String(node.id), label: node.title, icon: resolveMenuIcon(node.icon), items })
     }
   }
 
@@ -150,4 +164,40 @@ function normalizePathname(pathname: string) {
 export function isPathAllowed(nodes: readonly RouteResp[], pathname: string) {
   const path = normalizePathname(pathname)
   return path in STATIC_ROUTE_TITLES || Boolean(findMenuByPath(nodes, path))
+}
+
+export function toMenuRoots(groups: readonly MenuGroup[]): MenuRoot[] {
+  return groups.flatMap(group => {
+    if (group.label) {
+      return [{ id: group.id, title: group.label, icon: group.icon, items: group.items }]
+    }
+
+    return group.items.map(item =>
+      item.subItems?.length
+        ? { id: item.id, title: item.title, icon: item.icon, items: item.subItems }
+        : { id: item.id, title: item.title, icon: item.icon, link: item, items: [] }
+    )
+  })
+}
+
+/** Whether a menu item, or one of its sub-items, is the page at `pathname`. */
+export function isMenuItemActive(item: MenuItem, pathname: string): boolean {
+  return toPathname(item.url) === pathname || Boolean(item.subItems?.some(sub => isMenuItemActive(sub, pathname)))
+}
+
+export function isMenuRootActive(root: MenuRoot, pathname: string) {
+  return root.link ? isMenuItemActive(root.link, pathname) : root.items.some(item => isMenuItemActive(item, pathname))
+}
+
+/** The first page under a root or item, for "open the first child" navigation. */
+export function firstMenuLeaf(items: readonly MenuItem[]): MenuItem | undefined {
+  for (const item of items) {
+    if (item.subItems?.length) {
+      const leaf = firstMenuLeaf(item.subItems)
+      if (leaf) return leaf
+    } else {
+      return item
+    }
+  }
+  return undefined
 }

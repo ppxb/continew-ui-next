@@ -14,12 +14,17 @@ import {
 } from '@/components/ui/sidebar'
 import { useMenuGroups } from '@/hooks/use-menu'
 import { useSiteOptions } from '@/hooks/use-site-options'
+import type { MenuGroup } from '@/navigation/menu'
 import { usePreferencesStore } from '@/stores/preferences/preferences-provider'
 
 import { NavMain } from './nav-main'
 import { SupportCarousel } from './support-carousel'
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({
+  showBrand = true,
+  groups: groupsProp,
+  ...props
+}: React.ComponentProps<typeof Sidebar> & { showBrand?: boolean; groups?: readonly MenuGroup[] }) {
   const { sidebarVariant, sidebarCollapsible, isSynced } = usePreferencesStore(
     useShallow(s => ({
       sidebarVariant: s.values.sidebar_variant,
@@ -27,7 +32,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       isSynced: s.isSynced
     }))
   )
-  const { groups } = useMenuGroups()
+  const { groups: hookGroups } = useMenuGroups()
+  const groups = groupsProp ?? hookGroups
   const { title } = useSiteOptions()
 
   const variant = isSynced ? sidebarVariant : props.variant
@@ -35,16 +41,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   return (
     <Sidebar {...props} variant={variant} collapsible={collapsible}>
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton render={<Link to="/dashboard" />}>
-              <Command />
-              <span className="text-base font-semibold">{title}</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarHeader>
+      {showBrand && (
+        <SidebarHeader>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton render={<Link to="/dashboard" />}>
+                <Command />
+                <span className="text-base font-semibold">{title}</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarHeader>
+      )}
       <SidebarContent className="scroll-fade-y">
         <NavMain items={groups} />
       </SidebarContent>

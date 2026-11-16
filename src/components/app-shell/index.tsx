@@ -1,51 +1,213 @@
-import { useEffect, type CSSProperties, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react'
 
-import { useRouterState } from '@tanstack/react-router'
+import { useNavigate, useRouterState } from '@tanstack/react-router'
 import { cn } from 'cn'
+import { useShallow } from 'zustand/react/shallow'
 
-import { Separator } from '@/components/ui/separator'
-import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
+import { useMenuGroups } from '@/hooks/use-menu'
+import { useIsMobile } from '@/hooks/use-mobile'
+import type { LayoutMode } from '@/lib/preferences/layout'
 import type { ShellPreferences } from '@/lib/shell-preferences'
+import {
+  firstMenuLeaf,
+  isMenuItemActive,
+  isMenuRootActive,
+  toMenuRoots,
+  type MenuGroup,
+  type MenuRoot
+} from '@/navigation/menu'
 import { usePreferencesStore } from '@/stores/preferences/preferences-provider'
 import { useShellStore } from '@/stores/shell'
 import { setTabsPersistence } from '@/stores/tabs'
 
-import { BreadcrumbView, useBreadcrumbTrail } from './app-breadcrumb'
+import { AdminHeader } from './header/admin-header'
+import { SearchDialog } from './header/search-dialog'
 import { GlobalShortcuts } from './global-shortcuts'
-import { FullscreenToggle } from './header/fullscreen-toggle'
-import { GithubHelp } from './header/github-help'
-import { LayoutControls } from './header/layout-controls'
-import { NotificationButton } from './header/notification-button'
-import { SearchDialog, SearchTrigger } from './header/search-dialog'
-import { ThemeSwitcher } from './header/theme-switcher'
-import { UserMenu } from './header/user-menu'
+import { BreadcrumbView, useBreadcrumbTrail } from './app-breadcrumb'
 import { DocumentTitle, UpdateChecker, Watermark } from './page-effects'
 import { AppSidebar } from './sidebar/app-sidebar'
+import { MixedSidebar, type MixedColumnEntry } from './sidebar/mixed-sidebar'
 import { Tabbar } from './tabbar/tabbar'
 import { LockScreenOverlay, LockScreenSetupDialog, useLockScreen } from './workspace-overlays'
 
-/** Application shell shared by every authenticated section. */
+type LayoutFlags = {
+  sidebar: 'primary' | 'mixed' | null
+  /** Header spans the full width above the sidebar instead of sitting beside it. */
+  headerOnTop: boolean
+  headerMenu: 'navigate' | 'select' | null
+}
+
+const LAYOUT_FLAGS: Record<LayoutMode, LayoutFlags> = {
+  'sidebar-nav': { sidebar: 'primary', headerOnTop: false, headerMenu: null },
+  'sidebar-mixed-nav': { sidebar: 'mixed', headerOnTop: false, headerMenu: null },
+  'header-nav': { sidebar: null, headerOnTop: true, headerMenu: 'navigate' },
+  'header-sidebar-nav': { sidebar: 'primary', headerOnTop: true, headerMenu: null },
+  'mixed-nav': { sidebar: 'primary', headerOnTop: true, headerMenu: 'select' },
+  'header-mixed-nav': { sidebar: 'mixed', headerOnTop: true, headerMenu: 'select' },
+  'full-content': { sidebar: null, headerOnTop: false, headerMenu: null }
+}
+
+/** Application shell shared by every authenticated section; the layout mode picks the frame. */
 export function AppShell({ defaultOpen, variant, collapsible, children }: ShellPreferences & { children: ReactNode }) {
-  const tabbarEnable = usePreferencesStore(state => state.values.tabbar_enable)
-  const tabbarPersist = usePreferencesStore(state => state.values.tabbar_persist)
-  const widgetNotification = usePreferencesStore(state => state.values.widget_notification)
+  const p = usePreferencesStore(
+    useShallow(state => ({
+      layout: state.values.layout,
+      navigationSplit: state.values.navigation_split,
+      autoActivate: state.values.sidebar_auto_activate_child,
+      tabbarEnable: state.values.tabbar_enable,
+      tabbarPersist: state.values.tabbar_persist
+    }))
+  )
+  const isMobile = useIsMobile()
+  const pathname = useRouterState({ select: state => state.location.pathname })
+  const navigate = useNavigate()
+  const { groups } = useMenuGroups()
+  const roots = useMemo(() => toMenuRoots(groups), [groups])
+  const [picked, setPicked] = useState<string>()
+  const [mixedPick, setMixedPick] = useState<string>()
   const { locked, lock, unlock, clear } = useLockScreen()
 
   useEffect(() => {
-    setTabsPersistence(tabbarPersist)
-  }, [tabbarPersist])
+    setTabsPersistence(p.tabbarPersist)
+  }, [p.tabbarPersist])
+
+  // A root the user clicked only stands in until the next navigation resolves the active one.
+  useEffect(() => {
+    setPicked(undefined)
+    setMixedPick(undefined)
+  }, [pathname])
+
+  // Mobile always uses the vertical layout: horizontal menus do not fit.
+  const layout: LayoutMode = isMobile && p.layout !== 'full-content' ? 'sidebar-nav' : p.layout
+  const flags = LAYOUT_FLAGS[layout]
+
+  const activeId = roots.find(root => isMenuRootActive(root, pathname))?.id
+  // A root the user clicked wins over the active one until the next navigation clears it.
+  const selectedId = picked ?? activeId ?? roots[0]?.id
+  const selectedRoot = roots.find(root => root.id === selectedId)
+
+  const routerNavigate = (href: string, external?: boolean) => {
+    if (external) window.open(href, '_blank', 'noopener,noreferrer')
+    else void navigate({ href })
+  }
+
+  const openRoot = (root: MenuRoot) => {
+    setPicked(root.id)
+    if (root.link) {
+      if (root.link.url !== pathname) routerNavigate(root.link.url, root.link.external)
+      return
+    }
+    if (p.autoActivate) {
+      const target = firstMenuLeaf(root.items)?.url
+      if (target && target !== pathname) routerNavigate(target)
+    }
+  }
+
+  const selectMixed = (entry: MixedColumnEntry) => {
+    if (layout === 'header-mixed-nav') setMixedPick(entry.id)
+    else setPicked(entry.id)
+
+    if (entry.children.length === 0) {
+      const item =
+        layout === 'header-mixed-nav'
+          ? selectedRoot?.items.find(i => i.id === entry.id)
+          : roots.find(root => root.id === entry.id)?.link
+      if (item) routerNavigate(item.url, item.external)
+    } else if (p.autoActivate) {
+      const target = firstMenuLeaf(entry.children)?.url
+      if (target && target !== pathname) routerNavigate(target)
+    }
+  }
+
+  const mixedEntries = useMemo<MixedColumnEntry[]>(() => {
+    if (layout === 'header-mixed-nav') {
+      return (selectedRoot?.items ?? []).map(item => ({
+        id: item.id,
+        title: item.title,
+        icon: item.icon,
+        children: item.subItems ?? [],
+        isActive: isMenuItemActive(item, pathname)
+      }))
+    }
+    return roots.map(root => ({
+      id: root.id,
+      title: root.title,
+      icon: root.icon,
+      children: root.link ? [] : root.items,
+      isActive: isMenuRootActive(root, pathname)
+    }))
+  }, [layout, selectedRoot, roots, pathname])
+
+  const mixedSelectedId =
+    layout === 'header-mixed-nav'
+      ? mixedPick && mixedEntries.some(e => e.id === mixedPick)
+        ? mixedPick
+        : mixedEntries.find(e => e.isActive)?.id
+      : selectedId
+
+  const splitRoot = layout === 'mixed-nav' && p.navigationSplit ? selectedRoot : undefined
+  const sidebarGroups = useMemo<readonly MenuGroup[]>(
+    () => (splitRoot && !splitRoot.link ? [{ id: splitRoot.id, items: [...splitRoot.items] }] : groups),
+    [splitRoot, groups]
+  )
+
+  const headerMenu = flags.headerMenu
+    ? { roots, mode: flags.headerMenu, selectedId, onSelect: flags.headerMenu === 'select' ? openRoot : undefined }
+    : undefined
+
+  const showHeader = layout !== 'full-content'
+  const header = showHeader ? (
+    <AdminHeader showBrand={flags.headerOnTop} showSidebarToggle={flags.sidebar === 'primary'} menu={headerMenu} />
+  ) : null
+
+  const headerOffset = flags.headerOnTop ? '3rem' : '0px'
 
   return (
     <SidebarProvider
       defaultOpen={defaultOpen}
+      className={flags.headerOnTop ? 'flex-col' : 'flex-row'}
       style={
         {
-          '--sidebar-width': 'calc(var(--spacing) * 68)'
+          '--sidebar-width': 'var(--app-sidebar-width)',
+          '--sidebar-width-icon': '3rem',
+          '--app-sidebar-width': '272px',
+          '--app-sidebar-mixed-width': '56px',
+          '--app-header-offset': headerOffset
         } as CSSProperties
       }
     >
-      <div inert={locked} className="contents">
-        <AppSidebar variant={variant} collapsible={collapsible} />
+      {flags.headerOnTop && header && (
+        <div inert={locked} className="w-full shrink-0">
+          {header}
+        </div>
+      )}
+      <div
+        inert={locked}
+        className={cn(
+          'flex min-h-0 w-full flex-1',
+          // The shadcn sidebar is position:fixed; below a full-width header it starts lower.
+          flags.headerOnTop &&
+            '[&_[data-slot=sidebar-container]]:top-(--app-header-offset) [&_[data-slot=sidebar-container]]:h-[calc(100svh-var(--app-header-offset))] [&_[data-slot=sidebar-container]]:transition-[top,height,width,left]'
+        )}
+      >
+        {flags.sidebar === 'primary' && (
+          <AppSidebar
+            groups={sidebarGroups}
+            showBrand={!flags.headerOnTop}
+            variant={variant}
+            collapsible={collapsible}
+          />
+        )}
+        {flags.sidebar === 'mixed' && (
+          <MixedSidebar
+            entries={mixedEntries}
+            selectedId={mixedSelectedId}
+            onSelect={selectMixed}
+            topOffset={flags.headerOnTop}
+            showBrand={!flags.headerOnTop}
+          />
+        )}
         <SidebarInset
           className={cn(
             '[html[data-content-layout=centered]_&>*]:mx-auto [html[data-content-layout=centered]_&>*]:w-full [html[data-content-layout=centered]_&>*]:max-w-screen-2xl',
@@ -54,42 +216,12 @@ export function AppShell({ defaultOpen, variant, collapsible, children }: ShellP
             'min-w-0 overflow-x-clip'
           )}
         >
-          <header
-            className={cn(
-              'flex h-12 shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear',
-              // Sticky navbar styling; keeps the glass/border consistent across sidebar variants.
-              '[html[data-navbar-style=sticky]_&]:sticky [html[data-navbar-style=sticky]_&]:top-0 [html[data-navbar-style=sticky]_&]:z-50 [html[data-navbar-style=sticky]_&]:overflow-hidden [html[data-navbar-style=sticky]_&]:rounded-t-[inherit] [html[data-navbar-style=sticky]_&]:bg-background/50 [html[data-navbar-style=sticky]_&]:backdrop-blur-md'
-            )}
-          >
-            <div className="flex w-full items-center justify-between gap-2 px-4 lg:px-6">
-              <div className="flex shrink-0 items-center gap-1 lg:gap-2">
-                <SidebarTrigger className="-ml-1" />
-                <Separator
-                  orientation="vertical"
-                  className="mx-1 data-[orientation=vertical]:h-4 data-[orientation=vertical]:self-center lg:mx-2"
-                />
-                <SearchTrigger />
-              </div>
-
-              <div className="flex shrink-0 items-center gap-3">
-                <LayoutControls />
-                {widgetNotification && <NotificationButton />}
-                <div className="hidden md:contents">
-                  <GithubHelp />
-                </div>
-                <ThemeSwitcher />
-                <div className="hidden md:contents">
-                  <FullscreenToggle />
-                </div>
-                <UserMenu />
-              </div>
-            </div>
-          </header>
-          {tabbarEnable && <Tabbar />}
-          {/* Pages can set data-content-padding="false" to render full-bleed app layouts. */}
+          {!flags.headerOnTop && header}
+          {p.tabbarEnable && <Tabbar />}
           <ShellContent>{children}</ShellContent>
         </SidebarInset>
       </div>
+
       <DocumentTitle />
       <Watermark />
       <UpdateChecker />
@@ -103,7 +235,7 @@ export function AppShell({ defaultOpen, variant, collapsible, children }: ShellP
 
 /**
  * The page body's entrance animation, isolated so only this subtree re-renders when the pathname
- * or refresh counter changes; the sidebar, header and tabbar above it stay put.
+ * or refresh counter changes; the frame around it stays put.
  */
 function PageFrame({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: state => state.location.pathname })
