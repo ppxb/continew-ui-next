@@ -1,17 +1,12 @@
+import { useState } from 'react'
+
 import { Tabs } from '@animate-ui/react/primitives/base-ui/tabs'
 import { Settings } from 'lucide-react'
 import { useShallow } from 'zustand/react/shallow'
 
+import { EntityDrawer } from '@/components/entity-drawer'
 import { Button } from '@/components/ui/button'
-import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger
-} from '@/components/ui/drawer'
+import { DrawerFooter } from '@/components/ui/drawer'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Kbd, KbdGroup } from '@/components/ui/kbd'
@@ -30,6 +25,7 @@ import {
   type TabbarStyle
 } from '@/lib/preferences/layout'
 import { THEME_COLOR_OPTIONS, type ThemeColor, type ThemeMode } from '@/lib/preferences/theme'
+import { useLogout } from '@/hooks/use-logout'
 import { usePreferencesStore } from '@/stores/preferences/preferences-provider'
 
 /** Discrete root font sizes offered in the panel; the underlying preference stays a number. */
@@ -153,6 +149,13 @@ export function LayoutControls() {
     app_enable_check_updates: checkUpdates
   } = values
 
+  const logout = useLogout()
+  const [open, setOpen] = useState(false)
+  const clearAndLogout = () => {
+    resetPreferences()
+    void logout()
+  }
+
   const themeColorItems = THEME_COLOR_OPTIONS.map(color => ({
     value: color.value,
     label: (
@@ -167,10 +170,10 @@ export function LayoutControls() {
   }))
 
   return (
-    <Drawer swipeDirection="right">
+    <>
       <Tooltip>
         <TooltipTrigger
-          render={<DrawerTrigger render={<Button size="icon-sm" variant="outline" aria-label="偏好设置" />} />}
+          render={<Button size="icon-sm" variant="outline" aria-label="偏好设置" onClick={() => setOpen(true)} />}
         >
           <Settings />
         </TooltipTrigger>
@@ -178,12 +181,13 @@ export function LayoutControls() {
           偏好设置
         </TooltipContent>
       </Tooltip>
-      <DrawerContent>
-        <DrawerHeader>
-          <DrawerTitle>偏好设置</DrawerTitle>
-          <DrawerDescription>自定义仪表盘的外观与布局</DrawerDescription>
-        </DrawerHeader>
-
+      <EntityDrawer
+        open={open}
+        onClose={() => setOpen(false)}
+        title="偏好设置"
+        icon={<Settings className="size-4" />}
+        description="自定义仪表盘的外观与布局"
+      >
         <Tabs.Root defaultValue="appearance" className="flex min-h-0 flex-1 flex-col gap-0">
           <div className="px-4 pt-3 pb-1">
             <Tabs.List className="grid h-8 w-full grid-cols-4 items-center rounded-lg bg-muted p-[3px] text-sm text-muted-foreground">
@@ -575,12 +579,15 @@ export function LayoutControls() {
           </div>
         </Tabs.Root>
 
-        <DrawerFooter>
-          <Button type="button" size="sm" variant="outline" className="w-full text-xs" onClick={resetPreferences}>
-            恢复默认
+        <DrawerFooter className="grid grid-cols-2 gap-3">
+          <Button type="button" variant="default" onClick={resetPreferences}>
+            恢复默认值
+          </Button>
+          <Button type="button" variant="outline" onClick={clearAndLogout}>
+            清空缓存 &amp; 退出登录
           </Button>
         </DrawerFooter>
-      </DrawerContent>
-    </Drawer>
+      </EntityDrawer>
+    </>
   )
 }
