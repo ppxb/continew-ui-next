@@ -40,7 +40,11 @@ export function FullscreenToggle() {
 
   return (
     <Tooltip>
-      <TooltipTrigger render={<Button variant="outline" size="icon-sm" onClick={toggle} />}>
+      <TooltipTrigger
+        render={
+          <Button variant="outline" size="icon-sm" aria-label={label} aria-pressed={isFullscreen} onClick={toggle} />
+        }
+      >
         {isFullscreen ? <Minimize /> : <Maximize />}
       </TooltipTrigger>
       <TooltipContent side="bottom" sideOffset={8}>
