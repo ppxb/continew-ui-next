@@ -2,12 +2,15 @@ import { createContext, use, useEffect, useState } from 'react'
 
 import { type StoreApi, useStore } from 'zustand'
 
+import { getClientCookie } from '@/lib/cookie'
+import { getLocalStorageValue } from '@/lib/local-storage'
 import {
   PREFERENCE_DEFAULTS,
   PREFERENCE_KEYS,
   PREFERENCE_REGISTRY,
   type PreferenceKey,
   type PreferenceValueMap,
+  getPreferenceStorageKey,
   parsePreference
 } from '@/lib/preferences/preferences-config'
 import { applyThemeMode, subscribeToSystemTheme } from '@/lib/preferences/theme-utils'
@@ -29,7 +32,16 @@ function readDomPreference<K extends PreferenceKey>(key: K): PreferenceValueMap[
     return parsePreference(key, window.getComputedStyle(root).getPropertyValue(name))
   }
 
-  return PREFERENCE_DEFAULTS[key]
+  // JS-only preferences (boolean/text) have no DOM target, so read the stored value directly.
+  const storageKey = getPreferenceStorageKey(key)
+  const raw =
+    definition.persistence === 'localStorage'
+      ? getLocalStorageValue(storageKey)
+      : definition.persistence === 'client-cookie'
+        ? getClientCookie(storageKey)
+        : null
+
+  return parsePreference(key, raw)
 }
 
 function readDomPreferences(): PreferenceValueMap {

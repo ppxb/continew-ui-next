@@ -16,6 +16,7 @@ import { ThemeSwitcher } from './header/theme-switcher'
 import { UserMenu } from './header/user-menu'
 import { AppSidebar } from './sidebar/app-sidebar'
 import { BreadcrumbView, useBreadcrumbTrail } from './app-breadcrumb'
+import { DocumentTitle, UpdateChecker, Watermark } from './page-effects'
 
 /** Application shell shared by every authenticated section. */
 export function AppShell({ defaultOpen, variant, collapsible, children }: ShellPreferences & { children: ReactNode }) {
@@ -70,6 +71,9 @@ export function AppShell({ defaultOpen, variant, collapsible, children }: ShellP
         {/* Pages can set data-content-padding="false" to render full-bleed app layouts. */}
         <ShellContent>{children}</ShellContent>
       </SidebarInset>
+      <DocumentTitle />
+      <Watermark />
+      <UpdateChecker />
     </SidebarProvider>
   )
 }

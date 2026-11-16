@@ -253,3 +253,14 @@ html {
 .disable-transitions * {
   transition: none !important;
 }
+
+/* Tiled watermark layer, toggled by the app_watermark preference. Under overlays, above content. */
+[data-slot='app-watermark'] {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}

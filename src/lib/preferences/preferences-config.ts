@@ -10,7 +10,8 @@
  * DOM:
  * `attribute` → written to `<html data-*>` for CSS selectors.
  * `cssVar`    → written to `<html style>` as custom properties (numbers get `unit`).
- * The boot script applies both before the first paint, so layout and theme never flicker.
+ * `boolean`/`text` preferences carry neither and are consumed by JS only.
+ * The boot script applies both DOM kinds before the first paint, so nothing flickers.
  */
 
 import {
@@ -44,7 +45,15 @@ type NumberDefinition = DomTarget & {
   unit?: 'px'
 }
 
-export type PreferenceDefinition = EnumDefinition<readonly string[]> | NumberDefinition
+type BooleanDefinition = DomTarget & { type: 'boolean'; defaultValue: boolean }
+
+type TextDefinition = DomTarget & { type: 'text'; defaultValue: string; maxLength: number }
+
+export type PreferenceDefinition =
+  | EnumDefinition<readonly string[]>
+  | NumberDefinition
+  | BooleanDefinition
+  | TextDefinition
 
 const cookie = (attribute: `data-${string}`): DomTarget => ({ persistence: 'client-cookie', attribute })
 const local: DomTarget = { persistence: 'localStorage' }
@@ -66,6 +75,14 @@ function numberPref(
   return { type: 'number', defaultValue, min, max, ...target }
 }
 
+function boolPref(defaultValue: boolean, target: DomTarget = local): BooleanDefinition {
+  return { type: 'boolean', defaultValue, ...target }
+}
+
+function textPref(defaultValue: string, maxLength: number, target: DomTarget = local): TextDefinition {
+  return { type: 'text', defaultValue, maxLength, ...target }
+}
+
 export const PREFERENCE_REGISTRY = {
   theme_mode: enumPref(THEME_MODE_VALUES, 'light', cookie('data-theme-mode')),
   theme_color: enumPref(THEME_COLOR_VALUES, 'blue', cookie('data-theme-color')),
@@ -75,7 +92,13 @@ export const PREFERENCE_REGISTRY = {
   sidebar_collapsible: enumPref(SIDEBAR_COLLAPSIBLE_VALUES, 'icon', cookie('data-sidebar-collapsible')),
   radius: enumPref(RADIUS_VALUES, '0.5', cookie('data-radius')),
   // Root font size, in px: drives the whole rem-based type scale.
-  font_size: numberPref(16, 14, 18, { ...local, cssVar: '--app-font-size', unit: 'px' })
+  font_size: numberPref(16, 14, 18, { ...local, cssVar: '--app-font-size', unit: 'px' }),
+
+  // General
+  app_dynamic_title: boolPref(true),
+  app_watermark: boolPref(false),
+  app_watermark_content: textPref('', 64),
+  app_enable_check_updates: boolPref(true)
 } as const satisfies Record<string, PreferenceDefinition>
 
 export type PreferenceKey = keyof typeof PREFERENCE_REGISTRY
@@ -84,7 +107,11 @@ type ValueOf<D> = D extends { type: 'enum'; values: readonly (infer V)[] }
   ? V
   : D extends { type: 'number' }
     ? number
-    : never
+    : D extends { type: 'boolean' }
+      ? boolean
+      : D extends { type: 'text' }
+        ? string
+        : never
 
 export type PreferenceValueMap = {
   [K in PreferenceKey]: ValueOf<(typeof PREFERENCE_REGISTRY)[K]>
@@ -116,13 +143,22 @@ export function parsePreference<K extends PreferenceKey>(
   const definition: PreferenceDefinition = PREFERENCE_REGISTRY[key]
   const fallback = definition.defaultValue as PreferenceValueMap[K]
 
-  if (rawValue == null || rawValue === '') return fallback
+  if (rawValue == null) return fallback
 
   if (definition.type === 'enum') {
     return (definition.values.includes(rawValue) ? rawValue : fallback) as PreferenceValueMap[K]
   }
 
+  if (definition.type === 'boolean') {
+    return (rawValue === 'true' ? true : rawValue === 'false' ? false : fallback) as PreferenceValueMap[K]
+  }
+
+  if (definition.type === 'text') {
+    return rawValue.slice(0, definition.maxLength) as PreferenceValueMap[K]
+  }
+
   // Numbers may arrive with a unit when read back from a CSS custom property (e.g. "16px").
+  if (rawValue === '') return fallback
   const value = Number(String(rawValue).replace(/[^0-9.+-]/g, ''))
   if (!Number.isFinite(value)) return fallback
   return Math.min(Math.max(Math.round(value), definition.min), definition.max) as PreferenceValueMap[K]

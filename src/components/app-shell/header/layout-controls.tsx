@@ -12,7 +12,9 @@ import {
   DrawerTrigger
 } from '@/components/ui/drawer'
 import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import {
@@ -51,6 +53,25 @@ function PreferenceSection({ title, children }: { title: string; children: React
   )
 }
 
+function PreferenceToggle({
+  label,
+  checked,
+  disabled,
+  onChange
+}: {
+  label: string
+  checked: boolean
+  disabled?: boolean
+  onChange: (checked: boolean) => void
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <Label className="text-xs font-medium">{label}</Label>
+      <Switch checked={checked} disabled={disabled} onCheckedChange={onChange} />
+    </div>
+  )
+}
+
 export function LayoutControls() {
   const { values, resolvedThemeMode, setPreference, resetPreferences } = usePreferencesStore(
     useShallow(state => ({
@@ -69,7 +90,11 @@ export function LayoutControls() {
     sidebar_variant: variant,
     sidebar_collapsible: collapsible,
     radius,
-    font_size: fontSize
+    font_size: fontSize,
+    app_dynamic_title: dynamicTitle,
+    app_watermark: watermarkEnabled,
+    app_watermark_content: watermarkContent,
+    app_enable_check_updates: checkUpdates
   } = values
 
   const themeColorItems = THEME_COLOR_OPTIONS.map(color => ({
@@ -100,7 +125,7 @@ export function LayoutControls() {
       <DrawerContent>
         <DrawerHeader>
           <DrawerTitle>偏好设置</DrawerTitle>
-          <DrawerDescription>自定义仪表盘的外观与布局，实时预览。</DrawerDescription>
+          <DrawerDescription>自定义仪表盘的外观与布局</DrawerDescription>
         </DrawerHeader>
 
         <div className="flex-1 space-y-6 overflow-y-auto overscroll-contain px-4 py-4">
@@ -289,6 +314,34 @@ export function LayoutControls() {
                 </ToggleGroupItem>
               </ToggleGroup>
             </PreferenceField>
+          </PreferenceSection>
+
+          <PreferenceSection title="通用">
+            <PreferenceToggle
+              label="动态标题"
+              checked={dynamicTitle}
+              onChange={checked => setPreference('app_dynamic_title', checked)}
+            />
+            <PreferenceToggle
+              label="水印"
+              checked={watermarkEnabled}
+              onChange={checked => setPreference('app_watermark', checked)}
+            />
+            <PreferenceField label="水印文案">
+              <Input
+                value={watermarkContent}
+                disabled={!watermarkEnabled}
+                maxLength={64}
+                placeholder="默认使用用户名"
+                className="h-8 text-xs"
+                onChange={event => setPreference('app_watermark_content', event.target.value)}
+              />
+            </PreferenceField>
+            <PreferenceToggle
+              label="定时检查更新"
+              checked={checkUpdates}
+              onChange={checked => setPreference('app_enable_check_updates', checked)}
+            />
           </PreferenceSection>
         </div>
 
