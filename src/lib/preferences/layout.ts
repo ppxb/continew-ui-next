@@ -58,8 +58,7 @@ export const LAYOUT_MODE_OPTIONS = [
   { label: '水平', value: 'header-nav', description: '菜单全部显示在顶部' },
   { label: '侧边导航', value: 'header-sidebar-nav', description: '顶部通栏，侧边导航' },
   { label: '混合垂直', value: 'mixed-nav', description: '垂直水平菜单共存' },
-  { label: '混合双列', value: 'header-mixed-nav', description: '双列、水平菜单共存' },
-  { label: '内容全屏', value: 'full-content', description: '不显示菜单，只显示内容' }
+  { label: '混合双列', value: 'header-mixed-nav', description: '双列、水平菜单共存' }
 ] as const
 export const LAYOUT_MODE_VALUES = LAYOUT_MODE_OPTIONS.map(v => v.value)
 export type LayoutMode = (typeof LAYOUT_MODE_VALUES)[number]

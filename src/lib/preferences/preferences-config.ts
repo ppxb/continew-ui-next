@@ -89,6 +89,8 @@ function textPref(defaultValue: string, maxLength: number, target: DomTarget = l
 export const PREFERENCE_REGISTRY = {
   theme_mode: enumPref(THEME_MODE_VALUES, 'light', cookie('data-theme-mode')),
   theme_color: enumPref(THEME_COLOR_VALUES, 'blue', cookie('data-theme-color')),
+  color_gray_mode: boolPref(false, { ...local, attribute: 'data-color-gray' }),
+  color_weak_mode: boolPref(false, { ...local, attribute: 'data-color-weak' }),
   content_layout: enumPref(CONTENT_LAYOUT_VALUES, 'full-width', cookie('data-content-layout')),
   navbar_style: enumPref(NAVBAR_STYLE_VALUES, 'sticky', cookie('data-navbar-style')),
   sidebar_variant: enumPref(SIDEBAR_VARIANT_VALUES, 'inset', cookie('data-sidebar-variant')),

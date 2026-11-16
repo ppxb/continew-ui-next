@@ -254,6 +254,19 @@ html {
   transition: none !important;
 }
 
+/* Colour filters mirroring the original Vue app: grey / colour-weak, combined with a space. */
+:root[data-color-gray='true'] {
+  filter: grayscale(100%);
+}
+
+:root[data-color-weak='true'] {
+  filter: invert(80%);
+}
+
+:root[data-color-gray='true'][data-color-weak='true'] {
+  filter: grayscale(100%) invert(80%);
+}
+
 /* Tiled watermark layer, toggled by the app_watermark preference. Under overlays, above content. */
 [data-slot='app-watermark'] {
   position: fixed;

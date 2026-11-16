@@ -122,6 +122,8 @@ export function LayoutControls() {
   const {
     theme_mode: themeMode,
     theme_color: themeColor,
+    color_weak_mode: colorWeak,
+    color_gray_mode: colorGray,
     layout: layoutMode,
     content_layout: contentLayout,
     navbar_style: navbarStyle,
@@ -210,7 +212,7 @@ export function LayoutControls() {
             </Tabs.List>
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-4">
-            <Tabs.Panel value="appearance" className="py-3">
+            <Tabs.Panel value="appearance" className="space-y-6 py-3">
               <PreferenceSection title="主题">
                 <PreferenceField label="主题模式">
                   <ToggleGroup
@@ -308,6 +310,19 @@ export function LayoutControls() {
                     ))}
                   </ToggleGroup>
                 </PreferenceField>
+              </PreferenceSection>
+
+              <PreferenceSection title="其他">
+                <PreferenceToggle
+                  label="色弱模式"
+                  checked={colorWeak}
+                  onChange={checked => setPreference('color_weak_mode', checked)}
+                />
+                <PreferenceToggle
+                  label="灰色模式"
+                  checked={colorGray}
+                  onChange={checked => setPreference('color_gray_mode', checked)}
+                />
               </PreferenceSection>
             </Tabs.Panel>
 

@@ -10,7 +10,7 @@ import { LAYOUT_MODE_OPTIONS, type LayoutMode } from '@/lib/preferences/layout'
  */
 function LayoutPreview({ mode }: { mode: LayoutMode }) {
   const headerTop = ['header-nav', 'header-sidebar-nav', 'mixed-nav', 'header-mixed-nav'].includes(mode)
-  const showHeader = mode !== 'full-content'
+  const showHeader = true
   const primary = ['sidebar-nav', 'header-sidebar-nav', 'mixed-nav'].includes(mode)
   const mixed = ['sidebar-mixed-nav', 'header-mixed-nav'].includes(mode)
   const hasMenu = ['header-nav', 'mixed-nav', 'header-mixed-nav'].includes(mode)

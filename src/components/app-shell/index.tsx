@@ -44,8 +44,7 @@ const LAYOUT_FLAGS: Record<LayoutMode, LayoutFlags> = {
   'header-nav': { sidebar: null, headerOnTop: true, headerMenu: 'navigate' },
   'header-sidebar-nav': { sidebar: 'primary', headerOnTop: true, headerMenu: null },
   'mixed-nav': { sidebar: 'primary', headerOnTop: true, headerMenu: 'select' },
-  'header-mixed-nav': { sidebar: 'mixed', headerOnTop: true, headerMenu: 'select' },
-  'full-content': { sidebar: null, headerOnTop: false, headerMenu: null }
+  'header-mixed-nav': { sidebar: 'mixed', headerOnTop: true, headerMenu: 'select' }
 }
 
 /** Application shell shared by every authenticated section; the layout mode picks the frame. */
@@ -79,7 +78,7 @@ export function AppShell({ defaultOpen, variant, collapsible, children }: ShellP
   }, [pathname])
 
   // Mobile always uses the vertical layout: horizontal menus do not fit.
-  const layout: LayoutMode = isMobile && p.layout !== 'full-content' ? 'sidebar-nav' : p.layout
+  const layout: LayoutMode = isMobile ? 'sidebar-nav' : p.layout
   const flags = LAYOUT_FLAGS[layout]
 
   const activeId = roots.find(root => isMenuRootActive(root, pathname))?.id
@@ -162,10 +161,9 @@ export function AppShell({ defaultOpen, variant, collapsible, children }: ShellP
     ? { roots, mode: flags.headerMenu, selectedId, onSelect: flags.headerMenu === 'select' ? openRoot : undefined }
     : undefined
 
-  const showHeader = layout !== 'full-content'
-  const header = showHeader ? (
+  const header = (
     <AdminHeader showBrand={flags.headerOnTop} showSidebarToggle={sidebarKind === 'primary'} menu={headerMenu} />
-  ) : null
+  )
 
   const headerOffset = flags.headerOnTop ? '3rem' : '0px'
 
