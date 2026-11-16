@@ -49,7 +49,7 @@ const MODIFIER_KEY = /Mac|iPhone|iPad|iPod/.test(navigator.platform) ? '⌘' : '
 function PreferenceField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <Label className="text-xs font-medium">{label}</Label>
+      <Label>{label}</Label>
       {children}
     </div>
   )
@@ -58,7 +58,7 @@ function PreferenceField({ label, children }: { label: string; children: React.R
 function PreferenceSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="space-y-3">
-      <h4 className="text-sm leading-none font-medium">{title}</h4>
+      <h4 className="leading-none font-bold">{title}</h4>
       {children}
     </section>
   )
@@ -77,7 +77,7 @@ function PreferenceToggle({
 }) {
   return (
     <div className="flex items-center justify-between gap-3">
-      <Label className="text-xs font-medium">{label}</Label>
+      <Label>{label}</Label>
       <Switch checked={checked} disabled={disabled} onCheckedChange={onChange} />
     </div>
   )
@@ -99,7 +99,7 @@ function ShortcutRow({
   return (
     <div className="flex items-center justify-between gap-3">
       <div className="flex items-center gap-2">
-        <Label className="text-xs font-medium">{label}</Label>
+        <Label>{label}</Label>
         <KbdGroup>
           {keys.map(key => (
             <Kbd key={key}>{key}</Kbd>
