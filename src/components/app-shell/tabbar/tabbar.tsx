@@ -208,8 +208,9 @@ const Tab = React.memo(function Tab({
               }
             }}
             className={cn(
-              'group relative flex max-w-40 min-w-0 shrink-0 items-center gap-1.5 text-xs transition-colors duration-150 select-none',
+              'group relative flex max-w-40 min-w-0 shrink-0 items-center text-xs transition-colors duration-150 select-none',
               style.base,
+              'px-2',
               isActive ? style.active : style.idle,
               isDragging && 'z-10 opacity-80 shadow-md'
             )}
@@ -219,7 +220,10 @@ const Tab = React.memo(function Tab({
         <Link<RegisteredRouter, string, string>
           href={tab.path}
           draggable={false}
-          className="flex h-full min-w-0 flex-1 items-center gap-1.5 outline-none"
+          className={cn(
+            'flex h-full min-w-0 flex-1 items-center gap-1.5 outline-none',
+            tab.path !== '/dashboard' ? 'pr-4' : 'pr-1'
+          )}
         >
           {showIcon && React.createElement(resolveMenuIcon(tab.icon), { className: 'size-3.5 shrink-0' })}
           <span className="truncate">{tab.title}</span>
@@ -229,7 +233,7 @@ const Tab = React.memo(function Tab({
             type="button"
             onClick={() => actions.close(tab)}
             className={cn(
-              'flex size-4 shrink-0 items-center justify-center rounded-sm transition-opacity hover:bg-foreground/10',
+              'absolute inset-y-0 right-1 my-auto flex size-4 items-center justify-center rounded-sm transition-opacity hover:bg-foreground/10',
               isActive ? 'opacity-60 hover:opacity-100' : 'opacity-0 group-hover:opacity-60 hover:opacity-100'
             )}
           >
@@ -237,7 +241,11 @@ const Tab = React.memo(function Tab({
             <span className="sr-only">关闭 {tab.title}</span>
           </button>
         ) : (
-          tab.path !== '/dashboard' && <Pin className="size-3 shrink-0 opacity-50" />
+          tab.path !== '/dashboard' && (
+            <span className="absolute inset-y-0 right-1 my-auto flex size-4 items-center justify-center text-muted-foreground">
+              <Pin className="size-3 opacity-60" />
+            </span>
+          )
         )}
       </ContextMenuTrigger>
       <ContextMenuContent className="min-w-36">
