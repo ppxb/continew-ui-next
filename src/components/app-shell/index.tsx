@@ -72,9 +72,13 @@ export function AppShell({ defaultOpen, variant, collapsible, children }: ShellP
               <div className="flex shrink-0 items-center gap-3">
                 <LayoutControls />
                 <NotificationButton />
-                <GithubHelp />
+                <div className="hidden md:contents">
+                  <GithubHelp />
+                </div>
                 <ThemeSwitcher />
-                <FullscreenToggle />
+                <div className="hidden md:contents">
+                  <FullscreenToggle />
+                </div>
                 <UserMenu />
               </div>
             </div>
