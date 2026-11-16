@@ -1,3 +1,4 @@
+import { Tabs } from '@animate-ui/react/primitives/base-ui/tabs'
 import { Settings } from 'lucide-react'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -36,6 +37,10 @@ const FONT_SIZE_OPTIONS = [
   { label: '标准', value: '16' },
   { label: '大', value: '18' }
 ] as const
+
+/** Trigger styling shared by the preference tabs, mirroring the design-system ui/tabs look. */
+const TAB_TRIGGER_CLASS =
+  'relative inline-flex h-[calc(100%-1px)] items-center justify-center rounded-md px-1.5 py-0.5 text-sm font-medium whitespace-nowrap text-foreground/60 transition-colors hover:text-foreground data-active:bg-background data-active:text-foreground data-active:shadow-sm'
 
 function PreferenceField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -141,327 +146,354 @@ export function LayoutControls() {
           <DrawerDescription>自定义仪表盘的外观与布局</DrawerDescription>
         </DrawerHeader>
 
-        <div className="flex-1 space-y-6 overflow-y-auto overscroll-contain px-4 py-4">
-          <PreferenceSection title="主题">
-            <PreferenceField label="主题模式">
-              <ToggleGroup
-                size="sm"
-                spacing={0}
-                variant="outline"
-                className="w-full **:data-[slot=toggle-group-item]:flex-1 **:data-[slot=toggle-group-item]:text-xs"
-                value={[themeMode]}
-                onValueChange={([mode]) => {
-                  if (!mode) return
-                  setPreference('theme_mode', mode as ThemeMode)
-                }}
-              >
-                <ToggleGroupItem value="light" aria-label="切换浅色">
-                  浅色
-                </ToggleGroupItem>
-                <ToggleGroupItem value="dark" aria-label="切换深色">
-                  深色
-                </ToggleGroupItem>
-                <ToggleGroupItem value="system" aria-label="跟随系统">
-                  跟随系统
-                </ToggleGroupItem>
-              </ToggleGroup>
-            </PreferenceField>
+        <Tabs.Root defaultValue="appearance" className="flex min-h-0 flex-1 flex-col gap-0">
+          <div className="px-4 pt-3 pb-1">
+            <Tabs.List className="grid h-8 w-full grid-cols-4 items-center rounded-lg bg-muted p-[3px] text-sm text-muted-foreground">
+              <Tabs.Tab value="appearance" className={TAB_TRIGGER_CLASS}>
+                外观
+              </Tabs.Tab>
+              <Tabs.Tab value="layout" className={TAB_TRIGGER_CLASS}>
+                布局
+              </Tabs.Tab>
+              <Tabs.Tab value="tabbar" className={TAB_TRIGGER_CLASS}>
+                标签栏
+              </Tabs.Tab>
+              <Tabs.Tab value="general" className={TAB_TRIGGER_CLASS}>
+                通用
+              </Tabs.Tab>
+            </Tabs.List>
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-4">
+            <Tabs.Panel value="appearance" className="py-3">
+              <PreferenceSection title="主题">
+                <PreferenceField label="主题模式">
+                  <ToggleGroup
+                    size="sm"
+                    spacing={0}
+                    variant="outline"
+                    className="w-full **:data-[slot=toggle-group-item]:flex-1 **:data-[slot=toggle-group-item]:text-xs"
+                    value={[themeMode]}
+                    onValueChange={([mode]) => {
+                      if (!mode) return
+                      setPreference('theme_mode', mode as ThemeMode)
+                    }}
+                  >
+                    <ToggleGroupItem value="light" aria-label="切换浅色">
+                      浅色
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="dark" aria-label="切换深色">
+                      深色
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="system" aria-label="跟随系统">
+                      跟随系统
+                    </ToggleGroupItem>
+                  </ToggleGroup>
+                </PreferenceField>
 
-            <PreferenceField label="主题色">
-              <Select
-                items={themeColorItems}
-                value={themeColor}
-                onValueChange={value => {
-                  if (!value) return
-                  setPreference('theme_color', value as ThemeColor)
-                }}
-              >
-                <SelectTrigger size="sm" className="w-full text-xs">
-                  <SelectValue className="items-center" placeholder="选择颜色" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {THEME_COLOR_OPTIONS.map(color => (
-                      <SelectItem key={color.value} className="text-xs" value={color.value}>
-                        <span className="flex items-center gap-2">
-                          <span
-                            className="size-2.5 rounded-full"
-                            style={{
-                              backgroundColor: resolvedThemeMode === 'dark' ? color.primary.dark : color.primary.light
-                            }}
-                          />
-                          {color.label}
-                        </span>
-                      </SelectItem>
+                <PreferenceField label="主题色">
+                  <Select
+                    items={themeColorItems}
+                    value={themeColor}
+                    onValueChange={value => {
+                      if (!value) return
+                      setPreference('theme_color', value as ThemeColor)
+                    }}
+                  >
+                    <SelectTrigger size="sm" className="w-full text-xs">
+                      <SelectValue className="items-center" placeholder="选择颜色" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        {THEME_COLOR_OPTIONS.map(color => (
+                          <SelectItem key={color.value} className="text-xs" value={color.value}>
+                            <span className="flex items-center gap-2">
+                              <span
+                                className="size-2.5 rounded-full"
+                                style={{
+                                  backgroundColor:
+                                    resolvedThemeMode === 'dark' ? color.primary.dark : color.primary.light
+                                }}
+                              />
+                              {color.label}
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </PreferenceField>
+
+                <PreferenceField label="字号">
+                  <ToggleGroup
+                    size="sm"
+                    spacing={0}
+                    variant="outline"
+                    className="w-full **:data-[slot=toggle-group-item]:flex-1 **:data-[slot=toggle-group-item]:text-xs"
+                    value={[String(fontSize)]}
+                    onValueChange={([size]) => {
+                      if (!size) return
+                      setPreference('font_size', Number(size))
+                    }}
+                  >
+                    {FONT_SIZE_OPTIONS.map(option => (
+                      <ToggleGroupItem key={option.value} value={option.value}>
+                        {option.label}
+                      </ToggleGroupItem>
                     ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </PreferenceField>
+                  </ToggleGroup>
+                </PreferenceField>
 
-            <PreferenceField label="字号">
-              <ToggleGroup
-                size="sm"
-                spacing={0}
-                variant="outline"
-                className="w-full **:data-[slot=toggle-group-item]:flex-1 **:data-[slot=toggle-group-item]:text-xs"
-                value={[String(fontSize)]}
-                onValueChange={([size]) => {
-                  if (!size) return
-                  setPreference('font_size', Number(size))
-                }}
-              >
-                {FONT_SIZE_OPTIONS.map(option => (
-                  <ToggleGroupItem key={option.value} value={option.value}>
-                    {option.label}
-                  </ToggleGroupItem>
-                ))}
-              </ToggleGroup>
-            </PreferenceField>
+                <PreferenceField label="圆角">
+                  <ToggleGroup
+                    size="sm"
+                    spacing={0}
+                    variant="outline"
+                    className="w-full **:data-[slot=toggle-group-item]:flex-1 **:data-[slot=toggle-group-item]:text-xs"
+                    value={[radius]}
+                    onValueChange={([nextRadius]) => {
+                      if (!nextRadius) return
+                      setPreference('radius', nextRadius as Radius)
+                    }}
+                  >
+                    {RADIUS_OPTIONS.map(option => (
+                      <ToggleGroupItem key={option.value} value={option.value}>
+                        {option.label}
+                      </ToggleGroupItem>
+                    ))}
+                  </ToggleGroup>
+                </PreferenceField>
+              </PreferenceSection>
+            </Tabs.Panel>
 
-            <PreferenceField label="圆角">
-              <ToggleGroup
-                size="sm"
-                spacing={0}
-                variant="outline"
-                className="w-full **:data-[slot=toggle-group-item]:flex-1 **:data-[slot=toggle-group-item]:text-xs"
-                value={[radius]}
-                onValueChange={([nextRadius]) => {
-                  if (!nextRadius) return
-                  setPreference('radius', nextRadius as Radius)
-                }}
-              >
-                {RADIUS_OPTIONS.map(option => (
-                  <ToggleGroupItem key={option.value} value={option.value}>
-                    {option.label}
-                  </ToggleGroupItem>
-                ))}
-              </ToggleGroup>
-            </PreferenceField>
-          </PreferenceSection>
+            <Tabs.Panel value="layout" className="py-3">
+              <PreferenceSection title="布局">
+                <PreferenceField label="页面布局">
+                  <ToggleGroup
+                    size="sm"
+                    spacing={0}
+                    variant="outline"
+                    className="w-full **:data-[slot=toggle-group-item]:flex-1 **:data-[slot=toggle-group-item]:text-xs"
+                    value={[contentLayout]}
+                    onValueChange={([layout]) => {
+                      if (!layout) return
+                      setPreference('content_layout', layout as ContentLayout)
+                    }}
+                  >
+                    <ToggleGroupItem value="centered" aria-label="居中布局">
+                      居中
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="full-width" aria-label="全宽布局">
+                      全宽
+                    </ToggleGroupItem>
+                  </ToggleGroup>
+                </PreferenceField>
 
-          <PreferenceSection title="布局">
-            <PreferenceField label="页面布局">
-              <ToggleGroup
-                size="sm"
-                spacing={0}
-                variant="outline"
-                className="w-full **:data-[slot=toggle-group-item]:flex-1 **:data-[slot=toggle-group-item]:text-xs"
-                value={[contentLayout]}
-                onValueChange={([layout]) => {
-                  if (!layout) return
-                  setPreference('content_layout', layout as ContentLayout)
-                }}
-              >
-                <ToggleGroupItem value="centered" aria-label="居中布局">
-                  居中
-                </ToggleGroupItem>
-                <ToggleGroupItem value="full-width" aria-label="全宽布局">
-                  全宽
-                </ToggleGroupItem>
-              </ToggleGroup>
-            </PreferenceField>
+                <PreferenceField label="导航栏行为">
+                  <ToggleGroup
+                    size="sm"
+                    spacing={0}
+                    variant="outline"
+                    className="w-full **:data-[slot=toggle-group-item]:flex-1 **:data-[slot=toggle-group-item]:text-xs"
+                    value={[navbarStyle]}
+                    onValueChange={([style]) => {
+                      if (!style) return
+                      setPreference('navbar_style', style as NavbarStyle)
+                    }}
+                  >
+                    <ToggleGroupItem value="sticky" aria-label="吸顶导航">
+                      吸顶
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="scroll" aria-label="滚动导航">
+                      跟随滚动
+                    </ToggleGroupItem>
+                  </ToggleGroup>
+                </PreferenceField>
 
-            <PreferenceField label="导航栏行为">
-              <ToggleGroup
-                size="sm"
-                spacing={0}
-                variant="outline"
-                className="w-full **:data-[slot=toggle-group-item]:flex-1 **:data-[slot=toggle-group-item]:text-xs"
-                value={[navbarStyle]}
-                onValueChange={([style]) => {
-                  if (!style) return
-                  setPreference('navbar_style', style as NavbarStyle)
-                }}
-              >
-                <ToggleGroupItem value="sticky" aria-label="吸顶导航">
-                  吸顶
-                </ToggleGroupItem>
-                <ToggleGroupItem value="scroll" aria-label="滚动导航">
-                  跟随滚动
-                </ToggleGroupItem>
-              </ToggleGroup>
-            </PreferenceField>
+                <PreferenceField label="侧边栏样式">
+                  <ToggleGroup
+                    size="sm"
+                    spacing={0}
+                    variant="outline"
+                    className="w-full **:data-[slot=toggle-group-item]:flex-1 **:data-[slot=toggle-group-item]:text-xs"
+                    value={[variant]}
+                    onValueChange={([nextVariant]) => {
+                      if (!nextVariant) return
+                      setPreference('sidebar_variant', nextVariant as SidebarVariant)
+                    }}
+                  >
+                    <ToggleGroupItem value="inset" aria-label="内嵌侧边栏">
+                      内嵌
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="sidebar" aria-label="侧边栏">
+                      侧边
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="floating" aria-label="悬浮侧边栏">
+                      悬浮
+                    </ToggleGroupItem>
+                  </ToggleGroup>
+                </PreferenceField>
 
-            <PreferenceField label="侧边栏样式">
-              <ToggleGroup
-                size="sm"
-                spacing={0}
-                variant="outline"
-                className="w-full **:data-[slot=toggle-group-item]:flex-1 **:data-[slot=toggle-group-item]:text-xs"
-                value={[variant]}
-                onValueChange={([nextVariant]) => {
-                  if (!nextVariant) return
-                  setPreference('sidebar_variant', nextVariant as SidebarVariant)
-                }}
-              >
-                <ToggleGroupItem value="inset" aria-label="内嵌侧边栏">
-                  内嵌
-                </ToggleGroupItem>
-                <ToggleGroupItem value="sidebar" aria-label="侧边栏">
-                  侧边
-                </ToggleGroupItem>
-                <ToggleGroupItem value="floating" aria-label="悬浮侧边栏">
-                  悬浮
-                </ToggleGroupItem>
-              </ToggleGroup>
-            </PreferenceField>
+                <PreferenceField label="侧边栏折叠方式">
+                  <ToggleGroup
+                    size="sm"
+                    spacing={0}
+                    variant="outline"
+                    className="w-full **:data-[slot=toggle-group-item]:flex-1 **:data-[slot=toggle-group-item]:text-xs"
+                    value={[collapsible]}
+                    onValueChange={([nextCollapsible]) => {
+                      if (!nextCollapsible) return
+                      setPreference('sidebar_collapsible', nextCollapsible as SidebarCollapsible)
+                    }}
+                  >
+                    <ToggleGroupItem value="icon" aria-label="图标折叠">
+                      图标
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="offcanvas" aria-label="抽屉折叠">
+                      抽屉
+                    </ToggleGroupItem>
+                  </ToggleGroup>
+                </PreferenceField>
+              </PreferenceSection>
+            </Tabs.Panel>
 
-            <PreferenceField label="侧边栏折叠方式">
-              <ToggleGroup
-                size="sm"
-                spacing={0}
-                variant="outline"
-                className="w-full **:data-[slot=toggle-group-item]:flex-1 **:data-[slot=toggle-group-item]:text-xs"
-                value={[collapsible]}
-                onValueChange={([nextCollapsible]) => {
-                  if (!nextCollapsible) return
-                  setPreference('sidebar_collapsible', nextCollapsible as SidebarCollapsible)
-                }}
-              >
-                <ToggleGroupItem value="icon" aria-label="图标折叠">
-                  图标
-                </ToggleGroupItem>
-                <ToggleGroupItem value="offcanvas" aria-label="抽屉折叠">
-                  抽屉
-                </ToggleGroupItem>
-              </ToggleGroup>
-            </PreferenceField>
-          </PreferenceSection>
-
-          <PreferenceSection title="标签栏">
-            <PreferenceToggle
-              label="启用标签栏"
-              checked={tabbarEnable}
-              onChange={checked => setPreference('tabbar_enable', checked)}
-            />
-            <PreferenceToggle
-              label="持久化标签页"
-              checked={tabbarPersist}
-              disabled={!tabbarEnable}
-              onChange={checked => setPreference('tabbar_persist', checked)}
-            />
-            <PreferenceToggle
-              label="访问历史记录"
-              checked={tabbarVisitHistory}
-              disabled={!tabbarEnable}
-              onChange={checked => setPreference('tabbar_visit_history', checked)}
-            />
-            <PreferenceField label="标签风格">
-              <ToggleGroup
-                size="sm"
-                spacing={0}
-                variant="outline"
-                className="w-full **:data-[slot=toggle-group-item]:flex-1 **:data-[slot=toggle-group-item]:text-xs"
-                value={[tabbarStyle]}
-                onValueChange={([style]) => {
-                  if (!style) return
-                  setPreference('tabbar_style', style as TabbarStyle)
-                }}
-              >
-                {TABBAR_STYLE_OPTIONS.map(option => (
-                  <ToggleGroupItem key={option.value} value={option.value}>
-                    {option.label}
-                  </ToggleGroupItem>
-                ))}
-              </ToggleGroup>
-            </PreferenceField>
-            <div className="grid grid-cols-2 gap-3">
-              <PreferenceField label="最大标签数">
-                <Input
-                  type="number"
-                  min={0}
-                  max={50}
-                  value={tabbarMaxCount}
-                  disabled={!tabbarEnable}
-                  className="h-8 text-xs"
-                  onChange={event => {
-                    const value = Number(event.target.value)
-                    setPreference(
-                      'tabbar_max_count',
-                      Number.isFinite(value) ? Math.min(Math.max(Math.round(value), 0), 50) : 0
-                    )
-                  }}
+            <Tabs.Panel value="tabbar" className="py-3">
+              <PreferenceSection title="标签栏">
+                <PreferenceToggle
+                  label="启用标签栏"
+                  checked={tabbarEnable}
+                  onChange={checked => setPreference('tabbar_enable', checked)}
                 />
-              </PreferenceField>
-              <PreferenceField label="高度">
-                <Input
-                  type="number"
-                  min={28}
-                  max={56}
-                  value={tabbarHeight}
+                <PreferenceToggle
+                  label="持久化标签页"
+                  checked={tabbarPersist}
                   disabled={!tabbarEnable}
-                  className="h-8 text-xs"
-                  onChange={event => {
-                    const value = Number(event.target.value)
-                    setPreference(
-                      'tabbar_height',
-                      Number.isFinite(value) ? Math.min(Math.max(Math.round(value), 28), 56) : 38
-                    )
-                  }}
+                  onChange={checked => setPreference('tabbar_persist', checked)}
                 />
-              </PreferenceField>
-            </div>
-            <PreferenceToggle
-              label="拖拽排序"
-              checked={tabbarDraggable}
-              disabled={!tabbarEnable}
-              onChange={checked => setPreference('tabbar_draggable', checked)}
-            />
-            <PreferenceToggle
-              label="纵向滚轮横滚"
-              checked={tabbarWheelable}
-              disabled={!tabbarEnable}
-              onChange={checked => setPreference('tabbar_wheelable', checked)}
-            />
-            <PreferenceToggle
-              label="中键关闭标签"
-              checked={tabbarMiddleClick}
-              disabled={!tabbarEnable}
-              onChange={checked => setPreference('tabbar_middle_click_close', checked)}
-            />
-            <PreferenceToggle
-              label="显示图标"
-              checked={tabbarShowIcon}
-              disabled={!tabbarEnable}
-              onChange={checked => setPreference('tabbar_show_icon', checked)}
-            />
-            <PreferenceToggle
-              label="显示更多按钮"
-              checked={tabbarShowMore}
-              disabled={!tabbarEnable}
-              onChange={checked => setPreference('tabbar_show_more', checked)}
-            />
-          </PreferenceSection>
+                <PreferenceToggle
+                  label="访问历史记录"
+                  checked={tabbarVisitHistory}
+                  disabled={!tabbarEnable}
+                  onChange={checked => setPreference('tabbar_visit_history', checked)}
+                />
+                <PreferenceField label="标签风格">
+                  <ToggleGroup
+                    size="sm"
+                    spacing={0}
+                    variant="outline"
+                    className="w-full **:data-[slot=toggle-group-item]:flex-1 **:data-[slot=toggle-group-item]:text-xs"
+                    value={[tabbarStyle]}
+                    onValueChange={([style]) => {
+                      if (!style) return
+                      setPreference('tabbar_style', style as TabbarStyle)
+                    }}
+                  >
+                    {TABBAR_STYLE_OPTIONS.map(option => (
+                      <ToggleGroupItem key={option.value} value={option.value}>
+                        {option.label}
+                      </ToggleGroupItem>
+                    ))}
+                  </ToggleGroup>
+                </PreferenceField>
+                <div className="grid grid-cols-2 gap-3">
+                  <PreferenceField label="最大标签数">
+                    <Input
+                      type="number"
+                      min={0}
+                      max={50}
+                      value={tabbarMaxCount}
+                      disabled={!tabbarEnable}
+                      className="h-8 text-xs"
+                      onChange={event => {
+                        const value = Number(event.target.value)
+                        setPreference(
+                          'tabbar_max_count',
+                          Number.isFinite(value) ? Math.min(Math.max(Math.round(value), 0), 50) : 0
+                        )
+                      }}
+                    />
+                  </PreferenceField>
+                  <PreferenceField label="高度">
+                    <Input
+                      type="number"
+                      min={28}
+                      max={56}
+                      value={tabbarHeight}
+                      disabled={!tabbarEnable}
+                      className="h-8 text-xs"
+                      onChange={event => {
+                        const value = Number(event.target.value)
+                        setPreference(
+                          'tabbar_height',
+                          Number.isFinite(value) ? Math.min(Math.max(Math.round(value), 28), 56) : 38
+                        )
+                      }}
+                    />
+                  </PreferenceField>
+                </div>
+                <PreferenceToggle
+                  label="拖拽排序"
+                  checked={tabbarDraggable}
+                  disabled={!tabbarEnable}
+                  onChange={checked => setPreference('tabbar_draggable', checked)}
+                />
+                <PreferenceToggle
+                  label="纵向滚轮横滚"
+                  checked={tabbarWheelable}
+                  disabled={!tabbarEnable}
+                  onChange={checked => setPreference('tabbar_wheelable', checked)}
+                />
+                <PreferenceToggle
+                  label="中键关闭标签"
+                  checked={tabbarMiddleClick}
+                  disabled={!tabbarEnable}
+                  onChange={checked => setPreference('tabbar_middle_click_close', checked)}
+                />
+                <PreferenceToggle
+                  label="显示图标"
+                  checked={tabbarShowIcon}
+                  disabled={!tabbarEnable}
+                  onChange={checked => setPreference('tabbar_show_icon', checked)}
+                />
+                <PreferenceToggle
+                  label="显示更多按钮"
+                  checked={tabbarShowMore}
+                  disabled={!tabbarEnable}
+                  onChange={checked => setPreference('tabbar_show_more', checked)}
+                />
+              </PreferenceSection>
+            </Tabs.Panel>
 
-          <PreferenceSection title="通用">
-            <PreferenceToggle
-              label="动态标题"
-              checked={dynamicTitle}
-              onChange={checked => setPreference('app_dynamic_title', checked)}
-            />
-            <PreferenceToggle
-              label="水印"
-              checked={watermarkEnabled}
-              onChange={checked => setPreference('app_watermark', checked)}
-            />
-            <PreferenceField label="水印文案">
-              <Input
-                value={watermarkContent}
-                disabled={!watermarkEnabled}
-                maxLength={64}
-                placeholder="默认使用用户名"
-                className="h-8 text-xs"
-                onChange={event => setPreference('app_watermark_content', event.target.value)}
-              />
-            </PreferenceField>
-            <PreferenceToggle
-              label="定时检查更新"
-              checked={checkUpdates}
-              onChange={checked => setPreference('app_enable_check_updates', checked)}
-            />
-          </PreferenceSection>
-        </div>
+            <Tabs.Panel value="general" className="py-3">
+              <PreferenceSection title="通用">
+                <PreferenceToggle
+                  label="动态标题"
+                  checked={dynamicTitle}
+                  onChange={checked => setPreference('app_dynamic_title', checked)}
+                />
+                <PreferenceToggle
+                  label="水印"
+                  checked={watermarkEnabled}
+                  onChange={checked => setPreference('app_watermark', checked)}
+                />
+                <PreferenceField label="水印文案">
+                  <Input
+                    value={watermarkContent}
+                    disabled={!watermarkEnabled}
+                    maxLength={64}
+                    placeholder="默认使用用户名"
+                    className="h-8 text-xs"
+                    onChange={event => setPreference('app_watermark_content', event.target.value)}
+                  />
+                </PreferenceField>
+                <PreferenceToggle
+                  label="定时检查更新"
+                  checked={checkUpdates}
+                  onChange={checked => setPreference('app_enable_check_updates', checked)}
+                />
+              </PreferenceSection>
+            </Tabs.Panel>
+          </div>
+        </Tabs.Root>
 
         <DrawerFooter>
           <Button type="button" size="sm" variant="outline" className="w-full text-xs" onClick={resetPreferences}>
