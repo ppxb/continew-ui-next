@@ -20,11 +20,13 @@ import { UserMenu } from './header/user-menu'
 import { DocumentTitle, UpdateChecker, Watermark } from './page-effects'
 import { AppSidebar } from './sidebar/app-sidebar'
 import { Tabbar } from './tabbar/tabbar'
+import { LockScreenOverlay, LockScreenSetupDialog, useLockScreen } from './workspace-overlays'
 
 /** Application shell shared by every authenticated section. */
 export function AppShell({ defaultOpen, variant, collapsible, children }: ShellPreferences & { children: ReactNode }) {
   const tabbarEnable = usePreferencesStore(state => state.values.tabbar_enable)
   const tabbarPersist = usePreferencesStore(state => state.values.tabbar_persist)
+  const { locked, lock, unlock, clear } = useLockScreen()
 
   useEffect(() => {
     setTabsPersistence(tabbarPersist)
@@ -39,48 +41,52 @@ export function AppShell({ defaultOpen, variant, collapsible, children }: ShellP
         } as CSSProperties
       }
     >
-      <AppSidebar variant={variant} collapsible={collapsible} />
-      <SidebarInset
-        className={cn(
-          '[html[data-content-layout=centered]_&>*]:mx-auto [html[data-content-layout=centered]_&>*]:w-full [html[data-content-layout=centered]_&>*]:max-w-screen-2xl',
-          'peer-data-[variant=inset]:border',
-          '[--dashboard-header-height:--spacing(12)]',
-          'min-w-0 overflow-x-clip'
-        )}
-      >
-        <header
+      <div inert={locked} className="contents">
+        <AppSidebar variant={variant} collapsible={collapsible} />
+        <SidebarInset
           className={cn(
-            'flex h-12 shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear',
-            // Sticky navbar styling; keeps the glass/border consistent across sidebar variants.
-            '[html[data-navbar-style=sticky]_&]:sticky [html[data-navbar-style=sticky]_&]:top-0 [html[data-navbar-style=sticky]_&]:z-50 [html[data-navbar-style=sticky]_&]:overflow-hidden [html[data-navbar-style=sticky]_&]:rounded-t-[inherit] [html[data-navbar-style=sticky]_&]:bg-background/50 [html[data-navbar-style=sticky]_&]:backdrop-blur-md'
+            '[html[data-content-layout=centered]_&>*]:mx-auto [html[data-content-layout=centered]_&>*]:w-full [html[data-content-layout=centered]_&>*]:max-w-screen-2xl',
+            'peer-data-[variant=inset]:border',
+            '[--dashboard-header-height:--spacing(12)]',
+            'min-w-0 overflow-x-clip'
           )}
         >
-          <div className="flex w-full items-center justify-between gap-2 px-4 lg:px-6">
-            <div className="flex shrink-0 items-center gap-1 lg:gap-2">
-              <SidebarTrigger className="-ml-1" />
-              <Separator
-                orientation="vertical"
-                className="mx-1 data-[orientation=vertical]:h-4 data-[orientation=vertical]:self-center lg:mx-2"
-              />
-              <SearchDialog />
-            </div>
+          <header
+            className={cn(
+              'flex h-12 shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear',
+              // Sticky navbar styling; keeps the glass/border consistent across sidebar variants.
+              '[html[data-navbar-style=sticky]_&]:sticky [html[data-navbar-style=sticky]_&]:top-0 [html[data-navbar-style=sticky]_&]:z-50 [html[data-navbar-style=sticky]_&]:overflow-hidden [html[data-navbar-style=sticky]_&]:rounded-t-[inherit] [html[data-navbar-style=sticky]_&]:bg-background/50 [html[data-navbar-style=sticky]_&]:backdrop-blur-md'
+            )}
+          >
+            <div className="flex w-full items-center justify-between gap-2 px-4 lg:px-6">
+              <div className="flex shrink-0 items-center gap-1 lg:gap-2">
+                <SidebarTrigger className="-ml-1" />
+                <Separator
+                  orientation="vertical"
+                  className="mx-1 data-[orientation=vertical]:h-4 data-[orientation=vertical]:self-center lg:mx-2"
+                />
+                <SearchDialog />
+              </div>
 
-            <div className="flex shrink-0 items-center gap-3">
-              <LayoutControls />
-              <GithubHelp />
-              <ThemeSwitcher />
-              <FullscreenToggle />
-              <UserMenu />
+              <div className="flex shrink-0 items-center gap-3">
+                <LayoutControls />
+                <GithubHelp />
+                <ThemeSwitcher />
+                <FullscreenToggle />
+                <UserMenu />
+              </div>
             </div>
-          </div>
-        </header>
-        {tabbarEnable && <Tabbar />}
-        {/* Pages can set data-content-padding="false" to render full-bleed app layouts. */}
-        <ShellContent>{children}</ShellContent>
-      </SidebarInset>
+          </header>
+          {tabbarEnable && <Tabbar />}
+          {/* Pages can set data-content-padding="false" to render full-bleed app layouts. */}
+          <ShellContent>{children}</ShellContent>
+        </SidebarInset>
+      </div>
       <DocumentTitle />
       <Watermark />
       <UpdateChecker />
+      <LockScreenSetupDialog onLock={lock} />
+      {locked && <LockScreenOverlay onUnlock={unlock} onClear={clear} onForget={clear} />}
     </SidebarProvider>
   )
 }

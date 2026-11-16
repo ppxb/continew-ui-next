@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router'
 
-import { CircleUser, LogOut } from 'lucide-react'
+import { CircleUser, Lock, LogOut } from 'lucide-react'
 
 import { TagList } from '@/components/data-badge'
 import { Avatar, AvatarBadge, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -16,11 +16,13 @@ import {
 import { useLogout } from '@/hooks/use-logout'
 import { getInitials } from '@/lib/utils'
 import { useAuthStore } from '@/stores/auth/auth-provider'
+import { useShellStore } from '@/stores/shell'
 
 /** Current user menu: identity, department, roles and logout. */
 export function UserMenu() {
   const user = useAuthStore(state => state.user)
   const logout = useLogout()
+  const setLockSetupOpen = useShellStore(state => state.setLockSetupOpen)
 
   const name = user?.nickname || user?.username || ''
   const email = user?.email ?? ''
@@ -61,6 +63,10 @@ export function UserMenu() {
           <DropdownMenuItem render={<Link to="/dashboard/profile" />}>
             <CircleUser />
             个人信息
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setLockSetupOpen(true)}>
+            <Lock />
+            锁定屏幕
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
