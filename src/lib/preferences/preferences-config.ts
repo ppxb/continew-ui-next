@@ -19,7 +19,8 @@ import {
   NAVBAR_STYLE_VALUES,
   RADIUS_VALUES,
   SIDEBAR_COLLAPSIBLE_VALUES,
-  SIDEBAR_VARIANT_VALUES
+  SIDEBAR_VARIANT_VALUES,
+  TABBAR_STYLE_VALUES
 } from './layout'
 import { THEME_COLOR_VALUES, THEME_MODE_VALUES } from './theme'
 
@@ -93,6 +94,19 @@ export const PREFERENCE_REGISTRY = {
   radius: enumPref(RADIUS_VALUES, '0.5', cookie('data-radius')),
   // Root font size, in px: drives the whole rem-based type scale.
   font_size: numberPref(16, 14, 18, { ...local, cssVar: '--app-font-size', unit: 'px' }),
+
+  // Tabbar
+  tabbar_enable: boolPref(true),
+  tabbar_style: enumPref(TABBAR_STYLE_VALUES, 'plain', local),
+  tabbar_height: numberPref(38, 28, 56, { ...local, cssVar: '--app-tabbar-height', unit: 'px' }),
+  tabbar_max_count: numberPref(0, 0, 50, local),
+  tabbar_persist: boolPref(true),
+  tabbar_draggable: boolPref(true),
+  tabbar_wheelable: boolPref(true),
+  tabbar_middle_click_close: boolPref(false),
+  tabbar_visit_history: boolPref(true),
+  tabbar_show_icon: boolPref(true),
+  tabbar_show_more: boolPref(true),
 
   // General
   app_dynamic_title: boolPref(true),

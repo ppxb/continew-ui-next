@@ -23,7 +23,9 @@ import {
   type Radius,
   RADIUS_OPTIONS,
   type SidebarCollapsible,
-  type SidebarVariant
+  type SidebarVariant,
+  TABBAR_STYLE_OPTIONS,
+  type TabbarStyle
 } from '@/lib/preferences/layout'
 import { THEME_COLOR_OPTIONS, type ThemeColor, type ThemeMode } from '@/lib/preferences/theme'
 import { usePreferencesStore } from '@/stores/preferences/preferences-provider'
@@ -91,6 +93,17 @@ export function LayoutControls() {
     sidebar_collapsible: collapsible,
     radius,
     font_size: fontSize,
+    tabbar_enable: tabbarEnable,
+    tabbar_style: tabbarStyle,
+    tabbar_height: tabbarHeight,
+    tabbar_max_count: tabbarMaxCount,
+    tabbar_persist: tabbarPersist,
+    tabbar_draggable: tabbarDraggable,
+    tabbar_wheelable: tabbarWheelable,
+    tabbar_middle_click_close: tabbarMiddleClick,
+    tabbar_visit_history: tabbarVisitHistory,
+    tabbar_show_icon: tabbarShowIcon,
+    tabbar_show_more: tabbarShowMore,
     app_dynamic_title: dynamicTitle,
     app_watermark: watermarkEnabled,
     app_watermark_content: watermarkContent,
@@ -314,6 +327,111 @@ export function LayoutControls() {
                 </ToggleGroupItem>
               </ToggleGroup>
             </PreferenceField>
+          </PreferenceSection>
+
+          <PreferenceSection title="标签栏">
+            <PreferenceToggle
+              label="启用标签栏"
+              checked={tabbarEnable}
+              onChange={checked => setPreference('tabbar_enable', checked)}
+            />
+            <PreferenceToggle
+              label="持久化标签页"
+              checked={tabbarPersist}
+              disabled={!tabbarEnable}
+              onChange={checked => setPreference('tabbar_persist', checked)}
+            />
+            <PreferenceToggle
+              label="访问历史记录"
+              checked={tabbarVisitHistory}
+              disabled={!tabbarEnable}
+              onChange={checked => setPreference('tabbar_visit_history', checked)}
+            />
+            <PreferenceField label="标签风格">
+              <ToggleGroup
+                size="sm"
+                spacing={0}
+                variant="outline"
+                className="w-full **:data-[slot=toggle-group-item]:flex-1 **:data-[slot=toggle-group-item]:text-xs"
+                value={[tabbarStyle]}
+                onValueChange={([style]) => {
+                  if (!style) return
+                  setPreference('tabbar_style', style as TabbarStyle)
+                }}
+              >
+                {TABBAR_STYLE_OPTIONS.map(option => (
+                  <ToggleGroupItem key={option.value} value={option.value}>
+                    {option.label}
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
+            </PreferenceField>
+            <div className="grid grid-cols-2 gap-3">
+              <PreferenceField label="最大标签数">
+                <Input
+                  type="number"
+                  min={0}
+                  max={50}
+                  value={tabbarMaxCount}
+                  disabled={!tabbarEnable}
+                  className="h-8 text-xs"
+                  onChange={event => {
+                    const value = Number(event.target.value)
+                    setPreference(
+                      'tabbar_max_count',
+                      Number.isFinite(value) ? Math.min(Math.max(Math.round(value), 0), 50) : 0
+                    )
+                  }}
+                />
+              </PreferenceField>
+              <PreferenceField label="高度">
+                <Input
+                  type="number"
+                  min={28}
+                  max={56}
+                  value={tabbarHeight}
+                  disabled={!tabbarEnable}
+                  className="h-8 text-xs"
+                  onChange={event => {
+                    const value = Number(event.target.value)
+                    setPreference(
+                      'tabbar_height',
+                      Number.isFinite(value) ? Math.min(Math.max(Math.round(value), 28), 56) : 38
+                    )
+                  }}
+                />
+              </PreferenceField>
+            </div>
+            <PreferenceToggle
+              label="拖拽排序"
+              checked={tabbarDraggable}
+              disabled={!tabbarEnable}
+              onChange={checked => setPreference('tabbar_draggable', checked)}
+            />
+            <PreferenceToggle
+              label="纵向滚轮横滚"
+              checked={tabbarWheelable}
+              disabled={!tabbarEnable}
+              onChange={checked => setPreference('tabbar_wheelable', checked)}
+            />
+            <PreferenceToggle
+              label="中键关闭标签"
+              checked={tabbarMiddleClick}
+              disabled={!tabbarEnable}
+              onChange={checked => setPreference('tabbar_middle_click_close', checked)}
+            />
+            <PreferenceToggle
+              label="显示图标"
+              checked={tabbarShowIcon}
+              disabled={!tabbarEnable}
+              onChange={checked => setPreference('tabbar_show_icon', checked)}
+            />
+            <PreferenceToggle
+              label="显示更多按钮"
+              checked={tabbarShowMore}
+              disabled={!tabbarEnable}
+              onChange={checked => setPreference('tabbar_show_more', checked)}
+            />
           </PreferenceSection>
 
           <PreferenceSection title="通用">

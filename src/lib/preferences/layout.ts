@@ -41,3 +41,12 @@ export const RADIUS_OPTIONS = [
 ] as const
 export const RADIUS_VALUES = RADIUS_OPTIONS.map(v => v.value)
 export type Radius = (typeof RADIUS_VALUES)[number]
+
+// Tabbar style
+export const TABBAR_STYLE_OPTIONS = [
+  { label: '朴素', value: 'plain' },
+  { label: '卡片', value: 'card' },
+  { label: '轻快', value: 'brisk' }
+] as const
+export const TABBAR_STYLE_VALUES = TABBAR_STYLE_OPTIONS.map(v => v.value)
+export type TabbarStyle = (typeof TABBAR_STYLE_VALUES)[number]

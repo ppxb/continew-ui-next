@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from 'react'
+import { useEffect, type CSSProperties, type ReactNode } from 'react'
 
 import { useRouterState } from '@tanstack/react-router'
 import { cn } from 'cn'
@@ -6,20 +6,30 @@ import { cn } from 'cn'
 import { Separator } from '@/components/ui/separator'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import type { ShellPreferences } from '@/lib/shell-preferences'
+import { usePreferencesStore } from '@/stores/preferences/preferences-provider'
+import { useShellStore } from '@/stores/shell'
+import { setTabsPersistence } from '@/stores/tabs'
 
+import { BreadcrumbView, useBreadcrumbTrail } from './app-breadcrumb'
 import { FullscreenToggle } from './header/fullscreen-toggle'
 import { GithubHelp } from './header/github-help'
-import { HeaderTabs } from './header/header-tabs'
 import { LayoutControls } from './header/layout-controls'
 import { SearchDialog } from './header/search-dialog'
 import { ThemeSwitcher } from './header/theme-switcher'
 import { UserMenu } from './header/user-menu'
-import { AppSidebar } from './sidebar/app-sidebar'
-import { BreadcrumbView, useBreadcrumbTrail } from './app-breadcrumb'
 import { DocumentTitle, UpdateChecker, Watermark } from './page-effects'
+import { AppSidebar } from './sidebar/app-sidebar'
+import { Tabbar } from './tabbar/tabbar'
 
 /** Application shell shared by every authenticated section. */
 export function AppShell({ defaultOpen, variant, collapsible, children }: ShellPreferences & { children: ReactNode }) {
+  const tabbarEnable = usePreferencesStore(state => state.values.tabbar_enable)
+  const tabbarPersist = usePreferencesStore(state => state.values.tabbar_persist)
+
+  useEffect(() => {
+    setTabsPersistence(tabbarPersist)
+  }, [tabbarPersist])
+
   return (
     <SidebarProvider
       defaultOpen={defaultOpen}
@@ -55,10 +65,6 @@ export function AppShell({ defaultOpen, variant, collapsible, children }: ShellP
               <SearchDialog />
             </div>
 
-            <div className="hidden min-w-0 flex-1 items-center justify-center px-2 md:flex">
-              <HeaderTabs />
-            </div>
-
             <div className="flex shrink-0 items-center gap-3">
               <LayoutControls />
               <GithubHelp />
@@ -68,6 +74,7 @@ export function AppShell({ defaultOpen, variant, collapsible, children }: ShellP
             </div>
           </div>
         </header>
+        {tabbarEnable && <Tabbar />}
         {/* Pages can set data-content-padding="false" to render full-bleed app layouts. */}
         <ShellContent>{children}</ShellContent>
       </SidebarInset>
@@ -80,14 +87,15 @@ export function AppShell({ defaultOpen, variant, collapsible, children }: ShellP
 
 /**
  * The page body's entrance animation, isolated so only this subtree re-renders when the pathname
- * changes; the sidebar and header above it stay put.
+ * or refresh counter changes; the sidebar, header and tabbar above it stay put.
  */
 function PageFrame({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: state => state.location.pathname })
+  const refreshKey = useShellStore(state => state.refreshKey)
 
   return (
     <div
-      key={pathname}
+      key={`${pathname}:${refreshKey}`}
       className="motion-safe:animate-in motion-safe:duration-150 motion-safe:fade-in motion-safe:slide-in-from-bottom-1"
     >
       {children}
