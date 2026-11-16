@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/drawer'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
+import { Kbd, KbdGroup } from '@/components/ui/kbd'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
@@ -41,6 +42,9 @@ const FONT_SIZE_OPTIONS = [
 /** Trigger styling shared by the preference tabs, mirroring the design-system ui/tabs look. */
 const TAB_TRIGGER_CLASS =
   'relative inline-flex h-[calc(100%-1px)] items-center justify-center rounded-md px-1.5 py-0.5 text-sm font-medium whitespace-nowrap text-foreground/60 transition-colors hover:text-foreground data-active:bg-background data-active:text-foreground data-active:shadow-sm'
+
+/** Platform modifier key for the search shortcut hint. */
+const MODIFIER_KEY = /Mac|iPhone|iPad|iPod/.test(navigator.platform) ? '⌘' : 'Ctrl'
 
 function PreferenceField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -79,6 +83,34 @@ function PreferenceToggle({
   )
 }
 
+function ShortcutRow({
+  label,
+  keys,
+  checked,
+  disabled,
+  onChange
+}: {
+  label: string
+  keys: readonly string[]
+  checked: boolean
+  disabled?: boolean
+  onChange: (checked: boolean) => void
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center gap-2">
+        <Label className="text-xs font-medium">{label}</Label>
+        <KbdGroup>
+          {keys.map(key => (
+            <Kbd key={key}>{key}</Kbd>
+          ))}
+        </KbdGroup>
+      </div>
+      <Switch checked={checked} disabled={disabled} onCheckedChange={onChange} />
+    </div>
+  )
+}
+
 export function LayoutControls() {
   const { values, resolvedThemeMode, setPreference, resetPreferences } = usePreferencesStore(
     useShallow(state => ({
@@ -109,6 +141,12 @@ export function LayoutControls() {
     tabbar_visit_history: tabbarVisitHistory,
     tabbar_show_icon: tabbarShowIcon,
     tabbar_show_more: tabbarShowMore,
+    widget_notification: widgetNotification,
+    widget_lock_screen: widgetLockScreen,
+    shortcut_enable: shortcutEnabled,
+    shortcut_search: shortcutSearch,
+    shortcut_lock_screen: shortcutLock,
+    shortcut_logout: shortcutLogout,
     app_dynamic_title: dynamicTitle,
     app_watermark: watermarkEnabled,
     app_watermark_content: watermarkContent,
@@ -463,7 +501,7 @@ export function LayoutControls() {
               </PreferenceSection>
             </Tabs.Panel>
 
-            <Tabs.Panel value="general" className="py-3">
+            <Tabs.Panel value="general" className="space-y-6 py-3">
               <PreferenceSection title="通用">
                 <PreferenceToggle
                   label="动态标题"
@@ -489,6 +527,48 @@ export function LayoutControls() {
                   label="定时检查更新"
                   checked={checkUpdates}
                   onChange={checked => setPreference('app_enable_check_updates', checked)}
+                />
+              </PreferenceSection>
+
+              <PreferenceSection title="小部件">
+                <PreferenceToggle
+                  label="显示通知"
+                  checked={widgetNotification}
+                  onChange={checked => setPreference('widget_notification', checked)}
+                />
+                <PreferenceToggle
+                  label="启用锁屏"
+                  checked={widgetLockScreen}
+                  onChange={checked => setPreference('widget_lock_screen', checked)}
+                />
+              </PreferenceSection>
+
+              <PreferenceSection title="快捷键">
+                <PreferenceToggle
+                  label="启用快捷键"
+                  checked={shortcutEnabled}
+                  onChange={checked => setPreference('shortcut_enable', checked)}
+                />
+                <ShortcutRow
+                  label="全局搜索"
+                  keys={[MODIFIER_KEY, 'J']}
+                  checked={shortcutSearch}
+                  disabled={!shortcutEnabled}
+                  onChange={checked => setPreference('shortcut_search', checked)}
+                />
+                <ShortcutRow
+                  label="锁定屏幕"
+                  keys={['Alt', 'L']}
+                  checked={shortcutLock}
+                  disabled={!shortcutEnabled}
+                  onChange={checked => setPreference('shortcut_lock_screen', checked)}
+                />
+                <ShortcutRow
+                  label="退出登录"
+                  keys={['Alt', 'Q']}
+                  checked={shortcutLogout}
+                  disabled={!shortcutEnabled}
+                  onChange={checked => setPreference('shortcut_logout', checked)}
                 />
               </PreferenceSection>
             </Tabs.Panel>

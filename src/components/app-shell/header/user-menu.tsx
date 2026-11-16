@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router'
 
 import { CircleUser, Lock, LogOut } from 'lucide-react'
+import { useShallow } from 'zustand/react/shallow'
 
 import { TagList } from '@/components/data-badge'
 import { Avatar, AvatarBadge, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -13,9 +14,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
+import { Kbd, KbdGroup } from '@/components/ui/kbd'
 import { useLogout } from '@/hooks/use-logout'
 import { getInitials } from '@/lib/utils'
 import { useAuthStore } from '@/stores/auth/auth-provider'
+import { usePreferencesStore } from '@/stores/preferences/preferences-provider'
 import { useShellStore } from '@/stores/shell'
 
 /** Current user menu: identity, department, roles and logout. */
@@ -23,6 +26,13 @@ export function UserMenu() {
   const user = useAuthStore(state => state.user)
   const logout = useLogout()
   const setLockSetupOpen = useShellStore(state => state.setLockSetupOpen)
+  const { lockScreen, shortcutLock, shortcutLogout } = usePreferencesStore(
+    useShallow(state => ({
+      lockScreen: state.values.widget_lock_screen,
+      shortcutLock: state.values.shortcut_enable && state.values.shortcut_lock_screen,
+      shortcutLogout: state.values.shortcut_enable && state.values.shortcut_logout
+    }))
+  )
 
   const name = user?.nickname || user?.username || ''
   const email = user?.email ?? ''
@@ -64,15 +74,29 @@ export function UserMenu() {
             <CircleUser />
             个人信息
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setLockSetupOpen(true)}>
-            <Lock />
-            锁定屏幕
-          </DropdownMenuItem>
+          {lockScreen && (
+            <DropdownMenuItem onClick={() => setLockSetupOpen(true)}>
+              <Lock />
+              锁定屏幕
+              {shortcutLock && (
+                <KbdGroup className="ml-auto">
+                  <Kbd>Alt</Kbd>
+                  <Kbd>L</Kbd>
+                </KbdGroup>
+              )}
+            </DropdownMenuItem>
+          )}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => void logout()}>
           <LogOut />
           登出系统
+          {shortcutLogout && (
+            <KbdGroup className="ml-auto">
+              <Kbd>Alt</Kbd>
+              <Kbd>Q</Kbd>
+            </KbdGroup>
+          )}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

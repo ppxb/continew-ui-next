@@ -19,6 +19,8 @@ import {
 import { Kbd, KbdGroup } from '@/components/ui/kbd'
 import { useMenuGroups } from '@/hooks/use-menu'
 import type { MenuGroup, MenuItem } from '@/navigation/menu'
+import { usePreferencesStore } from '@/stores/preferences/preferences-provider'
+import { useShellStore } from '@/stores/shell'
 
 interface SearchItem {
   id: string
@@ -29,7 +31,7 @@ interface SearchItem {
   external?: boolean
 }
 
-/** macOS shows ⌘; every other platform uses Ctrl, matching the handler below. */
+/** macOS shows ⌘; every other platform uses Ctrl, matching the global shortcut handler. */
 const MODIFIER_KEY = /Mac|iPhone|iPad|iPod/.test(navigator.platform) ? '⌘' : 'Ctrl'
 
 function toSearchItems(groups: readonly MenuGroup[]): SearchItem[] {
@@ -81,24 +83,36 @@ function FadingCommandList({ children }: { children: React.ReactNode }) {
   return <CommandList ref={listRef}>{children}</CommandList>
 }
 
+/** Header trigger; the palette itself is mounted once by the shell and opened through the store. */
+export function SearchTrigger() {
+  const setOpen = useShellStore(state => state.setSearchOpen)
+  const shortcut = usePreferencesStore(state => state.values.shortcut_enable && state.values.shortcut_search)
+
+  return (
+    <Button
+      onClick={() => setOpen(true)}
+      variant="link"
+      className="px-0! font-normal text-muted-foreground hover:no-underline"
+    >
+      <Search data-icon="inline-start" />
+      搜索
+      {shortcut && (
+        <KbdGroup>
+          <Kbd>{MODIFIER_KEY}</Kbd>
+          <Kbd>J</Kbd>
+        </KbdGroup>
+      )}
+    </Button>
+  )
+}
+
 export function SearchDialog() {
-  const [open, setOpen] = React.useState(false)
+  const open = useShellStore(state => state.searchOpen)
+  const setOpen = useShellStore(state => state.setSearchOpen)
   const [query, setQuery] = React.useState('')
   const navigate = useNavigate()
   const { groups } = useMenuGroups()
   const groupedItems = React.useMemo(() => groupBy(toSearchItems(groups)), [groups])
-
-  React.useEffect(() => {
-    const down = (e: KeyboardEvent) => {
-      if (e.repeat) return
-      if (e.key === 'j' && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault()
-        setOpen(prev => !prev)
-      }
-    }
-    document.addEventListener('keydown', down)
-    return () => document.removeEventListener('keydown', down)
-  }, [])
 
   const handleOpenChange = (value: boolean) => {
     setOpen(value)
@@ -139,28 +153,14 @@ export function SearchDialog() {
     ))
 
   return (
-    <>
-      <Button
-        onClick={() => handleOpenChange(true)}
-        variant="link"
-        className="px-0! font-normal text-muted-foreground hover:no-underline"
-      >
-        <Search data-icon="inline-start" />
-        搜索
-        <KbdGroup>
-          <Kbd>{MODIFIER_KEY}</Kbd>
-          <Kbd>J</Kbd>
-        </KbdGroup>
-      </Button>
-      <CommandDialog open={open} onOpenChange={handleOpenChange} title="搜索" description="搜索目录或页面">
-        <Command>
-          <CommandInput placeholder="搜索目录或页面" value={query} onValueChange={setQuery} />
-          <FadingCommandList>
-            <CommandEmpty>没有找到结果</CommandEmpty>
-            {renderGroups()}
-          </FadingCommandList>
-        </Command>
-      </CommandDialog>
-    </>
+    <CommandDialog open={open} onOpenChange={handleOpenChange} title="搜索" description="搜索目录或页面">
+      <Command>
+        <CommandInput placeholder="搜索目录或页面" value={query} onValueChange={setQuery} />
+        <FadingCommandList>
+          <CommandEmpty>没有找到结果</CommandEmpty>
+          {renderGroups()}
+        </FadingCommandList>
+      </Command>
+    </CommandDialog>
   )
 }

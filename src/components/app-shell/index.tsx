@@ -11,11 +11,12 @@ import { useShellStore } from '@/stores/shell'
 import { setTabsPersistence } from '@/stores/tabs'
 
 import { BreadcrumbView, useBreadcrumbTrail } from './app-breadcrumb'
+import { GlobalShortcuts } from './global-shortcuts'
 import { FullscreenToggle } from './header/fullscreen-toggle'
 import { GithubHelp } from './header/github-help'
 import { LayoutControls } from './header/layout-controls'
 import { NotificationButton } from './header/notification-button'
-import { SearchDialog } from './header/search-dialog'
+import { SearchDialog, SearchTrigger } from './header/search-dialog'
 import { ThemeSwitcher } from './header/theme-switcher'
 import { UserMenu } from './header/user-menu'
 import { DocumentTitle, UpdateChecker, Watermark } from './page-effects'
@@ -27,6 +28,7 @@ import { LockScreenOverlay, LockScreenSetupDialog, useLockScreen } from './works
 export function AppShell({ defaultOpen, variant, collapsible, children }: ShellPreferences & { children: ReactNode }) {
   const tabbarEnable = usePreferencesStore(state => state.values.tabbar_enable)
   const tabbarPersist = usePreferencesStore(state => state.values.tabbar_persist)
+  const widgetNotification = usePreferencesStore(state => state.values.widget_notification)
   const { locked, lock, unlock, clear } = useLockScreen()
 
   useEffect(() => {
@@ -66,12 +68,12 @@ export function AppShell({ defaultOpen, variant, collapsible, children }: ShellP
                   orientation="vertical"
                   className="mx-1 data-[orientation=vertical]:h-4 data-[orientation=vertical]:self-center lg:mx-2"
                 />
-                <SearchDialog />
+                <SearchTrigger />
               </div>
 
               <div className="flex shrink-0 items-center gap-3">
                 <LayoutControls />
-                <NotificationButton />
+                {widgetNotification && <NotificationButton />}
                 <div className="hidden md:contents">
                   <GithubHelp />
                 </div>
@@ -91,6 +93,8 @@ export function AppShell({ defaultOpen, variant, collapsible, children }: ShellP
       <DocumentTitle />
       <Watermark />
       <UpdateChecker />
+      <GlobalShortcuts />
+      <SearchDialog />
       <LockScreenSetupDialog onLock={lock} />
       {locked && <LockScreenOverlay onUnlock={unlock} onClear={clear} onForget={clear} />}
     </SidebarProvider>

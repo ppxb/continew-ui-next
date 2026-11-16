@@ -108,6 +108,16 @@ export const PREFERENCE_REGISTRY = {
   tabbar_show_icon: boolPref(true),
   tabbar_show_more: boolPref(true),
 
+  // Widgets
+  widget_notification: boolPref(true),
+  widget_lock_screen: boolPref(true),
+
+  // Shortcuts
+  shortcut_enable: boolPref(true),
+  shortcut_search: boolPref(true),
+  shortcut_lock_screen: boolPref(true),
+  shortcut_logout: boolPref(true),
+
   // General
   app_dynamic_title: boolPref(true),
   app_watermark: boolPref(false),
