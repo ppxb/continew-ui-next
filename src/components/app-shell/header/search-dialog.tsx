@@ -49,7 +49,7 @@ function toSearchItems(groups: readonly MenuGroup[]): SearchItem[] {
       return [
         {
           id: item.id,
-          group: group.label ?? '其他',
+          group: group.label ?? '固定',
           label: item.title,
           url: item.url,
           icon: item.icon,
