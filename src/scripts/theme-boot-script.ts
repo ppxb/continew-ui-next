@@ -2,10 +2,10 @@
  * Boot script that reads user preference values from cookies or localStorage
  * based on the configured persistence mode.
  *
- * The script is inlined into index.html at build time so the data attributes are
- * applied before the first paint, which keeps the theme and layout from
- * flickering on reload. Fonts are not part of it: `--app-font-sans` lives in
- * globals.css and is bundled with the stylesheet.
+ * The script is inlined into index.html at build time so the data attributes and
+ * CSS variables are applied before the first paint, which keeps the theme and
+ * layout from flickering on reload. Fonts are not part of it: `--app-font-sans`
+ * lives in globals.css and is bundled with the stylesheet.
  */
 import { PREFERENCE_REGISTRY } from '../lib/preferences/preferences-config'
 
@@ -34,18 +34,31 @@ export function buildThemeBootScript(): string {
         }
 
         function readPreference(key, definition) {
-          var mode = definition.persistence;
-          var value = null;
+          var storageKey = definition.persistence === "localStorage" ? "pref_" + key : key;
+          var raw = null;
 
-          if (mode === "localStorage") {
-            value = readLocal(key);
+          if (definition.persistence === "localStorage") {
+            raw = readLocal(storageKey);
+          } else if (definition.persistence === "client-cookie") {
+            raw = readCookie(storageKey);
           }
 
-          if (!value && mode === "client-cookie") {
-            value = readCookie(key);
+          if (raw == null || raw === "") return definition.defaultValue;
+
+          if (definition.type === "enum") {
+            return definition.values.indexOf(raw) >= 0 ? raw : definition.defaultValue;
           }
 
-          return definition.values.indexOf(value) >= 0 ? value : definition.defaultValue;
+          if (definition.type === "number") {
+            var value = Number(String(raw).replace(/[^0-9.+-]/g, ""));
+            if (!isFinite(value)) return definition.defaultValue;
+            value = Math.round(value);
+            if (value < definition.min) value = definition.min;
+            if (value > definition.max) value = definition.max;
+            return value;
+          }
+
+          return raw;
         }
 
         var preferences = {};
@@ -55,7 +68,18 @@ export function buildThemeBootScript(): string {
           var value = readPreference(key, definition);
 
           preferences[key] = value;
-          root.setAttribute(definition.attribute, value);
+
+          if (definition.attribute) {
+            root.setAttribute(definition.attribute, String(value));
+          }
+
+          if (definition.cssVar) {
+            var names = Array.isArray(definition.cssVar) ? definition.cssVar : [definition.cssVar];
+            var cssValue = definition.type === "number" && definition.unit ? value + definition.unit : String(value);
+            names.forEach(function(name) {
+              root.style.setProperty(name, cssValue);
+            });
+          }
         });
 
         var mode = preferences.theme_mode;

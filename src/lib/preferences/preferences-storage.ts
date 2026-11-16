@@ -2,6 +2,7 @@ import { setClientCookie } from '../cookie'
 import { setLocalStorageValue } from '../local-storage'
 import {
   getPreferencePersistence,
+  getPreferenceStorageKey,
   type PreferenceKey,
   type PreferencePersistence,
   type PreferenceValueMap
@@ -23,5 +24,5 @@ async function persistByMode(mode: PreferencePersistence, key: string, value: st
 }
 
 export function persistPreference<K extends PreferenceKey>(key: K, value: PreferenceValueMap[K]): Promise<void> {
-  return persistByMode(getPreferencePersistence(key), key, value)
+  return persistByMode(getPreferencePersistence(key), getPreferenceStorageKey(key), String(value))
 }

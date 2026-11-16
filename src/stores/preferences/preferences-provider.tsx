@@ -18,9 +18,18 @@ const PreferencesStoreContext = createContext<StoreApi<PreferencesState> | null>
 
 function readDomPreference<K extends PreferenceKey>(key: K): PreferenceValueMap[K] {
   const definition = PREFERENCE_REGISTRY[key]
-  const rawValue = document.documentElement.getAttribute(definition.attribute)
+  const root = document.documentElement
 
-  return parsePreference(key, rawValue)
+  if (definition.attribute) {
+    return parsePreference(key, root.getAttribute(definition.attribute))
+  }
+
+  if (definition.cssVar) {
+    const name = Array.isArray(definition.cssVar) ? definition.cssVar[0] : definition.cssVar
+    return parsePreference(key, window.getComputedStyle(root).getPropertyValue(name))
+  }
+
+  return PREFERENCE_DEFAULTS[key]
 }
 
 function readDomPreferences(): PreferenceValueMap {

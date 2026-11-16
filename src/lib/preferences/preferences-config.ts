@@ -1,9 +1,16 @@
 /**
- * How each preference is saved.
+ * Preference registry: every shell preference, its type, default, how it is saved and how it
+ * reaches the DOM.
  *
- * "client-cookie"  → written in the browser and read by the boot script before the first paint.
- * "localStorage"   → client only (non-layout stuff).
- * "none"           → no saving, resets on reload.
+ * Saving:
+ * "client-cookie" → read by the inline boot script before the first paint (layout-critical).
+ * "localStorage"  → everything else; stored under a `pref_` prefix and read synchronously too.
+ * "none"          → not saved, resets on reload.
+ *
+ * DOM:
+ * `attribute` → written to `<html data-*>` for CSS selectors.
+ * `cssVar`    → written to `<html style>` as custom properties (numbers get `unit`).
+ * The boot script applies both before the first paint, so layout and theme never flicker.
  */
 
 import {
@@ -17,116 +24,106 @@ import { THEME_COLOR_VALUES, THEME_MODE_VALUES } from './theme'
 
 export type PreferencePersistence = 'none' | 'client-cookie' | 'localStorage'
 
-type LayoutPersistence = Exclude<PreferencePersistence, 'localStorage'>
+type DomTarget = {
+  persistence: PreferencePersistence
+  attribute?: `data-${string}`
+  cssVar?: `--${string}` | readonly `--${string}`[]
+}
 
-type PreferenceDefinition<
-  Values extends readonly string[],
-  Persistence extends PreferencePersistence,
-  Attribute extends `data-${string}`
-> = {
+type EnumDefinition<Values extends readonly string[]> = DomTarget & {
+  type: 'enum'
   values: Values
   defaultValue: Values[number]
-  persistence: Persistence
-  attribute: Attribute
 }
 
-function definePreference<
-  const Values extends readonly string[],
-  const Persistence extends PreferencePersistence,
-  const Attribute extends `data-${string}`
->(definition: PreferenceDefinition<Values, Persistence, Attribute>) {
-  return definition
+type NumberDefinition = DomTarget & {
+  type: 'number'
+  defaultValue: number
+  min: number
+  max: number
+  unit?: 'px'
 }
 
-/**
- * Layout preferences are read by the inline boot script before the first paint, so they
- * cannot be stored in localStorage.
- */
-function defineBootPreference<
-  const Values extends readonly string[],
-  const Persistence extends LayoutPersistence,
-  const Attribute extends `data-${string}`
->(definition: PreferenceDefinition<Values, Persistence, Attribute>) {
-  return definition
+export type PreferenceDefinition = EnumDefinition<readonly string[]> | NumberDefinition
+
+const cookie = (attribute: `data-${string}`): DomTarget => ({ persistence: 'client-cookie', attribute })
+const local: DomTarget = { persistence: 'localStorage' }
+
+function enumPref<const Values extends readonly string[]>(
+  values: Values,
+  defaultValue: Values[number],
+  target: DomTarget
+): EnumDefinition<Values> {
+  return { type: 'enum', values, defaultValue, ...target }
+}
+
+function numberPref(
+  defaultValue: number,
+  min: number,
+  max: number,
+  target: DomTarget & { unit?: 'px' }
+): NumberDefinition {
+  return { type: 'number', defaultValue, min, max, ...target }
 }
 
 export const PREFERENCE_REGISTRY = {
-  theme_mode: definePreference({
-    values: THEME_MODE_VALUES,
-    defaultValue: 'light',
-    persistence: 'client-cookie',
-    attribute: 'data-theme-mode'
-  }),
-
-  theme_color: definePreference({
-    values: THEME_COLOR_VALUES,
-    defaultValue: 'blue',
-    persistence: 'client-cookie',
-    attribute: 'data-theme-color'
-  }),
-
-  content_layout: definePreference({
-    values: CONTENT_LAYOUT_VALUES,
-    defaultValue: 'full-width',
-    persistence: 'client-cookie',
-    attribute: 'data-content-layout'
-  }),
-
-  navbar_style: definePreference({
-    values: NAVBAR_STYLE_VALUES,
-    defaultValue: 'sticky',
-    persistence: 'client-cookie',
-    attribute: 'data-navbar-style'
-  }),
-
-  sidebar_variant: defineBootPreference({
-    values: SIDEBAR_VARIANT_VALUES,
-    defaultValue: 'inset',
-    persistence: 'client-cookie',
-    attribute: 'data-sidebar-variant'
-  }),
-
-  sidebar_collapsible: defineBootPreference({
-    values: SIDEBAR_COLLAPSIBLE_VALUES,
-    defaultValue: 'icon',
-    persistence: 'client-cookie',
-    attribute: 'data-sidebar-collapsible'
-  }),
-
-  radius: defineBootPreference({
-    values: RADIUS_VALUES,
-    defaultValue: '0.5',
-    persistence: 'client-cookie',
-    attribute: 'data-radius'
-  })
-} as const
+  theme_mode: enumPref(THEME_MODE_VALUES, 'light', cookie('data-theme-mode')),
+  theme_color: enumPref(THEME_COLOR_VALUES, 'blue', cookie('data-theme-color')),
+  content_layout: enumPref(CONTENT_LAYOUT_VALUES, 'full-width', cookie('data-content-layout')),
+  navbar_style: enumPref(NAVBAR_STYLE_VALUES, 'sticky', cookie('data-navbar-style')),
+  sidebar_variant: enumPref(SIDEBAR_VARIANT_VALUES, 'inset', cookie('data-sidebar-variant')),
+  sidebar_collapsible: enumPref(SIDEBAR_COLLAPSIBLE_VALUES, 'icon', cookie('data-sidebar-collapsible')),
+  radius: enumPref(RADIUS_VALUES, '0.5', cookie('data-radius')),
+  // Root font size, in px: drives the whole rem-based type scale.
+  font_size: numberPref(16, 14, 18, { ...local, cssVar: '--app-font-size', unit: 'px' })
+} as const satisfies Record<string, PreferenceDefinition>
 
 export type PreferenceKey = keyof typeof PREFERENCE_REGISTRY
 
+type ValueOf<D> = D extends { type: 'enum'; values: readonly (infer V)[] }
+  ? V
+  : D extends { type: 'number' }
+    ? number
+    : never
+
 export type PreferenceValueMap = {
-  [K in PreferenceKey]: (typeof PREFERENCE_REGISTRY)[K]['values'][number]
+  [K in PreferenceKey]: ValueOf<(typeof PREFERENCE_REGISTRY)[K]>
 }
 
 export const PREFERENCE_KEYS = Object.freeze(Object.keys(PREFERENCE_REGISTRY) as PreferenceKey[])
-
-export function getPreferencePersistence(key: PreferenceKey): PreferencePersistence {
-  return PREFERENCE_REGISTRY[key].persistence
-}
 
 export const PREFERENCE_DEFAULTS = Object.fromEntries(
   PREFERENCE_KEYS.map(key => [key, PREFERENCE_REGISTRY[key].defaultValue])
 ) as PreferenceValueMap
 
+export function getPreferencePersistence(key: PreferenceKey): PreferencePersistence {
+  return PREFERENCE_REGISTRY[key].persistence
+}
+
+/** localStorage entries are namespaced with a `pref_` prefix; cookies keep their original names. */
+export function getPreferenceStorageKey(key: PreferenceKey): string {
+  return PREFERENCE_REGISTRY[key].persistence === 'localStorage' ? `pref_${key}` : key
+}
+
+/**
+ * Parses a stored string into a valid value; anything invalid falls back to the default.
+ * The boot script repeats this logic in plain JS, keep the two in step.
+ */
 export function parsePreference<K extends PreferenceKey>(
   key: K,
   rawValue: string | null | undefined
 ): PreferenceValueMap[K] {
-  const definition = PREFERENCE_REGISTRY[key]
-  const allowedValues = definition.values as readonly string[]
+  const definition: PreferenceDefinition = PREFERENCE_REGISTRY[key]
+  const fallback = definition.defaultValue as PreferenceValueMap[K]
 
-  if (rawValue && allowedValues.includes(rawValue)) {
-    return rawValue as PreferenceValueMap[K]
+  if (rawValue == null || rawValue === '') return fallback
+
+  if (definition.type === 'enum') {
+    return (definition.values.includes(rawValue) ? rawValue : fallback) as PreferenceValueMap[K]
   }
 
-  return definition.defaultValue as PreferenceValueMap[K]
+  // Numbers may arrive with a unit when read back from a CSS custom property (e.g. "16px").
+  const value = Number(String(rawValue).replace(/[^0-9.+-]/g, ''))
+  if (!Number.isFinite(value)) return fallback
+  return Math.min(Math.max(Math.round(value), definition.min), definition.max) as PreferenceValueMap[K]
 }

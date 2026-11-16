@@ -2,8 +2,16 @@ import { Settings } from 'lucide-react'
 import { useShallow } from 'zustand/react/shallow'
 
 import { Button } from '@/components/ui/button'
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger
+} from '@/components/ui/drawer'
 import { Label } from '@/components/ui/label'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
@@ -17,6 +25,31 @@ import {
 } from '@/lib/preferences/layout'
 import { THEME_COLOR_OPTIONS, type ThemeColor, type ThemeMode } from '@/lib/preferences/theme'
 import { usePreferencesStore } from '@/stores/preferences/preferences-provider'
+
+/** Discrete root font sizes offered in the panel; the underlying preference stays a number. */
+const FONT_SIZE_OPTIONS = [
+  { label: '小', value: '14' },
+  { label: '标准', value: '16' },
+  { label: '大', value: '18' }
+] as const
+
+function PreferenceField({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-xs font-medium">{label}</Label>
+      {children}
+    </div>
+  )
+}
+
+function PreferenceSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="space-y-3">
+      <h4 className="text-sm leading-none font-medium">{title}</h4>
+      {children}
+    </section>
+  )
+}
 
 export function LayoutControls() {
   const { values, resolvedThemeMode, setPreference, resetPreferences } = usePreferencesStore(
@@ -35,7 +68,8 @@ export function LayoutControls() {
     navbar_style: navbarStyle,
     sidebar_variant: variant,
     sidebar_collapsible: collapsible,
-    radius
+    radius,
+    font_size: fontSize
   } = values
 
   const themeColorItems = THEME_COLOR_OPTIONS.map(color => ({
@@ -52,24 +86,50 @@ export function LayoutControls() {
   }))
 
   return (
-    <Popover>
+    <Drawer swipeDirection="right">
       <Tooltip>
-        <TooltipTrigger render={<PopoverTrigger render={<Button size="icon-sm" variant="outline" />} />}>
+        <TooltipTrigger
+          render={<DrawerTrigger render={<Button size="icon-sm" variant="outline" aria-label="偏好设置" />} />}
+        >
           <Settings />
         </TooltipTrigger>
         <TooltipContent side="bottom" sideOffset={8}>
           偏好设置
         </TooltipContent>
       </Tooltip>
-      <PopoverContent align="end">
-        <div className="flex flex-col gap-5">
-          <div className="space-y-1.5">
-            <h4 className="text-sm leading-none font-medium">偏好设置</h4>
-            <p className="text-xs text-muted-foreground">自定义仪表盘的外观与布局。</p>
-          </div>
-          <div className="space-y-3 **:data-[slot=toggle-group]:w-full **:data-[slot=toggle-group-item]:flex-1 **:data-[slot=toggle-group-item]:text-xs">
-            <div className="space-y-1">
-              <Label className="text-xs font-medium">主题色</Label>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerTitle>偏好设置</DrawerTitle>
+          <DrawerDescription>自定义仪表盘的外观与布局，实时预览。</DrawerDescription>
+        </DrawerHeader>
+
+        <div className="flex-1 space-y-6 overflow-y-auto overscroll-contain px-4 py-4">
+          <PreferenceSection title="主题">
+            <PreferenceField label="主题模式">
+              <ToggleGroup
+                size="sm"
+                spacing={0}
+                variant="outline"
+                className="w-full **:data-[slot=toggle-group-item]:flex-1 **:data-[slot=toggle-group-item]:text-xs"
+                value={[themeMode]}
+                onValueChange={([mode]) => {
+                  if (!mode) return
+                  setPreference('theme_mode', mode as ThemeMode)
+                }}
+              >
+                <ToggleGroupItem value="light" aria-label="切换浅色">
+                  浅色
+                </ToggleGroupItem>
+                <ToggleGroupItem value="dark" aria-label="切换深色">
+                  深色
+                </ToggleGroupItem>
+                <ToggleGroupItem value="system" aria-label="跟随系统">
+                  跟随系统
+                </ToggleGroupItem>
+              </ToggleGroup>
+            </PreferenceField>
+
+            <PreferenceField label="主题色">
               <Select
                 items={themeColorItems}
                 value={themeColor}
@@ -99,38 +159,56 @@ export function LayoutControls() {
                   </SelectGroup>
                 </SelectContent>
               </Select>
-            </div>
+            </PreferenceField>
 
-            <div className="space-y-1">
-              <Label className="text-xs font-medium">主题模式</Label>
+            <PreferenceField label="字号">
               <ToggleGroup
                 size="sm"
                 spacing={0}
                 variant="outline"
-                value={[themeMode]}
-                onValueChange={([mode]) => {
-                  if (!mode) return
-                  setPreference('theme_mode', mode as ThemeMode)
+                className="w-full **:data-[slot=toggle-group-item]:flex-1 **:data-[slot=toggle-group-item]:text-xs"
+                value={[String(fontSize)]}
+                onValueChange={([size]) => {
+                  if (!size) return
+                  setPreference('font_size', Number(size))
                 }}
               >
-                <ToggleGroupItem value="light" aria-label="切换浅色">
-                  浅色
-                </ToggleGroupItem>
-                <ToggleGroupItem value="dark" aria-label="切换深色">
-                  深色
-                </ToggleGroupItem>
-                <ToggleGroupItem value="system" aria-label="跟随系统">
-                  跟随系统
-                </ToggleGroupItem>
+                {FONT_SIZE_OPTIONS.map(option => (
+                  <ToggleGroupItem key={option.value} value={option.value}>
+                    {option.label}
+                  </ToggleGroupItem>
+                ))}
               </ToggleGroup>
-            </div>
+            </PreferenceField>
 
-            <div className="space-y-1">
-              <Label className="text-xs font-medium">页面布局</Label>
+            <PreferenceField label="圆角">
               <ToggleGroup
                 size="sm"
                 spacing={0}
                 variant="outline"
+                className="w-full **:data-[slot=toggle-group-item]:flex-1 **:data-[slot=toggle-group-item]:text-xs"
+                value={[radius]}
+                onValueChange={([nextRadius]) => {
+                  if (!nextRadius) return
+                  setPreference('radius', nextRadius as Radius)
+                }}
+              >
+                {RADIUS_OPTIONS.map(option => (
+                  <ToggleGroupItem key={option.value} value={option.value}>
+                    {option.label}
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
+            </PreferenceField>
+          </PreferenceSection>
+
+          <PreferenceSection title="布局">
+            <PreferenceField label="页面布局">
+              <ToggleGroup
+                size="sm"
+                spacing={0}
+                variant="outline"
+                className="w-full **:data-[slot=toggle-group-item]:flex-1 **:data-[slot=toggle-group-item]:text-xs"
                 value={[contentLayout]}
                 onValueChange={([layout]) => {
                   if (!layout) return
@@ -144,14 +222,14 @@ export function LayoutControls() {
                   全宽
                 </ToggleGroupItem>
               </ToggleGroup>
-            </div>
+            </PreferenceField>
 
-            <div className="space-y-1">
-              <Label className="text-xs font-medium">导航栏行为</Label>
+            <PreferenceField label="导航栏行为">
               <ToggleGroup
                 size="sm"
                 spacing={0}
                 variant="outline"
+                className="w-full **:data-[slot=toggle-group-item]:flex-1 **:data-[slot=toggle-group-item]:text-xs"
                 value={[navbarStyle]}
                 onValueChange={([style]) => {
                   if (!style) return
@@ -165,14 +243,14 @@ export function LayoutControls() {
                   跟随滚动
                 </ToggleGroupItem>
               </ToggleGroup>
-            </div>
+            </PreferenceField>
 
-            <div className="space-y-1">
-              <Label className="text-xs font-medium">侧边栏样式</Label>
+            <PreferenceField label="侧边栏样式">
               <ToggleGroup
                 size="sm"
                 spacing={0}
                 variant="outline"
+                className="w-full **:data-[slot=toggle-group-item]:flex-1 **:data-[slot=toggle-group-item]:text-xs"
                 value={[variant]}
                 onValueChange={([nextVariant]) => {
                   if (!nextVariant) return
@@ -189,14 +267,14 @@ export function LayoutControls() {
                   悬浮
                 </ToggleGroupItem>
               </ToggleGroup>
-            </div>
+            </PreferenceField>
 
-            <div className="space-y-1">
-              <Label className="text-xs font-medium">侧边栏折叠方式</Label>
+            <PreferenceField label="侧边栏折叠方式">
               <ToggleGroup
                 size="sm"
                 spacing={0}
                 variant="outline"
+                className="w-full **:data-[slot=toggle-group-item]:flex-1 **:data-[slot=toggle-group-item]:text-xs"
                 value={[collapsible]}
                 onValueChange={([nextCollapsible]) => {
                   if (!nextCollapsible) return
@@ -210,34 +288,16 @@ export function LayoutControls() {
                   抽屉
                 </ToggleGroupItem>
               </ToggleGroup>
-            </div>
-
-            <div className="space-y-1">
-              <Label className="text-xs font-medium">圆角</Label>
-              <ToggleGroup
-                size="sm"
-                spacing={0}
-                variant="outline"
-                value={[radius]}
-                onValueChange={([nextRadius]) => {
-                  if (!nextRadius) return
-                  setPreference('radius', nextRadius as Radius)
-                }}
-              >
-                {RADIUS_OPTIONS.map(option => (
-                  <ToggleGroupItem key={option.value} value={option.value}>
-                    {option.label}
-                  </ToggleGroupItem>
-                ))}
-              </ToggleGroup>
-            </div>
-
-            <Button type="button" size="sm" variant="outline" className="w-full text-xs" onClick={resetPreferences}>
-              恢复默认
-            </Button>
-          </div>
+            </PreferenceField>
+          </PreferenceSection>
         </div>
-      </PopoverContent>
-    </Popover>
+
+        <DrawerFooter>
+          <Button type="button" size="sm" variant="outline" className="w-full text-xs" onClick={resetPreferences}>
+            恢复默认
+          </Button>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   )
 }

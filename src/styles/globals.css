@@ -11,6 +11,8 @@
 
 :root {
   --app-font-sans: 'Geist Variable', 'Noto Sans SC Variable', ui-sans-serif, system-ui, sans-serif;
+  /* Root font size preference (px). Drives the rem-based type scale. */
+  --app-font-size: 16px;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -77,6 +79,11 @@
 
 :root[data-radius='0.75'] {
   --radius-scale: 0.75;
+}
+
+/* Font-size preference: the root size feeds every rem-based measurement. */
+html {
+  font-size: var(--app-font-size);
 }
 
 @theme inline {
