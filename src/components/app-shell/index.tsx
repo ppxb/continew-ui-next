@@ -152,13 +152,17 @@ export function AppShell({ defaultOpen, variant, collapsible, children }: ShellP
     [splitRoot, groups]
   )
 
+  // In the split mixed layout, a leaf root (dashboard) has no sub-menu to list: hide the sidebar.
+  const splitEmpty = layout === 'mixed-nav' && p.navigationSplit && (!selectedRoot || Boolean(selectedRoot.link))
+  const sidebarKind = splitEmpty ? null : flags.sidebar
+
   const headerMenu = flags.headerMenu
     ? { roots, mode: flags.headerMenu, selectedId, onSelect: flags.headerMenu === 'select' ? openRoot : undefined }
     : undefined
 
   const showHeader = layout !== 'full-content'
   const header = showHeader ? (
-    <AdminHeader showBrand={flags.headerOnTop} showSidebarToggle={flags.sidebar === 'primary'} menu={headerMenu} />
+    <AdminHeader showBrand={flags.headerOnTop} showSidebarToggle={sidebarKind === 'primary'} menu={headerMenu} />
   ) : null
 
   const headerOffset = flags.headerOnTop ? '3rem' : '0px'
@@ -191,7 +195,7 @@ export function AppShell({ defaultOpen, variant, collapsible, children }: ShellP
             '[&_[data-slot=sidebar-container]]:top-(--app-header-offset) [&_[data-slot=sidebar-container]]:h-[calc(100svh-var(--app-header-offset))] [&_[data-slot=sidebar-container]]:transition-[top,height,width,left]'
         )}
       >
-        {flags.sidebar === 'primary' && (
+        {sidebarKind === 'primary' && (
           <AppSidebar
             groups={sidebarGroups}
             showBrand={!flags.headerOnTop}
@@ -199,7 +203,7 @@ export function AppShell({ defaultOpen, variant, collapsible, children }: ShellP
             collapsible={collapsible}
           />
         )}
-        {flags.sidebar === 'mixed' && (
+        {sidebarKind === 'mixed' && (
           <MixedSidebar
             entries={mixedEntries}
             selectedId={mixedSelectedId}
