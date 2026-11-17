@@ -36,7 +36,7 @@ export function ProField<T>({ column, value, entity, type, mode = 'read', light,
       mode, type, light, label: getColumnTitle(column, type), options: options.options,
       fieldProps: {
         ...fieldProps, ...control, value,
-        disabled: Boolean(fieldProps.disabled) || (Boolean(column.request) && options.isPending),
+        disabled: Boolean(fieldProps.disabled) || Boolean(control?.disabled) || (Boolean(column.request) && options.isPending),
         onChange: next => {
           control?.onChange(next)
           if (typeof onChange === 'function') onChange(next)

@@ -64,6 +64,7 @@ export interface ProFormItemProps extends Omit<FormItemLabelProps, 'label'> {
 }
 
 export interface ProFormInstance<Values = ProValues> {
+  readonly isSubmitting: boolean
   getFieldValue: (name: string) => unknown
   getFieldsValue: () => Values
   getFieldsFormatValue: () => Values
@@ -78,6 +79,7 @@ export interface ProFieldControlProps {
   onChange: (value: unknown) => void
   onBlur: () => void
   invalid: boolean
+  disabled?: boolean
 }
 
 export interface ProFormItemRenderConfig extends ProFieldControlProps {
@@ -169,7 +171,7 @@ export interface OptionConfig {
   reload?: boolean
   setting?: boolean
   fullScreen?: boolean
-  search?: boolean | { name?: string; placeholder?: string; onSearch?: (keyword: string) => boolean | void }
+  search?: boolean | { name?: string; placeholder?: string; delay?: number; onSearch?: (keyword: string) => boolean | void }
 }
 
 export type ProTableRequest<T, P> = (params: P, sort: Record<string, SortOrder>, filter: Record<string, FilterValue>, signal: AbortSignal) => Promise<RequestData<T>>
@@ -177,6 +179,11 @@ export type ProTableRequest<T, P> = (params: P, sort: Record<string, SortOrder>,
 export type ProTableProps<T, U extends ProValues = ProValues> = {
   columns: readonly ProColumns<T>[]
   rowKey: Extract<keyof T, string> | ((record: T) => string)
+  dataSource?: T[]
+  loading?: boolean
+  isError?: boolean
+  isShowingPreviousRows?: boolean
+  embedded?: boolean
   queryKey: QueryKey
   params?: Partial<U>
   manualRequest?: boolean
@@ -201,8 +208,9 @@ export type ProTableProps<T, U extends ProValues = ProValues> = {
   cardProps?: false
   tableClassName?: string
 } & (
-  | { pagination?: TablePaginationOptions & { defaultPageSize?: number }; request: ProTableRequest<T, U & { current: number; pageSize: number }> }
-  | { pagination: false; request: ProTableRequest<T, U> }
+  | { dataSource?: never; pagination?: TablePaginationOptions & { defaultPageSize?: number }; request: ProTableRequest<T, U & { current: number; pageSize: number }> }
+  | { dataSource?: never; pagination: false; request: ProTableRequest<T, U> }
+  | { dataSource: T[]; request?: never; pagination?: false | (TablePaginationOptions & { defaultPageSize?: number }) }
 )
 
 type FormColumn<C> = C extends { hideInForm: true } ? never
@@ -216,15 +224,28 @@ export type InferFormValues<T, C extends readonly unknown[]> = {
   [Col in FormColumn<C[number]> as Col['dataIndex']]: FieldValue<T, Col>
 }
 
+export interface ProSubmitterProps {
+  form: ProFormInstance
+  isSubmitting: boolean
+  submit: () => void
+  reset: () => void
+  onCancel: () => void
+}
+
 export type FormSchema<T, C extends readonly ProColumns<T>[] = readonly ProColumns<T>[], U = ProValues> = {
   columns: C
+  grid?: boolean
+  formItemsRender?: (items: { name: string; dom: ReactNode }[]) => ReactNode
   initialValues?: ProValues
   request?: (params: U, signal: AbortSignal) => Promise<T>
   params?: U
   queryKey?: QueryKey
   onFinish: (values: InferFormValues<T, C>) => Promise<boolean | void>
   formRef?: Ref<ProFormInstance | undefined>
-  submitter?: false | { searchConfig?: { submitText?: string; resetText?: string } }
+  submitter?: false | {
+    searchConfig?: { submitText?: string; resetText?: string }
+    render?: (props: ProSubmitterProps, dom: ReactNode[]) => ReactNode
+  }
 } & (
   | { layoutType?: 'Form'; className?: string }
   | { layoutType: 'DrawerForm'; title: string; open: boolean; onOpenChange: (open: boolean) => void; width?: 30 | 32 | 36 | 38 | 40 | 42 | 44 | 46 | 48; drawerProps?: { icon?: ReactNode; badge?: ReactNode; description?: string } }

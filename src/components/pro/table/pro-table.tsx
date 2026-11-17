@@ -15,7 +15,7 @@ import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
 import { usePageClamp } from '@/hooks/use-page-clamp'
 import { dataTableFeatures } from '@/lib/data-table-features'
 import type { DataTableFeatures } from '@/lib/data-table-features'
-import { getColumnKey, getColumnTitle, isFieldColumn } from '../column-utils'
+import { getColumnKey, getColumnTitle, getFieldColumns } from '../column-utils'
 import type { ActionType, FilterValue, ProFormInstance, ProTableProps, ProValues, SortOrder } from '../typing'
 import { ProTableSearchFields } from './form-render'
 import { genProColumnToColumn } from './gen-pro-column-to-column'
@@ -29,6 +29,7 @@ const EMPTY_ROWS: never[] = []
 export function ProTable<T extends RowData, U extends ProValues = ProValues>(props: ProTableProps<T, U>) {
   const queryClient = useQueryClient()
   const fullscreen = useFullscreenTransition()
+  const localData = props.request === undefined
   const propsRef = React.useRef(props)
   propsRef.current = props
   const requestRef = React.useRef(props.request)
@@ -38,6 +39,7 @@ export function ProTable<T extends RowData, U extends ProValues = ProValues>(pro
   const paramsKey = hashKey([props.params])
   const options = props.options === false ? undefined : props.options
   const keywordOptions = options?.search
+  const keywordWasVetoed = React.useRef(false)
   const keywordName = props.search !== false && keywordOptions ? typeof keywordOptions === 'object' ? keywordOptions.name ?? 'keyword' : 'keyword' : undefined
   const searchColumns = React.useMemo(() => getSearchColumns(props.columns, props.search === false), [props.columns, props.search])
   const [storedState, setStoredState] = React.useState<ProTableSearchState>(() => {
@@ -66,23 +68,29 @@ export function ProTable<T extends RowData, U extends ProValues = ProValues>(pro
     const name = currentProps.search !== false && search ? typeof search === 'object' ? search.name ?? 'keyword' : 'keyword' : undefined
     const params = composeRequestParams(next, getSearchColumns(currentProps.columns, currentProps.search === false), currentProps.pagination !== false, name, currentProps.params)
     return {
-      queryKey: [...currentProps.queryKey, params, EMPTY_SORT, EMPTY_FILTER],
+      queryKey: currentProps.request ? [...currentProps.queryKey, params, EMPTY_SORT, EMPTY_FILTER] : [...currentProps.queryKey, 'local-table'],
       queryFn: async ({ signal }: { signal: AbortSignal }) => {
+        if (!requestRef.current) throw new Error('ProTable request is not configured')
         const result = await requestRef.current(params as U & { current: number; pageSize: number }, EMPTY_SORT, EMPTY_FILTER, signal)
         if (result.success === false) throw new Error('数据加载失败')
         return result
       }
     }
   }, [])
-  const query = useQuery({ ...createQueryOptions(state), enabled: !props.manualRequest, placeholderData: keepPreviousData })
+  const query = useQuery({ ...createQueryOptions(state), enabled: !localData && !props.manualRequest, placeholderData: keepPreviousData })
   const { refetch } = query
   const [submitVersion, setSubmitVersion] = React.useState(0)
   React.useEffect(() => {
     if (submitVersion > 0) void refetch({ cancelRefetch: false })
   }, [submitVersion, refetch])
-  const rawRows = query.data?.data ?? EMPTY_ROWS
+  const rawRows = localData ? props.dataSource ?? EMPTY_ROWS : query.data?.data ?? EMPTY_ROWS
   const rows = props.postData ? props.postData(rawRows) : rawRows
-  const total = props.pagination === false ? rows.length : query.data?.total ?? rows.length
+  const total = localData || props.pagination === false ? rows.length : query.data?.total ?? rows.length
+  const isLoading = props.loading ?? (!localData && query.isPending)
+  const isError = Boolean(props.isError) || (!localData && query.isError)
+  const isShowingPreviousRows = props.isShowingPreviousRows ?? (!localData && query.isPlaceholderData)
+  const loadingRef = React.useRef(isLoading || (!localData && query.isFetching))
+  loadingRef.current = isLoading || (!localData && query.isFetching)
   totalRef.current = total
 
   const setPagination = React.useCallback((updater: Updater<PaginationState>) => {
@@ -90,9 +98,14 @@ export function ProTable<T extends RowData, U extends ProValues = ProValues>(pro
     const pagination = typeof updater === 'function' ? updater(previous.pagination) : updater
     commitState({ ...previous, pagination })
   }, [commitState])
-  usePageClamp(props.pagination === false || query.isPlaceholderData || query.isFetching ? undefined : query.data?.total, state.pagination, setPagination)
+  usePageClamp(localData ? isLoading || isShowingPreviousRows ? undefined : total : props.pagination === false || query.isPlaceholderData || query.isFetching ? undefined : query.data?.total, state.pagination, setPagination)
 
   const refresh = React.useCallback(async (next: ProTableSearchState) => {
+    if (!propsRef.current.request) {
+      commitState(next)
+      await queryClient.invalidateQueries({ queryKey: propsRef.current.queryKey })
+      return
+    }
     const queryOptions = createQueryOptions(next)
     // Discard the pre-mutation request before fetching a fresh result for the target page.
     await queryClient.cancelQueries({ queryKey: queryOptions.queryKey, exact: true })
@@ -103,6 +116,10 @@ export function ProTable<T extends RowData, U extends ProValues = ProValues>(pro
   const restoreSearch = React.useCallback(() => {
     const next = resetSearchPage(stateRef.current, { values: { ...propsRef.current.form?.initialValues }, keyword: '', searchText: '' })
     commitState(next)
+    if (!propsRef.current.request) {
+      void queryClient.invalidateQueries({ queryKey: propsRef.current.queryKey })
+      return
+    }
     void queryClient.invalidateQueries({ queryKey: propsRef.current.queryKey, refetchType: 'none' })
     // Only the target page may refetch. If it is not mounted yet, its observer fetches on mount.
     void queryClient.invalidateQueries({ queryKey: createQueryOptions(next).queryKey, exact: true })
@@ -137,6 +154,7 @@ export function ProTable<T extends RowData, U extends ProValues = ProValues>(pro
     return values as U
   }, [])
   const form = React.useMemo<ProFormInstance<U>>(() => ({
+    get isSubmitting() { return loadingRef.current },
     getFieldValue: name => getSearchSnapshot(false)[name],
     getFieldsValue: () => getSearchSnapshot(false),
     getFieldsFormatValue: () => getSearchSnapshot(true),
@@ -157,9 +175,9 @@ export function ProTable<T extends RowData, U extends ProValues = ProValues>(pro
     submit: () => {
       const previous = stateRef.current
       const next = resetSearchPage(previous, { keyword: previous.searchText.trim() })
-      void queryClient.invalidateQueries({ queryKey: propsRef.current.queryKey, refetchType: 'none' })
+      void queryClient.invalidateQueries({ queryKey: propsRef.current.queryKey, refetchType: propsRef.current.request ? 'none' : 'active' })
       commitState(next)
-      setSubmitVersion(version => version + 1)
+      if (propsRef.current.request) setSubmitVersion(version => version + 1)
     }
   }), [getSearchSnapshot, commitState, restoreSearch, queryClient])
 
@@ -168,8 +186,8 @@ export function ProTable<T extends RowData, U extends ProValues = ProValues>(pro
 
   const defaultVisibility = React.useMemo<ColumnVisibilityState>(() => {
     const visibility: ColumnVisibilityState = {}
-    props.columns.forEach((column, index) => {
-      if (!isFieldColumn(column) || column.hideInTable || column.valueType === 'index' || column.valueType === 'option') return
+    getFieldColumns(props.columns).forEach((column, index) => {
+      if (column.hideInTable || column.valueType === 'index' || column.valueType === 'option') return
       const key = getColumnKey(column, index)
       if (props.columnsState?.defaultValue?.[key]?.show === false) visibility[key] = false
     })
@@ -182,16 +200,16 @@ export function ProTable<T extends RowData, U extends ProValues = ProValues>(pro
     ? internalExpanded
     : Object.fromEntries(expandedRowKeys.map(key => [key, true])), [expandedRowKeys, internalExpanded])
   const columns = React.useMemo(() => genProColumnToColumn(props.columns, {
-    action, rowOffset: props.pagination === false ? 0 : state.pagination.pageIndex * state.pagination.pageSize,
+    action, rowOffset: localData || props.pagination === false ? 0 : state.pagination.pageIndex * state.pagination.pageSize,
     emptyText: props.columnEmptyText, expandable: Boolean(props.expandable)
-  }), [props.columns, action, props.pagination, state.pagination.pageIndex, state.pagination.pageSize, props.columnEmptyText, props.expandable])
+  }), [props.columns, action, props.pagination, localData, state.pagination.pageIndex, state.pagination.pageSize, props.columnEmptyText, props.expandable])
   const tableRef = React.useRef<ReactTable<DataTableFeatures, T> | null>(null)
   const table = useTable({
     features: dataTableFeatures,
     columns,
     data: rows,
     state: { pagination: state.pagination, columnVisibility, expanded },
-    manualPagination: true,
+    manualPagination: !localData || props.pagination === false,
     autoResetPageIndex: false,
     autoResetExpanded: false,
     paginateExpandedRows: false,
@@ -212,21 +230,23 @@ export function ProTable<T extends RowData, U extends ProValues = ProValues>(pro
     }
   })
   tableRef.current = table
-  const columnLabels = React.useMemo(() => Object.fromEntries(props.columns.flatMap((column, index) => {
-    if (!isFieldColumn(column)) return []
+  const columnLabels = React.useMemo(() => Object.fromEntries(getFieldColumns(props.columns).map((column, index) => {
     const title = getColumnTitle(column, 'table')
-    return [[getColumnKey(column, index), title]]
+    return [getColumnKey(column, index), title]
   })), [props.columns])
   const filters = props.search === false || (!keywordName && !searchColumns.length) ? undefined : <>
     {keywordName ? <TableSearch
       value={state.searchText}
       onValueChange={searchText => commitState({ ...stateRef.current, searchText })}
       onSearch={keyword => {
-        if (keyword === stateRef.current.keyword) return
-        if (typeof keywordOptions === 'object' && keywordOptions.onSearch?.(keyword) === false) return
+        if (keyword === stateRef.current.keyword && !keywordWasVetoed.current) return
+        const vetoed = typeof keywordOptions === 'object' && keywordOptions.onSearch?.(keyword) === false
+        keywordWasVetoed.current = vetoed
+        if (vetoed) return
         commitState(resetSearchPage(stateRef.current, { keyword }))
       }}
       placeholder={typeof keywordOptions === 'object' ? keywordOptions.placeholder : undefined}
+      delay={typeof keywordOptions === 'object' ? keywordOptions.delay : undefined}
       clearable
     /> : null}
     <ProTableSearchFields columns={searchColumns} values={state.values} form={form as ProFormInstance} onChange={(name, value) => {
@@ -239,31 +259,34 @@ export function ProTable<T extends RowData, U extends ProValues = ProValues>(pro
     table={table}
     actions={toolbarButtons}
     options={props.options}
-    isRefreshing={query.isFetching && !query.isPending}
+    isRefreshing={localData ? isLoading && rows.length > 0 : query.isFetching && !query.isPending}
     isFullscreen={fullscreen.isFullscreen}
     onRefresh={() => void action.reload()}
     onToggleFullscreen={action.fullScreen}
     onResetColumns={() => setColumnVisibility(defaultVisibility)}
     columnLabels={columnLabels}
   /> : undefined
-  const content = <TableFillArea fullscreen={fullscreen}>
-    {query.isError && rows.length > 0 ? <QueryState state="error" title="数据加载失败" onRetry={() => void query.refetch()} /> : null}
+  const tableContent = <>
+    {isError && rows.length > 0 ? <QueryState state="error" title="数据加载失败" onRetry={() => void action.reload()} /> : null}
     <DataTable
       table={table}
-      isLoading={query.isPending}
-      isError={query.isError}
-      isShowingPreviousRows={query.isPlaceholderData}
-      onRetry={() => void query.refetch()}
+      isLoading={isLoading}
+      isError={isError}
+      isShowingPreviousRows={isShowingPreviousRows}
+      onRetry={() => void action.reload()}
       emptyTitle={props.locale?.emptyText}
       className={props.tableClassName}
       showPagination={props.pagination !== false}
       pagination={props.pagination === false ? undefined : props.pagination}
       fillHeight
     />
-  </TableFillArea>
-  if (props.cardProps === false) return <div className="flex flex-col gap-4">
+  </>
+  const content = props.embedded
+    ? <div className="flex min-h-0 flex-1 flex-col">{tableContent}</div>
+    : <TableFillArea fullscreen={fullscreen}>{tableContent}</TableFillArea>
+  if (props.cardProps === false) return <div className={cn('flex flex-col gap-4', props.embedded && 'min-h-0 flex-1')}>
     {fullscreen.isFullscreen ? <div ref={fullscreen.spacerRef} style={{ height: fullscreen.reservedHeight }} /> : null}
-    <div ref={fullscreen.fullscreenRef} className={cn('flex flex-col gap-4', fullscreen.isFullscreen && 'bg-background')}>
+    <div ref={fullscreen.fullscreenRef} className={cn('flex flex-col gap-4', props.embedded && 'min-h-0 flex-1', fullscreen.isFullscreen && 'bg-background')}>
       {props.headerTitle || props.toolbar?.subTitle ? <header className="px-4">
         {props.headerTitle ? <h2 className="text-xl font-semibold">{props.headerTitle}</h2> : null}
         {props.toolbar?.subTitle ? <div className="text-sm text-muted-foreground">{props.toolbar.subTitle}</div> : null}

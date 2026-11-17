@@ -1,6 +1,6 @@
 import type { PaginationState } from '@tanstack/react-table'
 
-import { isFieldColumn } from '../column-utils'
+import { getFieldColumns } from '../column-utils'
 import type { ProColumns, ProFieldColumn, ProValues } from '../typing'
 
 export interface ProTableSearchState {
@@ -12,7 +12,7 @@ export interface ProTableSearchState {
 }
 
 export function getSearchColumns<T>(columns: readonly ProColumns<T>[], disabled = false): ProFieldColumn<T>[] {
-  return disabled ? [] : columns.filter(isFieldColumn).filter(column =>
+  return disabled ? [] : getFieldColumns(columns).filter(column =>
     Boolean(column.search) && Boolean(column.dataIndex) && column.valueType !== 'index' && column.valueType !== 'option'
   )
 }

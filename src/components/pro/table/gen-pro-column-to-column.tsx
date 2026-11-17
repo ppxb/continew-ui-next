@@ -5,7 +5,7 @@ import { cn } from 'cn'
 
 import type { ValueType } from '@/components/table/columns'
 import type { DataTableFeatures } from '@/lib/data-table-features'
-import { getColumnKey, getColumnTitle, isFieldColumn } from '../column-utils'
+import { getColumnKey, getColumnTitle, getFieldColumns } from '../column-utils'
 import { ProField } from '../field/pro-field'
 import type { ActionType, ProColumns, ProFieldColumn } from '../typing'
 
@@ -25,8 +25,8 @@ export function genProColumnToColumn<T extends RowData>(
     expandable?: boolean
   }
 ): ColumnDef<DataTableFeatures, T>[] {
-  return columns.flatMap((column, index): ColumnDef<DataTableFeatures, T>[] => {
-    if (!isFieldColumn(column) || column.hideInTable) return []
+  return getFieldColumns(columns).flatMap((column, index): ColumnDef<DataTableFeatures, T>[] => {
+    if (column.hideInTable) return []
     const id = getColumnKey(column, index)
     const type = skeletonType(column)
     const align = column.align ?? (type === 'index' || type === 'option' ? 'center' : 'left')

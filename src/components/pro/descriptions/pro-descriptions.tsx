@@ -6,7 +6,7 @@ import { QueryState } from '@/components/query-state'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 
-import { getColumnKey, getColumnTitle, isFieldColumn } from '../column-utils'
+import { getColumnKey, getColumnTitle, getFieldColumns } from '../column-utils'
 import { ProField } from '../field/pro-field'
 import type { ProDescriptionsProps, ProValues } from '../typing'
 
@@ -26,8 +26,8 @@ export function ProDescriptions<T, U = ProValues>({ columns, dataSource, request
     refetchOnMount: 'always',
     refetchOnWindowFocus: false
   })
-  const fields = columns.filter(isFieldColumn).filter(item => !item.hideInDescriptions && item.valueType !== 'index' && item.valueType !== 'option')
   const record = dataSource ?? (request ? query.data : undefined)
+  const fields = getFieldColumns(columns, record === undefined ? undefined : record as Partial<T>).filter(item => !item.hideInDescriptions && item.valueType !== 'index' && item.valueType !== 'option')
   const gridClassName = column === 1 ? 'sm:grid-cols-1' : undefined
   const content = configurationError ? (
     <QueryState state="error" title="ProDescriptions 配置错误：request 必须提供 queryKey" />

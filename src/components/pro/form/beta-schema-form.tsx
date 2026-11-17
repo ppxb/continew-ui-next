@@ -87,21 +87,26 @@ export function BetaSchemaForm<T, const C extends readonly ProColumns<T>[] = rea
     }
   })
   const values = useStore(form.store, state => state.values)
-  const isSubmitting = useStore(form.store, state => state.isSubmitting)
+  const formSubmitting = useStore(form.store, state => state.isSubmitting)
+  const [isAttemptSubmitting, setAttemptSubmitting] = useState(false)
+  const isSubmitting = formSubmitting || isAttemptSubmitting
   const submit = useCallback(async () => {
     if (!open || configurationError || filledIdentity !== identity || submittingRef.current || form.state.isSubmitting) return
     submittingRef.current = true
+    setAttemptSubmitting(true)
     try {
       await form.validate('submit')
       await form.handleSubmit()
       focusInvalid()
     } finally {
       submittingRef.current = false
+      setAttemptSubmitting(false)
     }
   }, [form, focusInvalid, open, configurationError, filledIdentity, identity])
   const liveForm = useRef({ form, submit })
   liveForm.current = { form, submit }
   const [instance] = useState<ProFormInstance>(() => ({
+    get isSubmitting() { return submittingRef.current || liveForm.current.form.state.isSubmitting },
     getFieldValue: name => liveForm.current.form.getFieldValue(name),
     getFieldsValue: () => liveForm.current.form.state.values,
     getFieldsFormatValue: () => formatFormValues(latest.current.props.columns, liveForm.current.form.state.values, instanceRef.current!, entityRef.current),
@@ -141,7 +146,7 @@ export function BetaSchemaForm<T, const C extends readonly ProColumns<T>[] = rea
     if (!form.state.isSubmitting && !submittingRef.current && props.layoutType === 'DrawerForm') props.onOpenChange(false)
   }
   const texts = shownProps.submitter === false ? undefined : shownProps.submitter?.searchConfig
-  const footer = shownProps.submitter === false ? undefined : drawer ? (
+  const defaultFooter = shownProps.submitter === false ? undefined : drawer ? (
     <form.FormFooter onCancel={close} cancelText={texts?.resetText} submitText={texts?.submitText} />
   ) : (
     <div className="flex items-center gap-2">
@@ -149,6 +154,9 @@ export function BetaSchemaForm<T, const C extends readonly ProColumns<T>[] = rea
       <Button type="submit" disabled={isSubmitting}>{texts?.submitText ?? '提交'}</Button>
     </div>
   )
+  const footer = shownProps.submitter !== false && shownProps.submitter?.render
+    ? shownProps.submitter.render({ form: instance, isSubmitting, submit: instance.submit, reset: instance.resetFields, onCancel: drawer ? close : instance.resetFields }, defaultFooter ? [defaultFooter] : [])
+    : defaultFooter
   const loading = open && (filledIdentity !== identity || !session.current.open)
   const body = configurationError ? (
     <QueryState state="error" title="BetaSchemaForm 配置错误：request 必须提供 queryKey" />
@@ -171,27 +179,31 @@ export function BetaSchemaForm<T, const C extends readonly ProColumns<T>[] = rea
         noValidate
         className={cn(drawer ? 'flex min-h-0 flex-1 flex-col' : 'flex flex-col gap-4', !drawer && shownProps.layoutType !== 'DrawerForm' && shownProps.className)}
         onSubmit={event => { event.preventDefault(); void submit() }}
+        inert={isSubmitting}
       >
         <div className={drawer ? 'min-h-0 flex-1 overflow-y-auto overscroll-contain p-4' : undefined}>
-          <FieldGroup className="gap-4">
-            {active.map((column, index) => {
-              const name: string = column.dataIndex!
-              const { rules, ...itemProps } = getFormItemProps(column, instance, entityRef.current)
-              const required = itemProps.required ?? (!!rules && !rules.safeParse(getFormEmptyValue(column, registry, instance, entityRef.current)).success)
-              return (
-                <form.AppField key={getColumnKey(column, index)} name={name} defaultValue={Object.hasOwn(values, name) ? values[name] : getFormInitialValue(column, registry, instance, entityRef.current)}>
-                  {field => {
-                    const errors = field.state.meta.errors.map(error => typeof error === 'string' ? { message: error } : error as { message?: string })
-                    const control = { id: `${id}-${name}`, value: field.state.value, onChange: (value: unknown) => field.handleChange(value), onBlur: field.handleBlur, invalid: errors.length > 0 }
-                    const defaultRender = () => <ProField column={column} value={control.value} type="form" mode="edit" form={instance} control={control} entity={entityRef.current} />
-                    const dom = column.formItemRender ? column.formItemRender({ ...column, type: 'form', entity: entityRef.current }, { ...control, type: 'form', defaultRender }, instance) : defaultRender()
-                    return column.ignoreFormItem && column.formItemRender ? dom : (
-                      <FormItem {...itemProps} id={control.id} label={getColumnTitle(column, 'form')} required={required} errors={errors} orientation={column.valueType === 'switch' ? 'horizontal' : 'vertical'}>{dom}</FormItem>
-                    )
-                  }}
-                </form.AppField>
-              )
-            })}
+          <FieldGroup className={shownProps.grid ? 'grid gap-4 sm:grid-cols-2' : 'gap-4'}>
+            {(() => {
+              const items = active.map((column, index) => {
+                const name: string = column.dataIndex!
+                const { rules, ...itemProps } = getFormItemProps(column, instance, entityRef.current)
+                const required = itemProps.required ?? (!!rules && !rules.safeParse(getFormEmptyValue(column, registry, instance, entityRef.current)).success)
+                return { name, dom: (
+                  <form.AppField key={getColumnKey(column, index)} name={name} defaultValue={Object.hasOwn(values, name) ? values[name] : getFormInitialValue(column, registry, instance, entityRef.current)}>
+                    {field => {
+                      const errors = field.state.meta.errors.map(error => typeof error === 'string' ? { message: error } : error as { message?: string })
+                      const control = { id: `${id}-${name}`, value: field.state.value, onChange: (value: unknown) => field.handleChange(value), onBlur: field.handleBlur, invalid: errors.length > 0, disabled: isSubmitting }
+                      const defaultRender = () => <ProField column={column} value={control.value} type="form" mode="edit" form={instance} control={control} entity={entityRef.current} />
+                      const dom = column.formItemRender ? column.formItemRender({ ...column, type: 'form', entity: entityRef.current }, { ...control, type: 'form', defaultRender }, instance) : defaultRender()
+                      return column.ignoreFormItem && column.formItemRender ? dom : (
+                        <FormItem {...itemProps} id={control.id} label={getColumnTitle(column, 'form')} required={required} errors={errors} orientation={column.valueType === 'switch' ? 'horizontal' : 'vertical'}>{dom}</FormItem>
+                      )
+                    }}
+                  </form.AppField>
+                ) }
+              })
+              return shownProps.formItemsRender ? shownProps.formItemsRender(items) : items.map(item => item.dom)
+            })()}
           </FieldGroup>
         </div>
         {footer}

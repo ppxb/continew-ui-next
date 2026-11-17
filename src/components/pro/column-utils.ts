@@ -4,6 +4,13 @@ export function isFieldColumn<T>(column: ProColumns<T>): column is ProFieldColum
   return column.valueType !== 'dependency'
 }
 
+/** Resolves dependency layouts without discarding their shared table/detail fields. */
+export function getFieldColumns<T>(columns: readonly ProColumns<T>[], values: Partial<T> = {}): ProFieldColumn<T>[] {
+  return columns.flatMap(column => isFieldColumn(column)
+    ? [column]
+    : getFieldColumns(column.columns(Object.fromEntries(column.name.map(name => [name, values[name]])) as Partial<T>), values))
+}
+
 export function getColumnKey<T>(column: ProFieldColumn<T>, index = 0) {
   return column.key ?? column.dataIndex ?? (column.valueType === 'index' ? 'index' : column.valueType === 'option' ? 'actions' : `column-${index}`)
 }

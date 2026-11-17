@@ -9,9 +9,10 @@ export type TableDropdownItem<K extends string> =
 export interface TableDropdownProps<K extends string> {
   menus: readonly (TableDropdownItem<K> | false | null | undefined)[]
   onSelect: (key: K) => void
+  primary?: ReactNode
 }
 
-export function TableDropdown<K extends string>({ menus, onSelect }: TableDropdownProps<K>) {
+export function TableDropdown<K extends string>({ menus, onSelect, primary }: TableDropdownProps<K>) {
   const items: TableDropdownItem<K>[] = []
   for (const item of menus) {
     if (!item) continue
@@ -19,10 +20,10 @@ export function TableDropdown<K extends string>({ menus, onSelect }: TableDropdo
     items.push(item)
   }
   if (items.length && 'type' in items[items.length - 1]!) items.pop()
-  if (!items.length) return null
+  if (!items.length && !primary) return null
 
   return (
-    <RowActionsMenu>
+    <RowActionsMenu primary={primary} showMenu={items.length > 0}>
       <DropdownMenuGroup>
         {items.map((item, index) => 'type' in item ? (
           <DropdownMenuSeparator key={`divider-${index}`} />
