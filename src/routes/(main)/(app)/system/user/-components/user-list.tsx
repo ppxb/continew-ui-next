@@ -13,7 +13,6 @@ import { TableSearch } from '@/components/table-search'
 import { TableToolbar } from '@/components/table-toolbar'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
-import { toast } from '@/components/ui/toast'
 import { useExport } from '@/hooks/use-export'
 import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
 import { useListTable } from '@/hooks/use-list-table'
@@ -26,6 +25,7 @@ import { createUserColumns, type UserAction } from './user-columns'
 import { UserDeleteDialog } from './user-delete-dialog'
 import { UserDetailDrawer } from './user-detail-drawer'
 import { UserFormDrawer } from './user-form-drawer'
+import { UserImportDrawer } from './user-import-drawer'
 import { UserResetPasswordDialog } from './user-reset-password-dialog'
 
 const HIDDEN_BY_DEFAULT: ColumnVisibilityState = {
@@ -55,6 +55,7 @@ export function UserList() {
   const [resetUser, setResetUser] = React.useState<UserResp | null>(null)
   const [roleUser, setRoleUser] = React.useState<UserResp | null>(null)
   const [deletingUser, setDeletingUser] = React.useState<UserResp | null>(null)
+  const [importOpen, setImportOpen] = React.useState(false)
   const fullscreen = useFullscreenTransition()
   const { isExporting, exportData } = useExport(exportUsers)
 
@@ -176,11 +177,7 @@ export function UserList() {
             </Button>
           )}
           {hasPermission('system:user:import') && (
-            <Button
-              size="icon"
-              variant="outline"
-              onClick={() => toast.add({ title: '导入数据功能开发中', type: 'info' })}
-            >
+            <Button size="icon" variant="outline" aria-label="导入用户" title="导入用户" onClick={() => setImportOpen(true)}>
               <Upload />
             </Button>
           )}
@@ -218,6 +215,7 @@ export function UserList() {
       </ListPageCard>
 
       <UserDetailDrawer userId={detailUserId} open={detailUserId !== null} onClose={() => setDetailUserId(null)} />
+      <UserImportDrawer open={importOpen} onClose={() => setImportOpen(false)} />
       <UserFormDrawer
         userId={formTarget?.userId ?? null}
         open={formTarget !== null}

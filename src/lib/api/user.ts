@@ -160,4 +160,56 @@ export function assignUserRoles(id: string | number, body: UserRoleUpdateReq) {
   return http.patch<void>(`/system/user/${id}/role`, body)
 }
 
+/** `ImportPolicyEnum`: 1 跳过该行, 2 修改数据, 3 停止导入. */
+export type UserImportPolicy = 1 | 2 | 3
+
+/**
+ * The result of `POST /system/user/import/parse`.
+ *
+ * The backend keeps the valid rows under `importKey` in Redis for 10 minutes; only counts come
+ * back, so the UI can show how many rows were accepted or collided, not per-row errors.
+ */
+export interface UserImportParseResp {
+  importKey: string
+  totalRows: number
+  validRows: number
+  duplicateUserRows: number
+  duplicateEmailRows: number
+  duplicatePhoneRows: number
+}
+
+/** The body of `POST /system/user/import`. */
+export interface UserImportReq {
+  importKey: string
+  duplicateUser: UserImportPolicy
+  duplicateEmail: UserImportPolicy
+  duplicatePhone: UserImportPolicy
+  /** `DisEnableStatusEnum`: 1 启用, 2 禁用. */
+  defaultStatus?: UserStatus
+}
+
+/** The result of `POST /system/user/import`. */
+export interface UserImportResp {
+  totalRows: number
+  insertRows: number
+  updateRows: number
+}
+
+/** Downloads the user import template (an xlsx file). */
+export function downloadUserImportTemplate() {
+  return downloadFile('/system/user/import/template')
+}
+
+/** Uploads one xlsx for parsing; the valid rows stay under `importKey` for 10 minutes. */
+export function parseUserImport(file: File) {
+  const formData = new FormData()
+  formData.append('file', file)
+  return http.post<UserImportParseResp>('/system/user/import/parse', formData)
+}
+
+/** Commits a parsed import with the duplicate policies and default status. */
+export function importUsers(body: UserImportReq) {
+  return http.post<UserImportResp>('/system/user/import', body)
+}
+
 export { userKeys } from '@/lib/query-keys'
