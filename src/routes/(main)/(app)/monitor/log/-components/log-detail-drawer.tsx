@@ -2,17 +2,16 @@ import { skipToken, useQuery } from '@tanstack/react-query'
 import { cn } from 'cn'
 import { ScrollText } from 'lucide-react'
 
-import { DetailField, DetailGrid } from '@/components/detail-field'
 import { EntityDrawer } from '@/components/entity-drawer'
 import { JsonViewer, type JsonValue } from '@/components/json-viewer/json-viewer'
+import { ProDescriptions } from '@/components/pro'
 import { QueryState } from '@/components/query-state'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { getLog, logKeys } from '@/lib/api/log'
-import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 import { DETAIL_STALE_TIME_MS } from '@/lib/query-client'
 
-import { LogStatusCell, TimeTakenCell } from './log-display'
+import { operationLogColumns } from './log-columns'
 
 const RAW_PAYLOAD_CLASS = cn(
   'max-h-72 overflow-auto overscroll-contain rounded-lg border bg-muted/40 p-3',
@@ -97,13 +96,6 @@ function LogDetailSkeleton() {
   )
 }
 
-function TextDetail({ label, value, className }: { label: string; value: string | null; className?: string }) {
-  return (
-    <DetailField label={label} className={className}>
-      {value || EMPTY_PLACEHOLDER}
-    </DetailField>
-  )
-}
 
 interface LogDetailDrawerProps {
   /** The log to show, or `null` before the first one is picked. */
@@ -132,34 +124,7 @@ export function LogDetailDrawer({ logId, open, onClose }: LogDetailDrawerProps) 
           <QueryState state="error" onRetry={() => void query.refetch()} />
         ) : (
           <div className="flex flex-col gap-6">
-            <section className="flex flex-col gap-3">
-              <h3 className="text-sm font-medium text-foreground">基本信息</h3>
-              <DetailGrid>
-                <DetailField label="日志 ID">
-                  <span className="break-all">{detail.id}</span>
-                </DetailField>
-                <DetailField label="Trace ID">
-                  <span className="break-all">{detail.traceId || EMPTY_PLACEHOLDER}</span>
-                </DetailField>
-                <TextDetail label="操作人" value={detail.createUserString} />
-                <TextDetail label="操作时间" value={detail.createTime} />
-                <TextDetail label="操作内容" value={detail.description} />
-                <TextDetail label="所属模块" value={detail.module} />
-                <TextDetail label="操作 IP" value={detail.ip} />
-                <TextDetail label="操作地点" value={detail.address} />
-                <TextDetail label="浏览器" value={detail.browser} />
-                <TextDetail label="终端系统" value={detail.os} />
-                <DetailField label="状态">
-                  <LogStatusCell status={detail.status} errorMsg={detail.errorMsg} />
-                </DetailField>
-                <DetailField label="耗时">
-                  <TimeTakenCell timeTaken={detail.timeTaken} />
-                </DetailField>
-                <DetailField label="请求 URI" className="sm:col-span-2">
-                  <span className="break-all">{detail.requestUrl || EMPTY_PLACEHOLDER}</span>
-                </DetailField>
-              </DetailGrid>
-            </section>
+            <ProDescriptions columns={operationLogColumns} dataSource={detail} title="基本信息" />
 
             <section className="flex flex-col gap-3">
               <h3 className="text-sm font-medium text-foreground">响应信息</h3>

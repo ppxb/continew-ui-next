@@ -1,24 +1,21 @@
-import type { ColumnDef } from '@tanstack/react-table'
 import { Trash2 } from 'lucide-react'
 
+import { FilterSelect } from '@/components/filter-select'
+import type { ProColumns, ProSchemaValueEnumType } from '@/components/pro'
 import { RowActionsMenu } from '@/components/row-actions-menu'
 import { SuccessFailureCell } from '@/components/status-cell'
-import { dateTimeColumn, indexColumn, textColumn } from '@/components/table/columns'
+import { TableSearch } from '@/components/table-search'
 import { TextCell } from '@/components/text-cell'
 import { DropdownMenuGroup, DropdownMenuItem } from '@/components/ui/dropdown-menu'
-import type { SmsLogResp } from '@/lib/api/sms-log'
-import type { DataTableFeatures } from '@/lib/data-table-features'
+import type { SmsLogResp, SmsLogStatus } from '@/lib/api/sms-log'
 
-type SmsLogColumn = ColumnDef<DataTableFeatures, SmsLogResp>
-
-/** Labels for the columns whose header is a node, which the hide-columns menu cannot read. */
-export const SMS_LOG_COLUMN_LABELS: Record<string, string> = {
-  status: '发送状态'
-}
+const STATUS_ENUM = new Map<SmsLogStatus, ProSchemaValueEnumType>([
+  [1, { text: '成功', status: 'Success' }],
+  [2, { text: '失败', status: 'Error' }]
+])
+const STATUS_OPTIONS = [{ value: 'all', label: '全部' }, { value: '1', label: '成功' }, { value: '2', label: '失败' }]
 
 interface SmsLogColumnOptions {
-  /** The index of the first row on the current page, so 序号 stays continuous. */
-  readonly rowOffset: number
   /** The delete action needs `system:smsLog:delete`; the column is dropped without it. */
   readonly canDelete: boolean
   readonly onDelete: (log: SmsLogResp) => void
@@ -39,41 +36,33 @@ function RowActions({ log, onDelete }: { log: SmsLogResp; onDelete: (log: SmsLog
   )
 }
 
-export function createSmsLogColumns({ rowOffset, canDelete, onDelete }: SmsLogColumnOptions): SmsLogColumn[] {
-  const columns: SmsLogColumn[] = [
-    indexColumn(rowOffset),
-    textColumn('phone', '手机号'),
-    {
-      accessorKey: 'params',
-      header: '参数配置',
-      meta: { valueType: 'text' },
-      cell: ({ row }) => <TextCell value={row.original.params} maxWidth="max-w-72" truncate={false} />
-    },
-    {
-      accessorKey: 'status',
-      header: () => <div>发送状态</div>,
-      meta: { valueType: 'status' },
-      cell: ({ row }) => <SuccessFailureCell status={row.original.status} />
-    },
-    {
-      accessorKey: 'resMsg',
-      header: '返回数据',
-      meta: { valueType: 'text' },
-      cell: ({ row }) => <TextCell value={row.original.resMsg} maxWidth="max-w-72" truncate={false} />
-    },
-    textColumn('createUserString', '操作人'),
-    dateTimeColumn('createTime', '操作时间')
-  ]
+export const smsLogColumns: readonly ProColumns<SmsLogResp>[] = [
+  { title: '序号', valueType: 'index' },
+  {
+    title: '配置 ID', dataIndex: 'configId', hideInTable: true, hideInForm: true, hideInDescriptions: true,
+    search: { transform: value => ({ configId: typeof value === 'string' && /^\d+$/.test(value) ? value : undefined }) },
+    formItemRender: (_, control) => <TableSearch clearable placeholder="搜索配置 ID" onSearch={control.onChange} className="w-full md:w-44" />
+  },
+  { title: '手机号', dataIndex: 'phone', search: true, hideInForm: true,
+    formItemRender: (_, control) => <TableSearch clearable placeholder="搜索手机号" onSearch={control.onChange} className="w-full md:w-48" /> },
+  { title: '参数配置', dataIndex: 'params', hideInForm: true,
+    render: (_, log) => <TextCell value={log.params} maxWidth="max-w-72" truncate={false} /> },
+  {
+    title: '发送状态', dataIndex: 'status', valueType: 'select', valueEnum: STATUS_ENUM, search: true, hideInForm: true,
+    formItemRender: (_, control) => <FilterSelect label="状态" options={STATUS_OPTIONS} className="w-full sm:w-32"
+      value={control.value === undefined ? 'all' : String(control.value)}
+      onValueChange={value => control.onChange(value === '1' ? 1 : value === '2' ? 2 : undefined)} />,
+    render: (_, log) => <SuccessFailureCell status={log.status} />
+  },
+  { title: '返回数据', dataIndex: 'resMsg', hideInForm: true,
+    render: (_, log) => <TextCell value={log.resMsg} maxWidth="max-w-72" truncate={false} /> },
+  { title: '操作人', dataIndex: 'createUserString', hideInForm: true },
+  { title: '操作时间', dataIndex: 'createTime', valueType: 'dateTime', hideInForm: true }
+]
 
-  if (canDelete) {
-    columns.push({
-      id: 'actions',
-      header: () => <div className="text-center">操作</div>,
-      enableHiding: false,
-      meta: { valueType: 'option' },
-      cell: ({ row }) => <RowActions log={row.original} onDelete={onDelete} />
-    })
-  }
-
-  return columns
+export function createSmsLogColumns({ canDelete, onDelete }: SmsLogColumnOptions): readonly ProColumns<SmsLogResp>[] {
+  return canDelete ? [...smsLogColumns, {
+    title: '操作', valueType: 'option', align: 'center',
+    render: (_, log) => <RowActions log={log} onDelete={onDelete} />
+  }] : smsLogColumns
 }

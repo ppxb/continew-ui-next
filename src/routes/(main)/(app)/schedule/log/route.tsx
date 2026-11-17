@@ -8,7 +8,10 @@ const searchSchema = z.object({
   jobId: z
     .preprocess(
       value => (value === '' || value === null ? undefined : value),
-      z.coerce.number().int().positive().optional()
+      z.union([
+        z.string().regex(/^[1-9]\d*$/),
+        z.number().int().positive().max(Number.MAX_SAFE_INTEGER).transform(String)
+      ]).optional()
     )
     .catch(undefined),
   jobName: z.string().optional(),

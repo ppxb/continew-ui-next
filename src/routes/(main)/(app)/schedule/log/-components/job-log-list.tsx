@@ -1,207 +1,76 @@
 import * as React from 'react'
 
 import { useQuery } from '@tanstack/react-query'
-import { type PaginationState } from '@tanstack/react-table'
 import { useNavigate } from '@tanstack/react-router'
 
-import type { DateRange } from 'react-day-picker'
-
-import { DataTable } from '@/components/data-table'
-import { DateRangeFilter } from '@/components/date-range-filter'
-import { FilterSelect } from '@/components/filter-select'
-import { ListPageCard } from '@/components/list-page-card'
-import { TableFillArea } from '@/components/table-fill-area'
-import { TableSearch } from '@/components/table-search'
-import { TableToolbar } from '@/components/table-toolbar'
-import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
-import { useListTable } from '@/hooks/use-list-table'
+import { ProTable } from '@/components/pro'
 import { usePermission } from '@/hooks/use-permission'
 import { jobKeys, listJobGroups } from '@/lib/api/job'
-import {
-  JOB_EXECUTE_STATUS_OPTIONS,
-  jobLogKeys,
-  listJobLogs,
-  type JobExecuteStatus,
-  type JobLogQuery,
-  type JobLogResp
-} from '@/lib/api/job-log'
-import type { PageResp } from '@/lib/api/types'
-import { createRecentDateRange, toDateTimeRangeQuery } from '@/lib/date-range'
+import { jobLogKeys, listJobLogs, type JobLogResp } from '@/lib/api/job-log'
+import { createRecentDateRange } from '@/lib/date-range'
 
 import { JobLogActionDialog, type JobLogActionTarget } from './job-log-action-dialog'
-import { createJobLogColumns, type JobLogAction } from './job-log-columns'
+import { createJobLogColumns, type JobLogAction, type JobLogRecord, type JobLogSearchValues } from './job-log-columns'
 
 interface JobLogListProps {
-  /** A job carried over from the job page's 查看日志 action. */
-  readonly initialJobId?: number
+  readonly initialJobId?: string | number
   readonly initialJobName?: string
   readonly initialGroupName?: string
 }
 
-export function JobLogList({ initialJobId, initialJobName, initialGroupName }: JobLogListProps) {
+export function JobLogList(props: JobLogListProps) {
+  const routeKey = JSON.stringify([props.initialJobId, props.initialJobName, props.initialGroupName])
+  const [session, setSession] = React.useState(() => ({ routeKey, version: 0, defaults: props }))
+  // A new URL target starts on page one; clearing the URL after editing a filter keeps that edit.
+  if (session.routeKey !== routeKey) {
+    const hasTarget = props.initialJobId !== undefined || props.initialJobName !== undefined || props.initialGroupName !== undefined
+    setSession(hasTarget ? { routeKey, version: session.version + 1, defaults: props } : { ...session, routeKey })
+  }
+  return <JobLogContent key={session.version} {...session.defaults} initialJobId={props.initialJobId} />
+}
+
+function JobLogContent({ initialJobId, initialJobName, initialGroupName }: JobLogListProps) {
   const navigate = useNavigate()
   const { hasPermission } = usePermission()
   const canStop = hasPermission('schedule:log:stop')
   const canRetry = hasPermission('schedule:log:retry')
-  // `/schedule/job/group` needs the job list permission; a log-only role can still use the page.
   const canListJobs = hasPermission('schedule:job:list')
-  const fullscreen = useFullscreenTransition()
-
-  const [jobId, setJobId] = React.useState<number | undefined>(initialJobId)
-  const [groupName, setGroupName] = React.useState<string | undefined>(initialGroupName)
-  const [keyword, setKeyword] = React.useState(initialJobName ?? '')
-  const [searchText, setSearchText] = React.useState(initialJobName ?? '')
-  const [status, setStatus] = React.useState<JobExecuteStatus | undefined>(undefined)
-  const [dateRange, setDateRange] = React.useState<DateRange | undefined>(() => createRecentDateRange())
+  const [releasedJob, setReleasedJob] = React.useState(false)
+  const jobId = releasedJob ? undefined : initialJobId
+  const [groupName, setGroupName] = React.useState(initialGroupName)
+  const [initialValues] = React.useState(() => ({ jobName: initialJobName ?? '', groupName: initialGroupName, dateRange: createRecentDateRange() }))
   const [actionTarget, setActionTarget] = React.useState<JobLogActionTarget | null>(null)
-
-  const groups = useQuery({
-    queryKey: jobKeys.groups(),
-    queryFn: ({ signal }) => listJobGroups(signal),
-    enabled: canListJobs
-  })
-
+  const groups = useQuery({ queryKey: jobKeys.groups(), queryFn: ({ signal }) => listJobGroups(signal), enabled: canListJobs })
   const groupOptions = React.useMemo(() => {
     const list = groups.data ?? []
     return groupName && !list.includes(groupName) ? [groupName, ...list] : list
   }, [groups.data, groupName])
-
-  const groupItems = React.useMemo(
-    () => [{ value: 'all', label: '全部' }, ...groupOptions.map(group => ({ value: group, label: group }))],
-    [groupOptions]
-  )
-
-  /** Clearing the URL search keeps the hidden `jobId` from outliving the visible filters. */
-  const clearRouteSearch = () => {
+  const releaseJobFilter = React.useCallback(() => {
+    if (jobId === undefined) return
+    setReleasedJob(true)
     void navigate({ to: '/schedule/log', search: {}, replace: true })
-  }
-
-  const releaseJobFilter = () => {
-    if (jobId === undefined) {
-      return
-    }
-
-    setJobId(undefined)
-    clearRouteSearch()
-  }
-
-  const handleAction = React.useCallback((type: JobLogAction, log: JobLogResp) => {
-    setActionTarget({ type, log })
-  }, [])
-
-  const buildQuery = React.useCallback(
-    (pagination: PaginationState) => {
-      const params: JobLogQuery = {
-        page: pagination.pageIndex + 1,
-        size: pagination.pageSize,
-        jobId,
-        groupName,
-        jobName: keyword || undefined,
-        taskBatchStatus: status,
-        datetimeRange: toDateTimeRangeQuery(dateRange)
-      }
-      return { queryKey: jobLogKeys.list(params), queryFn: (signal: AbortSignal) => listJobLogs(params, signal) }
-    },
-    [jobId, groupName, keyword, status, dateRange]
-  )
-
-  const buildColumns = React.useCallback(
-    (rowOffset: number) => createJobLogColumns({ rowOffset, canStop, canRetry, onAction: handleAction }),
-    [canStop, canRetry, handleAction]
-  )
-
-  const { query, table, resetPage, resetColumns } = useListTable<JobLogResp, PageResp<JobLogResp>>({
-    buildQuery,
-    buildColumns,
-    getRowId: row => String(row.id)
-  })
-
-  const handleKeywordSearch = (next: string) => {
-    setKeyword(next)
-    releaseJobFilter()
-    resetPage()
-  }
-
-  const handleGroupChange = (value: string | null) => {
-    setGroupName(!value || value === 'all' ? undefined : value)
-    releaseJobFilter()
-    resetPage()
-  }
-
-  const handleStatusChange = (value: string | null) => {
-    setStatus(!value || value === 'all' ? undefined : (Number(value) as JobExecuteStatus))
-    releaseJobFilter()
-    resetPage()
-  }
-
-  const handleDateRangeChange = (range: DateRange | undefined) => {
-    setDateRange(range)
-    releaseJobFilter()
-    resetPage()
-  }
-
-  const filters = (
-    <>
-      <TableSearch
-        className="col-span-2 h-8 w-full sm:w-64"
-        placeholder="搜索任务名称"
-        clearable
-        value={searchText}
-        onValueChange={setSearchText}
-        onSearch={handleKeywordSearch}
-      />
-      <FilterSelect
-        label="任务组"
-        options={groupItems}
-        value={groupName ?? 'all'}
-        onValueChange={handleGroupChange}
-        className="w-full sm:w-40"
-      />
-      <FilterSelect
-        label="状态"
-        options={JOB_EXECUTE_STATUS_OPTIONS}
-        value={status === undefined ? 'all' : String(status)}
-        onValueChange={handleStatusChange}
-        className="w-full sm:w-32"
-      />
-      <DateRangeFilter value={dateRange} onChange={handleDateRangeChange} className="col-span-2" />
-    </>
-  )
-
-  const actions = (
-    <TableToolbar
-      table={table}
-      className="w-full xl:w-auto xl:justify-end"
-      isRefreshing={query.isFetching && !query.isPending}
-      isFullscreen={fullscreen.isFullscreen}
-      onRefresh={() => void query.refetch()}
-      onToggleFullscreen={fullscreen.toggleFullscreen}
-      onResetColumns={resetColumns}
-      columnLabels={{ taskBatchStatus: '执行状态', operationReason: '执行备注' }}
-    />
-  )
+  }, [jobId, navigate])
+  const handleAction = React.useCallback((type: JobLogAction, log: JobLogResp) => setActionTarget({ type, log }), [])
+  const columns = React.useMemo(() => createJobLogColumns({ canStop, canRetry, onAction: handleAction,
+    groupOptions, onGroupChange: setGroupName, onFilterChange: releaseJobFilter }),
+  [canStop, canRetry, handleAction, groupOptions, releaseJobFilter])
 
   return (
     <>
-      <ListPageCard
-        title="任务日志"
-        description="查看任务调度记录、执行状态与执行结果"
-        filters={filters}
-        actions={actions}
-        fullscreen={fullscreen}
-      >
-        <TableFillArea fullscreen={fullscreen}>
-          <DataTable
-            table={table}
-            isLoading={query.isPending}
-            isError={query.isError}
-            isShowingPreviousRows={query.isPlaceholderData}
-            onRetry={() => void query.refetch()}
-            fillHeight
-          />
-        </TableFillArea>
-      </ListPageCard>
-
+      <ProTable<JobLogRecord, JobLogSearchValues>
+        headerTitle="任务日志"
+        toolbar={{ subTitle: '查看任务调度记录、执行状态与执行结果' }}
+        rowKey="id"
+        columns={columns}
+        queryKey={jobLogKeys.lists()}
+        params={{ jobId }}
+        form={{ initialValues }}
+        options={{ search: { name: 'jobName', placeholder: '搜索任务名称', onSearch: releaseJobFilter } }}
+        request={async ({ current, pageSize, dateRange: _dateRange, ...filters }, _sort, _filter, signal) => {
+          const page = await listJobLogs({ ...filters, page: current, size: pageSize }, signal)
+          return { data: page.list, total: page.total }
+        }}
+      />
       <JobLogActionDialog action={actionTarget} open={actionTarget !== null} onClose={() => setActionTarget(null)} />
     </>
   )

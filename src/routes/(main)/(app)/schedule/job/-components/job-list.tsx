@@ -1,24 +1,15 @@
 import * as React from 'react'
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { type ColumnVisibilityState, type PaginationState } from '@tanstack/react-table'
 import { useNavigate } from '@tanstack/react-router'
 
 import { Plus } from 'lucide-react'
 
-import { DataTable } from '@/components/data-table'
-import { FilterSelect } from '@/components/filter-select'
-import { ListPageCard } from '@/components/list-page-card'
-import { TableFillArea } from '@/components/table-fill-area'
-import { TableSearch } from '@/components/table-search'
-import { TableToolbar } from '@/components/table-toolbar'
+import { ProTable, type ProFormInstance } from '@/components/pro'
 import { Button } from '@/components/ui/button'
 import { toast } from '@/components/ui/toast'
-import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
-import { useListTable } from '@/hooks/use-list-table'
 import { usePermission } from '@/hooks/use-permission'
 import {
-  JOB_STATUS_OPTIONS,
   jobKeys,
   listJobGroups,
   listJobs,
@@ -27,17 +18,15 @@ import {
   type JobResp,
   type JobStatus
 } from '@/lib/api/job'
-import type { PageResp } from '@/lib/api/types'
 
 import { createJobColumns, type JobAction } from './job-columns'
 import { JobDeleteDialog } from './job-delete-dialog'
 import { JobDetailDrawer } from './job-detail-drawer'
 import { JobFormDrawer } from './job-form-drawer'
 import { JobTriggerDialog } from './job-trigger-dialog'
+import type { JobRecord } from './job-form-values'
 
-const HIDDEN_BY_DEFAULT: ColumnVisibilityState = {
-  updateDt: false
-}
+const HIDDEN_BY_DEFAULT = { updateDt: { show: false } }
 
 export function JobList() {
   const navigate = useNavigate()
@@ -49,11 +38,9 @@ export function JobList() {
   const canDelete = hasPermission('schedule:job:delete')
   const canTrigger = hasPermission('schedule:job:trigger')
   const canViewLogs = hasPermission('schedule:log:list')
-  const fullscreen = useFullscreenTransition()
-
-  const [keyword, setKeyword] = React.useState('')
-  const [jobStatus, setJobStatus] = React.useState<JobStatus | undefined>(undefined)
+  const formRef = React.useRef<ProFormInstance<Omit<JobQuery, 'page' | 'size'>>>(undefined)
   const [groupName, setGroupName] = React.useState<string | undefined>(undefined)
+  const [currentRows, setCurrentRows] = React.useState<JobResp[]>([])
   // The job query waits for the first group so the page does not briefly list every group.
   const [groupReady, setGroupReady] = React.useState(false)
   // A late group lookup must not override a group the user has already picked.
@@ -73,7 +60,9 @@ export function JobList() {
   React.useEffect(() => {
     if (groups.isSuccess) {
       if (!groupTouchedRef.current) {
-        setGroupName(current => current ?? groups.data[0])
+        const firstGroup = groups.data[0]
+        setGroupName(current => current ?? firstGroup)
+        if (!formRef.current?.getFieldValue('groupName')) formRef.current?.setFieldsValue({ groupName: firstGroup })
       }
       setGroupReady(true)
       return
@@ -85,10 +74,6 @@ export function JobList() {
     }
   }, [groups.isSuccess, groups.isError, groups.data])
 
-  const groupItems = React.useMemo(
-    () => [{ value: 'all', label: '全部' }, ...(groups.data ?? []).map(group => ({ value: group, label: group }))],
-    [groups.data]
-  )
 
   const handleToggleStatus = React.useCallback(
     async (job: JobResp, next: JobStatus) => {
@@ -119,7 +104,7 @@ export function JobList() {
       if (action === 'logs') {
         void navigate({
           to: '/schedule/log',
-          search: { jobId: job.id, jobName: job.jobName, groupName: job.groupName }
+          search: { jobId: String(job.id), jobName: job.jobName, groupName: job.groupName }
         })
         return
       }
@@ -129,42 +114,12 @@ export function JobList() {
     [navigate]
   )
 
-  const buildQuery = React.useCallback(
-    (pagination: PaginationState) => {
-      const params: JobQuery = {
-        page: pagination.pageIndex + 1,
-        size: pagination.pageSize,
-        groupName,
-        jobName: keyword || undefined,
-        jobStatus
-      }
-      return { queryKey: jobKeys.list(params), queryFn: (signal: AbortSignal) => listJobs(params, signal) }
-    },
-    [groupName, keyword, jobStatus]
-  )
-
-  const buildColumns = React.useCallback(
-    (rowOffset: number) =>
-      createJobColumns({
-        rowOffset,
-        canGet,
-        canTrigger,
-        canUpdate,
-        canViewLogs,
-        canDelete,
-        onAction: handleAction,
-        onToggleStatus: handleToggleStatus
-      }),
-    [canGet, canTrigger, canUpdate, canViewLogs, canDelete, handleAction, handleToggleStatus]
-  )
-
-  const { query, table, resetPage, resetColumns } = useListTable<JobResp, PageResp<JobResp>>({
-    buildQuery,
-    buildColumns,
-    getRowId: row => String(row.id),
-    initialColumnVisibility: HIDDEN_BY_DEFAULT,
-    enabled: groupReady
-  })
+  const columns = React.useMemo(() => createJobColumns({
+    canGet, canTrigger, canUpdate, canViewLogs, canDelete,
+    groupOptions: groups.data,
+    onGroupChange: () => { groupTouchedRef.current = true },
+    onAction: handleAction, onToggleStatus: handleToggleStatus
+  }), [canGet, canTrigger, canUpdate, canViewLogs, canDelete, groups.data, handleAction, handleToggleStatus])
 
   // The API has no detail endpoint, so keep the drawer on the freshest copy of the row the
   // list currently holds and fall back to the clicked snapshot once it leaves the page.
@@ -173,91 +128,33 @@ export function JobList() {
       return null
     }
 
-    return query.data?.list.find(job => String(job.id) === String(detailJob.id)) ?? detailJob
-  }, [detailJob, query.data])
+    return currentRows.find(job => String(job.id) === String(detailJob.id)) ?? detailJob
+  }, [detailJob, currentRows])
 
-  const handleKeywordSearch = (next: string) => {
-    setKeyword(next)
-    resetPage()
-  }
-
-  const handleGroupChange = (value: string | null) => {
-    groupTouchedRef.current = true
-    setGroupName(!value || value === 'all' ? undefined : value)
-    resetPage()
-  }
-
-  const handleStatusChange = (value: string | null) => {
-    setJobStatus(!value || value === 'all' ? undefined : (Number(value) as JobStatus))
-    resetPage()
-  }
-
-  const filters = (
-    <>
-      <TableSearch
-        className="col-span-2 h-8 w-full sm:w-64"
-        placeholder="搜索任务名称"
-        clearable
-        onSearch={handleKeywordSearch}
-      />
-      <FilterSelect
-        label="任务组"
-        options={groupItems}
-        value={groupName ?? 'all'}
-        onValueChange={handleGroupChange}
-        className="w-full sm:w-40"
-      />
-      <FilterSelect
-        label="状态"
-        options={JOB_STATUS_OPTIONS}
-        value={jobStatus === undefined ? 'all' : String(jobStatus)}
-        onValueChange={handleStatusChange}
-        className="w-full sm:w-32"
-      />
-    </>
-  )
-
-  const actions = (
-    <TableToolbar
-      table={table}
-      className="w-full xl:w-auto xl:justify-end"
-      isRefreshing={query.isFetching && !query.isPending}
-      isFullscreen={fullscreen.isFullscreen}
-      onRefresh={() => void query.refetch()}
-      onToggleFullscreen={fullscreen.toggleFullscreen}
-      onResetColumns={resetColumns}
-      columnLabels={{ jobStatus: '状态' }}
-      actions={
-        canCreate ? (
-          <Button className="w-full sm:w-auto" onClick={() => setFormTarget({ job: null })}>
-            <Plus />
-            新增任务
-          </Button>
-        ) : null
-      }
-    />
-  )
 
   return (
     <>
-      <ListPageCard
-        title="任务管理"
-        description="管理定时任务、调度策略与执行状态"
-        filters={filters}
-        actions={actions}
-        fullscreen={fullscreen}
-      >
-        <TableFillArea fullscreen={fullscreen}>
-          <DataTable
-            table={table}
-            isLoading={query.isPending || !groupReady}
-            isError={query.isError}
-            isShowingPreviousRows={query.isPlaceholderData}
-            onRetry={() => void query.refetch()}
-            fillHeight
-          />
-        </TableFillArea>
-      </ListPageCard>
+      <ProTable<JobRecord, Omit<JobQuery, 'page' | 'size'>>
+        headerTitle="任务管理"
+        toolbar={{ subTitle: '管理定时任务、调度策略与执行状态' }}
+        rowKey="id"
+        queryKey={jobKeys.lists()}
+        columns={columns}
+        columnsState={{ defaultValue: HIDDEN_BY_DEFAULT }}
+        formRef={formRef}
+        manualRequest={!groupReady}
+        loading={!groupReady ? true : undefined}
+        options={{ search: { name: 'jobName', placeholder: '搜索任务名称' } }}
+        request={async ({ current, pageSize, groupName: selectedGroup, jobName, jobStatus }, _sort, _filter, signal) => {
+          const result = await listJobs({ page: current, size: pageSize, groupName: selectedGroup, jobName: jobName || undefined, jobStatus }, signal)
+          if (!signal.aborted) {
+            setCurrentRows(result.list)
+            setGroupName(selectedGroup)
+          }
+          return { data: result.list, total: result.total, success: true }
+        }}
+        toolBarRender={() => canCreate ? [<Button key="create" className="w-full sm:w-auto" onClick={() => setFormTarget({ job: null })}><Plus />新增任务</Button>] : []}
+      />
 
       <JobDetailDrawer job={liveDetailJob} open={detailJob !== null} onClose={() => setDetailJob(null)} />
       <JobFormDrawer

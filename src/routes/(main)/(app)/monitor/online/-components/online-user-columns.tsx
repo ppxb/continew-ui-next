@@ -1,18 +1,17 @@
-import type { ColumnDef } from '@tanstack/react-table'
+import type { DateRange } from 'react-day-picker'
 import { LogOut } from 'lucide-react'
 
-import { dateTimeColumn, indexColumn, textColumn } from '@/components/table/columns'
+import { DateRangeFilter } from '@/components/date-range-filter'
+import type { ProColumns } from '@/components/pro'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import type { OnlineUserResp } from '@/lib/api/online'
 import { EMPTY_PLACEHOLDER } from '@/lib/constants'
-import type { DataTableFeatures } from '@/lib/data-table-features'
+import { toDateTimeRangeQuery } from '@/lib/date-range'
 
-type OnlineUserColumn = ColumnDef<DataTableFeatures, OnlineUserResp>
+export type OnlineUserRecord = OnlineUserResp & { dateRange?: DateRange }
 
 interface OnlineUserColumnOptions {
-  /** The index of the first row on the current page, so 序号 stays continuous. */
-  readonly rowOffset: number
   /** The signed-in account may not hold `monitor:online:kickout`; the column is dropped then. */
   readonly canKickout: boolean
   /** The backend rejects kicking out the session that sends the request. */
@@ -54,37 +53,26 @@ function KickoutCell({
   )
 }
 
-export function createOnlineUserColumns({
-  rowOffset,
-  canKickout,
-  isCurrentSession,
-  onKickout
-}: OnlineUserColumnOptions) {
-  const columns: OnlineUserColumn[] = [
-    indexColumn(rowOffset),
-    {
-      id: 'user',
-      header: '用户昵称',
-      meta: { valueType: 'text' },
-      cell: ({ row }) => <UserCell user={row.original} />
-    },
-    textColumn('ip', '登录 IP'),
-    textColumn('address', '登录地点'),
-    textColumn('browser', '浏览器'),
-    textColumn('os', '终端系统'),
-    dateTimeColumn('loginTime', '登录时间'),
-    dateTimeColumn('lastRefreshTime', '最后刷新时间')
-  ]
-
-  if (canKickout) {
-    columns.push({
-      id: 'actions',
-      header: () => <div className="text-center">操作</div>,
-      enableHiding: false,
-      meta: { valueType: 'option' },
-      cell: ({ row }) => <KickoutCell user={row.original} isCurrentSession={isCurrentSession} onKickout={onKickout} />
-    })
+export const onlineUserColumns: readonly ProColumns<OnlineUserRecord>[] = [
+  { title: '序号', valueType: 'index' },
+  { title: '用户昵称', dataIndex: 'nickname', render: (_, user) => <UserCell user={user} /> },
+  { title: '登录 IP', dataIndex: 'ip' },
+  { title: '登录地点', dataIndex: 'address' },
+  { title: '浏览器', dataIndex: 'browser' },
+  { title: '终端系统', dataIndex: 'os' },
+  { title: '登录时间', dataIndex: 'loginTime', valueType: 'dateTime' },
+  { title: '最后刷新时间', dataIndex: 'lastRefreshTime', valueType: 'dateTime' },
+  {
+    title: '登录时间', dataIndex: 'dateRange', valueType: 'dateRange', hideInTable: true, hideInForm: true, hideInDescriptions: true,
+    search: { transform: value => ({ loginTime: toDateTimeRangeQuery(value as DateRange | undefined) }) },
+    formItemRender: (_, control) => <DateRangeFilter id={control.id} invalid={control.invalid} onBlur={control.onBlur}
+      value={control.value as DateRange | undefined} onChange={control.onChange} placeholder="登录时间" />
   }
+]
 
-  return columns
+export function createOnlineUserColumns({ canKickout, isCurrentSession, onKickout }: OnlineUserColumnOptions): readonly ProColumns<OnlineUserRecord>[] {
+  return canKickout ? [...onlineUserColumns, {
+    title: '操作', valueType: 'option', align: 'center',
+    render: (_, user) => <KickoutCell user={user} isCurrentSession={isCurrentSession} onKickout={onKickout} />
+  }] : onlineUserColumns
 }
