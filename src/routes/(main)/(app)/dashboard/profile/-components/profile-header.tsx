@@ -69,7 +69,7 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
             onClick={() => fileRef.current?.click()}
           >
             <Avatar className="size-full">
-              <AvatarImage alt={profile.name} src={profile.avatar} />
+              {profile.avatar ? <AvatarImage alt={profile.name} src={profile.avatar} /> : null}
               <AvatarFallback>{profile.initials}</AvatarFallback>
             </Avatar>
             <span

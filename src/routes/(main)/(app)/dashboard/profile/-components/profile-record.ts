@@ -1,9 +1,10 @@
 import { differenceInDays, differenceInMonths, format } from 'date-fns'
 
 import type { UserInfoResp } from '@/lib/api/types'
+import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 import { getInitials } from '@/lib/utils'
 
-import { profile as mockProfile, type ProfileRecord } from './profile-data'
+import type { ProfileRecord } from './profile-data'
 
 /** The backend sends `2026-10-13` and `2026-10-13 06:07:16`. */
 function parseBackendDate(value?: string | null): Date | undefined {
@@ -60,39 +61,50 @@ function formatActiveDuration(createdAt?: string | null): string | undefined {
   return rest === 0 ? `${years} 年` : `${years} 年 ${rest} 个月`
 }
 
-/**
- * Overlays the fields the backend really owns on top of the demo record.
- *
- * `GET /auth/user/info` only covers identity, contact, department, roles and password
- * dates, so every employee-directory field without a source (job level, team, leave,
- * documents, manager, emergency contacts) keeps its mock value.
- */
+/** The record shown before the signed-in user resolves; the page never renders it in practice. */
+function emptyProfile(): ProfileRecord {
+  return {
+    name: EMPTY_PLACEHOLDER,
+    preferredName: EMPTY_PLACEHOLDER,
+    legalName: EMPTY_PLACEHOLDER,
+    pronouns: EMPTY_PLACEHOLDER,
+    initials: '?',
+    avatar: '',
+    department: EMPTY_PLACEHOLDER,
+    workEmail: EMPTY_PLACEHOLDER,
+    personalEmail: EMPTY_PLACEHOLDER,
+    workPhone: EMPTY_PLACEHOLDER,
+    contractorId: EMPTY_PLACEHOLDER,
+    startDate: EMPTY_PLACEHOLDER,
+    activeDuration: EMPTY_PLACEHOLDER,
+    bio: EMPTY_PLACEHOLDER,
+    roleNames: []
+  }
+}
+
+/** Builds the profile record from the signed-in user; every field has a real source. */
 export function toProfileRecord(user: UserInfoResp | null): ProfileRecord {
   if (!user) {
-    return mockProfile
+    return emptyProfile()
   }
 
   const name = user.nickname || user.username
 
   return {
-    ...mockProfile,
     name,
-    preferredName: user.username,
-    legalName: name,
+    preferredName: user.username || EMPTY_PLACEHOLDER,
+    legalName: name || EMPTY_PLACEHOLDER,
     pronouns: formatGender(user.gender),
     initials: getInitials(name),
-    avatar: user.avatar ?? mockProfile.avatar,
-    jobTitle: user.roleNames?.length ? user.roleNames.join(' / ') : mockProfile.jobTitle,
-    roleNames: user.roleNames ?? [],
-    department: user.deptName || mockProfile.department,
-    workEmail: user.email || mockProfile.workEmail,
-    personalEmail: user.email || mockProfile.personalEmail,
-    workPhone: user.phone || mockProfile.workPhone,
+    avatar: user.avatar ?? '',
+    department: user.deptName || EMPTY_PLACEHOLDER,
+    workEmail: user.email || EMPTY_PLACEHOLDER,
+    personalEmail: user.email || EMPTY_PLACEHOLDER,
+    workPhone: user.phone || EMPTY_PLACEHOLDER,
     contractorId: String(user.id),
-    startDate: formatBackendDate(user.registrationDate) ?? mockProfile.startDate,
-    activeDuration: formatActiveDuration(user.registrationDate) ?? mockProfile.activeDuration,
-    bio: user.description || mockProfile.bio,
-    updatedBy: name,
-    updatedAt: formatBackendDate(user.pwdResetTime) ?? mockProfile.updatedAt
+    startDate: formatBackendDate(user.registrationDate) ?? EMPTY_PLACEHOLDER,
+    activeDuration: formatActiveDuration(user.registrationDate) ?? EMPTY_PLACEHOLDER,
+    bio: user.description || EMPTY_PLACEHOLDER,
+    roleNames: user.roleNames ?? []
   }
 }

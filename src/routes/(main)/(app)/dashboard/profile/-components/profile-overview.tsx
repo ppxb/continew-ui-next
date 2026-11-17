@@ -1,4 +1,3 @@
-import { StatusCell } from '@/components/status-cell'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 
@@ -21,31 +20,22 @@ export function ProfileOverview({ profile }: ProfileOverviewProps) {
 
       <div className="flex flex-col gap-2">
         <h2 className="font-heading text-base font-medium">账号详情</h2>
-        <div className="grid gap-8 sm:grid-cols-2 xl:gap-12">
-          <div className="flex flex-col gap-5">
-            <div className="flex flex-col gap-1">
-              <span className="text-xs text-muted-foreground">用户 ID</span>
-              <span className="text-sm">{profile.contractorId}</span>
-            </div>
-            <div className="flex flex-col gap-1">
-              <span className="text-xs text-muted-foreground">部门</span>
-              <span className="text-sm">{profile.department}</span>
-            </div>
-            <div className="flex flex-col gap-1">
-              <span className="text-xs text-muted-foreground">创建时间</span>
-              <span className="text-sm">{profile.startDate}</span>
-            </div>
+        <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
+          <div className="flex flex-col gap-1">
+            <span className="text-xs text-muted-foreground">用户 ID</span>
+            <span className="text-sm">{profile.contractorId}</span>
           </div>
-
-          <div className="flex flex-col gap-5">
-            <div className="flex flex-col gap-1">
-              <span className="text-xs text-muted-foreground">状态</span>
-              <StatusCell status={profile.engagementStatus === 'Active' ? 1 : 2} />
-            </div>
-            <div className="flex flex-col gap-1">
-              <span className="text-xs text-muted-foreground">账户活跃时间</span>
-              <span className="text-sm">{profile.activeDuration}</span>
-            </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-xs text-muted-foreground">部门</span>
+            <span className="text-sm">{profile.department}</span>
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-xs text-muted-foreground">创建时间</span>
+            <span className="text-sm">{profile.startDate}</span>
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-xs text-muted-foreground">账户活跃时间</span>
+            <span className="text-sm">{profile.activeDuration}</span>
           </div>
         </div>
       </div>
