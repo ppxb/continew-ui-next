@@ -61,7 +61,8 @@ export function DeptList() {
   const [searchInput, setSearchInput] = React.useState('')
   const keyword = searchInput.trim()
 
-  const [expanded, setExpanded] = React.useState<ExpandedState>({})
+  // Departments are expanded by default; `true` is TanStack Table's "expand every row".
+  const [expanded, setExpanded] = React.useState<ExpandedState>(true)
   const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>(DEFAULT_COLUMN_VISIBILITY)
 
   // One state per overlay: a null value means closed, so "which record" and "is it open" cannot drift apart.
@@ -113,6 +114,9 @@ export function DeptList() {
     getSubRows: (row: DeptResp) => row.children,
     // Real IDs, so expanding or filtering keeps row identity and does not remount every row.
     getRowId: row => String(row.id),
+    // The tree loads asynchronously; without this the post-load auto reset collapses the default
+    // expanded-all state back to the empty default as soon as the data arrives.
+    autoResetExpanded: false,
     state: {
       expanded,
       columnVisibility
