@@ -160,4 +160,50 @@ export function assignUserRoles(id: string | number, body: UserRoleUpdateReq) {
   return http.patch<void>(`/system/user/${id}/role`, body)
 }
 
+/** `ImportPolicyEnum`: 1 skip the row, 2 update existing data, 3 stop the import. */
+export type UserImportPolicy = 1 | 2 | 3
+
+/** Parse counts; the backend caches valid rows under `importKey` for 10 minutes. */
+export interface UserImportParseResp {
+  importKey: string
+  totalRows: number
+  validRows: number
+  duplicateUserRows: number
+  duplicateEmailRows: number
+  duplicatePhoneRows: number
+}
+
+/** The body of `POST /system/user/import`. */
+export interface UserImportReq {
+  importKey: string
+  duplicateUser: UserImportPolicy
+  duplicateEmail: UserImportPolicy
+  duplicatePhone: UserImportPolicy
+  defaultStatus?: UserStatus
+}
+
+/** The final import result, including rows skipped by the selected policies. */
+export interface UserImportResp {
+  totalRows: number
+  insertRows: number
+  updateRows: number
+}
+
+/** Downloads the backend's xlsx template. */
+export function downloadUserImportTemplate() {
+  return downloadFile('/system/user/import/template')
+}
+
+/** Uploads a workbook as the multipart `file` request part. */
+export function parseUserImport(file: File) {
+  const formData = new FormData()
+  formData.append('file', file)
+  return http.post<UserImportParseResp>('/system/user/import/parse', formData)
+}
+
+/** Commits the cached workbook with all duplicate policies and the default status. */
+export function importUsers(body: UserImportReq) {
+  return http.post<UserImportResp>('/system/user/import', body)
+}
+
 export { userKeys } from '@/lib/query-keys'
