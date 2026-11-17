@@ -18,6 +18,8 @@ export type LoginParams = {
   captcha?: string
   uuid?: string
   persist?: boolean
+  /** Tenant code for multi-tenant login; empty means the default tenant. */
+  tenantCode?: string
 }
 
 /** The provider's callback parameters (`code`, `state`, ...) plus its source key. */
@@ -84,15 +86,18 @@ export const createAuthStore = () => {
       // wait for `loadUser` before painting anything that depends on permissions.
       isLoadingUser: getAccessToken() !== null,
 
-      login: async ({ username, password, captcha, uuid, persist }) => {
-        const response = await loginRequest({
-          clientId: import.meta.env.VITE_CLIENT_ID,
-          authType: 'ACCOUNT',
-          username,
-          password: encryptByRsa(password),
-          captcha,
-          uuid
-        })
+      login: async ({ username, password, captcha, uuid, persist, tenantCode }) => {
+        const response = await loginRequest(
+          {
+            clientId: import.meta.env.VITE_CLIENT_ID,
+            authType: 'ACCOUNT',
+            username,
+            password: encryptByRsa(password),
+            captcha,
+            uuid
+          },
+          tenantCode
+        )
 
         await establishSession(response, persist)
       },

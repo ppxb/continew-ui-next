@@ -18,6 +18,7 @@ import { CaptchaImage } from './captcha-image'
 const DEFAULT_REDIRECT = '/dashboard'
 
 const formSchema = z.object({
+  tenantCode: z.string().optional(),
   username: z.string().min(1, { message: '请输入用户名' }),
   password: z.string().min(1, { message: '请输入密码' }),
   captcha: z.string().optional(),
@@ -28,6 +29,7 @@ type LoginFormValues = z.infer<typeof formSchema>
 
 // FOR DEMO PURPOSES ONLY: Pre-fill the form with default values to make it easier to log in.
 const DEFAULT_FORM: LoginFormValues = {
+  tenantCode: '',
   username: 'admin',
   password: 'admin123',
   captcha: '',
@@ -59,7 +61,8 @@ export function LoginForm({ redirectTo }: { readonly redirectTo?: string }) {
           password: value.password,
           captcha: value.captcha || undefined,
           uuid: captcha?.uuid,
-          persist: value.remember
+          persist: value.remember,
+          tenantCode: value.tenantCode?.trim() || undefined
         })
       } catch (error) {
         // `login` is a silent request, so this form is the only place that reports the failure.
@@ -103,6 +106,23 @@ export function LoginForm({ redirectTo }: { readonly redirectTo?: string }) {
       }}
     >
       <FieldGroup className="gap-4">
+        <form.Field name="tenantCode">
+          {field => (
+            <Field>
+              <Input
+                name="tenantCode"
+                type="text"
+                value={field.state.value ?? ''}
+                onChange={event => field.handleChange(event.target.value)}
+                onBlur={field.handleBlur}
+                placeholder="请输入租户编码（留空为默认租户）"
+                autoComplete="off"
+                disabled={isSubmitting}
+              />
+            </Field>
+          )}
+        </form.Field>
+
         <form.Field name="username" validators={{ onDynamic: formSchema.shape.username }}>
           {field => {
             const invalid = field.state.meta.errors.length > 0
