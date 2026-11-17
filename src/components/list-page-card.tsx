@@ -10,8 +10,8 @@ type FullscreenControls = ReturnType<typeof useFullscreenTransition>
 
 interface ListPageCardProps {
   /** Omitted by a tab whose page already renders its own title. */
-  readonly title?: string
-  readonly description?: string
+  readonly title?: ReactNode
+  readonly description?: ReactNode
   /** Search and filter controls, on the left of the row above the table. */
   readonly filters?: ReactNode
   /** Toolbar actions, on the right of the same row. */

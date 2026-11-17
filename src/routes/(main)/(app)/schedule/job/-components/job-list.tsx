@@ -39,18 +39,6 @@ const HIDDEN_BY_DEFAULT: ColumnVisibilityState = {
   updateDt: false
 }
 
-const SKELETON_WIDTHS: Record<string, string> = {
-  index: 'mx-auto w-6',
-  jobName: 'w-32',
-  triggerType: 'w-32',
-  taskType: 'w-28',
-  jobStatus: 'mx-auto w-10 rounded-full',
-  description: 'w-32',
-  createDt: 'w-32',
-  updateDt: 'w-32',
-  actions: 'mx-auto w-8'
-}
-
 export function JobList() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -267,7 +255,6 @@ export function JobList() {
             isShowingPreviousRows={query.isPlaceholderData}
             onRetry={() => void query.refetch()}
             fillHeight
-            skeletonWidths={table.getVisibleLeafColumns().map(column => SKELETON_WIDTHS[column.id] ?? 'w-24')}
           />
         </TableFillArea>
       </ListPageCard>

@@ -2,7 +2,7 @@ import { type ColumnDef } from '@tanstack/react-table'
 import { Eye, Pen, Play, ScrollText, Trash2 } from 'lucide-react'
 
 import { RowActionsMenu } from '@/components/row-actions-menu'
-import { TextCell } from '@/components/text-cell'
+import { dateTimeColumn, textColumn } from '@/components/table/columns'
 import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import type { JobResp, JobStatus } from '@/lib/api/job'
 import type { DataTableFeatures } from '@/lib/data-table-features'
@@ -102,49 +102,37 @@ export function createJobColumns({
       id: 'index',
       header: '序号',
       enableHiding: false,
+      meta: { valueType: 'index' },
       cell: ({ row }) => (
         <div className="text-center text-sm text-muted-foreground tabular-nums">{rowOffset + row.index + 1}</div>
       )
     },
-    {
-      accessorKey: 'jobName',
-      header: '任务名称',
-      cell: ({ row }) => <TextCell value={row.original.jobName} />
-    },
+    textColumn('jobName', '任务名称'),
     {
       accessorKey: 'triggerType',
       header: '调度类型',
+      meta: { valueType: 'text' },
       cell: ({ row }) => <TriggerTypeCell job={row.original} />
     },
     {
       accessorKey: 'taskType',
       header: '任务类型',
+      meta: { valueType: 'text' },
       cell: ({ row }) => <TaskTypeCell job={row.original} />
     },
     {
       accessorKey: 'jobStatus',
       header: () => <div className="text-center">状态</div>,
+      meta: { valueType: 'status' },
       cell: ({ row }) => (
         <div className="flex justify-center">
           <JobStatusSwitch job={row.original} canUpdate={canUpdate} onToggle={onToggleStatus} />
         </div>
       )
     },
-    {
-      accessorKey: 'description',
-      header: '描述',
-      cell: ({ row }) => <TextCell value={row.original.description} />
-    },
-    {
-      accessorKey: 'createDt',
-      header: '创建时间',
-      cell: ({ row }) => <TextCell value={row.original.createDt} />
-    },
-    {
-      accessorKey: 'updateDt',
-      header: '修改时间',
-      cell: ({ row }) => <TextCell value={row.original.updateDt} />
-    }
+    textColumn('description', '描述'),
+    dateTimeColumn('createDt', '创建时间'),
+    dateTimeColumn('updateDt', '修改时间')
   ]
 
   if (canGet || canTrigger || canUpdate || canViewLogs || canDelete) {
@@ -152,6 +140,7 @@ export function createJobColumns({
       id: 'actions',
       header: () => <div className="text-center">操作</div>,
       enableHiding: false,
+      meta: { valueType: 'option' },
       cell: ({ row }) => (
         <RowActions
           job={row.original}

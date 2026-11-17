@@ -1,24 +1,20 @@
 import * as React from 'react'
 
-import { revalidateLogic, useForm } from '@tanstack/react-form'
+import { revalidateLogic } from '@tanstack/react-form'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { z } from 'zod'
 
 import { Layers, ListChecks, Plus, Trash2 } from 'lucide-react'
 
 import { EntityDrawer } from '@/components/entity-drawer'
-import { RequiredMark } from '@/components/required-mark'
+import { FormItem, useAppForm } from '@/components/form'
 import { Button } from '@/components/ui/button'
-import { DrawerFooter } from '@/components/ui/drawer'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
-import { Field, FieldDescription, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Spinner } from '@/components/ui/spinner'
-import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/components/ui/toast'
 import { useFillFormOnce } from '@/hooks/use-fill-form-once'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
@@ -51,9 +47,14 @@ const CRON_PRESETS = [
   { label: '每周日零点', value: '0 0 0 ? * 1' }
 ]
 
-/** All numeric fields arrive as strings so the inputs stay controlled and empty-able. */
-const positiveInteger = (message: string, min: number) =>
-  z.string().refine(value => /^\d+$/.test(value) && Number(value) >= min, message)
+/** `null` is a cleared input; the refine reports it instead of snapping the value back. */
+const positiveInteger = (message: string, min: number, emptyMessage: string) =>
+  z
+    .number()
+    .int(message)
+    .min(min, message)
+    .nullable()
+    .refine(value => value !== null, emptyMessage)
 
 const formSchema = z.object({
   groupName: z.string().min(1, '请选择任务组'),
@@ -66,16 +67,17 @@ const formSchema = z.object({
   argsStr: z.string(),
   routeKey: z.union([z.literal('1'), z.literal('2'), z.literal('3'), z.literal('4')]),
   blockStrategy: z.union([z.literal('1'), z.literal('2'), z.literal('3')]),
-  executorTimeout: positiveInteger('超时时间必须是不小于 1 的整数', 1),
-  maxRetryTimes: positiveInteger('最大重试次数必须是不小于 0 的整数', 0),
-  retryInterval: positiveInteger('重试间隔必须是不小于 1 的整数', 1),
-  parallelNum: positiveInteger('并行数必须是不小于 1 的整数', 1),
+  executorTimeout: positiveInteger('超时时间必须是不小于 1 的整数', 1, '请输入超时时间'),
+  maxRetryTimes: positiveInteger('最大重试次数必须是不小于 0 的整数', 0, '请输入最大重试次数'),
+  retryInterval: positiveInteger('重试间隔必须是不小于 1 的整数', 1, '请输入重试间隔'),
+  parallelNum: positiveInteger('并行数必须是不小于 1 的整数', 1, '请输入并行数'),
   jobStatus: z.union([z.literal(0), z.literal(1)]),
   executorType: z.number().nullable(),
   argsType: z.number().nullable()
 })
 
-type FormValues = z.infer<typeof formSchema>
+// `z.input` keeps the number fields `number | null`; the refine only narrows the output.
+type FormValues = z.input<typeof formSchema>
 type NumberFieldName = 'executorTimeout' | 'maxRetryTimes' | 'retryInterval' | 'parallelNum'
 
 const EMPTY_FORM: FormValues = {
@@ -89,10 +91,10 @@ const EMPTY_FORM: FormValues = {
   argsStr: '',
   routeKey: '4',
   blockStrategy: '1',
-  executorTimeout: '60',
-  maxRetryTimes: '3',
-  retryInterval: '1',
-  parallelNum: '1',
+  executorTimeout: 60,
+  maxRetryTimes: 3,
+  retryInterval: 1,
+  parallelNum: 1,
   jobStatus: 0,
   executorType: 1,
   argsType: null
@@ -112,10 +114,10 @@ function toFormValues(job: JobResp): FormValues {
     argsStr: job.argsStr ?? '',
     routeKey: String(job.routeKey) as FormValues['routeKey'],
     blockStrategy: String(job.blockStrategy) as FormValues['blockStrategy'],
-    executorTimeout: String(job.executorTimeout),
-    maxRetryTimes: String(job.maxRetryTimes),
-    retryInterval: String(job.retryInterval),
-    parallelNum: String(job.parallelNum),
+    executorTimeout: job.executorTimeout,
+    maxRetryTimes: job.maxRetryTimes,
+    retryInterval: job.retryInterval,
+    parallelNum: job.parallelNum,
     jobStatus: job.jobStatus ?? 0,
     executorType: job.executorType ?? null,
     argsType: parsedArgsType !== null && Number.isFinite(parsedArgsType) ? parsedArgsType : null
@@ -190,7 +192,7 @@ export function JobFormDrawer({ job, open, onClose, defaultGroupName }: JobFormD
   const [argsError, setArgsError] = React.useState<string | null>(null)
   const [triggerError, setTriggerError] = React.useState<string | null>(null)
 
-  const form = useForm({
+  const form = useAppForm({
     defaultValues: EMPTY_FORM,
     validationLogic: revalidateLogic(),
     validators: { onDynamic: formSchema },
@@ -208,6 +210,7 @@ export function JobFormDrawer({ job, open, onClose, defaultGroupName }: JobFormD
         argsType: value.argsType,
         routeKey: Number(value.routeKey) as JobRouteKey,
         blockStrategy: Number(value.blockStrategy) as JobBlockStrategy,
+        // The schema rejects `null`, so the submitted numbers are always set.
         executorTimeout: Number(value.executorTimeout),
         maxRetryTimes: Number(value.maxRetryTimes),
         retryInterval: Number(value.retryInterval),
@@ -314,45 +317,9 @@ export function JobFormDrawer({ job, open, onClose, defaultGroupName }: JobFormD
   }
 
   const renderNumberField = (name: NumberFieldName, label: string, min: number, unit?: string) => (
-    <form.Field name={name} validators={{ onDynamic: formSchema.shape[name] }}>
-      {field => {
-        const invalid = field.state.meta.errors.length > 0
-
-        return (
-          <Field className="gap-1.5" data-invalid={invalid}>
-            <FieldLabel>
-              {label}
-              <RequiredMark />
-            </FieldLabel>
-            {unit ? (
-              <InputGroup>
-                <InputGroupInput
-                  type="number"
-                  min={min}
-                  value={field.state.value}
-                  onChange={event => field.handleChange(event.target.value)}
-                  onBlur={field.handleBlur}
-                  placeholder={`请输入${label}`}
-                  aria-invalid={invalid}
-                />
-                <InputGroupAddon align="inline-end">{unit}</InputGroupAddon>
-              </InputGroup>
-            ) : (
-              <Input
-                type="number"
-                min={min}
-                value={field.state.value}
-                onChange={event => field.handleChange(event.target.value)}
-                onBlur={field.handleBlur}
-                placeholder={`请输入${label}`}
-                aria-invalid={invalid}
-              />
-            )}
-            <FieldError errors={field.state.meta.errors} />
-          </Field>
-        )
-      }}
-    </form.Field>
+    <form.AppField name={name} validators={{ onDynamic: formSchema.shape[name] }}>
+      {field => <field.NumberInput label={label} required min={min} placeholder={`请输入${label}`} addonEnd={unit} />}
+    </form.AppField>
   )
 
   return (
@@ -384,12 +351,13 @@ export function JobFormDrawer({ job, open, onClose, defaultGroupName }: JobFormD
                     const invalid = field.state.meta.errors.length > 0
 
                     return (
-                      <Field className="gap-1.5" data-invalid={invalid}>
-                        <FieldLabel>
-                          任务组
-                          <RequiredMark />
-                        </FieldLabel>
-
+                      <FormItem
+                        id="job-group-name"
+                        label="任务组"
+                        required
+                        // The empty state already explains a missing group, so the error stays hidden then.
+                        errors={groupOptions.length > 0 ? field.state.meta.errors : []}
+                      >
                         {groups.isPending && groupOptions.length === 0 ? (
                           <Skeleton className="h-8 w-full" />
                         ) : (
@@ -398,7 +366,7 @@ export function JobFormDrawer({ job, open, onClose, defaultGroupName }: JobFormD
                             value={field.state.value}
                             onValueChange={value => field.handleChange(value ?? '')}
                           >
-                            <SelectTrigger className="w-full" aria-invalid={invalid}>
+                            <SelectTrigger id="job-group-name" className="w-full" aria-invalid={invalid}>
                               <SelectValue placeholder="请选择任务组" />
                             </SelectTrigger>
                             <SelectContent alignItemWithTrigger={false}>
@@ -428,61 +396,19 @@ export function JobFormDrawer({ job, open, onClose, defaultGroupName }: JobFormD
                             </SelectContent>
                           </Select>
                         )}
-
-                        {groupOptions.length > 0 ? <FieldError errors={field.state.meta.errors} /> : null}
-                      </Field>
+                      </FormItem>
                     )
                   }}
                 </form.Field>
 
-                <form.Field name="jobName" validators={{ onDynamic: formSchema.shape.jobName }}>
-                  {field => {
-                    const invalid = field.state.meta.errors.length > 0
-
-                    return (
-                      <Field className="gap-1.5" data-invalid={invalid}>
-                        <FieldLabel>
-                          任务名称
-                          <RequiredMark />
-                        </FieldLabel>
-                        <Input
-                          name="jobName"
-                          value={field.state.value}
-                          onChange={event => field.handleChange(event.target.value)}
-                          onBlur={field.handleBlur}
-                          maxLength={64}
-                          placeholder="请输入任务名称"
-                          aria-invalid={invalid}
-                        />
-                        <FieldError errors={field.state.meta.errors} />
-                      </Field>
-                    )
-                  }}
-                </form.Field>
+                <form.AppField name="jobName" validators={{ onDynamic: formSchema.shape.jobName }}>
+                  {field => <field.TextInput label="任务名称" required maxLength={64} placeholder="请输入任务名称" />}
+                </form.AppField>
               </div>
 
-              <form.Field name="description" validators={{ onDynamic: formSchema.shape.description }}>
-                {field => {
-                  const invalid = field.state.meta.errors.length > 0
-
-                  return (
-                    <Field className="gap-1.5" data-invalid={invalid}>
-                      <FieldLabel>描述</FieldLabel>
-                      <Textarea
-                        name="description"
-                        value={field.state.value}
-                        onChange={event => field.handleChange(event.target.value)}
-                        onBlur={field.handleBlur}
-                        maxLength={200}
-                        rows={3}
-                        placeholder="请输入描述"
-                        aria-invalid={invalid}
-                      />
-                      <FieldError errors={field.state.meta.errors} />
-                    </Field>
-                  )
-                }}
-              </form.Field>
+              <form.AppField name="description" validators={{ onDynamic: formSchema.shape.description }}>
+                {field => <field.TextareaInput label="描述" maxLength={200} rows={3} placeholder="请输入描述" />}
+              </form.AppField>
             </section>
 
             <section className="flex flex-col gap-4 border-t pt-4">
@@ -493,11 +419,7 @@ export function JobFormDrawer({ job, open, onClose, defaultGroupName }: JobFormD
                   <div className="grid gap-4 sm:grid-cols-2">
                     <form.Field name="triggerType">
                       {field => (
-                        <Field className="gap-1.5">
-                          <FieldLabel>
-                            触发类型
-                            <RequiredMark />
-                          </FieldLabel>
+                        <FormItem id="job-trigger-type" label="触发类型" required errors={[]}>
                           <Select
                             items={JOB_TRIGGER_TYPE_OPTIONS}
                             value={field.state.value}
@@ -511,7 +433,7 @@ export function JobFormDrawer({ job, open, onClose, defaultGroupName }: JobFormD
                               setTriggerError(null)
                             }}
                           >
-                            <SelectTrigger className="w-full">
+                            <SelectTrigger id="job-trigger-type" className="w-full">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent alignItemWithTrigger={false}>
@@ -524,7 +446,7 @@ export function JobFormDrawer({ job, open, onClose, defaultGroupName }: JobFormD
                               </SelectGroup>
                             </SelectContent>
                           </Select>
-                        </Field>
+                        </FormItem>
                       )}
                     </form.Field>
 
@@ -533,14 +455,16 @@ export function JobFormDrawer({ job, open, onClose, defaultGroupName }: JobFormD
                         const invalid = Boolean(triggerError) || field.state.meta.errors.length > 0
 
                         return (
-                          <Field className="gap-1.5" data-invalid={invalid}>
-                            <FieldLabel>
-                              {triggerType === '2' ? '间隔时长' : 'Cron 表达式'}
-                              <RequiredMark />
-                            </FieldLabel>
+                          <FormItem
+                            id="job-trigger-interval"
+                            label={triggerType === '2' ? '间隔时长' : 'Cron 表达式'}
+                            required
+                            errors={triggerError ? [{ message: triggerError }] : field.state.meta.errors}
+                          >
                             {triggerType === '2' ? (
                               <InputGroup>
                                 <InputGroupInput
+                                  id="job-trigger-interval"
                                   type="number"
                                   min={1}
                                   value={field.state.value}
@@ -557,6 +481,7 @@ export function JobFormDrawer({ job, open, onClose, defaultGroupName }: JobFormD
                             ) : (
                               <div className="flex gap-2">
                                 <Input
+                                  id="job-trigger-interval"
                                   value={field.state.value}
                                   onChange={event => {
                                     field.handleChange(event.target.value)
@@ -591,12 +516,7 @@ export function JobFormDrawer({ job, open, onClose, defaultGroupName }: JobFormD
                                 </DropdownMenu>
                               </div>
                             )}
-                            {triggerError ? (
-                              <FieldError>{triggerError}</FieldError>
-                            ) : (
-                              <FieldError errors={field.state.meta.errors} />
-                            )}
-                          </Field>
+                          </FormItem>
                         )
                       }}
                     </form.Field>
@@ -611,11 +531,7 @@ export function JobFormDrawer({ job, open, onClose, defaultGroupName }: JobFormD
               <div className="grid gap-4 sm:grid-cols-2">
                 <form.Field name="taskType">
                   {field => (
-                    <Field className="gap-1.5">
-                      <FieldLabel>
-                        任务类型
-                        <RequiredMark />
-                      </FieldLabel>
+                    <FormItem id="job-task-type" label="任务类型" required errors={[]}>
                       <Select
                         items={JOB_TASK_TYPE_OPTIONS}
                         value={field.state.value}
@@ -626,7 +542,7 @@ export function JobFormDrawer({ job, open, onClose, defaultGroupName }: JobFormD
                           setArgsError(null)
                         }}
                       >
-                        <SelectTrigger className="w-full">
+                        <SelectTrigger id="job-task-type" className="w-full">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent alignItemWithTrigger={false}>
@@ -639,41 +555,26 @@ export function JobFormDrawer({ job, open, onClose, defaultGroupName }: JobFormD
                           </SelectGroup>
                         </SelectContent>
                       </Select>
-                    </Field>
+                    </FormItem>
                   )}
                 </form.Field>
 
-                <form.Field name="executorInfo" validators={{ onDynamic: formSchema.shape.executorInfo }}>
-                  {field => {
-                    const invalid = field.state.meta.errors.length > 0
-
-                    return (
-                      <Field className="gap-1.5" data-invalid={invalid}>
-                        <FieldLabel>
-                          执行器名称
-                          <RequiredMark />
-                        </FieldLabel>
-                        <Input
-                          name="executorInfo"
-                          value={field.state.value}
-                          onChange={event => field.handleChange(event.target.value)}
-                          onBlur={field.handleBlur}
-                          maxLength={255}
-                          placeholder="请输入执行器名称"
-                          aria-invalid={invalid}
-                        />
-                        <FieldError errors={field.state.meta.errors} />
-                      </Field>
-                    )
-                  }}
-                </form.Field>
+                <form.AppField name="executorInfo" validators={{ onDynamic: formSchema.shape.executorInfo }}>
+                  {field => (
+                    <field.TextInput label="执行器名称" required maxLength={255} placeholder="请输入执行器名称" />
+                  )}
+                </form.AppField>
               </div>
 
               <form.Subscribe selector={state => state.values.taskType}>
                 {taskType =>
                   taskType === '3' ? (
-                    <Field className="gap-1.5" data-invalid={Boolean(argsError)}>
-                      <FieldLabel>任务参数</FieldLabel>
+                    <FormItem
+                      label="任务参数"
+                      // The hint gives way to the error, so the two never stack.
+                      description={argsError ? undefined : '静态切片任务会把每个参数分给一个执行器'}
+                      errors={argsError ? [{ message: argsError }] : []}
+                    >
                       <div className="flex flex-col gap-2">
                         {args.map((arg, index) => (
                           <div key={arg.id} className="flex items-center gap-2">
@@ -705,28 +606,11 @@ export function JobFormDrawer({ job, open, onClose, defaultGroupName }: JobFormD
                           添加分片参数
                         </Button>
                       </div>
-                      {argsError ? (
-                        <FieldError>{argsError}</FieldError>
-                      ) : (
-                        <FieldDescription>静态切片任务会把每个参数分给一个执行器</FieldDescription>
-                      )}
-                    </Field>
+                    </FormItem>
                   ) : (
-                    <form.Field name="argsStr">
-                      {field => (
-                        <Field className="gap-1.5">
-                          <FieldLabel>任务参数</FieldLabel>
-                          <Textarea
-                            name="argsStr"
-                            value={field.state.value}
-                            onChange={event => field.handleChange(event.target.value)}
-                            onBlur={field.handleBlur}
-                            rows={3}
-                            placeholder="请输入任务参数"
-                          />
-                        </Field>
-                      )}
-                    </form.Field>
+                    <form.AppField name="argsStr">
+                      {field => <field.TextareaInput label="任务参数" rows={3} placeholder="请输入任务参数" />}
+                    </form.AppField>
                   )
                 }
               </form.Subscribe>
@@ -736,63 +620,13 @@ export function JobFormDrawer({ job, open, onClose, defaultGroupName }: JobFormD
               <h3 className="text-sm font-medium text-foreground">高级配置</h3>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <form.Field name="routeKey">
-                  {field => (
-                    <Field className="gap-1.5">
-                      <FieldLabel>
-                        路由策略
-                        <RequiredMark />
-                      </FieldLabel>
-                      <Select
-                        items={JOB_ROUTE_KEY_OPTIONS}
-                        value={field.state.value}
-                        onValueChange={value => field.handleChange((value ?? '4') as FormValues['routeKey'])}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent alignItemWithTrigger={false}>
-                          <SelectGroup>
-                            {JOB_ROUTE_KEY_OPTIONS.map(option => (
-                              <SelectItem key={option.value} value={option.value}>
-                                {option.label}
-                              </SelectItem>
-                            ))}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                    </Field>
-                  )}
-                </form.Field>
+                <form.AppField name="routeKey">
+                  {field => <field.SelectInput label="路由策略" required options={JOB_ROUTE_KEY_OPTIONS} />}
+                </form.AppField>
 
-                <form.Field name="blockStrategy">
-                  {field => (
-                    <Field className="gap-1.5">
-                      <FieldLabel>
-                        阻塞策略
-                        <RequiredMark />
-                      </FieldLabel>
-                      <Select
-                        items={JOB_BLOCK_STRATEGY_OPTIONS}
-                        value={field.state.value}
-                        onValueChange={value => field.handleChange((value ?? '1') as FormValues['blockStrategy'])}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent alignItemWithTrigger={false}>
-                          <SelectGroup>
-                            {JOB_BLOCK_STRATEGY_OPTIONS.map(option => (
-                              <SelectItem key={option.value} value={option.value}>
-                                {option.label}
-                              </SelectItem>
-                            ))}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                    </Field>
-                  )}
-                </form.Field>
+                <form.AppField name="blockStrategy">
+                  {field => <field.SelectInput label="阻塞策略" required options={JOB_BLOCK_STRATEGY_OPTIONS} />}
+                </form.AppField>
 
                 {renderNumberField('executorTimeout', '超时时间', 1, '秒')}
                 {renderNumberField('maxRetryTimes', '最大重试次数', 0)}
@@ -803,27 +637,9 @@ export function JobFormDrawer({ job, open, onClose, defaultGroupName }: JobFormD
           </div>
         </div>
 
-        <DrawerFooter>
-          <form.Subscribe selector={state => state.isSubmitting}>
-            {isSubmitting => (
-              <>
-                <Button type="button" variant="outline" disabled={isSubmitting} onClick={onClose}>
-                  取消
-                </Button>
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? (
-                    <>
-                      <Spinner />
-                      保存中
-                    </>
-                  ) : (
-                    '保存'
-                  )}
-                </Button>
-              </>
-            )}
-          </form.Subscribe>
-        </DrawerFooter>
+        <form.AppForm>
+          <form.FormFooter onCancel={onClose} />
+        </form.AppForm>
       </form>
     </EntityDrawer>
   )

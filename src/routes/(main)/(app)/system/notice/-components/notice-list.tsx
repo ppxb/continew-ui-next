@@ -26,18 +26,6 @@ import { useNoticeDicts } from './use-notice-dicts'
 
 const DEFAULT_SORT = 'id,desc'
 
-const SKELETON_WIDTHS = [
-  'mx-auto w-6',
-  'w-40',
-  'w-16',
-  'mx-auto w-16',
-  'w-24',
-  'mx-auto w-12 rounded-full',
-  'mx-auto w-10',
-  'mx-auto w-20',
-  'w-28'
-]
-
 const ALL_OPTION = { value: 'all', label: '全部' }
 
 export function NoticeList() {
@@ -185,7 +173,6 @@ export function NoticeList() {
             isShowingPreviousRows={query.isPlaceholderData}
             onRetry={() => void query.refetch()}
             fillHeight
-            skeletonWidths={SKELETON_WIDTHS}
           />
         </TableFillArea>
       </ListPageCard>

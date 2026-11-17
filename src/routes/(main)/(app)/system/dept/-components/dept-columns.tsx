@@ -4,25 +4,14 @@ import { Building2, ChevronRight, PenLine, Plus, Trash2 } from 'lucide-react'
 
 import { FlagBadge } from '@/components/data-badge'
 import { RowActionsMenu } from '@/components/row-actions-menu'
-import { StatusCell } from '@/components/status-cell'
+import { dateTimeColumn, statusColumn, textColumn } from '@/components/table/columns'
 import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import { usePermission } from '@/hooks/use-permission'
 import type { DeptResp } from '@/lib/api/dept'
-import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 import { cn } from 'cn'
 
 export type DeptAction = 'edit' | 'add-child' | 'delete'
-
-type TextColumnKey = 'description' | 'createUserString' | 'createTime' | 'updateUserString' | 'updateTime'
-
-function textColumn(key: TextColumnKey, header: string): ColumnDef<DataTableFeatures, DeptResp> {
-  return {
-    accessorKey: key,
-    header,
-    cell: ({ row }) => <span>{row.original[key] || EMPTY_PLACEHOLDER}</span>
-  }
-}
 
 function RowActions({ dept, onAction }: { dept: DeptResp; onAction: (action: DeptAction, dept: DeptResp) => void }) {
   const { hasPermission } = usePermission()
@@ -72,6 +61,7 @@ export function createDeptColumns(
       accessorKey: 'name',
       header: '部门名称',
       enableHiding: false,
+      meta: { valueType: 'text' },
       cell: ({ row }) => {
         const dept = row.original
         const canExpand = row.getCanExpand()
@@ -106,30 +96,24 @@ export function createDeptColumns(
         )
       }
     },
-    {
-      accessorKey: 'status',
-      header: '状态',
-      cell: ({ row }) => <StatusCell status={row.original.status} />
-    },
-    {
-      accessorKey: 'sort',
-      header: '排序',
-      cell: ({ row }) => <span>{row.original.sort}</span>
-    },
+    statusColumn('status'),
+    textColumn('sort', '排序'),
     {
       accessorKey: 'isSystem',
       header: '系统内置',
+      meta: { valueType: 'status' },
       cell: ({ row }) => <FlagBadge active={row.original.isSystem} activeLabel="内置" inactiveLabel="自定义" />
     },
     textColumn('description', '描述'),
     textColumn('createUserString', '创建人'),
-    textColumn('createTime', '创建时间'),
+    dateTimeColumn('createTime', '创建时间'),
     textColumn('updateUserString', '修改人'),
-    textColumn('updateTime', '修改时间'),
+    dateTimeColumn('updateTime', '修改时间'),
     {
       id: 'actions',
       header: () => <div className="text-center">操作</div>,
       enableHiding: false,
+      meta: { valueType: 'option' },
       cell: ({ row }) => <RowActions dept={row.original} onAction={onAction} />
     }
   ]

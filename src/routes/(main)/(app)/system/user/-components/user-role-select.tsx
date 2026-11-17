@@ -18,6 +18,8 @@ import { Spinner } from '@/components/ui/spinner'
 import { listRoleDict, roleKeys } from '@/lib/api/role'
 
 interface UserRoleSelectProps {
+  /** The search input's id, so a form label can focus it. */
+  readonly id?: string
   readonly value: string[]
   readonly onChange: (nextValue: string[]) => void
   readonly disabled?: boolean
@@ -40,6 +42,7 @@ const EMPTY_OPTIONS: RoleOption[] = []
  * stays searchable without leaving the field.
  */
 export function UserRoleSelect({
+  id,
   value,
   onChange,
   disabled = false,
@@ -75,6 +78,7 @@ export function UserRoleSelect({
           <ComboboxChip key={String(option.value)}>{option.label}</ComboboxChip>
         ))}
         <ComboboxChipsInput
+          id={id}
           placeholder={selected.length === 0 ? '请选择角色' : ''}
           disabled={disabled}
           aria-invalid={invalid}

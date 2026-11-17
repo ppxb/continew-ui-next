@@ -2,18 +2,11 @@ import type { ReactNode } from 'react'
 
 import { cn } from 'cn'
 
+import { ToneBadge } from '@/components/tone-badge'
 import { Badge } from '@/components/ui/badge'
 import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 
 export type TypeTone = 'blue' | 'violet' | 'teal' | 'amber' | 'neutral'
-
-const TYPE_CLASSES: Record<TypeTone, string> = {
-  blue: 'border-type-blue/20 bg-type-blue/10 text-type-blue-foreground',
-  violet: 'border-type-violet/20 bg-type-violet/10 text-type-violet-foreground',
-  teal: 'border-type-teal/20 bg-type-teal/10 text-type-teal-foreground',
-  amber: 'border-type-amber/20 bg-type-amber/10 text-type-amber-foreground',
-  neutral: 'border-border bg-muted/50 text-muted-foreground'
-}
 
 interface TypeBadgeProps {
   readonly tone: TypeTone
@@ -21,12 +14,9 @@ interface TypeBadgeProps {
   readonly className?: string
 }
 
+/** A type-kind `ToneBadge`: a category tag without the status dot. */
 export function TypeBadge({ tone, label, className }: TypeBadgeProps) {
-  return (
-    <Badge variant="outline" className={cn('gap-1.5 border px-2 py-0.5 font-normal', TYPE_CLASSES[tone], className)}>
-      {label}
-    </Badge>
-  )
+  return <ToneBadge tone={tone} label={label} kind="type" className={className} />
 }
 
 interface FlagBadgeProps {

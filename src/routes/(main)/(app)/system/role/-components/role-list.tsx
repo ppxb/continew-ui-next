@@ -132,7 +132,6 @@ export function RoleList() {
             isShowingPreviousRows={query.isPlaceholderData}
             onRetry={() => void query.refetch()}
             fillHeight
-            skeletonWidths={['mx-auto w-4', 'mx-auto w-6', 'w-24', 'w-20', 'mx-auto w-16 rounded-full', 'w-20']}
           />
         </TableFillArea>
       </ListPageCard>

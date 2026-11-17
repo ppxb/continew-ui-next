@@ -1,4 +1,4 @@
-import type { MouseEvent } from 'react'
+import { useState, type MouseEvent } from 'react'
 
 import type { ReactTable, RowData } from '@tanstack/react-table'
 import { Root as AnimatePagination } from '@animate-ui/react/primitives/pagination'
@@ -6,6 +6,7 @@ import { Root as AnimatePagination } from '@animate-ui/react/primitives/paginati
 import { cn } from 'cn'
 
 import { PaginationArrow } from '@/components/pagination-arrow'
+import { Input } from '@/components/ui/input'
 import { PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink } from '@/components/ui/pagination'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import type { DataTableFeatures } from '@/lib/data-table-features'
@@ -38,14 +39,62 @@ function preventPaginationNavigation(event: MouseEvent<HTMLAnchorElement>) {
   event.preventDefault()
 }
 
-interface TablePaginationProps<TRow extends RowData> {
+export interface TablePaginationOptions {
+  /** Aligns the entire pagination group. Defaults to right. */
+  readonly align?: 'left' | 'center' | 'right'
+  /** Shows the page-number input. Defaults to true. */
+  readonly showQuickJumper?: boolean
+}
+
+const ALIGN_CLASSES = {
+  left: 'justify-start',
+  center: 'justify-center',
+  right: 'justify-end'
+} as const
+
+function PageJumper({ pageCount, onJump }: { pageCount: number; onJump: (page: number) => void }) {
+  const [value, setValue] = useState('')
+  const jump = () => {
+    const text = value.trim()
+    setValue('')
+    if (!/^\d+$/.test(text)) return
+    const page = Number(text)
+    if (!Number.isSafeInteger(page)) return
+    onJump(Math.min(Math.max(page, 1), pageCount))
+  }
+
+  return (
+    <label className="flex items-center gap-2 whitespace-nowrap text-sm text-muted-foreground">
+      <span>跳至</span>
+      <Input
+        aria-label="跳转页码"
+        title={`输入 1 至 ${pageCount} 页，按 Enter 跳转`}
+        inputMode="numeric"
+        pattern="[0-9]*"
+        value={value}
+        className="h-8 w-14 text-center tabular-nums"
+        onChange={event => setValue(event.target.value)}
+        onBlur={jump}
+        onKeyDown={event => {
+          if (event.key === 'Enter') {
+            event.preventDefault()
+            jump()
+          }
+        }}
+      />
+      <span>页</span>
+    </label>
+  )
+}
+
+interface TablePaginationProps<TRow extends RowData> extends TablePaginationOptions {
   readonly table: ReactTable<DataTableFeatures, TRow>
   /** A fill-height table keeps the last row's border, so the footer drops its own top border. */
   readonly showTopBorder?: boolean
 }
 
-/** The pagination footer shared by the table screens: page size, row count and the page links. */
-export function TablePagination<TRow extends RowData>({ table, showTopBorder = true }: TablePaginationProps<TRow>) {
+/** Shared pagination footer: total, page links, page size and an optional quick jumper. */
+export function TablePagination<TRow extends RowData>({ table, showTopBorder = true, align = 'right', showQuickJumper = true }: TablePaginationProps<TRow>) {
   const rowCount = table.getRowCount()
 
   if (rowCount === 0) {
@@ -57,37 +106,13 @@ export function TablePagination<TRow extends RowData>({ table, showTopBorder = t
   const pageNumbers = getPageNumbers(currentPage, pageCount)
 
   return (
-    <div className={cn('flex flex-wrap items-center justify-between gap-3 px-4 py-4', showTopBorder && 'border-t')}>
-      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-        <div className="flex items-center gap-2">
-          <span>每页</span>
-          <Select
-            value={`${table.state.pagination.pageSize}`}
-            onValueChange={value => table.setPageSize(Number(value))}
-          >
-            <SelectTrigger size="sm" className="w-20">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent side="top">
-              <SelectGroup>
-                {PAGE_SIZE_OPTIONS.map(pageSize => (
-                  <SelectItem key={pageSize} value={`${pageSize}`}>
-                    {pageSize}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-        <span className="tabular-nums">
-          共 {rowCount} 条，第 {currentPage} / {pageCount} 页
-        </span>
-      </div>
+    <div className={cn('flex flex-wrap items-center gap-3 px-4 py-4', ALIGN_CLASSES[align], showTopBorder && 'border-t')}>
+      <span className="whitespace-nowrap text-sm text-muted-foreground tabular-nums">共 {rowCount} 条</span>
 
       <AnimatePagination
         role="navigation"
         aria-label="pagination"
-        className="mx-0 flex w-auto justify-start md:justify-end"
+        className="mx-0 flex w-auto"
       >
         <PaginationContent>
           <PaginationItem>
@@ -122,6 +147,28 @@ export function TablePagination<TRow extends RowData>({ table, showTopBorder = t
           </PaginationItem>
         </PaginationContent>
       </AnimatePagination>
+      <Select
+        value={`${table.state.pagination.pageSize}`}
+        onValueChange={value => { if (value !== null) table.setPageSize(Number(value)) }}
+      >
+        <SelectTrigger size="sm" className="h-8 w-28" aria-label="每页条数">
+          <SelectValue>{table.state.pagination.pageSize} 条/页</SelectValue>
+        </SelectTrigger>
+        <SelectContent side="top">
+          <SelectGroup>
+            {PAGE_SIZE_OPTIONS.map(pageSize => (
+              <SelectItem key={pageSize} value={`${pageSize}`}>{pageSize} 条/页</SelectItem>
+            ))}
+          </SelectGroup>
+        </SelectContent>
+      </Select>
+      {showQuickJumper ? (
+        <PageJumper
+          key={`${currentPage}:${pageCount}:${table.state.pagination.pageSize}`}
+          pageCount={pageCount}
+          onJump={page => { if (page !== currentPage) table.setPageIndex(page - 1) }}
+        />
+      ) : null}
     </div>
   )
 }

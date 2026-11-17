@@ -10,6 +10,8 @@ import { buildTreeIndex, Tree, TreeSkeleton, type TreeKey, type TreeNodeData } f
 import { useTreeExpansion } from '@/hooks/use-tree-expansion'
 
 export interface TreeSelectProps<T = Record<string, unknown>> {
+  /** The trigger button's id, so a form label can focus it. */
+  id?: string
   data: TreeNodeData<T>[]
   value?: TreeKey | null
   onChange?: (value: TreeKey | null, node: TreeNodeData<T> | null) => void
@@ -35,6 +37,7 @@ export interface TreeSelectProps<T = Record<string, unknown>> {
 }
 
 export function TreeSelect<T = Record<string, unknown>>({
+  id,
   data,
   value,
   onChange,
@@ -124,6 +127,7 @@ export function TreeSelect<T = Record<string, unknown>>({
       <PopoverTrigger
         render={
           <Button
+            id={id}
             type="button"
             variant="outline"
             size={size}

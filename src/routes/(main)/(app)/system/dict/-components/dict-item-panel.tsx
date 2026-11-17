@@ -123,16 +123,6 @@ export function DictItemPanel({
         onRetry={() => void query.refetch()}
         emptyTitle="暂无字典项"
         fillHeight
-        skeletonWidths={[
-          'mx-auto w-6',
-          'w-16',
-          'w-20',
-          'mx-auto w-12 rounded-full',
-          'mx-auto w-8',
-          'w-32',
-          'w-32',
-          'ml-auto w-8'
-        ]}
       />
     </div>
   )

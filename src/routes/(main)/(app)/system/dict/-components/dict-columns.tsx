@@ -2,8 +2,7 @@ import type { ColumnDef } from '@tanstack/react-table'
 import { Pencil, Trash2 } from 'lucide-react'
 
 import { RowActionsMenu } from '@/components/row-actions-menu'
-import { StatusCell } from '@/components/status-cell'
-import { TextCell } from '@/components/text-cell'
+import { dateTimeColumn, indexColumn, statusColumn, textColumn } from '@/components/table/columns'
 import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import type { DictItemResp } from '@/lib/api/dict'
 import type { DataTableFeatures } from '@/lib/data-table-features'
@@ -54,42 +53,18 @@ export function createDictItemColumns(
   rowOffset: number
 ): ColumnDef<DataTableFeatures, DictItemResp>[] {
   const columns: ColumnDef<DataTableFeatures, DictItemResp>[] = [
-    {
-      id: 'index',
-      header: '序号',
-      enableHiding: false,
-      cell: ({ row }) => <div className="tabular-nums">{rowOffset + row.index + 1}</div>
-    },
+    indexColumn(rowOffset),
     {
       accessorKey: 'label',
       header: '标签',
+      meta: { valueType: 'status' },
       cell: ({ row }) => <DictLabelBadge label={row.original.label} color={row.original.color} />
     },
-    {
-      accessorKey: 'value',
-      header: '值',
-      cell: ({ row }) => <TextCell value={row.original.value} />
-    },
-    {
-      accessorKey: 'status',
-      header: '状态',
-      cell: ({ row }) => <StatusCell status={row.original.status} />
-    },
-    {
-      accessorKey: 'sort',
-      header: '排序',
-      cell: ({ row }) => <div>{row.original.sort}</div>
-    },
-    {
-      accessorKey: 'description',
-      header: '描述',
-      cell: ({ row }) => <TextCell value={row.original.description} />
-    },
-    {
-      accessorKey: 'createTime',
-      header: '创建时间',
-      cell: ({ row }) => <TextCell value={row.original.createTime} />
-    }
+    textColumn('value', '值'),
+    statusColumn('status'),
+    textColumn('sort', '排序'),
+    textColumn('description', '描述'),
+    dateTimeColumn('createTime', '创建时间')
   ]
 
   if (options.canUpdate || options.canDelete) {
@@ -97,6 +72,7 @@ export function createDictItemColumns(
       id: 'actions',
       header: () => <div className="text-center">操作</div>,
       enableHiding: false,
+      meta: { valueType: 'option' },
       cell: ({ row }) => <RowActions item={row.original} options={options} />
     })
   }

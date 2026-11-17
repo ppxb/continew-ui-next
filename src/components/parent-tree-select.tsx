@@ -5,6 +5,8 @@ import { TreeSelect } from '@/components/ui/tree-select'
 import { collectSubtreeIds } from '@/lib/collect-subtree-ids'
 
 interface ParentTreeSelectProps<T extends { id: string | number; children?: T[] }> {
+  /** The trigger button's id, so a form label can focus it. */
+  readonly id?: string
   readonly data: T[]
   /** The record being edited; its own subtree is disabled so it cannot become its own parent. */
   readonly currentId?: string | number | null
@@ -28,6 +30,7 @@ interface ParentTreeSelectProps<T extends { id: string | number; children?: T[] 
  * caller only supplies the tree and how its nodes become a label and an icon.
  */
 export function ParentTreeSelect<T extends { id: string | number; children?: T[] }>({
+  id,
   data,
   currentId,
   toNodeData,
@@ -61,6 +64,7 @@ export function ParentTreeSelect<T extends { id: string | number; children?: T[]
 
   return (
     <TreeSelect
+      id={id}
       data={treeData}
       value={selectedValue}
       onChange={handleChange}

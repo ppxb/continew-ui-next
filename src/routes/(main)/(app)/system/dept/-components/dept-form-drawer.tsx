@@ -1,23 +1,16 @@
-import * as React from 'react'
-
-import { revalidateLogic, useForm, useSelector } from '@tanstack/react-form'
+import { revalidateLogic, useSelector } from '@tanstack/react-form'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { z } from 'zod'
 
 import { Building2 } from 'lucide-react'
 
 import { EntityDrawer } from '@/components/entity-drawer'
+import { FormItem, useAppForm } from '@/components/form'
+import { FormSkeleton } from '@/components/form-skeleton'
 import { ParentTreeSelect } from '@/components/parent-tree-select'
 import { QueryState } from '@/components/query-state'
-import { RequiredMark } from '@/components/required-mark'
-import { Button } from '@/components/ui/button'
-import { DrawerFooter } from '@/components/ui/drawer'
-import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
+import { FieldGroup } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Spinner } from '@/components/ui/spinner'
-import { Switch } from '@/components/ui/switch'
-import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/components/ui/toast'
 import { useFillFormOnce } from '@/hooks/use-fill-form-once'
 import { createDept, deptKeys, getDept, type DeptReq, type DeptResp, updateDept } from '@/lib/api/dept'
@@ -28,12 +21,19 @@ const formSchema = z.object({
     .union([z.string(), z.number()])
     .refine(val => val !== null && val !== undefined && val !== '', '请选择上级部门'),
   name: z.string().trim().min(1, '部门名称不能为空').max(30, '部门名称长度不能超过 30 个字符'),
-  sort: z.number().int().min(1, '排序最小值为 1'),
+  // A cleared input stores `null`, so the form can report it instead of snapping back to 1.
+  sort: z
+    .number({ error: '请输入排序' })
+    .int()
+    .min(1, '排序最小值为 1')
+    .nullable()
+    .refine(value => value !== null, '请输入排序'),
   status: z.union([z.literal(1), z.literal(2)]),
   description: z.string().max(200, '描述长度不能超过 200 个字符')
 })
 
-type FormValues = z.infer<typeof formSchema>
+// The input type: `sort` holds `null` while cleared, and the schema's output narrows it to a number.
+type FormValues = z.input<typeof formSchema>
 
 const EMPTY_FORM: FormValues = {
   parentId: '',
@@ -54,7 +54,6 @@ interface DeptFormDrawerProps {
 export function DeptFormDrawer({ deptId, defaultParentId, open, deptTree, onClose }: DeptFormDrawerProps) {
   const isEdit = deptId !== null
   const queryClient = useQueryClient()
-  const formRef = React.useRef<HTMLFormElement>(null)
 
   const detailQuery = useQuery({
     queryKey: deptKeys.detail(deptId),
@@ -62,7 +61,7 @@ export function DeptFormDrawer({ deptId, defaultParentId, open, deptTree, onClos
     enabled: open && isEdit
   })
 
-  const form = useForm({
+  const form = useAppForm({
     defaultValues: EMPTY_FORM,
     validationLogic: revalidateLogic(),
     validators: { onDynamic: formSchema },
@@ -70,7 +69,8 @@ export function DeptFormDrawer({ deptId, defaultParentId, open, deptTree, onClos
       const payload: DeptReq = {
         parentId: value.parentId,
         name: value.name,
-        sort: value.sort,
+        // The schema rejects `null`, so a submitted form always carries a number.
+        sort: value.sort as number,
         status: value.status,
         description: value.description || undefined
       }
@@ -122,21 +122,6 @@ export function DeptFormDrawer({ deptId, defaultParentId, open, deptTree, onClos
     apply: values => form.reset(values, { keepDefaultValues: true })
   })
 
-  /**
-   * Validates the whole object before submitting: `handleSubmit` returns as soon as the field
-   * validators report an invalid form, so a rule that only sits on the form would stay hidden until
-   * the other errors were fixed.
-   */
-  const submit = async () => {
-    await form.validate('submit')
-    await form.handleSubmit()
-
-    // TanStack Form does not move focus to the first invalid control, so the drawer does it here.
-    requestAnimationFrame(() => {
-      formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
-    })
-  }
-
   const isLoadingDetail = isEdit && detailQuery.isLoading
   const isDetailError = isEdit && detailQuery.isError
 
@@ -150,39 +135,20 @@ export function DeptFormDrawer({ deptId, defaultParentId, open, deptTree, onClos
       closeDisabled={isSubmitting}
     >
       {isLoadingDetail ? (
-        <div className="flex min-h-0 flex-1 flex-col gap-4 p-4">
-          <Skeleton className="h-9 w-full" />
-          <Skeleton className="h-9 w-full" />
-          <Skeleton className="h-9 w-full" />
-          <Skeleton className="h-9 w-full" />
-          <Skeleton className="h-20 w-full" />
-        </div>
+        <FormSkeleton fields={['input', 'input', 'input', 'switch', 'textarea']} />
       ) : isDetailError ? (
         <QueryState state="error" className="p-6" onRetry={() => void detailQuery.refetch()} />
       ) : (
-        <form
-          ref={formRef}
-          noValidate
-          className="flex min-h-0 flex-1 flex-col"
-          onSubmit={event => {
-            event.preventDefault()
-            void submit()
-          }}
-        >
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
+        <form.AppForm>
+          <form.FormShell footer={<form.FormFooter onCancel={onClose} />}>
             <FieldGroup className="gap-4">
               {!isRootDept ? (
-                <form.Field name="parentId" validators={{ onDynamic: formSchema.shape.parentId }}>
-                  {field => {
-                    const invalid = field.state.meta.errors.length > 0
-
-                    return (
-                      <Field data-invalid={invalid}>
-                        <FieldLabel>
-                          上级部门
-                          <RequiredMark />
-                        </FieldLabel>
+                <form.AppField name="parentId" validators={{ onDynamic: formSchema.shape.parentId }}>
+                  {field => (
+                    <field.CustomField label="上级部门" required>
+                      {({ id, invalid }) => (
                         <ParentTreeSelect
+                          id={id}
                           value={field.state.value}
                           onChange={next => field.handleChange(next ?? '')}
                           data={deptTree}
@@ -194,140 +160,66 @@ export function DeptFormDrawer({ deptId, defaultParentId, open, deptTree, onClos
                           searchPlaceholder="搜索上级部门"
                           emptyText="未找到相关部门"
                         />
-                        <FieldError errors={field.state.meta.errors} />
-                      </Field>
-                    )
-                  }}
-                </form.Field>
+                      )}
+                    </field.CustomField>
+                  )}
+                </form.AppField>
               ) : (
-                <Field>
-                  <FieldLabel>上级部门</FieldLabel>
-                  <Input value="顶级部门（根机构）" disabled readOnly />
-                  <FieldDescription>根机构部门不支持变更上级部门</FieldDescription>
-                </Field>
+                <FormItem id="dept-root-parent" label="上级部门" description="根机构部门不支持变更上级部门" errors={[]}>
+                  <Input id="dept-root-parent" value="顶级部门（根机构）" disabled readOnly />
+                </FormItem>
               )}
 
-              <form.Field name="name" validators={{ onDynamic: formSchema.shape.name }}>
-                {field => {
-                  const invalid = field.state.meta.errors.length > 0
+              <form.AppField name="name" validators={{ onDynamic: formSchema.shape.name }}>
+                {field => (
+                  <field.TextInput
+                    label="部门名称"
+                    required
+                    placeholder="请输入部门名称，例如：研发中心"
+                    disabled={isSubmitting}
+                  />
+                )}
+              </form.AppField>
 
-                  return (
-                    <Field data-invalid={invalid}>
-                      <FieldLabel htmlFor="dept-name">
-                        部门名称
-                        <RequiredMark />
-                      </FieldLabel>
-                      <Input
-                        id="dept-name"
-                        name="name"
-                        value={field.state.value}
-                        onChange={event => field.handleChange(event.target.value)}
-                        onBlur={field.handleBlur}
-                        placeholder="请输入部门名称，例如：研发中心"
-                        disabled={isSubmitting}
-                        aria-invalid={invalid}
-                      />
-                      <FieldError errors={field.state.meta.errors} />
-                    </Field>
-                  )
-                }}
-              </form.Field>
+              <form.AppField name="sort" validators={{ onDynamic: formSchema.shape.sort }}>
+                {field => (
+                  <field.NumberInput
+                    label="排序"
+                    required
+                    min={1}
+                    placeholder="请输入排序值（越小越靠前）"
+                    disabled={isSubmitting}
+                  />
+                )}
+              </form.AppField>
 
-              <form.Field name="sort" validators={{ onDynamic: formSchema.shape.sort }}>
-                {field => {
-                  const invalid = field.state.meta.errors.length > 0
+              <form.AppField name="status" validators={{ onDynamic: formSchema.shape.status }}>
+                {field => (
+                  <field.SwitchInput
+                    label="部门状态"
+                    description={
+                      field.state.value === 1
+                        ? '启用状态，允许部门下属人员正常访问'
+                        : '禁用状态，禁用后该部门直属用户会话将失效'
+                    }
+                    disabled={isSubmitting}
+                  />
+                )}
+              </form.AppField>
 
-                  return (
-                    <Field data-invalid={invalid}>
-                      <FieldLabel htmlFor="dept-sort">
-                        排序
-                        <RequiredMark />
-                      </FieldLabel>
-                      <Input
-                        id="dept-sort"
-                        name="sort"
-                        type="number"
-                        min={1}
-                        value={field.state.value}
-                        onChange={event => field.handleChange(event.target.valueAsNumber || 1)}
-                        onBlur={field.handleBlur}
-                        placeholder="请输入排序值（越小越靠前）"
-                        disabled={isSubmitting}
-                        aria-invalid={invalid}
-                      />
-                      <FieldError errors={field.state.meta.errors} />
-                    </Field>
-                  )
-                }}
-              </form.Field>
-
-              <form.Field name="status" validators={{ onDynamic: formSchema.shape.status }}>
-                {field => {
-                  const invalid = field.state.meta.errors.length > 0
-
-                  return (
-                    <Field orientation="horizontal" className="items-center justify-between" data-invalid={invalid}>
-                      <FieldContent>
-                        <FieldLabel>部门状态</FieldLabel>
-                        <FieldDescription>
-                          {field.state.value === 1
-                            ? '启用状态，允许部门下属人员正常访问'
-                            : '禁用状态，禁用后该部门直属用户会话将失效'}
-                        </FieldDescription>
-                      </FieldContent>
-                      <Switch
-                        checked={field.state.value === 1}
-                        onCheckedChange={checked => field.handleChange(checked ? 1 : 2)}
-                        disabled={isSubmitting}
-                        aria-invalid={invalid}
-                      />
-                    </Field>
-                  )
-                }}
-              </form.Field>
-
-              <form.Field name="description" validators={{ onDynamic: formSchema.shape.description }}>
-                {field => {
-                  const invalid = field.state.meta.errors.length > 0
-
-                  return (
-                    <Field data-invalid={invalid}>
-                      <FieldLabel htmlFor="dept-description">部门描述</FieldLabel>
-                      <Textarea
-                        id="dept-description"
-                        name="description"
-                        value={field.state.value}
-                        onChange={event => field.handleChange(event.target.value)}
-                        onBlur={field.handleBlur}
-                        placeholder="请输入部门描述信息（选填，最大 200 字）"
-                        rows={3}
-                        disabled={isSubmitting}
-                        aria-invalid={invalid}
-                      />
-                      <FieldError errors={field.state.meta.errors} />
-                    </Field>
-                  )
-                }}
-              </form.Field>
+              <form.AppField name="description" validators={{ onDynamic: formSchema.shape.description }}>
+                {field => (
+                  <field.TextareaInput
+                    label="部门描述"
+                    placeholder="请输入部门描述信息（选填，最大 200 字）"
+                    rows={3}
+                    disabled={isSubmitting}
+                  />
+                )}
+              </form.AppField>
             </FieldGroup>
-          </div>
-
-          <DrawerFooter>
-            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
-              取消
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <Spinner />
-                  保存中
-                </>
-              ) : (
-                '保存'
-              )}
-            </Button>
-          </DrawerFooter>
-        </form>
+          </form.FormShell>
+        </form.AppForm>
       )}
     </EntityDrawer>
   )

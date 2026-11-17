@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import { revalidateLogic, useForm, useSelector } from '@tanstack/react-form'
+import { revalidateLogic, useSelector } from '@tanstack/react-form'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { z } from 'zod'
 
@@ -8,21 +8,14 @@ import { UserShield } from 'lucide-react'
 
 import { type CheckableTreeNode, CheckableTree } from '@/components/checkable-tree'
 import { EntityDrawer } from '@/components/entity-drawer'
+import { useAppForm } from '@/components/form'
+import { FormSkeleton } from '@/components/form-skeleton'
 import { QueryState } from '@/components/query-state'
-import { RequiredMark } from '@/components/required-mark'
-import { Button } from '@/components/ui/button'
-import { DrawerFooter } from '@/components/ui/drawer'
-import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Spinner } from '@/components/ui/spinner'
-import { Switch } from '@/components/ui/switch'
-import { Textarea } from '@/components/ui/textarea'
+import { FieldGroup } from '@/components/ui/field'
 import { toast } from '@/components/ui/toast'
 import { useFillFormOnce } from '@/hooks/use-fill-form-once'
 import { deptKeys, getDeptTree, type DeptResp } from '@/lib/api/dept'
-import { createRole, DATA_SCOPE_OPTIONS, type DataScope, roleKeys, type RoleReq, updateRole } from '@/lib/api/role'
+import { createRole, DATA_SCOPE_OPTIONS, roleKeys, type RoleReq, updateRole } from '@/lib/api/role'
 
 import { useRoleDetail } from './use-role-detail'
 
@@ -39,8 +32,14 @@ const formSchema = z
       .string()
       .min(1, '角色编码不能为空')
       .regex(CODE_PATTERN, '角色编码长度为 2-30 个字符，支持大小写字母、数字、下划线，且以字母开头'),
-    sort: z.number().int().min(1, '排序最小值为 1'),
-    dataScope: z.union([z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5)]),
+    // `null` while the input is empty, so clearing it no longer snaps back to 1.
+    sort: z
+      .number()
+      .int()
+      .min(1, '排序最小值为 1')
+      .nullable()
+      .refine(value => value !== null, '请输入排序'),
+    dataScope: z.literal([1, 2, 3, 4, 5]),
     deptIds: z.array(z.union([z.string(), z.number()])),
     deptCheckStrictly: z.boolean(),
     description: z.string().max(200, '描述长度不能超过 200 个字符').optional().nullable()
@@ -55,7 +54,8 @@ const formSchema = z
     }
   })
 
-type FormValues = z.infer<typeof formSchema>
+// The input type, so `sort` may hold `null` while the input is empty.
+type FormValues = z.input<typeof formSchema>
 
 const EMPTY_FORM: FormValues = {
   name: '',
@@ -66,8 +66,6 @@ const EMPTY_FORM: FormValues = {
   deptCheckStrictly: false,
   description: ''
 }
-
-const DATA_SCOPE_ITEMS = DATA_SCOPE_OPTIONS.map(opt => ({ value: String(opt.value), label: opt.label }))
 
 function toCheckableDeptNodes(nodes: DeptResp[]): CheckableTreeNode[] {
   return nodes.map(node => ({
@@ -87,7 +85,6 @@ interface RoleFormDrawerProps {
 export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
   const queryClient = useQueryClient()
   const isCreate = roleId === null
-  const formRef = React.useRef<HTMLFormElement>(null)
 
   const detail = useRoleDetail(roleId, { enabled: open })
 
@@ -99,7 +96,7 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
 
   const deptTreeData = React.useMemo(() => toCheckableDeptNodes(depts.data ?? []), [depts.data])
 
-  const form = useForm({
+  const form = useAppForm({
     defaultValues: EMPTY_FORM,
     validationLogic: revalidateLogic(),
     validators: { onDynamic: formSchema },
@@ -107,7 +104,8 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
       const payload: RoleReq = {
         name: value.name.trim(),
         code: value.code.trim(),
-        sort: value.sort,
+        // The schema already rejected `null`.
+        sort: Number(value.sort),
         dataScope: value.dataScope,
         deptIds: value.dataScope === 5 ? value.deptIds : [],
         deptCheckStrictly: value.dataScope === 5 ? value.deptCheckStrictly : false,
@@ -159,51 +157,22 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
     apply: values => form.reset(values, { keepDefaultValues: true })
   })
 
-  /**
-   * Validates the whole object before submitting: `handleSubmit` returns as soon as the field
-   * validators report an invalid form, so the cross-field `deptIds` rule would otherwise stay hidden
-   * until the other errors were fixed.
-   */
-  const submit = async () => {
-    await form.validate('submit')
-    await form.handleSubmit()
-
-    // TanStack Form does not move focus to the first invalid control, so the drawer does it here.
-    requestAnimationFrame(() => {
-      formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
-    })
-  }
-
   const renderTextField = (
     name: 'name' | 'code',
     label: string,
     input: { placeholder: string; disabled?: boolean }
   ) => (
-    <form.Field name={name} validators={{ onDynamic: formSchema.shape[name] }}>
-      {field => {
-        const invalid = field.state.meta.errors.length > 0
-
-        return (
-          <Field data-invalid={invalid}>
-            <FieldLabel>
-              {label}
-              <RequiredMark />
-            </FieldLabel>
-            <Input
-              name={name}
-              value={field.state.value}
-              onChange={event => field.handleChange(event.target.value)}
-              onBlur={field.handleBlur}
-              maxLength={30}
-              disabled={isSubmitting || input.disabled}
-              placeholder={input.placeholder}
-              aria-invalid={invalid}
-            />
-            <FieldError errors={field.state.meta.errors} />
-          </Field>
-        )
-      }}
-    </form.Field>
+    <form.AppField name={name} validators={{ onDynamic: formSchema.shape[name] }}>
+      {field => (
+        <field.TextInput
+          label={label}
+          required
+          maxLength={30}
+          disabled={isSubmitting || input.disabled}
+          placeholder={input.placeholder}
+        />
+      )}
+    </form.AppField>
   )
 
   const isLoading = !isCreate && (detail.isPending || detail.fetchStatus !== 'idle')
@@ -219,26 +188,12 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
       closeDisabled={isSubmitting}
     >
       {isLoading ? (
-        <div className="flex min-h-0 flex-1 flex-col gap-4 p-4">
-          <Skeleton className="h-9 w-full" />
-          <Skeleton className="h-9 w-full" />
-          <Skeleton className="h-9 w-full" />
-          <Skeleton className="h-9 w-full" />
-          <Skeleton className="h-20 w-full" />
-        </div>
+        <FormSkeleton fields={['input', 'input', 'input', 'input', 'textarea']} />
       ) : isDetailError ? (
         <QueryState state="error" className="p-6" onRetry={() => void detail.refetch()} />
       ) : (
-        <form
-          ref={formRef}
-          noValidate
-          className="flex min-h-0 flex-1 flex-col"
-          onSubmit={event => {
-            event.preventDefault()
-            void submit()
-          }}
-        >
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
+        <form.AppForm>
+          <form.FormShell footer={<form.FormFooter onCancel={onClose} />}>
             <FieldGroup>
               {renderTextField('name', '角色名称', { placeholder: '请输入角色名称' })}
 
@@ -247,94 +202,44 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
                 disabled: !isCreate && Boolean(detail.data?.isSystem)
               })}
 
-              <form.Field name="sort" validators={{ onDynamic: formSchema.shape.sort }}>
-                {field => {
-                  const invalid = field.state.meta.errors.length > 0
+              <form.AppField name="sort" validators={{ onDynamic: formSchema.shape.sort }}>
+                {field => (
+                  <field.NumberInput
+                    label="排序"
+                    min={1}
+                    inputMode="numeric"
+                    disabled={isSubmitting}
+                    placeholder="数值越小越靠前"
+                  />
+                )}
+              </form.AppField>
 
-                  return (
-                    <Field data-invalid={invalid}>
-                      <FieldLabel>排序</FieldLabel>
-                      <Input
-                        name="sort"
-                        type="number"
-                        min={1}
-                        value={field.state.value}
-                        onChange={event => field.handleChange(event.target.valueAsNumber || 1)}
-                        onBlur={field.handleBlur}
-                        disabled={isSubmitting}
-                        placeholder="数值越小越靠前"
-                        aria-invalid={invalid}
-                      />
-                      <FieldError errors={field.state.meta.errors} />
-                    </Field>
-                  )
-                }}
-              </form.Field>
-
-              <form.Field name="dataScope" validators={{ onDynamic: formSchema.shape.dataScope }}>
-                {field => {
-                  const invalid = field.state.meta.errors.length > 0
-
-                  return (
-                    <Field data-invalid={invalid}>
-                      <FieldLabel>数据权限</FieldLabel>
-                      <Select
-                        items={DATA_SCOPE_ITEMS}
-                        value={String(field.state.value)}
-                        onValueChange={val => field.handleChange(Number(val) as DataScope)}
-                      >
-                        <SelectTrigger aria-invalid={invalid} disabled={isSubmitting}>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent align="start" alignItemWithTrigger={false}>
-                          <SelectGroup>
-                            {DATA_SCOPE_ITEMS.map(item => (
-                              <SelectItem key={item.value} value={item.value}>
-                                {item.label}
-                              </SelectItem>
-                            ))}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                      <FieldError errors={field.state.meta.errors} />
-                    </Field>
-                  )
-                }}
-              </form.Field>
+              <form.AppField name="dataScope" validators={{ onDynamic: formSchema.shape.dataScope }}>
+                {field => <field.SelectInput label="数据权限" options={DATA_SCOPE_OPTIONS} disabled={isSubmitting} />}
+              </form.AppField>
 
               {/* Conditional Department Tree for Custom Data Scope */}
               {dataScope === 5 && (
                 <div className="flex flex-col gap-3 rounded-lg border bg-muted/20 p-3">
-                  <form.Field name="deptCheckStrictly">
+                  {/* Inverted: the switch shows 联动 while the field stores 独立选择. */}
+                  <form.AppField name="deptCheckStrictly">
                     {field => (
-                      <Field orientation="horizontal" className="items-center justify-between">
-                        <FieldContent>
-                          <FieldLabel>父子联动</FieldLabel>
-                          <FieldDescription>
-                            {field.state.value ? '已开启独立选择（不联动）' : '勾选父部门时自动勾选全部子部门'}
-                          </FieldDescription>
-                        </FieldContent>
-                        <Switch
-                          checked={!field.state.value}
-                          onCheckedChange={checked => field.handleChange(!checked)}
-                          disabled={isSubmitting}
-                        />
-                      </Field>
+                      <field.SwitchInput
+                        label="父子联动"
+                        description={field.state.value ? '已开启独立选择（不联动）' : '勾选父部门时自动勾选全部子部门'}
+                        checkedValue={false}
+                        uncheckedValue={true}
+                        disabled={isSubmitting}
+                      />
                     )}
-                  </form.Field>
+                  </form.AppField>
 
-                  <form.Field name="deptIds" validators={{ onDynamic: formSchema.shape.deptIds }}>
-                    {field => {
-                      const invalid = field.state.meta.errors.length > 0
-
-                      return (
-                        <Field data-invalid={invalid}>
-                          <FieldLabel>
-                            选择权限部门
-                            <RequiredMark />
-                          </FieldLabel>
-                          {/* The tree has no `disabled` prop of its own, so `inert` blocks both the
-                                pointer and the keyboard while a save is in flight. */}
+                  <form.AppField name="deptIds" validators={{ onDynamic: formSchema.shape.deptIds }}>
+                    {field => (
+                      <field.CustomField label="选择权限部门" required>
+                        {() => (
+                          // The tree has no `disabled` prop of its own, so `inert` blocks both the
+                          // pointer and the keyboard while a save is in flight.
                           <div
                             inert={isSubmitting}
                             className={isSubmitting ? 'pointer-events-none opacity-50' : undefined}
@@ -349,56 +254,28 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
                               emptyText="未找到相关部门"
                             />
                           </div>
-                          <FieldError errors={field.state.meta.errors} />
-                        </Field>
-                      )
-                    }}
-                  </form.Field>
+                        )}
+                      </field.CustomField>
+                    )}
+                  </form.AppField>
                 </div>
               )}
 
-              <form.Field name="description" validators={{ onDynamic: formSchema.shape.description }}>
-                {field => {
-                  const invalid = field.state.meta.errors.length > 0
-
-                  return (
-                    <Field data-invalid={invalid}>
-                      <FieldLabel>描述</FieldLabel>
-                      <Textarea
-                        name="description"
-                        value={field.state.value ?? ''}
-                        onChange={event => field.handleChange(event.target.value)}
-                        onBlur={field.handleBlur}
-                        disabled={isSubmitting}
-                        maxLength={200}
-                        rows={3}
-                        placeholder="请输入角色描述信息（选填）"
-                        aria-invalid={invalid}
-                      />
-                      <FieldError errors={field.state.meta.errors} />
-                    </Field>
-                  )
-                }}
-              </form.Field>
+              {/* The fill always stores a string (`record.description ?? ''`), so the textarea never sees `null`. */}
+              <form.AppField name="description" validators={{ onDynamic: formSchema.shape.description }}>
+                {field => (
+                  <field.TextareaInput
+                    label="描述"
+                    disabled={isSubmitting}
+                    maxLength={200}
+                    rows={3}
+                    placeholder="请输入角色描述信息（选填）"
+                  />
+                )}
+              </form.AppField>
             </FieldGroup>
-          </div>
-
-          <DrawerFooter>
-            <Button type="button" variant="outline" disabled={isSubmitting} onClick={onClose}>
-              取消
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <Spinner />
-                  保存中
-                </>
-              ) : (
-                '保存'
-              )}
-            </Button>
-          </DrawerFooter>
-        </form>
+          </form.FormShell>
+        </form.AppForm>
       )}
     </EntityDrawer>
   )

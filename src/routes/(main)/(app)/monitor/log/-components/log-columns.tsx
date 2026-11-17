@@ -1,5 +1,6 @@
 import type { ColumnDef } from '@tanstack/react-table'
 
+import { dateTimeColumn, indexColumn, textColumn } from '@/components/table/columns'
 import { TextCell } from '@/components/text-cell'
 import { Button } from '@/components/ui/button'
 import type { LogResp } from '@/lib/api/log'
@@ -8,7 +9,6 @@ import type { DataTableFeatures } from '@/lib/data-table-features'
 import { LogStatusCell, TimeTakenCell } from './log-display'
 
 type LogColumn = ColumnDef<DataTableFeatures, LogResp>
-type TextColumnKey = 'createTime' | 'createUserString' | 'description' | 'ip' | 'address' | 'browser' | 'os'
 
 /** Labels for the columns whose header is a node, which the hide-columns menu cannot read. */
 export const LOG_COLUMN_LABELS: Record<string, string> = {
@@ -24,27 +24,11 @@ interface OperationColumnOptions {
   readonly onDetail: (log: LogResp) => void
 }
 
-function textColumn(key: TextColumnKey, header: string): LogColumn {
-  return {
-    accessorKey: key,
-    header,
-    cell: ({ row }) => <TextCell value={row.original[key]} />
-  }
-}
-
-function indexColumn(rowOffset: number): LogColumn {
-  return {
-    id: 'index',
-    header: '序号',
-    enableHiding: false,
-    cell: ({ row }) => <div>{rowOffset + row.index + 1}</div>
-  }
-}
-
-function statusColumn(): LogColumn {
+function logStatusColumn(): LogColumn {
   return {
     id: 'status',
     header: () => <div>状态</div>,
+    meta: { valueType: 'status' },
     cell: ({ row }) => <LogStatusCell status={row.original.status} errorMsg={row.original.errorMsg} />
   }
 }
@@ -52,10 +36,10 @@ function statusColumn(): LogColumn {
 export function createLoginLogColumns(rowOffset: number): LogColumn[] {
   return [
     indexColumn(rowOffset),
-    textColumn('createTime', '登录时间'),
+    dateTimeColumn('createTime', '登录时间'),
     textColumn('createUserString', '用户昵称'),
     textColumn('description', '登录行为'),
-    statusColumn(),
+    logStatusColumn(),
     textColumn('ip', '登录 IP'),
     textColumn('address', '登录地点'),
     textColumn('browser', '浏览器'),
@@ -69,6 +53,7 @@ export function createOperationLogColumns({ rowOffset, canViewDetail, onDetail }
     {
       accessorKey: 'createTime',
       header: '操作时间',
+      meta: { valueType: 'dateTime' },
       cell: ({ row }) =>
         canViewDetail ? (
           <Button
@@ -87,18 +72,20 @@ export function createOperationLogColumns({ rowOffset, canViewDetail, onDetail }
     {
       accessorKey: 'module',
       header: () => <div>所属模块</div>,
+      meta: { valueType: 'text' },
       cell: ({ row }) => (
         <div>
           <TextCell value={row.original.module} />
         </div>
       )
     },
-    statusColumn(),
+    logStatusColumn(),
     textColumn('ip', '操作 IP'),
     textColumn('address', '操作地点'),
     {
       accessorKey: 'timeTaken',
       header: () => <div>耗时</div>,
+      meta: { valueType: 'status' },
       cell: ({ row }) => <TimeTakenCell timeTaken={row.original.timeTaken} />
     },
     textColumn('browser', '浏览器'),

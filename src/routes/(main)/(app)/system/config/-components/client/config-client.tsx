@@ -172,17 +172,6 @@ export function ConfigClient() {
           isError={query.isError}
           isShowingPreviousRows={query.isPlaceholderData}
           onRetry={() => void query.refetch()}
-          skeletonWidths={[
-            'mx-auto w-6',
-            'w-24',
-            'w-20',
-            'w-24',
-            'mx-auto w-12 rounded-full',
-            'w-24',
-            'w-24',
-            'w-24',
-            'mx-auto w-10'
-          ]}
         />
       </ListPageCard>
 

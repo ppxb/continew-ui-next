@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import { cn } from 'cn'
 
 interface DetailFieldProps {
-  readonly label: string
+  readonly label: ReactNode
   readonly className?: string
   readonly children: ReactNode
 }

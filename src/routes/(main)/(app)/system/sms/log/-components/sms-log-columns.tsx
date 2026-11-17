@@ -3,13 +3,13 @@ import { Trash2 } from 'lucide-react'
 
 import { RowActionsMenu } from '@/components/row-actions-menu'
 import { SuccessFailureCell } from '@/components/status-cell'
+import { dateTimeColumn, indexColumn, textColumn } from '@/components/table/columns'
 import { TextCell } from '@/components/text-cell'
 import { DropdownMenuGroup, DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import type { SmsLogResp } from '@/lib/api/sms-log'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 
 type SmsLogColumn = ColumnDef<DataTableFeatures, SmsLogResp>
-type TextColumnKey = 'phone' | 'createUserString' | 'createTime'
 
 /** Labels for the columns whose header is a node, which the hide-columns menu cannot read. */
 export const SMS_LOG_COLUMN_LABELS: Record<string, string> = {
@@ -22,14 +22,6 @@ interface SmsLogColumnOptions {
   /** The delete action needs `system:smsLog:delete`; the column is dropped without it. */
   readonly canDelete: boolean
   readonly onDelete: (log: SmsLogResp) => void
-}
-
-function textColumn(key: TextColumnKey, header: string): SmsLogColumn {
-  return {
-    accessorKey: key,
-    header,
-    cell: ({ row }) => <TextCell value={row.original[key]} />
-  }
 }
 
 function RowActions({ log, onDelete }: { log: SmsLogResp; onDelete: (log: SmsLogResp) => void }) {
@@ -49,30 +41,28 @@ function RowActions({ log, onDelete }: { log: SmsLogResp; onDelete: (log: SmsLog
 
 export function createSmsLogColumns({ rowOffset, canDelete, onDelete }: SmsLogColumnOptions): SmsLogColumn[] {
   const columns: SmsLogColumn[] = [
-    {
-      id: 'index',
-      header: '序号',
-      enableHiding: false,
-      cell: ({ row }) => <div>{rowOffset + row.index + 1}</div>
-    },
+    indexColumn(rowOffset),
     textColumn('phone', '手机号'),
     {
       accessorKey: 'params',
       header: '参数配置',
+      meta: { valueType: 'text' },
       cell: ({ row }) => <TextCell value={row.original.params} maxWidth="max-w-72" truncate={false} />
     },
     {
       accessorKey: 'status',
       header: () => <div>发送状态</div>,
+      meta: { valueType: 'status' },
       cell: ({ row }) => <SuccessFailureCell status={row.original.status} />
     },
     {
       accessorKey: 'resMsg',
       header: '返回数据',
+      meta: { valueType: 'text' },
       cell: ({ row }) => <TextCell value={row.original.resMsg} maxWidth="max-w-72" truncate={false} />
     },
     textColumn('createUserString', '操作人'),
-    textColumn('createTime', '操作时间')
+    dateTimeColumn('createTime', '操作时间')
   ]
 
   if (canDelete) {
@@ -80,6 +70,7 @@ export function createSmsLogColumns({ rowOffset, canDelete, onDelete }: SmsLogCo
       id: 'actions',
       header: () => <div className="text-center">操作</div>,
       enableHiding: false,
+      meta: { valueType: 'option' },
       cell: ({ row }) => <RowActions log={row.original} onDelete={onDelete} />
     })
   }

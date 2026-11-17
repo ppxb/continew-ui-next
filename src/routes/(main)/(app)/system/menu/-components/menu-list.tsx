@@ -218,7 +218,6 @@ export function MenuList() {
             onRetry={() => void query.refetch()}
             stickyHeader
             showPagination={false}
-            skeletonWidths={['w-48', 'w-12', 'w-20']}
             containerClassName={cn(
               // The table fills the measured height, so it does not need the footer stand-in padding.
               'pb-0',

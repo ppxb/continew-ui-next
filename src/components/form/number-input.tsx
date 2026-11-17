@@ -4,11 +4,11 @@ import { Input } from '@/components/ui/input'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 
 import { useFieldControl } from './form-context'
-import { FormItem, type FormItemLabelProps } from './form-item'
+import { FormItem, splitFormItemProps, type FormItemLabelProps } from './form-item'
 
 type NativeInputProps = Omit<
   ComponentProps<'input'>,
-  'id' | 'name' | 'type' | 'value' | 'defaultValue' | 'onChange' | 'onBlur' | 'required'
+  'id' | 'name' | 'type' | 'value' | 'defaultValue' | 'onChange' | 'onBlur' | 'required' | 'className'
 >
 
 interface NumberInputProps extends FormItemLabelProps, NativeInputProps {
@@ -20,7 +20,8 @@ interface NumberInputProps extends FormItemLabelProps, NativeInputProps {
  * A number input bound to a `number | null` field. Clearing the input stores `null` instead of
  * snapping back to a default, so the user can type a new value and the schema reports an empty one.
  */
-export function NumberInput({ label, description, required, addonEnd, ...inputProps }: NumberInputProps) {
+export function NumberInput(props: NumberInputProps) {
+  const [itemProps, { addonEnd, ...inputProps }] = splitFormItemProps(props)
   const { field, id, value, errors, invalid } = useFieldControl<number | null>()
   const controlProps = {
     inputMode: 'decimal' as const,
@@ -36,7 +37,7 @@ export function NumberInput({ label, description, required, addonEnd, ...inputPr
   }
 
   return (
-    <FormItem id={id} label={label} description={description} required={required} errors={errors}>
+    <FormItem {...itemProps} id={id} errors={errors}>
       {addonEnd ? (
         <InputGroup>
           <InputGroupInput {...controlProps} />

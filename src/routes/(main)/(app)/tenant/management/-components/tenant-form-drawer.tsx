@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import { revalidateLogic, useForm } from '@tanstack/react-form'
+import { revalidateLogic } from '@tanstack/react-form'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { z } from 'zod'
@@ -9,20 +9,14 @@ import { Building2, PackageOpen } from 'lucide-react'
 
 import { EntityDrawer } from '@/components/entity-drawer'
 import { ExpiryPicker } from '@/components/expiry-picker'
-import { PasswordInput } from '@/components/password-input'
+import { FormItem, useAppForm } from '@/components/form'
+import { FormSkeleton } from '@/components/form-skeleton'
 import { QueryState } from '@/components/query-state'
-import { RequiredMark } from '@/components/required-mark'
 import { Button } from '@/components/ui/button'
-import { DrawerFooter } from '@/components/ui/drawer'
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
-import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
-import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
+import { FieldGroup } from '@/components/ui/field'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Spinner } from '@/components/ui/spinner'
-import { Switch } from '@/components/ui/switch'
-import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/components/ui/toast'
 import { useFillFormOnce } from '@/hooks/use-fill-form-once'
 import { listPackageDict, packageKeys } from '@/lib/api/package'
@@ -86,23 +80,6 @@ function toFormValues(tenant: TenantDetailResp): FormValues {
   }
 }
 
-function TenantFormSkeleton() {
-  return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
-        <div className="flex flex-col gap-4">
-          {Array.from({ length: 6 }, (_, index) => (
-            <div key={index} className="flex flex-col gap-1.5">
-              <Skeleton className="h-4 w-16" />
-              <Skeleton className="h-9 w-full" />
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
-
 interface TenantFormDrawerProps {
   /** The tenant being edited, or `null` to create one. */
   readonly tenantId: string | number | null
@@ -119,7 +96,6 @@ interface TenantFormDrawerProps {
  */
 export function TenantFormDrawer({ tenantId, open, onClose }: TenantFormDrawerProps) {
   const queryClient = useQueryClient()
-  const formRef = React.useRef<HTMLFormElement>(null)
   const isCreate = tenantId === null
 
   const detail = useTenantDetail(tenantId, { enabled: open })
@@ -150,7 +126,7 @@ export function TenantFormDrawer({ tenantId, open, onClose }: TenantFormDrawerPr
     packageId: packageIdByValue.get(values.packageId) ?? values.packageId
   })
 
-  const form = useForm({
+  const form = useAppForm({
     defaultValues: EMPTY_FORM,
     validationLogic: revalidateLogic(),
     validators: { onDynamic: formSchema },
@@ -206,20 +182,6 @@ export function TenantFormDrawer({ tenantId, open, onClose }: TenantFormDrawerPr
     resetOnClose: false
   })
 
-  /**
-   * Validates the whole object before submitting: `handleSubmit` returns as soon as the field
-   * validators report an invalid form, so a rule that only sits on the form would stay hidden
-   * until the other errors were fixed.
-   */
-  const submit = async () => {
-    await form.validate('submit')
-    await form.handleSubmit()
-
-    requestAnimationFrame(() => {
-      formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
-    })
-  }
-
   return (
     <EntityDrawer
       open={open}
@@ -230,161 +192,83 @@ export function TenantFormDrawer({ tenantId, open, onClose }: TenantFormDrawerPr
       canClose={() => !form.state.isSubmitting}
     >
       {isCreate || (!detail.isError && detail.data && detail.fetchStatus === 'idle') ? (
-        <form
-          ref={formRef}
-          noValidate
-          className="flex min-h-0 flex-1 flex-col"
-          onSubmit={event => {
-            event.preventDefault()
-            void submit()
-          }}
-        >
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
+        <form.AppForm>
+          <form.FormShell footer={<form.FormFooter onCancel={onClose} />}>
             <FieldGroup className="gap-4">
-              <form.Field name="name" validators={{ onDynamic: formSchema.shape.name }}>
-                {field => {
-                  const invalid = field.state.meta.errors.length > 0
+              <form.AppField name="name" validators={{ onDynamic: formSchema.shape.name }}>
+                {field => <field.TextInput label="名称" required maxLength={30} placeholder="请输入租户名称" />}
+              </form.AppField>
 
-                  return (
-                    <Field className="gap-1.5" data-invalid={invalid}>
-                      <FieldLabel>
-                        名称
-                        <RequiredMark />
-                      </FieldLabel>
-                      <Input
-                        name="name"
-                        value={field.state.value}
-                        onChange={event => field.handleChange(event.target.value)}
-                        onBlur={field.handleBlur}
-                        maxLength={30}
-                        placeholder="请输入租户名称"
-                        aria-invalid={invalid}
-                      />
-                      <FieldError errors={field.state.meta.errors} />
-                    </Field>
-                  )
-                }}
-              </form.Field>
+              <form.AppField name="domain" validators={{ onDynamic: formSchema.shape.domain }}>
+                {field => (
+                  <field.TextInput
+                    label="域名"
+                    addonStart="http(s)://"
+                    maxLength={255}
+                    placeholder="请输入需要绑定的域名"
+                  />
+                )}
+              </form.AppField>
 
-              <form.Field name="domain" validators={{ onDynamic: formSchema.shape.domain }}>
-                {field => {
-                  const invalid = field.state.meta.errors.length > 0
-
-                  return (
-                    <Field className="gap-1.5" data-invalid={invalid}>
-                      <FieldLabel>域名</FieldLabel>
-                      <InputGroup>
-                        <InputGroupAddon align="inline-start">
-                          <span className="text-xs text-muted-foreground">http(s)://</span>
-                        </InputGroupAddon>
-                        <InputGroupInput
-                          name="domain"
-                          value={field.state.value}
-                          onChange={event => field.handleChange(event.target.value)}
-                          onBlur={field.handleBlur}
-                          maxLength={255}
-                          placeholder="请输入需要绑定的域名"
-                          aria-invalid={invalid}
-                        />
-                      </InputGroup>
-                      <FieldError errors={field.state.meta.errors} />
-                    </Field>
-                  )
-                }}
-              </form.Field>
-
-              <form.Field name="expireTime" validators={{ onDynamic: formSchema.shape.expireTime }}>
-                {field => {
-                  const invalid = field.state.meta.errors.length > 0
-
-                  return (
-                    <Field className="gap-1.5" data-invalid={invalid}>
-                      <FieldLabel>过期时间</FieldLabel>
+              <form.AppField name="expireTime" validators={{ onDynamic: formSchema.shape.expireTime }}>
+                {field => (
+                  <field.CustomField
+                    label="过期时间"
+                    description="留空表示永不过期；若设置则必须是未来时间"
+                    hideDescriptionOnError
+                  >
+                    {({ id, invalid }) => (
                       <ExpiryPicker
+                        id={id}
                         value={field.state.value}
                         onChange={field.handleChange}
                         onBlur={field.handleBlur}
                         invalid={invalid}
                       />
-                      {invalid ? (
-                        <FieldError errors={field.state.meta.errors} />
-                      ) : (
-                        <FieldDescription>留空表示永不过期；若设置则必须是未来时间</FieldDescription>
-                      )}
-                    </Field>
-                  )
-                }}
-              </form.Field>
+                    )}
+                  </field.CustomField>
+                )}
+              </form.AppField>
 
               {isCreate ? (
                 <>
-                  <form.Field
+                  <form.AppField
                     name="adminUsername"
                     validators={{
                       onBlur: ({ value }) => (USERNAME_PATTERN.test(value) ? undefined : { message: USERNAME_HINT }),
                       onSubmit: ({ value }) => (USERNAME_PATTERN.test(value) ? undefined : { message: USERNAME_HINT })
                     }}
                   >
-                    {field => {
-                      const invalid = field.state.meta.errors.length > 0
+                    {field => (
+                      <field.TextInput
+                        label="管理员用户"
+                        required
+                        maxLength={64}
+                        placeholder="请输入管理员用户"
+                        autoComplete="off"
+                      />
+                    )}
+                  </form.AppField>
 
-                      return (
-                        <Field className="gap-1.5" data-invalid={invalid}>
-                          <FieldLabel>
-                            管理员用户
-                            <RequiredMark />
-                          </FieldLabel>
-                          <Input
-                            name="adminUsername"
-                            value={field.state.value}
-                            onChange={event => field.handleChange(event.target.value)}
-                            onBlur={field.handleBlur}
-                            maxLength={64}
-                            placeholder="请输入管理员用户"
-                            autoComplete="off"
-                            aria-invalid={invalid}
-                          />
-                          <FieldError errors={field.state.meta.errors} />
-                        </Field>
-                      )
-                    }}
-                  </form.Field>
-
-                  <form.Field
+                  <form.AppField
                     name="adminPassword"
                     validators={{
                       onBlur: ({ value }) => (PASSWORD_PATTERN.test(value) ? undefined : { message: PASSWORD_HINT }),
                       onSubmit: ({ value }) => (PASSWORD_PATTERN.test(value) ? undefined : { message: PASSWORD_HINT })
                     }}
                   >
-                    {field => {
-                      const invalid = field.state.meta.errors.length > 0
-
-                      return (
-                        <Field className="gap-1.5" data-invalid={invalid}>
-                          <FieldLabel>
-                            管理员密码
-                            <RequiredMark />
-                          </FieldLabel>
-                          <PasswordInput
-                            name="adminPassword"
-                            value={field.state.value}
-                            onChange={event => field.handleChange(event.target.value)}
-                            onBlur={field.handleBlur}
-                            maxLength={32}
-                            placeholder="请输入管理员密码"
-                            autoComplete="new-password"
-                            aria-invalid={invalid}
-                          />
-                          {invalid ? (
-                            <FieldError errors={field.state.meta.errors} />
-                          ) : (
-                            <FieldDescription>{PASSWORD_HINT}</FieldDescription>
-                          )}
-                        </Field>
-                      )
-                    }}
-                  </form.Field>
+                    {field => (
+                      <field.PasswordInput
+                        label="管理员密码"
+                        required
+                        description={PASSWORD_HINT}
+                        hideDescriptionOnError
+                        maxLength={32}
+                        placeholder="请输入管理员密码"
+                        autoComplete="new-password"
+                      />
+                    )}
+                  </form.AppField>
 
                   <form.Field
                     name="packageId"
@@ -396,12 +280,13 @@ export function TenantFormDrawer({ tenantId, open, onClose }: TenantFormDrawerPr
                       const invalid = field.state.meta.errors.length > 0
 
                       return (
-                        <Field className="gap-1.5" data-invalid={invalid}>
-                          <FieldLabel>
-                            套餐
-                            <RequiredMark />
-                          </FieldLabel>
-
+                        <FormItem
+                          id="tenant-package"
+                          label="套餐"
+                          required
+                          // The empty state replaces the error, since there is nothing to pick.
+                          errors={packageOptions.length > 0 ? field.state.meta.errors : []}
+                        >
                           {packages.isPending ? (
                             <Skeleton className="h-8 w-full" />
                           ) : packageOptions.length > 0 ? (
@@ -410,7 +295,7 @@ export function TenantFormDrawer({ tenantId, open, onClose }: TenantFormDrawerPr
                               value={field.state.value}
                               onValueChange={value => field.handleChange(value ?? '')}
                             >
-                              <SelectTrigger className="w-full" aria-invalid={invalid}>
+                              <SelectTrigger id="tenant-package" className="w-full" aria-invalid={invalid}>
                                 <SelectValue placeholder="请选择套餐" />
                               </SelectTrigger>
                               <SelectContent alignItemWithTrigger={false}>
@@ -451,83 +336,32 @@ export function TenantFormDrawer({ tenantId, open, onClose }: TenantFormDrawerPr
                               </EmptyHeader>
                             </Empty>
                           )}
-
-                          {packageOptions.length > 0 ? <FieldError errors={field.state.meta.errors} /> : null}
-                        </Field>
+                        </FormItem>
                       )
                     }}
                   </form.Field>
                 </>
               ) : null}
 
-              <form.Field name="description" validators={{ onDynamic: formSchema.shape.description }}>
-                {field => {
-                  const invalid = field.state.meta.errors.length > 0
+              <form.AppField name="description" validators={{ onDynamic: formSchema.shape.description }}>
+                {field => <field.TextareaInput label="描述" maxLength={200} rows={3} placeholder="请输入描述" />}
+              </form.AppField>
 
-                  return (
-                    <Field className="gap-1.5" data-invalid={invalid}>
-                      <FieldLabel>描述</FieldLabel>
-                      <Textarea
-                        name="description"
-                        value={field.state.value}
-                        onChange={event => field.handleChange(event.target.value)}
-                        onBlur={field.handleBlur}
-                        maxLength={200}
-                        rows={3}
-                        placeholder="请输入描述"
-                        aria-invalid={invalid}
-                      />
-                      <FieldError errors={field.state.meta.errors} />
-                    </Field>
-                  )
-                }}
-              </form.Field>
-
-              <form.Field name="status">
+              <form.AppField name="status">
                 {field => (
-                  <Field orientation="horizontal" className="items-center justify-between">
-                    <FieldContent>
-                      <FieldLabel>状态</FieldLabel>
-                      <FieldDescription>
-                        {field.state.value === 1 ? '启用后该租户可以正常访问' : '禁用后该租户无法访问'}
-                      </FieldDescription>
-                    </FieldContent>
-                    <Switch
-                      checked={field.state.value === 1}
-                      onCheckedChange={checked => field.handleChange(checked ? 1 : 2)}
-                    />
-                  </Field>
+                  <field.SwitchInput
+                    label="状态"
+                    description={field.state.value === 1 ? '启用后该租户可以正常访问' : '禁用后该租户无法访问'}
+                  />
                 )}
-              </form.Field>
+              </form.AppField>
             </FieldGroup>
-          </div>
-
-          <DrawerFooter>
-            <form.Subscribe selector={state => state.isSubmitting}>
-              {isSubmitting => (
-                <>
-                  <Button type="button" variant="outline" disabled={isSubmitting} onClick={onClose}>
-                    取消
-                  </Button>
-                  <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? (
-                      <>
-                        <Spinner />
-                        保存中
-                      </>
-                    ) : (
-                      '保存'
-                    )}
-                  </Button>
-                </>
-              )}
-            </form.Subscribe>
-          </DrawerFooter>
-        </form>
+          </form.FormShell>
+        </form.AppForm>
       ) : detail.isError ? (
         <QueryState state="error" className="p-6" onRetry={() => void detail.refetch()} />
       ) : (
-        <TenantFormSkeleton />
+        <FormSkeleton fields={['input', 'input', 'input', 'textarea', 'switch']} />
       )}
     </EntityDrawer>
   )

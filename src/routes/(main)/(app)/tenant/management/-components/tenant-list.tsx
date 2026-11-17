@@ -34,24 +34,6 @@ const HIDDEN_BY_DEFAULT: ColumnVisibilityState = {
   updateTime: false
 }
 
-/** One width per column id, so the hidden columns cannot shift the placeholder shapes. */
-const SKELETON_WIDTHS: Record<string, string> = {
-  index: 'mx-auto w-6',
-  code: 'w-28',
-  name: 'w-32',
-  packageName: 'w-24',
-  domain: 'w-32',
-  expireTime: 'w-32',
-  adminUsername: 'w-24',
-  status: 'mx-auto w-14 rounded-full',
-  description: 'w-32',
-  createUserString: 'w-20',
-  createTime: 'w-32',
-  updateUserString: 'w-20',
-  updateTime: 'w-32',
-  actions: 'mx-auto w-8'
-}
-
 export function TenantList() {
   const { hasPermission } = usePermission()
   const canCreate = hasPermission('tenant:management:create')
@@ -185,7 +167,6 @@ export function TenantList() {
         <TableFillArea fullscreen={fullscreen}>
           <DataTable
             table={table}
-            skeletonWidths={table.getVisibleLeafColumns().map(column => SKELETON_WIDTHS[column.id] ?? 'w-24')}
             isLoading={query.isPending}
             isError={query.isError}
             isShowingPreviousRows={query.isPlaceholderData}

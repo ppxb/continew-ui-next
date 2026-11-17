@@ -3,13 +3,12 @@ import { Eye, Pen, Trash2 } from 'lucide-react'
 
 import { RowActionsMenu } from '@/components/row-actions-menu'
 import { StatusCell } from '@/components/status-cell'
-import { TextCell } from '@/components/text-cell'
+import { dateTimeColumn, textColumn } from '@/components/table/columns'
 import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import type { PackageResp } from '@/lib/api/package'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 
 type PackageColumn = ColumnDef<DataTableFeatures, PackageResp>
-type TextColumnKey = 'name' | 'description' | 'createUserString' | 'createTime' | 'updateUserString' | 'updateTime'
 
 /** The row actions the table raises. */
 export type PackageAction = 'detail' | 'edit' | 'delete'
@@ -27,14 +26,6 @@ interface PackageColumnOptions {
   readonly canUpdate: boolean
   readonly canDelete: boolean
   readonly onAction: (action: PackageAction, pkg: PackageResp) => void
-}
-
-function textColumn(key: TextColumnKey, header: string): PackageColumn {
-  return {
-    accessorKey: key,
-    header,
-    cell: ({ row }) => <TextCell value={row.original[key]} />
-  }
 }
 
 function RowActions({
@@ -95,6 +86,7 @@ export function createPackageColumns({ rowOffset, canGet, canUpdate, canDelete, 
       id: 'index',
       header: '序号',
       enableHiding: false,
+      meta: { valueType: 'index' },
       cell: ({ row }) => (
         <div className="text-center text-sm text-muted-foreground tabular-nums">{rowOffset + row.index + 1}</div>
       )
@@ -103,6 +95,7 @@ export function createPackageColumns({ rowOffset, canGet, canUpdate, canDelete, 
     {
       accessorKey: 'status',
       header: () => <div className="text-center">状态</div>,
+      meta: { valueType: 'status' },
       cell: ({ row }) => (
         <div className="flex justify-center">
           <StatusCell status={row.original.status} />
@@ -112,13 +105,14 @@ export function createPackageColumns({ rowOffset, canGet, canUpdate, canDelete, 
     {
       accessorKey: 'sort',
       header: () => <div className="text-center">排序</div>,
+      meta: { valueType: 'text' },
       cell: ({ row }) => <div className="text-center text-sm tabular-nums">{row.original.sort}</div>
     },
     textColumn('description', '描述'),
     textColumn('createUserString', '创建人'),
-    textColumn('createTime', '创建时间'),
+    dateTimeColumn('createTime', '创建时间'),
     textColumn('updateUserString', '修改人'),
-    textColumn('updateTime', '修改时间')
+    dateTimeColumn('updateTime', '修改时间')
   ]
 
   if (canGet || canUpdate || canDelete) {
@@ -126,6 +120,7 @@ export function createPackageColumns({ rowOffset, canGet, canUpdate, canDelete, 
       id: 'actions',
       header: () => <div className="text-center">操作</div>,
       enableHiding: false,
+      meta: { valueType: 'option' },
       cell: ({ row }) => (
         <RowActions
           pkg={row.original}

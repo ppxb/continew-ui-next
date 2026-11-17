@@ -1,5 +1,7 @@
 import { createRootRoute, Outlet } from '@tanstack/react-router'
 
+import { ProConfigProvider } from '@/components/pro/provider'
+import { projectValueTypes } from '@/components/pro-value-types'
 import { Toaster } from '@/components/ui/toast'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { AuthStoreProvider } from '@/stores/auth/auth-provider'
@@ -19,8 +21,10 @@ function RootComponent() {
     <TooltipProvider>
       <AuthStoreProvider>
         <PreferencesStoreProvider>
-          <Outlet />
-          <Toaster />
+          <ProConfigProvider valueTypeMap={projectValueTypes}>
+            <Outlet />
+            <Toaster />
+          </ProConfigProvider>
         </PreferencesStoreProvider>
       </AuthStoreProvider>
     </TooltipProvider>

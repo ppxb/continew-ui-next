@@ -212,7 +212,6 @@ export function UserList() {
             isShowingPreviousRows={query.isPlaceholderData}
             onRetry={() => void query.refetch()}
             fillHeight
-            skeletonWidths={['mx-auto w-6', 'w-24', 'w-20', 'mx-auto w-12 rounded-full', 'mx-auto w-8', 'w-12']}
           />
         </TableFillArea>
       </ListPageCard>

@@ -1,24 +1,16 @@
-import * as React from 'react'
-
-import { revalidateLogic, useForm, useSelector } from '@tanstack/react-form'
+import { revalidateLogic, useSelector } from '@tanstack/react-form'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { z } from 'zod'
 
 import { MessageSquare } from 'lucide-react'
 
 import { EntityDrawer } from '@/components/entity-drawer'
-import { PasswordInput } from '@/components/password-input'
+import { useAppForm } from '@/components/form'
 import { QueryState } from '@/components/query-state'
-import { RequiredMark } from '@/components/required-mark'
 import { Button } from '@/components/ui/button'
 import { DrawerFooter } from '@/components/ui/drawer'
-import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { FieldGroup } from '@/components/ui/field'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Spinner } from '@/components/ui/spinner'
-import { Switch } from '@/components/ui/switch'
-import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/components/ui/toast'
 import { useFillFormOnce } from '@/hooks/use-fill-form-once'
 import { createSmsConfig, getSmsConfig, type SmsConfigReq, updateSmsConfig } from '@/lib/api/sms'
@@ -31,10 +23,32 @@ const smsFormSchema = z.object({
   secretKey: z.string().max(255, 'Secret Key 不能超过 255 个字符'),
   signature: z.string().max(100, '短信签名不能超过 100 个字符'),
   templateId: z.string().trim().min(1, '请输入模板 ID').max(50, '模板 ID 不能超过 50 个字符'),
-  weight: z.number().int('权重必须为整数').min(1, '权重最小为 1').max(100, '权重最大为 100'),
-  retryInterval: z.number().int('重试间隔必须为整数').min(1, '重试间隔最小为 1 秒'),
-  maxRetries: z.number().int('重试次数必须为整数').min(0, '重试次数最小为 0'),
-  maximum: z.number().int('发送上限必须为整数').min(1, '发送上限最小为 1'),
+  // The number fields hold `null` while cleared instead of snapping back to a default.
+  weight: z
+    .number('请输入负载均衡权重')
+    .int('权重必须为整数')
+    .min(1, '权重最小为 1')
+    .max(100, '权重最大为 100')
+    .nullable()
+    .refine(value => value !== null, '请输入负载均衡权重'),
+  retryInterval: z
+    .number('请输入重试间隔')
+    .int('重试间隔必须为整数')
+    .min(1, '重试间隔最小为 1 秒')
+    .nullable()
+    .refine(value => value !== null, '请输入重试间隔'),
+  maxRetries: z
+    .number('请输入重试次数')
+    .int('重试次数必须为整数')
+    .min(0, '重试次数最小为 0')
+    .nullable()
+    .refine(value => value !== null, '请输入重试次数'),
+  maximum: z
+    .number('请输入发送上限')
+    .int('发送上限必须为整数')
+    .min(1, '发送上限最小为 1')
+    .nullable()
+    .refine(value => value !== null, '请输入发送上限'),
   supplierConfig: z.string().refine(val => {
     if (!val || !val.trim()) return true
     try {
@@ -47,7 +61,8 @@ const smsFormSchema = z.object({
   status: z.number().int().min(1).max(2)
 })
 
-type FormValues = z.infer<typeof smsFormSchema>
+// The input type, so the number fields may hold `null` while cleared.
+type FormValues = z.input<typeof smsFormSchema>
 
 const DEFAULT_FORM: FormValues = {
   name: '',
@@ -137,7 +152,6 @@ interface SmsFormDrawerProps {
 export function SmsFormDrawer({ smsId, open, supplierOptions, onClose }: SmsFormDrawerProps) {
   const queryClient = useQueryClient()
   const isEdit = smsId !== null
-  const formRef = React.useRef<HTMLFormElement>(null)
 
   const detailQuery = useQuery({
     queryKey: smsKeys.detail(smsId ?? ''),
@@ -145,7 +159,7 @@ export function SmsFormDrawer({ smsId, open, supplierOptions, onClose }: SmsForm
     enabled: open && isEdit
   })
 
-  const form = useForm({
+  const form = useAppForm({
     defaultValues: DEFAULT_FORM,
     validationLogic: revalidateLogic(),
     validators: { onDynamic: smsFormSchema },
@@ -157,10 +171,11 @@ export function SmsFormDrawer({ smsId, open, supplierOptions, onClose }: SmsForm
         secretKey: value.secretKey.trim() || undefined!,
         signature: value.signature.trim() || undefined,
         templateId: value.templateId.trim(),
-        weight: value.weight,
-        retryInterval: value.retryInterval,
-        maxRetries: value.maxRetries,
-        maximum: value.maximum,
+        // The schema rejects `null`, so the number fields hold numbers once submit runs.
+        weight: value.weight as number,
+        retryInterval: value.retryInterval as number,
+        maxRetries: value.maxRetries as number,
+        maximum: value.maximum as number,
         supplierConfig: value.supplierConfig.trim() || undefined,
         status: value.status as 1 | 2
       }
@@ -214,21 +229,6 @@ export function SmsFormDrawer({ smsId, open, supplierOptions, onClose }: SmsForm
     apply: values => form.reset(values, { keepDefaultValues: true })
   })
 
-  /**
-   * Validates the whole object before submitting: `handleSubmit` returns as soon as the field
-   * validators report an invalid form, so the JSON rule above would otherwise stay hidden until the
-   * other errors were fixed.
-   */
-  const submit = async () => {
-    await form.validate('submit')
-    await form.handleSubmit()
-
-    // TanStack Form does not move focus to the first invalid control, so the drawer does it here.
-    requestAnimationFrame(() => {
-      formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
-    })
-  }
-
   const isLoading = isEdit && detailQuery.isLoading
 
   return (
@@ -247,371 +247,129 @@ export function SmsFormDrawer({ smsId, open, supplierOptions, onClose }: SmsForm
         // Without the record the form would post its defaults over an existing config.
         <QueryState state="error" className="p-6" onRetry={() => void detailQuery.refetch()} />
       ) : (
-        <form
-          ref={formRef}
-          noValidate
-          className="flex min-h-0 flex-1 flex-col"
-          onSubmit={event => {
-            event.preventDefault()
-            void submit()
-          }}
-        >
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
+        <form.AppForm>
+          <form.FormShell footer={<form.FormFooter onCancel={onClose} />}>
             <FieldGroup className="gap-4">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <form.Field name="name" validators={{ onDynamic: smsFormSchema.shape.name }}>
-                  {field => {
-                    const invalid = field.state.meta.errors.length > 0
-
-                    return (
-                      <Field className="gap-1.5" data-invalid={invalid}>
-                        <FieldLabel>
-                          配置名称
-                          <RequiredMark />
-                        </FieldLabel>
-                        <Input
-                          name="name"
-                          value={field.state.value}
-                          onChange={event => field.handleChange(event.target.value)}
-                          onBlur={field.handleBlur}
-                          maxLength={100}
-                          placeholder="请输入配置名称"
-                          disabled={isSubmitting}
-                          aria-invalid={invalid}
-                        />
-                        <FieldError errors={field.state.meta.errors} />
-                      </Field>
-                    )
-                  }}
-                </form.Field>
-
-                <form.Field name="supplier" validators={{ onDynamic: smsFormSchema.shape.supplier }}>
-                  {field => {
-                    const invalid = field.state.meta.errors.length > 0
-
-                    return (
-                      <Field className="gap-1.5" data-invalid={invalid}>
-                        <FieldLabel>
-                          服务厂商
-                          <RequiredMark />
-                        </FieldLabel>
-                        <Select
-                          items={supplierOptions}
-                          value={field.state.value}
-                          disabled={isSubmitting}
-                          onValueChange={val => {
-                            if (!val) return
-                            field.handleChange(val)
-                          }}
-                        >
-                          <SelectTrigger aria-invalid={invalid}>
-                            <SelectValue placeholder="请选择服务厂商" />
-                          </SelectTrigger>
-                          <SelectContent align="start" alignItemWithTrigger={false}>
-                            <SelectGroup>
-                              {supplierOptions.map(s => (
-                                <SelectItem key={s.value} value={s.value}>
-                                  {s.label}
-                                </SelectItem>
-                              ))}
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>
-                        <FieldError errors={field.state.meta.errors} />
-                      </Field>
-                    )
-                  }}
-                </form.Field>
-              </div>
-
-              <form.Field name="accessKey" validators={{ onDynamic: smsFormSchema.shape.accessKey }}>
-                {field => {
-                  const invalid = field.state.meta.errors.length > 0
-
-                  return (
-                    <Field className="gap-1.5" data-invalid={invalid}>
-                      <FieldLabel>
-                        Access Key
-                        <RequiredMark />
-                      </FieldLabel>
-                      <Input
-                        name="accessKey"
-                        value={field.state.value}
-                        onChange={event => field.handleChange(event.target.value)}
-                        onBlur={field.handleBlur}
-                        maxLength={255}
-                        placeholder="请输入 Access Key"
-                        disabled={isSubmitting}
-                        aria-invalid={invalid}
-                      />
-                      <FieldError errors={field.state.meta.errors} />
-                    </Field>
-                  )
-                }}
-              </form.Field>
-
-              <form.Field name="secretKey" validators={isEdit ? undefined : { onDynamic: createSecretKeyRule }}>
-                {field => {
-                  const invalid = field.state.meta.errors.length > 0
-
-                  return (
-                    <Field data-invalid={invalid}>
-                      <FieldLabel>
-                        Secret Key
-                        {!isEdit && <RequiredMark />}
-                      </FieldLabel>
-                      <PasswordInput
-                        name="secretKey"
-                        value={field.state.value}
-                        onChange={event => field.handleChange(event.target.value)}
-                        onBlur={field.handleBlur}
-                        maxLength={255}
-                        placeholder={isEdit ? '留空表示不修改' : '请输入 Secret Key'}
-                        disabled={isSubmitting}
-                        aria-invalid={invalid}
-                      />
-                      <FieldError errors={field.state.meta.errors} />
-                    </Field>
-                  )
-                }}
-              </form.Field>
-
-              <div className="grid grid-cols-2 gap-4">
-                <form.Field name="signature" validators={{ onDynamic: smsFormSchema.shape.signature }}>
-                  {field => {
-                    const invalid = field.state.meta.errors.length > 0
-
-                    return (
-                      <Field data-invalid={invalid}>
-                        <FieldLabel>短信签名</FieldLabel>
-                        <Input
-                          name="signature"
-                          value={field.state.value}
-                          onChange={event => field.handleChange(event.target.value)}
-                          onBlur={field.handleBlur}
-                          maxLength={100}
-                          placeholder="请输入短信签名"
-                          disabled={isSubmitting}
-                          aria-invalid={invalid}
-                        />
-                        <FieldError errors={field.state.meta.errors} />
-                      </Field>
-                    )
-                  }}
-                </form.Field>
-
-                <form.Field name="templateId" validators={{ onDynamic: smsFormSchema.shape.templateId }}>
-                  {field => {
-                    const invalid = field.state.meta.errors.length > 0
-
-                    return (
-                      <Field data-invalid={invalid}>
-                        <FieldLabel>
-                          模板 ID
-                          <RequiredMark />
-                        </FieldLabel>
-                        <Input
-                          name="templateId"
-                          value={field.state.value}
-                          onChange={event => field.handleChange(event.target.value)}
-                          onBlur={field.handleBlur}
-                          maxLength={50}
-                          placeholder="请输入模板 ID"
-                          disabled={isSubmitting}
-                          aria-invalid={invalid}
-                        />
-                        <FieldError errors={field.state.meta.errors} />
-                      </Field>
-                    )
-                  }}
-                </form.Field>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <form.Field name="weight" validators={{ onDynamic: smsFormSchema.shape.weight }}>
-                  {field => {
-                    const invalid = field.state.meta.errors.length > 0
-
-                    return (
-                      <Field data-invalid={invalid}>
-                        <FieldLabel>负载均衡权重</FieldLabel>
-                        <Input
-                          name="weight"
-                          type="number"
-                          min={1}
-                          max={100}
-                          value={field.state.value}
-                          onChange={event =>
-                            field.handleChange(
-                              Number.isNaN(event.target.valueAsNumber) ? 1 : event.target.valueAsNumber
-                            )
-                          }
-                          onBlur={field.handleBlur}
-                          disabled={isSubmitting}
-                          aria-invalid={invalid}
-                        />
-                        <FieldError errors={field.state.meta.errors} />
-                      </Field>
-                    )
-                  }}
-                </form.Field>
-
-                <form.Field name="retryInterval" validators={{ onDynamic: smsFormSchema.shape.retryInterval }}>
-                  {field => {
-                    const invalid = field.state.meta.errors.length > 0
-
-                    return (
-                      <Field data-invalid={invalid}>
-                        <FieldLabel>重试间隔</FieldLabel>
-                        <div className="relative">
-                          <Input
-                            name="retryInterval"
-                            type="number"
-                            min={1}
-                            value={field.state.value}
-                            onChange={event =>
-                              field.handleChange(
-                                Number.isNaN(event.target.valueAsNumber) ? 1 : event.target.valueAsNumber
-                              )
-                            }
-                            onBlur={field.handleBlur}
-                            disabled={isSubmitting}
-                            className="pr-10"
-                            aria-invalid={invalid}
-                          />
-                          <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-muted-foreground">
-                            秒
-                          </span>
-                        </div>
-                        <FieldError errors={field.state.meta.errors} />
-                      </Field>
-                    )
-                  }}
-                </form.Field>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <form.Field name="maxRetries" validators={{ onDynamic: smsFormSchema.shape.maxRetries }}>
-                  {field => {
-                    const invalid = field.state.meta.errors.length > 0
-
-                    return (
-                      <Field className="gap-1.5" data-invalid={invalid}>
-                        <FieldLabel>重试次数</FieldLabel>
-                        <Input
-                          name="maxRetries"
-                          type="number"
-                          min={0}
-                          value={field.state.value}
-                          onChange={event =>
-                            field.handleChange(
-                              Number.isNaN(event.target.valueAsNumber) ? 0 : event.target.valueAsNumber
-                            )
-                          }
-                          onBlur={field.handleBlur}
-                          disabled={isSubmitting}
-                          aria-invalid={invalid}
-                        />
-                        <FieldError errors={field.state.meta.errors} />
-                      </Field>
-                    )
-                  }}
-                </form.Field>
-
-                <form.Field name="maximum" validators={{ onDynamic: smsFormSchema.shape.maximum }}>
-                  {field => {
-                    const invalid = field.state.meta.errors.length > 0
-
-                    return (
-                      <Field className="gap-1.5" data-invalid={invalid}>
-                        <FieldLabel>发送上限</FieldLabel>
-                        <Input
-                          name="maximum"
-                          type="number"
-                          min={1}
-                          value={field.state.value}
-                          onChange={event =>
-                            field.handleChange(
-                              Number.isNaN(event.target.valueAsNumber) ? 1 : event.target.valueAsNumber
-                            )
-                          }
-                          onBlur={field.handleBlur}
-                          disabled={isSubmitting}
-                          aria-invalid={invalid}
-                        />
-                        <FieldError errors={field.state.meta.errors} />
-                      </Field>
-                    )
-                  }}
-                </form.Field>
-              </div>
-
-              <form.Field name="supplierConfig" validators={{ onDynamic: smsFormSchema.shape.supplierConfig }}>
-                {field => {
-                  const invalid = field.state.meta.errors.length > 0
-
-                  return (
-                    <Field className="gap-1.5" data-invalid={invalid}>
-                      <FieldContent>
-                        <FieldLabel>厂商独立扩展配置</FieldLabel>
-                        <FieldDescription>针对特定供应商（如腾讯云 sdkAppId）的专有扩展参数</FieldDescription>
-                      </FieldContent>
-                      <Textarea
-                        name="supplierConfig"
-                        value={field.state.value}
-                        onChange={event => field.handleChange(event.target.value)}
-                        onBlur={field.handleBlur}
-                        rows={2}
-                        maxLength={500}
-                        placeholder="请输入厂商的（JSON 格式）扩展配置"
-                        disabled={isSubmitting}
-                        aria-invalid={invalid}
-                      />
-                      <FieldError errors={field.state.meta.errors} />
-                    </Field>
-                  )
-                }}
-              </form.Field>
-
-              <form.Field name="status">
-                {field => (
-                  <Field
-                    orientation="horizontal"
-                    className="items-center justify-between py-1"
-                    data-invalid={field.state.meta.errors.length > 0}
-                  >
-                    <FieldContent>
-                      <FieldLabel className="cursor-pointer">状态</FieldLabel>
-                      <FieldDescription>禁用后该通道将不再参与短信发送</FieldDescription>
-                    </FieldContent>
-                    <Switch
-                      checked={field.state.value === 1}
-                      onCheckedChange={checked => field.handleChange(checked ? 1 : 2)}
+                <form.AppField name="name" validators={{ onDynamic: smsFormSchema.shape.name }}>
+                  {field => (
+                    <field.TextInput
+                      label="配置名称"
+                      required
+                      maxLength={100}
+                      placeholder="请输入配置名称"
                       disabled={isSubmitting}
-                      aria-invalid={field.state.meta.errors.length > 0}
                     />
-                  </Field>
-                )}
-              </form.Field>
-            </FieldGroup>
-          </div>
+                  )}
+                </form.AppField>
 
-          <DrawerFooter>
-            <Button type="button" variant="outline" disabled={isSubmitting} onClick={onClose}>
-              取消
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <Spinner />
-                  保存中
-                </>
-              ) : (
-                '保存'
-              )}
-            </Button>
-          </DrawerFooter>
-        </form>
+                <form.AppField name="supplier" validators={{ onDynamic: smsFormSchema.shape.supplier }}>
+                  {field => (
+                    <field.SelectInput
+                      label="服务厂商"
+                      required
+                      options={supplierOptions}
+                      placeholder="请选择服务厂商"
+                      disabled={isSubmitting}
+                    />
+                  )}
+                </form.AppField>
+              </div>
+
+              <form.AppField name="accessKey" validators={{ onDynamic: smsFormSchema.shape.accessKey }}>
+                {field => (
+                  <field.TextInput
+                    label="Access Key"
+                    required
+                    maxLength={255}
+                    placeholder="请输入 Access Key"
+                    disabled={isSubmitting}
+                  />
+                )}
+              </form.AppField>
+
+              <form.AppField name="secretKey" validators={isEdit ? undefined : { onDynamic: createSecretKeyRule }}>
+                {field => (
+                  <field.PasswordInput
+                    label="Secret Key"
+                    required={!isEdit}
+                    maxLength={255}
+                    placeholder={isEdit ? '留空表示不修改' : '请输入 Secret Key'}
+                    disabled={isSubmitting}
+                  />
+                )}
+              </form.AppField>
+
+              <div className="grid grid-cols-2 gap-4">
+                <form.AppField name="signature" validators={{ onDynamic: smsFormSchema.shape.signature }}>
+                  {field => (
+                    <field.TextInput
+                      label="短信签名"
+                      maxLength={100}
+                      placeholder="请输入短信签名"
+                      disabled={isSubmitting}
+                    />
+                  )}
+                </form.AppField>
+
+                <form.AppField name="templateId" validators={{ onDynamic: smsFormSchema.shape.templateId }}>
+                  {field => (
+                    <field.TextInput
+                      label="模板 ID"
+                      required
+                      maxLength={50}
+                      placeholder="请输入模板 ID"
+                      disabled={isSubmitting}
+                    />
+                  )}
+                </form.AppField>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <form.AppField name="weight" validators={{ onDynamic: smsFormSchema.shape.weight }}>
+                  {field => <field.NumberInput label="负载均衡权重" min={1} max={100} disabled={isSubmitting} />}
+                </form.AppField>
+
+                <form.AppField name="retryInterval" validators={{ onDynamic: smsFormSchema.shape.retryInterval }}>
+                  {field => <field.NumberInput label="重试间隔" min={1} addonEnd="秒" disabled={isSubmitting} />}
+                </form.AppField>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <form.AppField name="maxRetries" validators={{ onDynamic: smsFormSchema.shape.maxRetries }}>
+                  {field => <field.NumberInput label="重试次数" min={0} disabled={isSubmitting} />}
+                </form.AppField>
+
+                <form.AppField name="maximum" validators={{ onDynamic: smsFormSchema.shape.maximum }}>
+                  {field => <field.NumberInput label="发送上限" min={1} disabled={isSubmitting} />}
+                </form.AppField>
+              </div>
+
+              <form.AppField name="supplierConfig" validators={{ onDynamic: smsFormSchema.shape.supplierConfig }}>
+                {field => (
+                  <field.TextareaInput
+                    label="厂商独立扩展配置"
+                    description="针对特定供应商（如腾讯云 sdkAppId）的专有扩展参数"
+                    rows={2}
+                    maxLength={500}
+                    placeholder="请输入厂商的（JSON 格式）扩展配置"
+                    disabled={isSubmitting}
+                  />
+                )}
+              </form.AppField>
+
+              <form.AppField name="status">
+                {field => (
+                  <field.SwitchInput
+                    label="状态"
+                    description="禁用后该通道将不再参与短信发送"
+                    disabled={isSubmitting}
+                  />
+                )}
+              </form.AppField>
+            </FieldGroup>
+          </form.FormShell>
+        </form.AppForm>
       )}
     </EntityDrawer>
   )

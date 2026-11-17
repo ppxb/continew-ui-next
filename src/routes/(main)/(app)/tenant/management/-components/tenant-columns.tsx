@@ -4,7 +4,7 @@ import { Eye, KeyRound, Pen, Trash2 } from 'lucide-react'
 import { CopyableText } from '@/components/copyable-text'
 import { RowActionsMenu } from '@/components/row-actions-menu'
 import { StatusCell } from '@/components/status-cell'
-import { TextCell } from '@/components/text-cell'
+import { dateTimeColumn, indexColumn, textColumn } from '@/components/table/columns'
 import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import type { TenantResp } from '@/lib/api/tenant'
 import type { DataTableFeatures } from '@/lib/data-table-features'
@@ -22,24 +22,6 @@ interface TenantColumnOptions {
   readonly canUpdateAdminPassword: boolean
   readonly canDelete: boolean
   readonly onAction: (action: TenantAction, tenant: TenantResp) => void
-}
-
-type TextColumnKey =
-  | 'name'
-  | 'packageName'
-  | 'adminUsername'
-  | 'description'
-  | 'createUserString'
-  | 'createTime'
-  | 'updateUserString'
-  | 'updateTime'
-
-function textColumn(key: TextColumnKey, header: string): ColumnDef<DataTableFeatures, TenantResp> {
-  return {
-    accessorKey: key,
-    header,
-    cell: ({ row }) => <TextCell value={row.original[key]} />
-  }
 }
 
 type RowActionsProps = Omit<TenantColumnOptions, 'rowOffset'> & { readonly tenant: TenantResp }
@@ -103,15 +85,11 @@ export function createTenantColumns({
   onAction
 }: TenantColumnOptions) {
   const columns: ColumnDef<DataTableFeatures, TenantResp>[] = [
-    {
-      id: 'index',
-      header: '序号',
-      enableHiding: false,
-      cell: ({ row }) => <div>{rowOffset + row.index + 1}</div>
-    },
+    indexColumn(rowOffset),
     {
       accessorKey: 'code',
       header: '编码',
+      meta: { valueType: 'text' },
       cell: ({ row }) => <CopyableText value={row.original.code} />
     },
     textColumn('name', '名称'),
@@ -119,24 +97,27 @@ export function createTenantColumns({
     {
       accessorKey: 'domain',
       header: '域名',
+      meta: { valueType: 'text' },
       cell: ({ row }) => <DomainCell domain={row.original.domain} />
     },
     {
       accessorKey: 'expireTime',
       header: '过期时间',
+      meta: { valueType: 'dateTime' },
       cell: ({ row }) => <ExpireTimeCell value={row.original.expireTime} />
     },
     textColumn('adminUsername', '管理员用户'),
     {
       accessorKey: 'status',
       header: () => <div>状态</div>,
+      meta: { valueType: 'status' },
       cell: ({ row }) => <StatusCell status={row.original.status} />
     },
     textColumn('description', '描述'),
     textColumn('createUserString', '创建人'),
-    textColumn('createTime', '创建时间'),
+    dateTimeColumn('createTime', '创建时间'),
     textColumn('updateUserString', '修改人'),
-    textColumn('updateTime', '修改时间')
+    dateTimeColumn('updateTime', '修改时间')
   ]
 
   if (canGet || canUpdate || canUpdateAdminPassword || canDelete) {
@@ -144,6 +125,7 @@ export function createTenantColumns({
       id: 'actions',
       header: () => <div className="text-center">操作</div>,
       enableHiding: false,
+      meta: { valueType: 'option' },
       cell: ({ row }) => (
         <RowActions
           tenant={row.original}

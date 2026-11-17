@@ -28,7 +28,9 @@ interface TableToolbarProps<TRow extends RowData> {
   readonly onResetColumns: () => void
   readonly className?: string
   /** Labels for columns whose header renders a node, which the hide menu cannot read. */
-  readonly columnLabels?: Record<string, string>
+  readonly columnLabels?: Record<string, ReactNode>
+  /** Omitted flags preserve the controls shown by existing table screens. */
+  readonly options?: false | { reload?: boolean; setting?: boolean; fullScreen?: boolean }
 }
 
 /** Shared refresh, column visibility and fullscreen controls for list tables. */
@@ -41,20 +43,23 @@ export function TableToolbar<TRow extends RowData>({
   onToggleFullscreen,
   onResetColumns,
   className,
-  columnLabels
+  columnLabels,
+  options
 }: TableToolbarProps<TRow>) {
-  const hideableColumns = table.getAllColumns().filter(column => column.getCanHide())
+  const hideableColumns = table.getAllColumns().filter(column => column.getCanHide() && !column.columnDef.meta?.hideInSetting)
 
   return (
     <div className={cn('flex flex-wrap items-center gap-2', className)}>
       {actions}
 
-      <Button variant="outline" size="icon" disabled={isRefreshing} onClick={onRefresh}>
-        {isRefreshing ? <Spinner /> : <RefreshCw />}
-      </Button>
+      {options !== false && options?.reload !== false ? (
+        <Button variant="outline" size="icon" disabled={isRefreshing} onClick={onRefresh} aria-label="刷新">
+          {isRefreshing ? <Spinner /> : <RefreshCw />}
+        </Button>
+      ) : null}
 
-      <DropdownMenu>
-        <DropdownMenuTrigger render={<Button variant="outline" size="icon" />}>
+      {options !== false && options?.setting !== false ? <DropdownMenu>
+        <DropdownMenuTrigger render={<Button variant="outline" size="icon" aria-label="显示的列" />}>
           <SlidersHorizontal />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="min-w-44">
@@ -84,11 +89,13 @@ export function TableToolbar<TRow extends RowData>({
             重置
           </DropdownMenuItem>
         </DropdownMenuContent>
-      </DropdownMenu>
+      </DropdownMenu> : null}
 
-      <Button variant="outline" onClick={onToggleFullscreen} size="icon">
-        {isFullscreen ? <Minimize /> : <Maximize />}
-      </Button>
+      {options !== false && options?.fullScreen !== false ? (
+        <Button variant="outline" onClick={onToggleFullscreen} size="icon" aria-label={isFullscreen ? '退出全屏' : '全屏'}>
+          {isFullscreen ? <Minimize /> : <Maximize />}
+        </Button>
+      ) : null}
     </div>
   )
 }

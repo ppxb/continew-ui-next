@@ -3,21 +3,22 @@ import type { ComponentProps } from 'react'
 import { Textarea } from '@/components/ui/textarea'
 
 import { useFieldControl } from './form-context'
-import { FormItem, type FormItemLabelProps } from './form-item'
+import { FormItem, splitFormItemProps, type FormItemLabelProps } from './form-item'
 
 type NativeTextareaProps = Omit<
   ComponentProps<'textarea'>,
-  'id' | 'name' | 'value' | 'defaultValue' | 'onChange' | 'onBlur' | 'required'
+  'id' | 'name' | 'value' | 'defaultValue' | 'onChange' | 'onBlur' | 'required' | 'className'
 >
 
 interface TextareaInputProps extends FormItemLabelProps, NativeTextareaProps {}
 
 /** A multi-line text input bound to a `string` field. */
-export function TextareaInput({ label, description, required, ...textareaProps }: TextareaInputProps) {
+export function TextareaInput(props: TextareaInputProps) {
+  const [itemProps, textareaProps] = splitFormItemProps(props)
   const { field, id, value, errors, invalid } = useFieldControl<string>()
 
   return (
-    <FormItem id={id} label={label} description={description} required={required} errors={errors}>
+    <FormItem {...itemProps} id={id} errors={errors}>
       <Textarea
         {...textareaProps}
         id={id}

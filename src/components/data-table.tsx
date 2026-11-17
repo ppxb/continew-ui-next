@@ -3,7 +3,7 @@ import type { ReactTable, RowData } from '@tanstack/react-table'
 import { cn } from 'cn'
 
 import { QueryState } from '@/components/query-state'
-import { TablePagination } from '@/components/table-pagination'
+import { TablePagination, type TablePaginationOptions } from '@/components/table-pagination'
 import { TableSkeletonRows } from '@/components/table-skeleton-rows'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import type { DataTableFeatures } from '@/lib/data-table-features'
@@ -24,6 +24,7 @@ interface DataTableProps<TRow extends RowData> {
   readonly stickyHeader?: boolean
   /** Tree tables render every row, so they opt out of the footer. */
   readonly showPagination?: boolean
+  readonly pagination?: TablePaginationOptions
   /** Layout classes for the wrapper, used by the tree screens for their scroll height. */
   readonly containerClassName?: string
   /** Fill the remaining height and scroll the rows inside the table instead of the page. */
@@ -46,6 +47,7 @@ export function DataTable<TRow extends RowData>({
   className,
   stickyHeader = false,
   showPagination = true,
+  pagination,
   containerClassName,
   fillHeight = false
 }: DataTableProps<TRow>) {
@@ -135,7 +137,7 @@ export function DataTable<TRow extends RowData>({
         </TableBody>
       </Table>
 
-      {showPagination ? <TablePagination table={table} showTopBorder={!fillHeight} /> : null}
+      {showPagination ? <TablePagination table={table} showTopBorder={!fillHeight} {...pagination} /> : null}
     </div>
   )
 }

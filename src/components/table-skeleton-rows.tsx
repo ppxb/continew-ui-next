@@ -2,6 +2,7 @@ import type { ReactTable, RowData } from '@tanstack/react-table'
 
 import { cn } from 'cn'
 
+import { VALUE_TYPE_SKELETON } from '@/components/table/columns'
 import { Skeleton } from '@/components/ui/skeleton'
 import { TableCell, TableRow } from '@/components/ui/table'
 import type { DataTableFeatures } from '@/lib/data-table-features'
@@ -15,6 +16,9 @@ interface TableSkeletonRowsProps<TRow extends RowData> {
    * One width class per column, in order, so a screen can imitate its own cell shapes: a narrow
    * centered serial number, a wide name, a status pill, a small centered action. Columns past the
    * end of the list reuse the last entry, which stands in for the rest of the row.
+   *
+   * Without it, each column's width comes from the `valueType` it was built with, so hiding a column
+   * cannot shift the placeholders onto the wrong cells.
    */
   readonly widths?: readonly string[]
   readonly rowCount?: number
@@ -23,19 +27,25 @@ interface TableSkeletonRowsProps<TRow extends RowData> {
 /** The placeholder rows a table shows while its first page is loading. */
 export function TableSkeletonRows<TRow extends RowData>({
   table,
-  widths = [],
+  widths,
   rowCount = DEFAULT_ROW_COUNT
 }: TableSkeletonRowsProps<TRow>) {
-  const columnCount = table.getVisibleLeafColumns().length
-  const fallbackWidth = widths[widths.length - 1] ?? DEFAULT_WIDTH
+  const columns = table.getVisibleLeafColumns()
+  const widthAt = (index: number) => {
+    if (widths) {
+      return widths[index] ?? widths[widths.length - 1] ?? DEFAULT_WIDTH
+    }
+    const valueType = columns[index]?.columnDef.meta?.valueType
+    return valueType ? VALUE_TYPE_SKELETON[valueType] : DEFAULT_WIDTH
+  }
 
   return (
     <>
       {Array.from({ length: rowCount }).map((_, rowIndex) => (
         <TableRow key={rowIndex} className="hover:bg-transparent">
-          {Array.from({ length: columnCount }).map((_, colIndex) => (
-            <TableCell key={colIndex} className="py-3.5 align-middle">
-              <Skeleton className={cn('h-4', widths[colIndex] ?? fallbackWidth)} />
+          {columns.map((column, colIndex) => (
+            <TableCell key={column.id} className="py-3.5 align-middle">
+              <Skeleton className={cn('h-4', widthAt(colIndex))} />
             </TableCell>
           ))}
         </TableRow>

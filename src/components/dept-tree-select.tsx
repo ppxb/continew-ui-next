@@ -8,6 +8,8 @@ import { toDeptNodeData } from '@/lib/dept-tree'
 const EMPTY_NODES: DeptResp[] = []
 
 export interface DeptTreeSelectProps {
+  /** The trigger button's id, so a form label can focus it. */
+  readonly id?: string
   readonly value?: string | number | null
   readonly onChange: (nextValue: string) => void
   readonly disabled?: boolean
@@ -38,6 +40,7 @@ export interface DeptTreeSelectProps {
  * `data` so the picker never issues a second request.
  */
 export function DeptTreeSelect({
+  id,
   value,
   onChange,
   disabled = false,
@@ -74,6 +77,7 @@ export function DeptTreeSelect({
 
   return (
     <TreeSelect
+      id={id}
       data={treeData}
       value={selectedValue}
       onChange={handleChange}

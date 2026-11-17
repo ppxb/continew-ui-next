@@ -31,17 +31,6 @@ import { createRecentDateRange, toDateTimeRangeQuery } from '@/lib/date-range'
 import { JobLogActionDialog, type JobLogActionTarget } from './job-log-action-dialog'
 import { createJobLogColumns, type JobLogAction } from './job-log-columns'
 
-const SKELETON_WIDTHS: Record<string, string> = {
-  index: 'mx-auto w-6',
-  groupName: 'w-28',
-  jobName: 'w-32',
-  createDt: 'w-32',
-  taskBatchStatus: 'mx-auto w-16 rounded-full',
-  operationReason: 'w-28',
-  executionAt: 'w-32',
-  actions: 'mx-auto w-8'
-}
-
 interface JobLogListProps {
   /** A job carried over from the job page's 查看日志 action. */
   readonly initialJobId?: number
@@ -209,7 +198,6 @@ export function JobLogList({ initialJobId, initialJobName, initialGroupName }: J
             isShowingPreviousRows={query.isPlaceholderData}
             onRetry={() => void query.refetch()}
             fillHeight
-            skeletonWidths={table.getVisibleLeafColumns().map(column => SKELETON_WIDTHS[column.id] ?? 'w-24')}
           />
         </TableFillArea>
       </ListPageCard>

@@ -3,8 +3,7 @@ import { Eye, KeyRound, Pen, ShieldCheck, Trash2 } from 'lucide-react'
 
 import { FlagBadge, TagList } from '@/components/data-badge'
 import { RowActionsMenu } from '@/components/row-actions-menu'
-import { StatusCell } from '@/components/status-cell'
-import { TextCell } from '@/components/text-cell'
+import { dateTimeColumn, indexColumn, optionColumn, statusColumn, textColumn } from '@/components/table/columns'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import type { UserResp } from '@/lib/api/user'
@@ -15,24 +14,6 @@ import { getInitials } from '@/lib/utils'
 import { genderLabel } from './user-display'
 
 export type UserAction = 'detail' | 'edit' | 'resetPassword' | 'assignRoles' | 'delete'
-
-type TextColumnKey =
-  | 'deptName'
-  | 'phone'
-  | 'email'
-  | 'description'
-  | 'createUserString'
-  | 'createTime'
-  | 'updateUserString'
-  | 'updateTime'
-
-function textColumn(key: TextColumnKey, header: string): ColumnDef<DataTableFeatures, UserResp> {
-  return {
-    accessorKey: key,
-    header,
-    cell: ({ row }) => <TextCell value={row.original[key]} />
-  }
-}
 
 function NicknameCell({ user }: { user: UserResp }) {
   const name = user.nickname || user.username
@@ -115,36 +96,26 @@ export function createUserColumns(
   permissions: readonly string[]
 ) {
   const columns: ColumnDef<DataTableFeatures, UserResp>[] = [
-    {
-      id: 'index',
-      header: '序号',
-      enableHiding: false,
-      cell: ({ row }) => <div className="tabular-nums">{rowOffset + row.index + 1}</div>
-    },
+    indexColumn(rowOffset),
     {
       accessorKey: 'nickname',
       header: '昵称',
+      meta: { valueType: 'text' },
       cell: ({ row }) => <NicknameCell user={row.original} />
     },
-    {
-      accessorKey: 'username',
-      header: '用户名',
-      cell: ({ row }) => row.original.username
-    },
-    {
-      accessorKey: 'status',
-      header: '状态',
-      cell: ({ row }) => <StatusCell status={row.original.status} />
-    },
+    textColumn('username', '用户名'),
+    statusColumn('status'),
     {
       accessorKey: 'gender',
       header: '性别',
+      meta: { valueType: 'text' },
       cell: ({ row }) => genderLabel(row.original.gender)
     },
     textColumn('deptName', '所属部门'),
     {
       accessorKey: 'roleNames',
       header: '角色',
+      meta: { valueType: 'status' },
       cell: ({ row }) => <TagList items={row.original.roleNames} max={1} />
     },
     textColumn('phone', '手机号'),
@@ -152,19 +123,15 @@ export function createUserColumns(
     {
       accessorKey: 'isSystem',
       header: '系统内置',
+      meta: { valueType: 'status' },
       cell: ({ row }) => <FlagBadge active={row.original.isSystem} activeLabel="内置" inactiveLabel="自定义" />
     },
     textColumn('description', '描述'),
     textColumn('createUserString', '创建人'),
-    textColumn('createTime', '创建时间'),
+    dateTimeColumn('createTime', '创建时间'),
     textColumn('updateUserString', '修改人'),
-    textColumn('updateTime', '修改时间'),
-    {
-      id: 'actions',
-      header: '操作',
-      enableHiding: false,
-      cell: ({ row }) => <RowActions user={row.original} onAction={onAction} permissions={permissions} />
-    }
+    dateTimeColumn('updateTime', '修改时间'),
+    optionColumn(user => <RowActions user={user} onAction={onAction} permissions={permissions} />)
   ]
 
   return columns

@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import { revalidateLogic, useForm, useSelector } from '@tanstack/react-form'
+import { revalidateLogic, useSelector } from '@tanstack/react-form'
 import { useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { Megaphone, UserPlus } from 'lucide-react'
@@ -8,18 +8,16 @@ import { Megaphone, UserPlus } from 'lucide-react'
 import { z } from 'zod'
 
 import { EntityDrawer } from '@/components/entity-drawer'
+import { useAppForm } from '@/components/form'
 import { QueryState } from '@/components/query-state'
-import { RequiredMark } from '@/components/required-mark'
 import { RichTextEditor } from '@/components/rich-text-editor'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { DrawerFooter } from '@/components/ui/drawer'
-import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
+import { FieldGroup } from '@/components/ui/field'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
-import { Switch } from '@/components/ui/switch'
 import { toast } from '@/components/ui/toast'
 import { useFillFormOnce } from '@/hooks/use-fill-form-once'
 import {
@@ -53,7 +51,8 @@ const formSchema = z
     title: z.string().trim().min(1, '请输入标题').max(150, '标题长度不能超过 150 个字符'),
     type: z.string().min(1, '请选择分类'),
     content: z.string().refine(hasRichText, '请输入内容'),
-    noticeScope: z.union([z.literal(1), z.literal(2)]),
+    // Kept as a string because the dict options carry string values; the request body turns it back.
+    noticeScope: z.enum(['1', '2']),
     noticeUsers: z.array(z.string()),
     noticeMethods: z.array(z.number()).nullable(),
     isTiming: z.boolean(),
@@ -61,7 +60,7 @@ const formSchema = z
     isTop: z.boolean()
   })
   .superRefine((value, ctx) => {
-    if (value.noticeScope === 2 && value.noticeUsers.length === 0) {
+    if (value.noticeScope === '2' && value.noticeUsers.length === 0) {
       ctx.addIssue({ code: 'custom', path: ['noticeUsers'], message: '请选择通知用户' })
     }
 
@@ -80,7 +79,7 @@ const EMPTY_FORM: NoticeFormValues = {
   title: '',
   type: '',
   content: '',
-  noticeScope: 1,
+  noticeScope: '1',
   noticeUsers: [],
   noticeMethods: [1],
   isTiming: false,
@@ -93,7 +92,7 @@ function toFormValues(detail: NoticeDetailResp): NoticeFormValues {
     title: detail.title,
     type: detail.type,
     content: detail.content,
-    noticeScope: detail.noticeScope,
+    noticeScope: String(detail.noticeScope) as NoticeFormValues['noticeScope'],
     noticeUsers: (detail.noticeUsers ?? []).map(String),
     noticeMethods: detail.noticeMethods,
     isTiming: detail.isTiming,
@@ -135,7 +134,7 @@ export function NoticeFormDrawer({ noticeId, open, onClose }: NoticeFormDrawerPr
     toast.add({ title: message, type: 'success' })
   }
 
-  const form = useForm({
+  const form = useAppForm({
     defaultValues: EMPTY_FORM,
     validationLogic: revalidateLogic(),
     validators: { onDynamic: formSchema },
@@ -144,8 +143,8 @@ export function NoticeFormDrawer({ noticeId, open, onClose }: NoticeFormDrawerPr
         title: value.title.trim(),
         content: value.content,
         type: value.type,
-        noticeScope: value.noticeScope,
-        noticeUsers: value.noticeScope === 2 ? value.noticeUsers : null,
+        noticeScope: Number(value.noticeScope) as NoticeScope,
+        noticeUsers: value.noticeScope === '2' ? value.noticeUsers : null,
         noticeMethods: value.noticeMethods,
         isTiming: value.isTiming,
         publishTime: value.isTiming ? value.publishTime : null,
@@ -192,7 +191,7 @@ export function NoticeFormDrawer({ noticeId, open, onClose }: NoticeFormDrawerPr
 
   // The first user page covers most picks; ids beyond it are resolved one by one.
   const userNames = new Map(users.map(user => [String(user.id), user.nickname || user.username]))
-  const unknownUserIds = noticeScope === 2 ? Array.from(new Set(noticeUserIds.filter(id => !userNames.has(id)))) : []
+  const unknownUserIds = noticeScope === '2' ? Array.from(new Set(noticeUserIds.filter(id => !userNames.has(id)))) : []
 
   const unknownUserQueries = useQueries({
     queries: unknownUserIds.map(id => ({
@@ -231,111 +230,44 @@ export function NoticeFormDrawer({ noticeId, open, onClose }: NoticeFormDrawerPr
         >
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
             <FieldGroup className="grid gap-4 sm:grid-cols-2">
-              <form.Field name="title">
-                {field => {
-                  const invalid = field.state.meta.errors.length > 0
+              <form.AppField name="title">
+                {field => (
+                  <field.TextInput
+                    label="标题"
+                    required
+                    maxLength={150}
+                    placeholder="请输入公告标题"
+                    className="sm:col-span-2"
+                  />
+                )}
+              </form.AppField>
 
-                  return (
-                    <Field className="gap-1.5 sm:col-span-2" data-invalid={invalid}>
-                      <FieldLabel>
-                        标题
-                        <RequiredMark />
-                      </FieldLabel>
-                      <Input
-                        name="title"
-                        value={field.state.value}
-                        maxLength={150}
-                        placeholder="请输入公告标题"
-                        aria-invalid={invalid}
-                        onChange={event => field.handleChange(event.target.value)}
-                        onBlur={field.handleBlur}
-                      />
-                      <FieldError errors={field.state.meta.errors} />
-                    </Field>
-                  )
-                }}
-              </form.Field>
+              <form.AppField name="type">
+                {field => <field.SelectInput label="分类" required options={typeOptions} placeholder="请选择分类" />}
+              </form.AppField>
 
-              <form.Field name="type">
-                {field => {
-                  const invalid = field.state.meta.errors.length > 0
+              <form.AppField name="noticeScope">
+                {field => (
+                  <field.SelectInput
+                    label="通知范围"
+                    required
+                    options={scopeOptions}
+                    placeholder="请选择通知范围"
+                    disabled={isPublished}
+                  />
+                )}
+              </form.AppField>
 
-                  return (
-                    <Field className="gap-1.5" data-invalid={invalid}>
-                      <FieldLabel>
-                        分类
-                        <RequiredMark />
-                      </FieldLabel>
-                      <Select
-                        items={typeOptions}
-                        value={field.state.value}
-                        onValueChange={value => field.handleChange(value ?? '')}
-                      >
-                        <SelectTrigger className="w-full" aria-invalid={invalid}>
-                          <SelectValue placeholder="请选择分类" />
-                        </SelectTrigger>
-                        <SelectContent alignItemWithTrigger={false}>
-                          <SelectGroup>
-                            {typeOptions.map(option => (
-                              <SelectItem key={option.value} value={option.value}>
-                                {option.label}
-                              </SelectItem>
-                            ))}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                      <FieldError errors={field.state.meta.errors} />
-                    </Field>
-                  )
-                }}
-              </form.Field>
-
-              <form.Field name="noticeScope">
-                {field => {
-                  const invalid = field.state.meta.errors.length > 0
-
-                  return (
-                    <Field className="gap-1.5" data-invalid={invalid}>
-                      <FieldLabel>
-                        通知范围
-                        <RequiredMark />
-                      </FieldLabel>
-                      <Select
-                        items={scopeOptions}
-                        value={String(field.state.value)}
-                        disabled={isPublished}
-                        onValueChange={value => field.handleChange(Number(value) as NoticeScope)}
-                      >
-                        <SelectTrigger className="w-full" aria-invalid={invalid} disabled={isPublished}>
-                          <SelectValue placeholder="请选择通知范围" />
-                        </SelectTrigger>
-                        <SelectContent alignItemWithTrigger={false}>
-                          <SelectGroup>
-                            {scopeOptions.map(option => (
-                              <SelectItem key={option.value} value={option.value}>
-                                {option.label}
-                              </SelectItem>
-                            ))}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                      <FieldError errors={field.state.meta.errors} />
-                    </Field>
-                  )
-                }}
-              </form.Field>
-
-              {noticeScope === 2 && (
-                <form.Field name="noticeUsers">
-                  {field => {
-                    const invalid = field.state.meta.errors.length > 0
-
-                    return (
-                      <Field className="gap-1.5 sm:col-span-2" data-invalid={invalid}>
-                        <FieldLabel>
-                          指定用户
-                          <RequiredMark />
-                        </FieldLabel>
+              {noticeScope === '2' && (
+                <form.AppField name="noticeUsers">
+                  {field => (
+                    <field.CustomField
+                      label="指定用户"
+                      required
+                      description={isPublished ? '公告已发布，通知用户不可修改' : '只有选中的用户能收到该公告'}
+                      className="sm:col-span-2"
+                    >
+                      {() => (
                         <div className="flex flex-col gap-2 rounded-lg border p-3">
                           {field.state.value.length > 0 ? (
                             <div className="flex flex-wrap gap-1">
@@ -360,17 +292,13 @@ export function NoticeFormDrawer({ noticeId, open, onClose }: NoticeFormDrawerPr
                             选择用户
                           </Button>
                         </div>
-                        <FieldDescription>
-                          {isPublished ? '公告已发布，通知用户不可修改' : '只有选中的用户能收到该公告'}
-                        </FieldDescription>
-                        <FieldError errors={field.state.meta.errors} />
-                      </Field>
-                    )
-                  }}
-                </form.Field>
+                      )}
+                    </field.CustomField>
+                  )}
+                </form.AppField>
               )}
 
-              <form.Field name="noticeMethods">
+              <form.AppField name="noticeMethods">
                 {field => {
                   const selectedMethods = (field.state.value ?? []).map(String)
                   const methodLabels = methodOptions
@@ -379,110 +307,95 @@ export function NoticeFormDrawer({ noticeId, open, onClose }: NoticeFormDrawerPr
                     .join('、')
 
                   return (
-                    <Field className="gap-1.5 sm:col-span-2">
-                      <FieldLabel>通知方式</FieldLabel>
-                      <Select
-                        multiple
-                        items={methodOptions}
-                        value={selectedMethods}
-                        disabled={isPublished}
-                        onValueChange={values => field.handleChange(values.map(Number))}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="请选择通知方式">
-                            {() => methodLabels || '请选择通知方式'}
-                          </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent alignItemWithTrigger={false}>
-                          <SelectGroup>
-                            {methodOptions.map(option => (
-                              <SelectItem key={option.value} value={option.value}>
-                                {option.label}
-                              </SelectItem>
-                            ))}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                      <FieldDescription>可多选；不选则只保存公告，不推送消息</FieldDescription>
-                    </Field>
+                    <field.CustomField
+                      label="通知方式"
+                      description="可多选；不选则只保存公告，不推送消息"
+                      className="sm:col-span-2"
+                    >
+                      {({ id }) => (
+                        <Select
+                          multiple
+                          items={methodOptions}
+                          value={selectedMethods}
+                          disabled={isPublished}
+                          onValueChange={values => field.handleChange(values.map(Number))}
+                        >
+                          <SelectTrigger id={id} className="w-full">
+                            <SelectValue placeholder="请选择通知方式">
+                              {() => methodLabels || '请选择通知方式'}
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent alignItemWithTrigger={false}>
+                            <SelectGroup>
+                              {methodOptions.map(option => (
+                                <SelectItem key={option.value} value={option.value}>
+                                  {option.label}
+                                </SelectItem>
+                              ))}
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </field.CustomField>
                   )
                 }}
-              </form.Field>
+              </form.AppField>
 
-              <form.Field name="isTiming">
+              <form.AppField name="isTiming">
                 {field => (
-                  <Field className="sm:col-span-2" orientation="horizontal">
-                    <FieldContent>
-                      <FieldLabel>定时发布</FieldLabel>
-                      <FieldDescription>
-                        {field.state.value ? '到达发布时间后自动发布' : '保存或发布时立即生效'}
-                      </FieldDescription>
-                    </FieldContent>
-                    <Switch
-                      checked={field.state.value}
-                      disabled={isPublished}
-                      onCheckedChange={checked => field.handleChange(checked)}
-                    />
-                  </Field>
+                  <field.SwitchInput
+                    label="定时发布"
+                    description={field.state.value ? '到达发布时间后自动发布' : '保存或发布时立即生效'}
+                    checkedValue={true}
+                    uncheckedValue={false}
+                    disabled={isPublished}
+                    className="sm:col-span-2"
+                  />
                 )}
-              </form.Field>
+              </form.AppField>
 
               {isTiming && (
-                <form.Field name="publishTime">
-                  {field => {
-                    const invalid = field.state.meta.errors.length > 0
-
-                    return (
-                      <Field className="gap-1.5 sm:col-span-2" data-invalid={invalid}>
-                        <FieldLabel>
-                          发布时间
-                          <RequiredMark />
-                        </FieldLabel>
+                <form.AppField name="publishTime">
+                  {field => (
+                    <field.CustomField label="发布时间" required className="sm:col-span-2">
+                      {({ invalid }) => (
                         <NoticePublishTimePicker
                           value={field.state.value}
                           disabled={isPublished}
                           invalid={invalid}
                           onChange={value => field.handleChange(value)}
                         />
-                        <FieldError errors={field.state.meta.errors} />
-                      </Field>
-                    )
-                  }}
-                </form.Field>
+                      )}
+                    </field.CustomField>
+                  )}
+                </form.AppField>
               )}
 
-              <form.Field name="isTop">
+              <form.AppField name="isTop">
                 {field => (
-                  <Field className="sm:col-span-2" orientation="horizontal">
-                    <FieldContent>
-                      <FieldLabel>置顶</FieldLabel>
-                      <FieldDescription>置顶公告在列表和通知中优先展示</FieldDescription>
-                    </FieldContent>
-                    <Switch checked={field.state.value} onCheckedChange={checked => field.handleChange(checked)} />
-                  </Field>
+                  <field.SwitchInput
+                    label="置顶"
+                    description="置顶公告在列表和通知中优先展示"
+                    checkedValue={true}
+                    uncheckedValue={false}
+                    className="sm:col-span-2"
+                  />
                 )}
-              </form.Field>
+              </form.AppField>
 
-              <form.Field name="content">
-                {field => {
-                  const invalid = field.state.meta.errors.length > 0
-
-                  return (
-                    <Field className="gap-1.5 sm:col-span-2" data-invalid={invalid}>
-                      <FieldLabel>
-                        内容
-                        <RequiredMark />
-                      </FieldLabel>
+              <form.AppField name="content">
+                {field => (
+                  <field.CustomField label="内容" required className="sm:col-span-2">
+                    {({ invalid }) => (
                       <RichTextEditor
                         value={field.state.value}
                         invalid={invalid}
                         onChange={html => field.handleChange(html)}
                       />
-                      <FieldError errors={field.state.meta.errors} />
-                    </Field>
-                  )
-                }}
-              </form.Field>
+                    )}
+                  </field.CustomField>
+                )}
+              </form.AppField>
             </FieldGroup>
           </div>
 

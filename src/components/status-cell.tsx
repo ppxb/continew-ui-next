@@ -1,42 +1,11 @@
 import type { ReactNode } from 'react'
 
-import { cn } from 'cn'
 import { Star } from 'lucide-react'
 
+import { ToneBadge } from '@/components/tone-badge'
 import { Badge } from '@/components/ui/badge'
 
 export type StatusTone = 'success' | 'warning' | 'caution' | 'danger' | 'info' | 'neutral' | 'primary'
-
-const TONE_CLASSES: Record<StatusTone, { badge: string; dot: string }> = {
-  success: {
-    badge: 'border-status-success/20 bg-status-success/10 text-status-success-foreground',
-    dot: 'bg-status-success'
-  },
-  warning: {
-    badge: 'border-status-warning/20 bg-status-warning/10 text-status-warning-foreground',
-    dot: 'bg-status-warning'
-  },
-  caution: {
-    badge: 'border-status-caution/20 bg-status-caution/10 text-status-caution-foreground',
-    dot: 'bg-status-caution'
-  },
-  danger: {
-    badge: 'border-destructive/20 bg-destructive/10 text-destructive',
-    dot: 'bg-destructive'
-  },
-  info: {
-    badge: 'border-status-info/20 bg-status-info/10 text-status-info-foreground',
-    dot: 'bg-status-info'
-  },
-  neutral: {
-    badge: 'border-border bg-muted/50 text-muted-foreground',
-    dot: 'bg-muted-foreground'
-  },
-  primary: {
-    badge: 'border-primary/20 bg-primary/10 text-primary',
-    dot: 'bg-primary'
-  }
-}
 
 interface StatusBadgeProps {
   readonly tone: StatusTone
@@ -44,15 +13,9 @@ interface StatusBadgeProps {
   readonly className?: string
 }
 
+/** A status-kind `ToneBadge` with its leading dot. */
 export function StatusBadge({ tone, label, className }: StatusBadgeProps) {
-  const classes = TONE_CLASSES[tone]
-
-  return (
-    <Badge variant="outline" className={cn('gap-1.5 border px-2 py-1 font-medium', classes.badge, className)}>
-      <span className={cn('size-1.5 rounded-full', classes.dot)} />
-      {label}
-    </Badge>
-  )
+  return <ToneBadge tone={tone} label={label} kind="status" className={className} />
 }
 
 export function StatusCell({ status }: { status?: number | null }) {

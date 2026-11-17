@@ -1,24 +1,18 @@
 import * as React from 'react'
 
-import { revalidateLogic, useForm, useSelector } from '@tanstack/react-form'
+import { revalidateLogic, useSelector } from '@tanstack/react-form'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { z } from 'zod'
 
 import { ChevronRight, Cloud, HardDrive } from 'lucide-react'
 
 import { EntityDrawer } from '@/components/entity-drawer'
-import { PasswordInput } from '@/components/password-input'
+import { useAppForm } from '@/components/form'
+import { FormSkeleton } from '@/components/form-skeleton'
 import { QueryState } from '@/components/query-state'
-import { RequiredMark } from '@/components/required-mark'
 import { Button } from '@/components/ui/button'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
-import { DrawerFooter } from '@/components/ui/drawer'
-import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Spinner } from '@/components/ui/spinner'
-import { Switch } from '@/components/ui/switch'
-import { Textarea } from '@/components/ui/textarea'
+import { FieldGroup } from '@/components/ui/field'
 import { toast } from '@/components/ui/toast'
 import { useFillFormOnce } from '@/hooks/use-fill-form-once'
 import {
@@ -47,8 +41,6 @@ const OSS_MIN_PART_SIZE_MB = 5
 /** The local engine has no such floor, so anything above zero is usable. */
 const LOCAL_MIN_PART_SIZE_MB = 1
 
-const MB_SUFFIX_CLASS = 'pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-muted-foreground'
-
 /**
  * A create has to carry a secret, but an edit leaves the field empty to mean "keep the stored one".
  * The object schema cannot express that, so the rule only sits on the field for a create.
@@ -65,18 +57,25 @@ const formSchema = z
     endpoint: z.string().trim().max(255, 'Endpoint 长度不能超过 255 个字符'),
     bucketName: z.string().trim().max(255, 'Bucket/存储路径长度不能超过 255 个字符'),
     domain: z.string().trim().max(255, '域名/访问路径长度不能超过 255 个字符'),
+    // A cleared input stores `null`, which means "use the default configuration".
     multipartUploadThreshold: z
       .number({ message: '请输入有效的分片阈值' })
-      .optional()
-      .refine(value => value === undefined || value > 0, '分片阈值必须大于 0'),
+      .nullable()
+      .refine(value => value === null || value > 0, '分片阈值必须大于 0'),
     multipartUploadPartSize: z
       .number({ message: '请输入有效的分片大小' })
-      .optional()
-      .refine(value => value === undefined || value > 0, '分片大小必须大于 0'),
+      .nullable()
+      .refine(value => value === null || value > 0, '分片大小必须大于 0'),
     multipartTempDir: z.string().trim().max(255, '本地分片临时目录长度不能超过 255 个字符'),
     recycleBinEnabled: z.boolean(),
     recycleBinPath: z.string().trim().max(255, '回收站路径长度不能超过 255 个字符'),
-    sort: z.number().int({ message: '排序必须为整数' }).min(1, '排序必须大于 0'),
+    // A cleared input stores `null`, so the form can report it instead of snapping back to 1.
+    sort: z
+      .number({ error: '请输入排序' })
+      .int({ message: '排序必须为整数' })
+      .min(1, '排序必须大于 0')
+      .nullable()
+      .refine(value => value !== null, '请输入排序'),
     description: z.string().trim().max(200, '描述长度不能超过 200 个字符'),
     status: z.number().int().min(1).max(2)
   })
@@ -116,7 +115,7 @@ const formSchema = z
     }
 
     const partSize = values.multipartUploadPartSize
-    if (partSize !== undefined) {
+    if (partSize !== null) {
       const minPartSize = isOss ? OSS_MIN_PART_SIZE_MB : LOCAL_MIN_PART_SIZE_MB
       if (partSize < minPartSize) {
         ctx.addIssue({
@@ -128,7 +127,7 @@ const formSchema = z
     }
 
     const threshold = values.multipartUploadThreshold
-    if (threshold !== undefined && partSize !== undefined && threshold < partSize) {
+    if (threshold !== null && partSize !== null && threshold < partSize) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['multipartUploadThreshold'],
@@ -137,7 +136,8 @@ const formSchema = z
     }
   })
 
-type FormValues = z.infer<typeof formSchema>
+// The input type: `sort` holds `null` while cleared, and the schema's output narrows it to a number.
+type FormValues = z.input<typeof formSchema>
 
 function createDefaults(type: StorageType): FormValues {
   return {
@@ -149,8 +149,8 @@ function createDefaults(type: StorageType): FormValues {
     endpoint: '',
     bucketName: '',
     domain: '',
-    multipartUploadThreshold: undefined,
-    multipartUploadPartSize: undefined,
+    multipartUploadThreshold: null,
+    multipartUploadPartSize: null,
     multipartTempDir: '',
     recycleBinEnabled: true,
     recycleBinPath: '.RECYCLE.BIN/',
@@ -171,8 +171,8 @@ function toFormValues(storage: StorageResp): FormValues {
     endpoint: storage.endpoint ?? '',
     bucketName: storage.bucketName ?? '',
     domain: storage.domain ?? '',
-    multipartUploadThreshold: bytesToMegabytes(storage.multipartUploadThreshold),
-    multipartUploadPartSize: bytesToMegabytes(storage.multipartUploadPartSize),
+    multipartUploadThreshold: bytesToMegabytes(storage.multipartUploadThreshold) ?? null,
+    multipartUploadPartSize: bytesToMegabytes(storage.multipartUploadPartSize) ?? null,
     multipartTempDir: storage.multipartTempDir ?? '',
     recycleBinEnabled: storage.recycleBinEnabled ?? true,
     recycleBinPath: storage.recycleBinPath ?? '',
@@ -199,42 +199,11 @@ function toStorageReq(values: FormValues): StorageReq {
     multipartTempDir: !isOss && values.multipartTempDir ? values.multipartTempDir : null,
     recycleBinEnabled: values.recycleBinEnabled,
     recycleBinPath: values.recycleBinEnabled ? values.recycleBinPath : null,
-    sort: values.sort,
+    // The schema rejects `null`, so a submitted form always carries a number.
+    sort: values.sort as number,
     description: values.description || undefined,
     status: values.status as StorageStatus
   }
-}
-
-function StorageFormSkeleton({ onClose }: { onClose: () => void }) {
-  return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
-        <div className="flex flex-col gap-4">
-          {Array.from({ length: 7 }).map((_, index) => (
-            <div key={index} className="flex flex-col gap-1.5">
-              <Skeleton className="h-4 w-16" />
-              <Skeleton className="h-9 w-full" />
-            </div>
-          ))}
-          <div className="flex flex-col gap-1.5">
-            <Skeleton className="h-4 w-10" />
-            <Skeleton className="h-5 w-10 rounded-full" />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Skeleton className="h-4 w-10" />
-            <Skeleton className="h-20 w-full" />
-          </div>
-        </div>
-      </div>
-
-      <DrawerFooter>
-        <Button type="button" variant="outline" onClick={onClose}>
-          取消
-        </Button>
-        <Button disabled>保存</Button>
-      </DrawerFooter>
-    </div>
-  )
 }
 
 interface StorageFormDrawerProps {
@@ -261,7 +230,6 @@ interface StorageFormDrawerProps {
 export function StorageFormDrawer({ storageId, storageType, open, onClose }: StorageFormDrawerProps) {
   const queryClient = useQueryClient()
   const isEdit = storageId !== null
-  const formRef = React.useRef<HTMLFormElement>(null)
   const [advancedOpen, setAdvancedOpen] = React.useState(false)
 
   const detail = useQuery({
@@ -270,7 +238,7 @@ export function StorageFormDrawer({ storageId, storageType, open, onClose }: Sto
     enabled: open && isEdit
   })
 
-  const form = useForm({
+  const form = useAppForm({
     defaultValues: createDefaults(storageType),
     validationLogic: revalidateLogic(),
     validators: { onDynamic: formSchema },
@@ -336,21 +304,6 @@ export function StorageFormDrawer({ storageId, storageType, open, onClose }: Sto
     }
   })
 
-  /**
-   * Validates the whole object before submitting: `handleSubmit` returns as soon as the field
-   * validators report an invalid form, so the type-specific rules above would otherwise stay hidden
-   * until the other errors were fixed.
-   */
-  const submit = async () => {
-    await form.validate('submit')
-    await form.handleSubmit()
-
-    // TanStack Form does not move focus to the first invalid control, so the drawer does it here.
-    requestAnimationFrame(() => {
-      formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus()
-    })
-  }
-
   const typeLabel = storageTypeLabel(activeType)
 
   return (
@@ -364,398 +317,191 @@ export function StorageFormDrawer({ storageId, storageType, open, onClose }: Sto
       canClose={() => !isSubmitting}
     >
       {!isEdit || detail.data ? (
-        <form
-          ref={formRef}
-          noValidate
-          className="flex min-h-0 flex-1 flex-col"
-          onSubmit={event => {
-            event.preventDefault()
-            void submit()
-          }}
-        >
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
+        <form.AppForm>
+          <form.FormShell footer={<form.FormFooter onCancel={onClose} />}>
             <FieldGroup className="gap-4">
-              <form.Field name="name" validators={{ onDynamic: formSchema.shape.name }}>
-                {field => {
-                  const invalid = field.state.meta.errors.length > 0
+              <form.AppField name="name" validators={{ onDynamic: formSchema.shape.name }}>
+                {field => (
+                  <field.TextInput
+                    label="名称"
+                    required
+                    maxLength={100}
+                    placeholder="例如：本地文件存储"
+                    disabled={isSubmitting}
+                  />
+                )}
+              </form.AppField>
 
-                  return (
-                    <Field className="gap-1.5" data-invalid={invalid}>
-                      <FieldLabel>
-                        名称
-                        <RequiredMark />
-                      </FieldLabel>
-                      <Input
-                        name="name"
-                        value={field.state.value}
-                        onChange={event => field.handleChange(event.target.value)}
-                        onBlur={field.handleBlur}
-                        maxLength={100}
-                        placeholder="例如：本地文件存储"
-                        disabled={isSubmitting}
-                        aria-invalid={invalid}
-                      />
-                      <FieldError errors={field.state.meta.errors} />
-                    </Field>
-                  )
-                }}
-              </form.Field>
-
-              <form.Field name="code" validators={{ onDynamic: formSchema.shape.code }}>
-                {field => {
-                  const invalid = field.state.meta.errors.length > 0
-
-                  return (
-                    <Field className="gap-1.5" data-invalid={invalid}>
-                      <FieldLabel>
-                        编码
-                        <RequiredMark />
-                      </FieldLabel>
-                      <Input
-                        name="code"
-                        value={field.state.value}
-                        onChange={event => field.handleChange(event.target.value)}
-                        onBlur={field.handleBlur}
-                        maxLength={30}
-                        placeholder="请输入存储编码"
-                        disabled={isEdit || isSubmitting}
-                        aria-invalid={invalid}
-                      />
-                      {invalid ? (
-                        <FieldError errors={field.state.meta.errors} />
-                      ) : isEdit ? (
-                        <FieldDescription>编码创建后不可修改</FieldDescription>
-                      ) : null}
-                    </Field>
-                  )
-                }}
-              </form.Field>
+              <form.AppField name="code" validators={{ onDynamic: formSchema.shape.code }}>
+                {field => (
+                  <field.TextInput
+                    label="编码"
+                    required
+                    // The hint gives way to the error, so the two never stack.
+                    description={isEdit && field.state.meta.errors.length === 0 ? '编码创建后不可修改' : undefined}
+                    maxLength={30}
+                    placeholder="请输入存储编码"
+                    disabled={isEdit || isSubmitting}
+                  />
+                )}
+              </form.AppField>
 
               {isOss ? (
                 <>
-                  <form.Field name="accessKey" validators={{ onDynamic: formSchema.shape.accessKey }}>
-                    {field => {
-                      const invalid = field.state.meta.errors.length > 0
+                  <form.AppField name="accessKey" validators={{ onDynamic: formSchema.shape.accessKey }}>
+                    {field => (
+                      <field.TextInput
+                        label="Access Key"
+                        required
+                        maxLength={255}
+                        placeholder="请输入 Access Key"
+                        autoComplete="off"
+                        disabled={isSubmitting}
+                      />
+                    )}
+                  </form.AppField>
 
-                      return (
-                        <Field className="gap-1.5" data-invalid={invalid}>
-                          <FieldLabel>
-                            Access Key
-                            <RequiredMark />
-                          </FieldLabel>
-                          <Input
-                            name="accessKey"
-                            value={field.state.value}
-                            onChange={event => field.handleChange(event.target.value)}
-                            onBlur={field.handleBlur}
-                            maxLength={255}
-                            placeholder="请输入 Access Key"
-                            autoComplete="off"
-                            disabled={isSubmitting}
-                            aria-invalid={invalid}
-                          />
-                          <FieldError errors={field.state.meta.errors} />
-                        </Field>
-                      )
-                    }}
-                  </form.Field>
-
-                  <form.Field
+                  <form.AppField
                     name="secretKey"
                     validators={!isEdit && isOss ? { onDynamic: createSecretKeyRule } : undefined}
                   >
-                    {field => {
-                      const invalid = field.state.meta.errors.length > 0
+                    {field => (
+                      <field.PasswordInput
+                        label="Secret Key"
+                        required={!isEdit}
+                        description="提交前使用 RSA 公钥加密，服务端解密后保存"
+                        hideDescriptionOnError
+                        maxLength={255}
+                        placeholder={isEdit ? '保持 Secret Key 为空将不更改' : '请输入 Secret Key'}
+                        autoComplete="new-password"
+                        disabled={isSubmitting}
+                      />
+                    )}
+                  </form.AppField>
 
-                      return (
-                        <Field className="gap-1.5" data-invalid={invalid}>
-                          <FieldLabel>
-                            Secret Key
-                            {!isEdit && <RequiredMark />}
-                          </FieldLabel>
-                          <PasswordInput
-                            name="secretKey"
-                            value={field.state.value}
-                            onChange={event => field.handleChange(event.target.value)}
-                            onBlur={field.handleBlur}
-                            maxLength={255}
-                            placeholder={isEdit ? '保持 Secret Key 为空将不更改' : '请输入 Secret Key'}
-                            autoComplete="new-password"
-                            disabled={isSubmitting}
-                            aria-invalid={invalid}
-                          />
-                          {invalid ? (
-                            <FieldError errors={field.state.meta.errors} />
-                          ) : (
-                            <FieldDescription>提交前使用 RSA 公钥加密，服务端解密后保存</FieldDescription>
-                          )}
-                        </Field>
-                      )
-                    }}
-                  </form.Field>
+                  <form.AppField name="endpoint" validators={{ onDynamic: formSchema.shape.endpoint }}>
+                    {field => (
+                      <field.TextInput
+                        label="Endpoint"
+                        required
+                        maxLength={255}
+                        placeholder="请输入 Endpoint"
+                        disabled={isSubmitting}
+                      />
+                    )}
+                  </form.AppField>
 
-                  <form.Field name="endpoint" validators={{ onDynamic: formSchema.shape.endpoint }}>
-                    {field => {
-                      const invalid = field.state.meta.errors.length > 0
+                  <form.AppField name="bucketName" validators={{ onDynamic: formSchema.shape.bucketName }}>
+                    {field => (
+                      <field.TextInput
+                        label="Bucket"
+                        required
+                        maxLength={255}
+                        placeholder="请输入 Bucket"
+                        disabled={isSubmitting}
+                      />
+                    )}
+                  </form.AppField>
 
-                      return (
-                        <Field className="gap-1.5" data-invalid={invalid}>
-                          <FieldLabel>
-                            Endpoint
-                            <RequiredMark />
-                          </FieldLabel>
-                          <Input
-                            name="endpoint"
-                            value={field.state.value}
-                            onChange={event => field.handleChange(event.target.value)}
-                            onBlur={field.handleBlur}
-                            maxLength={255}
-                            placeholder="请输入 Endpoint"
-                            disabled={isSubmitting}
-                            aria-invalid={invalid}
-                          />
-                          <FieldError errors={field.state.meta.errors} />
-                        </Field>
-                      )
-                    }}
-                  </form.Field>
-
-                  <form.Field name="bucketName" validators={{ onDynamic: formSchema.shape.bucketName }}>
-                    {field => {
-                      const invalid = field.state.meta.errors.length > 0
-
-                      return (
-                        <Field className="gap-1.5" data-invalid={invalid}>
-                          <FieldLabel>
-                            Bucket
-                            <RequiredMark />
-                          </FieldLabel>
-                          <Input
-                            name="bucketName"
-                            value={field.state.value}
-                            onChange={event => field.handleChange(event.target.value)}
-                            onBlur={field.handleBlur}
-                            maxLength={255}
-                            placeholder="请输入 Bucket"
-                            disabled={isSubmitting}
-                            aria-invalid={invalid}
-                          />
-                          <FieldError errors={field.state.meta.errors} />
-                        </Field>
-                      )
-                    }}
-                  </form.Field>
-
-                  <form.Field name="domain" validators={{ onDynamic: formSchema.shape.domain }}>
-                    {field => {
-                      const invalid = field.state.meta.errors.length > 0
-
-                      return (
-                        <Field className="gap-1.5" data-invalid={invalid}>
-                          <FieldLabel>域名</FieldLabel>
-                          <Input
-                            name="domain"
-                            value={field.state.value}
-                            onChange={event => field.handleChange(event.target.value)}
-                            onBlur={field.handleBlur}
-                            maxLength={255}
-                            placeholder="请输入域名"
-                            disabled={isSubmitting}
-                            aria-invalid={invalid}
-                          />
-                          {invalid ? (
-                            <FieldError errors={field.state.meta.errors} />
-                          ) : (
-                            <FieldDescription>为空时由 Endpoint 与 Bucket 推导访问前缀</FieldDescription>
-                          )}
-                        </Field>
-                      )
-                    }}
-                  </form.Field>
+                  <form.AppField name="domain" validators={{ onDynamic: formSchema.shape.domain }}>
+                    {field => (
+                      <field.TextInput
+                        label="域名"
+                        description={
+                          field.state.meta.errors.length === 0 ? '为空时由 Endpoint 与 Bucket 推导访问前缀' : undefined
+                        }
+                        maxLength={255}
+                        placeholder="请输入域名"
+                        disabled={isSubmitting}
+                      />
+                    )}
+                  </form.AppField>
                 </>
               ) : (
                 <>
-                  <form.Field name="bucketName" validators={{ onDynamic: formSchema.shape.bucketName }}>
-                    {field => {
-                      const invalid = field.state.meta.errors.length > 0
+                  <form.AppField name="bucketName" validators={{ onDynamic: formSchema.shape.bucketName }}>
+                    {field => (
+                      <field.TextInput
+                        label="存储路径"
+                        required
+                        maxLength={255}
+                        placeholder="请输入存储路径"
+                        disabled={isSubmitting}
+                      />
+                    )}
+                  </form.AppField>
 
-                      return (
-                        <Field className="gap-1.5" data-invalid={invalid}>
-                          <FieldLabel>
-                            存储路径
-                            <RequiredMark />
-                          </FieldLabel>
-                          <Input
-                            name="bucketName"
-                            value={field.state.value}
-                            onChange={event => field.handleChange(event.target.value)}
-                            onBlur={field.handleBlur}
-                            maxLength={255}
-                            placeholder="请输入存储路径"
-                            disabled={isSubmitting}
-                            aria-invalid={invalid}
-                          />
-                          <FieldError errors={field.state.meta.errors} />
-                        </Field>
-                      )
-                    }}
-                  </form.Field>
-
-                  <form.Field name="domain" validators={{ onDynamic: formSchema.shape.domain }}>
-                    {field => {
-                      const invalid = field.state.meta.errors.length > 0
-
-                      return (
-                        <Field className="gap-1.5" data-invalid={invalid}>
-                          <FieldLabel>
-                            访问路径
-                            <RequiredMark />
-                          </FieldLabel>
-                          <Input
-                            name="domain"
-                            value={field.state.value}
-                            onChange={event => field.handleChange(event.target.value)}
-                            onBlur={field.handleBlur}
-                            maxLength={255}
-                            placeholder="请输入访问路径"
-                            disabled={isSubmitting}
-                            aria-invalid={invalid}
-                          />
-                          <FieldError errors={field.state.meta.errors} />
-                        </Field>
-                      )
-                    }}
-                  </form.Field>
+                  <form.AppField name="domain" validators={{ onDynamic: formSchema.shape.domain }}>
+                    {field => (
+                      <field.TextInput
+                        label="访问路径"
+                        required
+                        maxLength={255}
+                        placeholder="请输入访问路径"
+                        disabled={isSubmitting}
+                      />
+                    )}
+                  </form.AppField>
                 </>
               )}
 
-              <form.Field name="recycleBinEnabled">
+              <form.AppField name="recycleBinEnabled">
                 {field => (
-                  <Field
-                    orientation="horizontal"
-                    className="items-center justify-between py-1"
-                    data-invalid={field.state.meta.errors.length > 0}
-                  >
-                    <FieldContent>
-                      <FieldLabel>启用回收站</FieldLabel>
-                      <FieldDescription>
-                        {isEdit ? '回收站配置创建后不可修改' : '删除文件时移动至回收站目录，而不是直接移除'}
-                      </FieldDescription>
-                    </FieldContent>
-                    <Switch
-                      checked={field.state.value}
-                      onCheckedChange={field.handleChange}
-                      disabled={isEdit || isSubmitting}
-                      aria-invalid={field.state.meta.errors.length > 0}
-                    />
-                  </Field>
+                  <field.SwitchInput
+                    label="启用回收站"
+                    description={isEdit ? '回收站配置创建后不可修改' : '删除文件时移动至回收站目录，而不是直接移除'}
+                    checkedValue={true}
+                    uncheckedValue={false}
+                    disabled={isEdit || isSubmitting}
+                  />
                 )}
-              </form.Field>
+              </form.AppField>
 
               {recycleBinEnabled ? (
-                <form.Field name="recycleBinPath" validators={{ onDynamic: formSchema.shape.recycleBinPath }}>
-                  {field => {
-                    const invalid = field.state.meta.errors.length > 0
-
-                    return (
-                      <Field className="gap-1.5" data-invalid={invalid}>
-                        <FieldLabel>
-                          回收站路径
-                          <RequiredMark />
-                        </FieldLabel>
-                        <Input
-                          name="recycleBinPath"
-                          value={field.state.value}
-                          onChange={event => field.handleChange(event.target.value)}
-                          onBlur={field.handleBlur}
-                          maxLength={255}
-                          placeholder="请输入回收站路径"
-                          disabled={isEdit || isSubmitting}
-                          aria-invalid={invalid}
-                        />
-                        <FieldError errors={field.state.meta.errors} />
-                      </Field>
-                    )
-                  }}
-                </form.Field>
+                <form.AppField name="recycleBinPath" validators={{ onDynamic: formSchema.shape.recycleBinPath }}>
+                  {field => (
+                    <field.TextInput
+                      label="回收站路径"
+                      required
+                      maxLength={255}
+                      placeholder="请输入回收站路径"
+                      disabled={isEdit || isSubmitting}
+                    />
+                  )}
+                </form.AppField>
               ) : null}
 
-              <form.Field name="sort" validators={{ onDynamic: formSchema.shape.sort }}>
-                {field => {
-                  const invalid = field.state.meta.errors.length > 0
+              <form.AppField name="sort" validators={{ onDynamic: formSchema.shape.sort }}>
+                {field => <field.NumberInput label="排序" min={1} step="1" disabled={isSubmitting} />}
+              </form.AppField>
 
-                  return (
-                    <Field className="gap-1.5" data-invalid={invalid}>
-                      <FieldLabel>排序</FieldLabel>
-                      <Input
-                        name="sort"
-                        type="number"
-                        min={1}
-                        step="1"
-                        value={field.state.value ?? 1}
-                        onChange={event =>
-                          field.handleChange(Number.isNaN(event.target.valueAsNumber) ? 1 : event.target.valueAsNumber)
-                        }
-                        onBlur={field.handleBlur}
-                        disabled={isSubmitting}
-                        aria-invalid={invalid}
-                      />
-                      <FieldError errors={field.state.meta.errors} />
-                    </Field>
-                  )
-                }}
-              </form.Field>
-
-              <form.Field name="description" validators={{ onDynamic: formSchema.shape.description }}>
-                {field => {
-                  const invalid = field.state.meta.errors.length > 0
-
-                  return (
-                    <Field className="gap-1.5" data-invalid={invalid}>
-                      <FieldLabel>描述</FieldLabel>
-                      <Textarea
-                        name="description"
-                        value={field.state.value}
-                        onChange={event => field.handleChange(event.target.value)}
-                        onBlur={field.handleBlur}
-                        rows={3}
-                        maxLength={200}
-                        placeholder="选填"
-                        disabled={isSubmitting}
-                        aria-invalid={invalid}
-                      />
-                      <FieldError errors={field.state.meta.errors} />
-                    </Field>
-                  )
-                }}
-              </form.Field>
-
-              <form.Field name="status">
+              <form.AppField name="description" validators={{ onDynamic: formSchema.shape.description }}>
                 {field => (
-                  <Field
-                    orientation="horizontal"
-                    className="items-center justify-between py-1"
-                    data-invalid={field.state.meta.errors.length > 0}
-                  >
-                    <FieldContent>
-                      <FieldLabel>状态</FieldLabel>
-                      <FieldDescription>
-                        {isDefaultStorage
-                          ? '默认存储不允许禁用'
-                          : field.state.value === 1
-                            ? '启用后该存储可以接收上传的文件'
-                            : '禁用后该存储不再接收上传的文件'}
-                      </FieldDescription>
-                    </FieldContent>
-                    <Switch
-                      checked={field.state.value === 1}
-                      onCheckedChange={checked => field.handleChange(checked ? 1 : 2)}
-                      disabled={isDefaultStorage || isSubmitting}
-                      aria-invalid={field.state.meta.errors.length > 0}
-                    />
-                  </Field>
+                  <field.TextareaInput
+                    label="描述"
+                    rows={3}
+                    maxLength={200}
+                    placeholder="选填"
+                    disabled={isSubmitting}
+                  />
                 )}
-              </form.Field>
+              </form.AppField>
+
+              <form.AppField name="status">
+                {field => (
+                  <field.SwitchInput
+                    label="状态"
+                    description={
+                      isDefaultStorage
+                        ? '默认存储不允许禁用'
+                        : field.state.value === 1
+                          ? '启用后该存储可以接收上传的文件'
+                          : '禁用后该存储不再接收上传的文件'
+                    }
+                    disabled={isDefaultStorage || isSubmitting}
+                  />
+                )}
+              </form.AppField>
 
               <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
                 <CollapsibleTrigger render={<Button variant="ghost" className="group justify-start gap-1" />}>
@@ -765,138 +511,94 @@ export function StorageFormDrawer({ storageId, storageType, open, onClose }: Sto
 
                 <CollapsibleContent>
                   <FieldGroup className="gap-4 pt-2">
-                    <form.Field
+                    <form.AppField
                       name="multipartUploadThreshold"
                       validators={{ onDynamic: formSchema.shape.multipartUploadThreshold }}
                     >
-                      {field => {
-                        const invalid = field.state.meta.errors.length > 0
+                      {field => (
+                        <field.NumberInput
+                          label="分片阈值"
+                          description={
+                            field.state.meta.errors.length === 0 ? '上传文件超过该大小后走分片上传' : undefined
+                          }
+                          addonEnd="MB"
+                          min={0.01}
+                          step="0.01"
+                          placeholder="为空则使用默认配置"
+                          disabled={isSubmitting}
+                        />
+                      )}
+                    </form.AppField>
 
-                        return (
-                          <Field className="gap-1.5" data-invalid={invalid}>
-                            <FieldLabel>分片阈值</FieldLabel>
-                            <div className="relative">
-                              <Input
-                                name="multipartUploadThreshold"
-                                type="number"
-                                min={0.01}
-                                step="0.01"
-                                value={field.state.value ?? ''}
-                                onChange={event =>
-                                  field.handleChange(event.target.value === '' ? undefined : event.target.valueAsNumber)
-                                }
-                                onBlur={field.handleBlur}
-                                placeholder="为空则使用默认配置"
-                                className="pr-12"
-                                disabled={isSubmitting}
-                                aria-invalid={invalid}
-                              />
-                              <span className={MB_SUFFIX_CLASS}>MB</span>
-                            </div>
-                            {invalid ? (
-                              <FieldError errors={field.state.meta.errors} />
-                            ) : (
-                              <FieldDescription>上传文件超过该大小后走分片上传</FieldDescription>
-                            )}
-                          </Field>
-                        )
-                      }}
-                    </form.Field>
-
-                    <form.Field
+                    <form.AppField
                       name="multipartUploadPartSize"
                       validators={{ onDynamic: formSchema.shape.multipartUploadPartSize }}
                     >
-                      {field => {
-                        const invalid = field.state.meta.errors.length > 0
-
-                        return (
-                          <Field className="gap-1.5" data-invalid={invalid}>
-                            <FieldLabel>分片大小</FieldLabel>
-                            <div className="relative">
-                              <Input
-                                name="multipartUploadPartSize"
-                                type="number"
-                                min={0.01}
-                                step="0.01"
-                                value={field.state.value ?? ''}
-                                onChange={event =>
-                                  field.handleChange(event.target.value === '' ? undefined : event.target.valueAsNumber)
-                                }
-                                onBlur={field.handleBlur}
-                                placeholder="为空则使用默认配置"
-                                className="pr-12"
-                                disabled={isSubmitting}
-                                aria-invalid={invalid}
-                              />
-                              <span className={MB_SUFFIX_CLASS}>MB</span>
-                            </div>
-                            {invalid ? (
-                              <FieldError errors={field.state.meta.errors} />
-                            ) : (
-                              <FieldDescription>
-                                对象存储不能小于 {OSS_MIN_PART_SIZE_MB} MB，本地存储不能小于 {LOCAL_MIN_PART_SIZE_MB} MB
-                              </FieldDescription>
-                            )}
-                          </Field>
-                        )
-                      }}
-                    </form.Field>
+                      {field => (
+                        <field.NumberInput
+                          label="分片大小"
+                          description={
+                            field.state.meta.errors.length === 0
+                              ? `对象存储不能小于 ${OSS_MIN_PART_SIZE_MB} MB，本地存储不能小于 ${LOCAL_MIN_PART_SIZE_MB} MB`
+                              : undefined
+                          }
+                          addonEnd="MB"
+                          min={0.01}
+                          step="0.01"
+                          placeholder="为空则使用默认配置"
+                          disabled={isSubmitting}
+                        />
+                      )}
+                    </form.AppField>
 
                     {!isOss ? (
-                      <form.Field name="multipartTempDir" validators={{ onDynamic: formSchema.shape.multipartTempDir }}>
-                        {field => {
-                          const invalid = field.state.meta.errors.length > 0
-
-                          return (
-                            <Field className="gap-1.5" data-invalid={invalid}>
-                              <FieldLabel>分片临时目录</FieldLabel>
-                              <Input
-                                name="multipartTempDir"
-                                value={field.state.value}
-                                onChange={event => field.handleChange(event.target.value)}
-                                onBlur={field.handleBlur}
-                                maxLength={255}
-                                placeholder="为空则使用默认配置"
-                                disabled={isSubmitting}
-                                aria-invalid={invalid}
-                              />
-                              {invalid ? (
-                                <FieldError errors={field.state.meta.errors} />
-                              ) : (
-                                <FieldDescription>仅本地存储使用，合并分片时的临时目录</FieldDescription>
-                              )}
-                            </Field>
-                          )
-                        }}
-                      </form.Field>
+                      <form.AppField
+                        name="multipartTempDir"
+                        validators={{ onDynamic: formSchema.shape.multipartTempDir }}
+                      >
+                        {field => (
+                          <field.TextInput
+                            label="分片临时目录"
+                            description={
+                              field.state.meta.errors.length === 0 ? '仅本地存储使用，合并分片时的临时目录' : undefined
+                            }
+                            maxLength={255}
+                            placeholder="为空则使用默认配置"
+                            disabled={isSubmitting}
+                          />
+                        )}
+                      </form.AppField>
                     ) : null}
                   </FieldGroup>
                 </CollapsibleContent>
               </Collapsible>
             </FieldGroup>
-          </div>
-
-          <DrawerFooter>
-            <Button type="button" variant="outline" disabled={isSubmitting} onClick={onClose}>
-              取消
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <Spinner />
-                  保存中
-                </>
-              ) : (
-                '保存'
-              )}
-            </Button>
-          </DrawerFooter>
-        </form>
+          </form.FormShell>
+        </form.AppForm>
       ) : detail.isError ? (
         <QueryState state="error" className="p-6" onRetry={() => void detail.refetch()} />
       ) : (
-        <StorageFormSkeleton onClose={onClose} />
+        <FormSkeleton
+          fields={
+            isOss
+              ? [
+                  'input',
+                  'input',
+                  'input',
+                  'input',
+                  'input',
+                  'input',
+                  'input',
+                  'switch',
+                  'input',
+                  'input',
+                  'textarea',
+                  'switch'
+                ]
+              : ['input', 'input', 'input', 'input', 'switch', 'input', 'input', 'textarea', 'switch']
+          }
+          onCancel={onClose}
+        />
       )}
     </EntityDrawer>
   )

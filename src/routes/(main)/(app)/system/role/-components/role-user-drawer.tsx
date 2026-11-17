@@ -7,9 +7,9 @@ import { Plus, Trash2, Users } from 'lucide-react'
 
 import { EntityDrawer } from '@/components/entity-drawer'
 import { QueryState } from '@/components/query-state'
-import { StatusCell } from '@/components/status-cell'
 import { TablePagination } from '@/components/table-pagination'
 import { TableSearch } from '@/components/table-search'
+import { statusColumn, textColumn } from '@/components/table/columns'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -19,7 +19,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { toast } from '@/components/ui/toast'
 import { useLastRecord } from '@/hooks/use-last-record'
 import { listRoleUsers, roleKeys, type RoleResp, type RoleUserResp, unassignRoleFromUsers } from '@/lib/api/role'
-import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 import { dataTableFeatures, type DataTableFeatures } from '@/lib/data-table-features'
 
 import { RoleUserAddDrawer } from './role-user-add-drawer'
@@ -47,6 +46,7 @@ function createMemberColumns({
   return [
     {
       id: 'select',
+      meta: { valueType: 'option' },
       header: ({ table }) => {
         const isAll = table.getIsAllPageRowsSelected()
         const isSome = table.getIsSomePageRowsSelected()
@@ -73,31 +73,17 @@ function createMemberColumns({
       id: 'index',
       header: '序号',
       enableSorting: false,
+      meta: { valueType: 'index' },
       cell: ({ row }) => <span className="tabular-nums">{rowOffset + row.index + 1}</span>
     },
-    {
-      accessorKey: 'nickname',
-      header: '昵称',
-      cell: ({ row }) => <span>{row.original.nickname || EMPTY_PLACEHOLDER}</span>
-    },
-    {
-      accessorKey: 'username',
-      header: '用户名',
-      cell: ({ row }) => <span>{row.original.username || EMPTY_PLACEHOLDER}</span>
-    },
-    {
-      accessorKey: 'deptName',
-      header: '所属部门',
-      cell: ({ row }) => <span>{row.original.deptName || EMPTY_PLACEHOLDER}</span>
-    },
-    {
-      accessorKey: 'status',
-      header: '状态',
-      cell: ({ row }) => <StatusCell status={row.original.status} />
-    },
+    textColumn('nickname', '昵称'),
+    textColumn('username', '用户名'),
+    textColumn('deptName', '所属部门'),
+    statusColumn('status'),
     {
       id: 'actions',
       header: () => <div className="text-center">操作</div>,
+      meta: { valueType: 'option' },
       cell: ({ row }) => (
         <div className="flex items-center justify-center">
           <Button variant="destructive" disabled={isUnassigning} onClick={() => onUnassign(row.original)}>

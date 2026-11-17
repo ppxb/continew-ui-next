@@ -1,4 +1,4 @@
-import { revalidateLogic, useForm } from '@tanstack/react-form'
+import { revalidateLogic } from '@tanstack/react-form'
 import { useQueryClient } from '@tanstack/react-query'
 
 import { ListChecks } from 'lucide-react'
@@ -8,15 +8,8 @@ import { z } from 'zod'
 import { cn } from 'cn'
 
 import { EntityDrawer } from '@/components/entity-drawer'
-import { RequiredMark } from '@/components/required-mark'
-import { Button } from '@/components/ui/button'
-import { DrawerFooter } from '@/components/ui/drawer'
-import { Field, FieldContent, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Spinner } from '@/components/ui/spinner'
-import { Switch } from '@/components/ui/switch'
-import { Textarea } from '@/components/ui/textarea'
+import { useAppForm } from '@/components/form'
+import { FieldGroup } from '@/components/ui/field'
 import { toast } from '@/components/ui/toast'
 import { useFillFormOnce } from '@/hooks/use-fill-form-once'
 import { createDictItem, dictKeys, updateDictItem, type DictItemReq, type DictItemResp } from '@/lib/api/dict'
@@ -27,21 +20,25 @@ const formSchema = z.object({
   label: z.string().trim().min(1, '请输入标签').max(30, '标签长度不能超过 30 个字符'),
   value: z.string().trim().min(1, '请输入值').max(30, '值长度不能超过 30 个字符'),
   color: z.string(),
+  // `null` is a cleared input; the refine reports it instead of snapping the value back.
   sort: z
-    .string()
-    .trim()
-    .regex(/^[1-9]\d*$/, '排序必须是不小于 1 的整数'),
+    .number()
+    .int('排序必须是不小于 1 的整数')
+    .min(1, '排序必须是不小于 1 的整数')
+    .nullable()
+    .refine(value => value !== null, '请输入排序'),
   description: z.string().trim().max(200, '描述长度不能超过 200 个字符'),
   status: z.union([z.literal(1), z.literal(2)])
 })
 
-type DictItemFormValues = z.infer<typeof formSchema>
+// `z.input` keeps `sort` as `number | null`; the refine only narrows the output.
+type DictItemFormValues = z.input<typeof formSchema>
 
 const EMPTY_FORM: DictItemFormValues = {
   label: '',
   value: '',
   color: 'none',
-  sort: '999',
+  sort: 999,
   description: '',
   status: 1
 }
@@ -60,7 +57,7 @@ export function DictItemFormDrawer({ item, dictId, open, onClose }: DictItemForm
   const isEdit = item !== null
   const submitLabel = isEdit ? '保存' : '创建'
 
-  const form = useForm({
+  const form = useAppForm({
     defaultValues: EMPTY_FORM,
     validators: { onDynamic: formSchema },
     validationLogic: revalidateLogic(),
@@ -68,7 +65,9 @@ export function DictItemFormDrawer({ item, dictId, open, onClose }: DictItemForm
       const body: DictItemReq = {
         label: value.label.trim(),
         value: value.value.trim(),
-        color: value.color === 'none' ? undefined : value.color,
+        // An empty value means no color, like 'none'.
+        color: value.color && value.color !== 'none' ? value.color : undefined,
+        // The schema rejects `null`, so a submitted value is always a number.
         sort: Number(value.sort),
         description: value.description.trim(),
         status: value.status,
@@ -102,8 +101,8 @@ export function DictItemFormDrawer({ item, dictId, open, onClose }: DictItemForm
         ? {
             label: record.label,
             value: record.value,
-            color: record.color ?? 'none',
-            sort: String(record.sort),
+            color: record.color || 'none',
+            sort: record.sort,
             description: record.description ?? '',
             status: record.status
           }
@@ -131,186 +130,70 @@ export function DictItemFormDrawer({ item, dictId, open, onClose }: DictItemForm
       >
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
           <FieldGroup className="grid gap-4 sm:grid-cols-2">
-            <form.Field name="label">
-              {field => {
-                const invalid = field.state.meta.errors.length > 0
-
-                return (
-                  <Field className="gap-1.5" data-invalid={invalid}>
-                    <FieldLabel>
-                      标签
-                      <RequiredMark />
-                    </FieldLabel>
-                    <Input
-                      name="label"
-                      value={field.state.value}
-                      maxLength={30}
-                      autoComplete="off"
-                      placeholder="请输入标签"
-                      aria-invalid={invalid}
-                      onChange={event => field.handleChange(event.target.value)}
-                      onBlur={field.handleBlur}
-                    />
-                    <FieldError errors={field.state.meta.errors} />
-                  </Field>
-                )
-              }}
-            </form.Field>
-
-            <form.Field name="value">
-              {field => {
-                const invalid = field.state.meta.errors.length > 0
-
-                return (
-                  <Field className="gap-1.5" data-invalid={invalid}>
-                    <FieldLabel>
-                      值
-                      <RequiredMark />
-                    </FieldLabel>
-                    <Input
-                      name="value"
-                      value={field.state.value}
-                      maxLength={30}
-                      autoComplete="off"
-                      placeholder="请输入值"
-                      aria-invalid={invalid}
-                      onChange={event => field.handleChange(event.target.value)}
-                      onBlur={field.handleBlur}
-                    />
-                    <FieldError errors={field.state.meta.errors} />
-                  </Field>
-                )
-              }}
-            </form.Field>
-
-            <form.Field name="color">
+            <form.AppField name="label">
               {field => (
-                <Field className="gap-1.5">
-                  <FieldLabel>颜色</FieldLabel>
-                  <Select
-                    items={DICT_COLOR_OPTIONS}
-                    value={field.state.value}
-                    onValueChange={value => field.handleChange(value ?? 'none')}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="请选择颜色" />
-                    </SelectTrigger>
-                    <SelectContent alignItemWithTrigger={false}>
-                      <SelectGroup>
-                        {DICT_COLOR_OPTIONS.map(option => (
-                          <SelectItem key={option.value} value={option.value}>
-                            {option.value === 'none' ? (
-                              option.label
-                            ) : (
-                              <span className="flex items-center gap-2">
-                                <span className={cn('size-2 rounded-full', DICT_COLOR_DOT_CLASSES[option.value])} />
-                                {option.label}
-                              </span>
-                            )}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                  <FieldDescription>仅影响列表里标签的展示颜色</FieldDescription>
-                </Field>
+                <field.TextInput label="标签" required maxLength={30} autoComplete="off" placeholder="请输入标签" />
               )}
-            </form.Field>
+            </form.AppField>
 
-            <form.Field name="sort">
-              {field => {
-                const invalid = field.state.meta.errors.length > 0
+            <form.AppField name="value">
+              {field => (
+                <field.TextInput label="值" required maxLength={30} autoComplete="off" placeholder="请输入值" />
+              )}
+            </form.AppField>
 
-                return (
-                  <Field className="gap-1.5" data-invalid={invalid}>
-                    <FieldLabel>
-                      排序
-                      <RequiredMark />
-                    </FieldLabel>
-                    <Input
-                      name="sort"
-                      type="number"
-                      min={1}
-                      step={1}
-                      value={field.state.value}
-                      aria-invalid={invalid}
-                      onChange={event => field.handleChange(event.target.value)}
-                      onBlur={field.handleBlur}
-                    />
-                    <FieldError errors={field.state.meta.errors} />
-                  </Field>
-                )
-              }}
-            </form.Field>
+            <form.AppField name="color">
+              {field => (
+                <field.SelectInput
+                  label="颜色"
+                  description="仅影响列表里标签的展示颜色"
+                  options={DICT_COLOR_OPTIONS}
+                  placeholder="请选择颜色"
+                  renderOption={option =>
+                    option.value === 'none' ? (
+                      option.label
+                    ) : (
+                      <span className="flex items-center gap-2">
+                        <span className={cn('size-2 rounded-full', DICT_COLOR_DOT_CLASSES[option.value])} />
+                        {option.label}
+                      </span>
+                    )
+                  }
+                />
+              )}
+            </form.AppField>
 
-            <form.Field name="description">
-              {field => {
-                const invalid = field.state.meta.errors.length > 0
+            <form.AppField name="sort">
+              {field => <field.NumberInput label="排序" required min={1} step={1} />}
+            </form.AppField>
 
-                return (
-                  <Field className="gap-1.5 sm:col-span-2" data-invalid={invalid}>
-                    <FieldLabel>描述</FieldLabel>
-                    <Textarea
-                      name="description"
-                      value={field.state.value}
-                      rows={3}
-                      maxLength={200}
-                      placeholder="请输入描述"
-                      aria-invalid={invalid}
-                      onChange={event => field.handleChange(event.target.value)}
-                      onBlur={field.handleBlur}
-                    />
-                    <FieldError errors={field.state.meta.errors} />
-                  </Field>
-                )
-              }}
-            </form.Field>
+            <form.AppField name="description">
+              {field => (
+                <field.TextareaInput
+                  label="描述"
+                  className="sm:col-span-2"
+                  rows={3}
+                  maxLength={200}
+                  placeholder="请输入描述"
+                />
+              )}
+            </form.AppField>
 
-            <form.Field name="status">
-              {field => {
-                const invalid = field.state.meta.errors.length > 0
-
-                return (
-                  <Field className="gap-1.5 sm:col-span-2" orientation="horizontal" data-invalid={invalid}>
-                    <FieldContent>
-                      <FieldLabel>状态</FieldLabel>
-                      <FieldDescription>
-                        {field.state.value === 1 ? '启用后该字典项会返回给前端' : '禁用后该字典项不会返回给前端'}
-                      </FieldDescription>
-                    </FieldContent>
-                    <Switch
-                      checked={field.state.value === 1}
-                      onCheckedChange={checked => field.handleChange(checked ? 1 : 2)}
-                      aria-invalid={invalid}
-                    />
-                  </Field>
-                )
-              }}
-            </form.Field>
+            <form.AppField name="status">
+              {field => (
+                <field.SwitchInput
+                  label="状态"
+                  className="sm:col-span-2"
+                  description={field.state.value === 1 ? '启用后该字典项会返回给前端' : '禁用后该字典项不会返回给前端'}
+                />
+              )}
+            </form.AppField>
           </FieldGroup>
         </div>
 
-        <DrawerFooter>
-          <form.Subscribe selector={state => state.isSubmitting}>
-            {isSubmitting => (
-              <>
-                <Button type="button" variant="outline" disabled={isSubmitting} onClick={onClose}>
-                  取消
-                </Button>
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? (
-                    <>
-                      <Spinner />
-                      {submitLabel}中
-                    </>
-                  ) : (
-                    submitLabel
-                  )}
-                </Button>
-              </>
-            )}
-          </form.Subscribe>
-        </DrawerFooter>
+        <form.AppForm>
+          <form.FormFooter onCancel={onClose} submitText={submitLabel} submittingText={`${submitLabel}中`} />
+        </form.AppForm>
       </form>
     </EntityDrawer>
   )

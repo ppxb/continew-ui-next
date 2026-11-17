@@ -4,8 +4,7 @@ import { Eye, PenLine, Trash2 } from 'lucide-react'
 import { CopyButton } from '@/components/copy-button'
 import { FlagBadge, TagList, TypeBadge, type TypeTone } from '@/components/data-badge'
 import { RowActionsMenu } from '@/components/row-actions-menu'
-import { StatusCell } from '@/components/status-cell'
-import { TextCell } from '@/components/text-cell'
+import { dateTimeColumn, indexColumn, statusColumn, textColumn } from '@/components/table/columns'
 import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import { usePermission } from '@/hooks/use-permission'
 import type { ClientResp } from '@/lib/api/client'
@@ -120,21 +119,18 @@ export function createClientColumns(
   const { clientTypeMap, authTypeMap, replacedRangeMap, logoutModeMap, onAction } = options
 
   return [
-    {
-      id: 'index',
-      header: '序号',
-      enableHiding: false,
-      cell: ({ row }) => <div>{rowOffset + row.index + 1}</div>
-    },
+    indexColumn(rowOffset),
     {
       accessorKey: 'clientId',
       header: '客户端 ID',
       enableHiding: false,
+      meta: { valueType: 'text' },
       cell: ({ row }) => <ClientIdCell clientId={row.original.clientId} />
     },
     {
       accessorKey: 'clientType',
       header: '客户端类型',
+      meta: { valueType: 'status' },
       cell: ({ row }) => (
         <TypeBadge
           tone={CLIENT_TYPE_TONES[row.original.clientType] ?? 'neutral'}
@@ -145,18 +141,16 @@ export function createClientColumns(
     {
       accessorKey: 'authType',
       header: '认证类型',
+      meta: { valueType: 'status' },
       cell: ({ row }) => (
         <TagList items={(row.original.authType ?? []).map(authType => authTypeMap[authType] || authType)} max={1} />
       )
     },
-    {
-      accessorKey: 'status',
-      header: '状态',
-      cell: ({ row }) => <StatusCell status={row.original.status} />
-    },
+    statusColumn('status'),
     {
       accessorKey: 'activeTimeout',
       header: 'Token 最低活跃频率',
+      meta: { valueType: 'text' },
       cell: ({ row }) => {
         const val = row.original.activeTimeout
         return <span>{val === -1 ? '不限制' : `${val} 秒`}</span>
@@ -165,6 +159,7 @@ export function createClientColumns(
     {
       accessorKey: 'timeout',
       header: 'Token 有效期',
+      meta: { valueType: 'text' },
       cell: ({ row }) => {
         const val = row.original.timeout
         return <span>{val === -1 ? '永不过期' : `${val} 秒`}</span>
@@ -173,6 +168,7 @@ export function createClientColumns(
     {
       accessorKey: 'refreshTokenTimeout',
       header: 'Refresh Token 有效期',
+      meta: { valueType: 'text' },
       cell: ({ row }) => {
         const val = row.original.refreshTokenTimeout
         return <span>{val ? `${val} 秒` : EMPTY_PLACEHOLDER}</span>
@@ -181,6 +177,7 @@ export function createClientColumns(
     {
       accessorKey: 'refreshTokenMode',
       header: 'Refresh Token 传输模式',
+      meta: { valueType: 'text' },
       cell: ({ row }) => {
         const mode = row.original.refreshTokenMode
         const text = mode ? REFRESH_TOKEN_MODE_MAP[mode] || mode : EMPTY_PLACEHOLDER
@@ -190,11 +187,13 @@ export function createClientColumns(
     {
       accessorKey: 'isConcurrent',
       header: '多地登录',
+      meta: { valueType: 'status' },
       cell: ({ row }) => <FlagBadge active={row.original.isConcurrent} activeLabel="允许" inactiveLabel="互斥" />
     },
     {
       accessorKey: 'replacedRange',
       header: '下线范围',
+      meta: { valueType: 'text' },
       cell: ({ row }) => {
         const val = row.original.replacedRange
         const text = val ? replacedRangeMap[val] || val : EMPTY_PLACEHOLDER
@@ -204,6 +203,7 @@ export function createClientColumns(
     {
       accessorKey: 'maxLoginCount',
       header: '登录数量',
+      meta: { valueType: 'text' },
       cell: ({ row }) => {
         const val = row.original.maxLoginCount
         if (val === -1) return <span className="text-sm">不限制</span>
@@ -214,36 +214,22 @@ export function createClientColumns(
     {
       accessorKey: 'overflowLogoutMode',
       header: '溢出处理',
+      meta: { valueType: 'text' },
       cell: ({ row }) => {
         const val = row.original.overflowLogoutMode
         const text = val ? logoutModeMap[val] || val : EMPTY_PLACEHOLDER
         return <span className="text-sm">{text}</span>
       }
     },
-    {
-      accessorKey: 'createUserString',
-      header: '创建人',
-      cell: ({ row }) => <TextCell value={row.original.createUserString} />
-    },
-    {
-      accessorKey: 'createTime',
-      header: '创建时间',
-      cell: ({ row }) => <TextCell value={row.original.createTime} />
-    },
-    {
-      accessorKey: 'updateUserString',
-      header: '修改人',
-      cell: ({ row }) => <TextCell value={row.original.updateUserString} />
-    },
-    {
-      accessorKey: 'updateTime',
-      header: '修改时间',
-      cell: ({ row }) => <TextCell value={row.original.updateTime} />
-    },
+    textColumn('createUserString', '创建人'),
+    dateTimeColumn('createTime', '创建时间'),
+    textColumn('updateUserString', '修改人'),
+    dateTimeColumn('updateTime', '修改时间'),
     {
       id: 'actions',
       header: () => <div className="text-center">操作</div>,
       enableHiding: false,
+      meta: { valueType: 'option' },
       cell: ({ row }) => <RowActions client={row.original} onAction={onAction} />
     }
   ]

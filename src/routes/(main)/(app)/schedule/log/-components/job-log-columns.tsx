@@ -2,7 +2,7 @@ import { type ColumnDef } from '@tanstack/react-table'
 import { RotateCcw, Square } from 'lucide-react'
 
 import { RowActionsMenu } from '@/components/row-actions-menu'
-import { TextCell } from '@/components/text-cell'
+import { dateTimeColumn, textColumn } from '@/components/table/columns'
 import { DropdownMenuGroup, DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import type { JobLogResp } from '@/lib/api/job-log'
 import type { DataTableFeatures } from '@/lib/data-table-features'
@@ -63,28 +63,18 @@ export function createJobLogColumns({ rowOffset, canStop, canRetry, onAction }: 
       id: 'index',
       header: '序号',
       enableHiding: false,
+      meta: { valueType: 'index' },
       cell: ({ row }) => (
         <div className="text-center text-sm text-muted-foreground tabular-nums">{rowOffset + row.index + 1}</div>
       )
     },
-    {
-      accessorKey: 'groupName',
-      header: '任务组',
-      cell: ({ row }) => <TextCell value={row.original.groupName} />
-    },
-    {
-      accessorKey: 'jobName',
-      header: '任务名称',
-      cell: ({ row }) => <TextCell value={row.original.jobName} />
-    },
-    {
-      accessorKey: 'createDt',
-      header: '调度时间',
-      cell: ({ row }) => <TextCell value={row.original.createDt} />
-    },
+    textColumn('groupName', '任务组'),
+    textColumn('jobName', '任务名称'),
+    dateTimeColumn('createDt', '调度时间'),
     {
       accessorKey: 'taskBatchStatus',
       header: () => <div className="text-center">执行状态</div>,
+      meta: { valueType: 'status' },
       cell: ({ row }) => (
         <div className="flex justify-center">
           <JobExecuteStatusBadge status={row.original.taskBatchStatus} />
@@ -94,13 +84,10 @@ export function createJobLogColumns({ rowOffset, canStop, canRetry, onAction }: 
     {
       accessorKey: 'operationReason',
       header: '执行备注',
+      meta: { valueType: 'text' },
       cell: ({ row }) => <OperationReasonCell reason={row.original.operationReason} />
     },
-    {
-      accessorKey: 'executionAt',
-      header: '执行时间',
-      cell: ({ row }) => <TextCell value={row.original.executionAt} />
-    }
+    dateTimeColumn('executionAt', '执行时间')
   ]
 
   if (canStop || canRetry) {
@@ -108,6 +95,7 @@ export function createJobLogColumns({ rowOffset, canStop, canRetry, onAction }: 
       id: 'actions',
       header: () => <div className="text-center">操作</div>,
       enableHiding: false,
+      meta: { valueType: 'option' },
       cell: ({ row }) => <RowActions log={row.original} canStop={canStop} canRetry={canRetry} onAction={onAction} />
     })
   }
