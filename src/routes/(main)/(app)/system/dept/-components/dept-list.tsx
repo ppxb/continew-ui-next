@@ -61,8 +61,8 @@ export function DeptList() {
   const [searchInput, setSearchInput] = React.useState('')
   const keyword = searchInput.trim()
 
-  // Departments are expanded by default; `true` is TanStack Table's "expand every row".
-  const [expanded, setExpanded] = React.useState<ExpandedState>(true)
+  // Root departments are expanded by default; deeper levels start collapsed.
+  const [expanded, setExpanded] = React.useState<ExpandedState>({})
   const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>(DEFAULT_COLUMN_VISIBILITY)
 
   // One state per overlay: a null value means closed, so "which record" and "is it open" cannot drift apart.
@@ -82,6 +82,17 @@ export function DeptList() {
   const rawTree = query.data ?? EMPTY_TREE
 
   const filteredTree = React.useMemo(() => filterDeptTree(rawTree, keyword), [rawTree, keyword])
+
+  // Expand only the root departments by default once the tree arrives; deeper levels start collapsed.
+  const rootsInitializedRef = React.useRef(false)
+  React.useEffect(() => {
+    if (rootsInitializedRef.current || !rawTree.length) {
+      return
+    }
+
+    rootsInitializedRef.current = true
+    setExpanded(Object.fromEntries(rawTree.map(node => [String(node.id), true])))
+  }, [rawTree])
 
   React.useEffect(() => {
     if (keyword) {
@@ -115,7 +126,7 @@ export function DeptList() {
     // Real IDs, so expanding or filtering keeps row identity and does not remount every row.
     getRowId: row => String(row.id),
     // The tree loads asynchronously; without this the post-load auto reset collapses the default
-    // expanded-all state back to the empty default as soon as the data arrives.
+    // root-expanded state back to the empty default as soon as the data arrives.
     autoResetExpanded: false,
     state: {
       expanded,
@@ -143,7 +154,7 @@ export function DeptList() {
     onError: error => reportError(error, '导出失败，请重试')
   })
 
-  const isAllExpanded = expanded === true || (typeof expanded === 'object' && Object.keys(expanded).length > 0)
+  const isAllExpanded = table.getIsAllRowsExpanded()
   const handleToggleExpandAll = () => setExpanded(isAllExpanded ? {} : true)
 
   const filters = (
