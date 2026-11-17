@@ -1,26 +1,18 @@
 import * as React from 'react'
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { type ColumnVisibilityState, type PaginationState } from '@tanstack/react-table'
 
 import { Plus, RefreshCw } from 'lucide-react'
 
-import { DataTable } from '@/components/data-table'
-import { FilterSelect } from '@/components/filter-select'
-import { ListPageCard } from '@/components/list-page-card'
-import { TableSearch } from '@/components/table-search'
-import { TableToolbar } from '@/components/table-toolbar'
+import { ProTable, type ProFormInstance } from '@/components/pro'
 import { Button } from '@/components/ui/button'
 import { toast } from '@/components/ui/toast'
-import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
-import { useListTable } from '@/hooks/use-list-table'
 import { usePermission } from '@/hooks/use-permission'
 import { listSmsConfig, setDefaultSmsConfig, type SmsConfigResp } from '@/lib/api/sms'
-import type { PageResp } from '@/lib/api/types'
 import { reportError } from '@/lib/http'
 import { smsKeys } from '@/lib/query-keys'
 
-import { type DictOption, toLabelMap, useDictOptions } from '../use-dict-options'
+import { type DictOption, useDictOptions } from '../use-dict-options'
 import { createSmsColumns, type SmsAction } from './columns'
 import { SmsDeleteDialog } from './delete-dialog'
 import { SmsFormDrawer } from './form-drawer'
@@ -38,17 +30,15 @@ const SUPPLIER_PRESETS: DictOption[] = [
   { label: '螺丝帽', value: 'luosimao' }
 ]
 
-const HIDDEN_BY_DEFAULT: ColumnVisibilityState = {
-  updateTime: false,
-  createTime: false
+const HIDDEN_BY_DEFAULT = {
+  updateTime: { show: false },
+  createTime: { show: false }
 }
 
 export function ConfigSms() {
   const queryClient = useQueryClient()
   const { hasPermission } = usePermission()
-  const fullscreen = useFullscreenTransition()
-
-  const [searchInput, setSearchInput] = React.useState('')
+  const formRef = React.useRef<ProFormInstance<{ name?: string; supplier?: string }>>(undefined)
   const [keyword, setKeyword] = React.useState('')
   const [supplier, setSupplier] = React.useState<string | undefined>(undefined)
 
@@ -58,7 +48,6 @@ export function ConfigSms() {
   const [deleteTarget, setDeleteTarget] = React.useState<SmsConfigResp | null>(null)
 
   const supplierOptions = useDictOptions('sms_supplier', SUPPLIER_PRESETS)
-  const supplierMap = React.useMemo(() => toLabelMap(supplierOptions), [supplierOptions])
 
   const setDefaultMutation = useMutation({
     mutationFn: (id: string | number) => setDefaultSmsConfig(id),
@@ -86,110 +75,46 @@ export function ConfigSms() {
     [setDefaultMutation]
   )
 
-  const buildQuery = React.useCallback(
-    (pagination: PaginationState) => {
-      const params = { page: pagination.pageIndex + 1, size: pagination.pageSize, name: keyword || undefined, supplier }
-      return { queryKey: smsKeys.list(params), queryFn: (signal: AbortSignal) => listSmsConfig(params, signal) }
-    },
-    [keyword, supplier]
-  )
-
-  const buildColumns = React.useCallback(
-    (rowOffset: number) => createSmsColumns({ supplierMap, onAction: handleRowAction }, rowOffset),
-    [supplierMap, handleRowAction]
-  )
-
-  const { query, table, resetPage, resetColumns } = useListTable<SmsConfigResp, PageResp<SmsConfigResp>>({
-    buildQuery,
-    buildColumns,
-    getRowId: row => String(row.id),
-    initialColumnVisibility: HIDDEN_BY_DEFAULT
-  })
-
-  const handleSearch = React.useCallback(
-    (next: string) => {
-      setKeyword(next)
-      resetPage()
-    },
-    [resetPage]
-  )
+  const columns = React.useMemo(() => createSmsColumns({
+    supplierOptions, onSupplierChange: setSupplier, onAction: handleRowAction
+  }), [supplierOptions, handleRowAction])
 
   const handleResetFilters = () => {
-    setSearchInput('')
+    formRef.current?.resetFields()
     setKeyword('')
     setSupplier(undefined)
-    resetPage()
   }
-
-  const filters = (
-    <>
-      <TableSearch
-        className="col-span-2 h-8 w-full sm:w-60"
-        value={searchInput}
-        onValueChange={setSearchInput}
-        onSearch={handleSearch}
-        placeholder="搜索配置名称"
-      />
-      <FilterSelect
-        label="厂商"
-        options={[{ value: 'all', label: '全部' }, ...supplierOptions]}
-        value={supplier ?? 'all'}
-        onValueChange={value => {
-          setSupplier(!value || value === 'all' ? undefined : value)
-          resetPage()
-        }}
-        className="w-full sm:w-32"
-      />
-      {(keyword !== '' || supplier !== undefined) && (
-        <Button type="button" variant="ghost" onClick={handleResetFilters}>
-          <RefreshCw />
-          重置
-        </Button>
-      )}
-    </>
-  )
-
-  const actions = (
-    <TableToolbar
-      table={table}
-      isRefreshing={query.isFetching && !query.isPending}
-      isFullscreen={fullscreen.isFullscreen}
-      onRefresh={() => void query.refetch()}
-      onToggleFullscreen={fullscreen.toggleFullscreen}
-      onResetColumns={resetColumns}
-      actions={
-        hasPermission('system:smsConfig:create') && (
-          <Button className="w-full sm:w-auto" onClick={() => setFormTarget({ smsId: null })}>
-            <Plus />
-            新增配置
-          </Button>
-        )
-      }
-    />
-  )
 
   return (
     <>
-      <ListPageCard
-        title="短信配置"
-        description="维护短信服务厂商的接入凭据与默认发送通道"
-        filters={filters}
-        actions={actions}
-        fullscreen={fullscreen}
-      >
-        <DataTable
-          table={table}
-          isLoading={query.isPending}
-          isError={query.isError}
-          isShowingPreviousRows={query.isPlaceholderData}
-          onRetry={() => void query.refetch()}
-        />
-      </ListPageCard>
+      <ProTable<SmsConfigResp, { name?: string; supplier?: string }>
+        cardProps={false}
+        headerTitle="短信配置"
+        toolbar={{ subTitle: '维护短信服务厂商的接入凭据与默认发送通道' }}
+        columns={columns}
+        rowKey="id"
+        queryKey={smsKeys.lists()}
+        formRef={formRef}
+        columnsState={{ defaultValue: HIDDEN_BY_DEFAULT }}
+        options={{ search: { name: 'name', placeholder: '搜索配置名称', onSearch: next => { setKeyword(next) } } }}
+        request={async ({ current, pageSize, name, supplier: selectedSupplier }, _sort, _filter, signal) => {
+          const result = await listSmsConfig({ page: current, size: pageSize, name: name || undefined, supplier: selectedSupplier }, signal)
+          return { data: result.list, total: result.total, success: true }
+        }}
+        toolBarRender={() => [
+          ...(keyword !== '' || supplier !== undefined ? [
+            <Button key="reset" type="button" variant="ghost" onClick={handleResetFilters}><RefreshCw />重置</Button>
+          ] : []),
+          ...(hasPermission('system:smsConfig:create') ? [
+            <Button key="create" className="w-full sm:w-auto" onClick={() => setFormTarget({ smsId: null })}><Plus />新增配置</Button>
+          ] : [])
+        ]}
+      />
 
       <SmsFormDrawer
         smsId={formTarget?.smsId ?? null}
         open={formTarget !== null}
-        supplierOptions={supplierOptions}
+        columns={columns}
         onClose={() => setFormTarget(null)}
       />
       <SmsDeleteDialog sms={deleteTarget} open={deleteTarget !== null} onClose={() => setDeleteTarget(null)} />

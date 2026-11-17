@@ -194,7 +194,11 @@ export function ConfigStorage() {
               minWidth={LOCAL_TABLE_MIN_WIDTH}
               items={localStorages}
               columns={localColumns}
+              queryKey={storageKeys.lists()}
+              params={{ keyword, type, status }}
               isLoading={query.isPending}
+              isError={query.isError}
+              isShowingPreviousRows={query.isPlaceholderData}
             />
           )}
 
@@ -205,7 +209,11 @@ export function ConfigStorage() {
               minWidth={OSS_TABLE_MIN_WIDTH}
               items={ossStorages}
               columns={ossColumns}
+              queryKey={storageKeys.lists()}
+              params={{ keyword, type, status }}
               isLoading={query.isPending}
+              isError={query.isError}
+              isShowingPreviousRows={query.isPlaceholderData}
             />
           )}
         </div>

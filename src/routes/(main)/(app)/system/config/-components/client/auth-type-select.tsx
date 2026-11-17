@@ -6,6 +6,8 @@ import { Label } from '@/components/ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
 interface ClientAuthTypeSelectProps {
+  readonly id?: string
+  readonly onBlur?: () => void
   readonly value: string[]
   readonly onChange: (nextValue: string[]) => void
   readonly options: { label: string; value: string }[]
@@ -17,6 +19,8 @@ interface ClientAuthTypeSelectProps {
  * Multi-select popover for client auth types, designed consistently with UserRoleSelect.
  */
 export function ClientAuthTypeSelect({
+  id,
+  onBlur,
   value = [],
   onChange,
   options = [],
@@ -31,6 +35,8 @@ export function ClientAuthTypeSelect({
         render={
           <Button
             type="button"
+            id={id}
+            onBlur={onBlur}
             variant="outline"
             className="w-full justify-between font-normal"
             aria-invalid={invalid}
@@ -53,7 +59,7 @@ export function ClientAuthTypeSelect({
             return (
               <div key={opt.value} className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-accent">
                 <Checkbox
-                  id={`auth-type-${opt.value}`}
+                  id={`${id ?? 'auth-type'}-${opt.value}`}
                   checked={checked}
                   disabled={disabled}
                   onCheckedChange={next =>
@@ -61,7 +67,7 @@ export function ClientAuthTypeSelect({
                   }
                 />
                 <Label
-                  htmlFor={`auth-type-${opt.value}`}
+                  htmlFor={`${id ?? 'auth-type'}-${opt.value}`}
                   className="flex-1 cursor-pointer text-sm font-normal whitespace-nowrap"
                 >
                   {opt.label}

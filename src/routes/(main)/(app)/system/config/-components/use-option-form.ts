@@ -1,12 +1,12 @@
 import * as React from 'react'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { type StandardSchemaV1, useForm, useSelector } from '@tanstack/react-form'
+import type { ProFormInstance, ProValues } from '@/components/pro'
 
 import { toast } from '@/components/ui/toast'
 import { listOption, type OptionReq, type OptionResp, resetOptionValue, updateOption } from '@/lib/api/option'
 import { reportError } from '@/lib/http'
-import { optionKeys } from '@/lib/query-keys'
+import { optionKeys, siteOptionKeys } from '@/lib/query-keys'
 
 export type OptionMap = Record<string, OptionResp>
 
@@ -26,63 +26,83 @@ function buildPayload(values: object, optionMap: OptionMap): OptionReq[] {
   return payload
 }
 
-interface UseOptionFormOptions<TForm extends object> {
+interface UseOptionFormOptions<TForm extends ProValues> {
   category: string
   toForm: (optionMap: OptionMap) => TForm
-  /**
-   * The whole-object schema, validated on submit.
-   *
-   * Every `<form.Field>` must also carry `validators={{ onSubmit: schema.shape.X }}`: `handleSubmit`
-   * runs the field validators first and returns as soon as they report an invalid form, so a rule
-   * that only sits on the form never runs again and fields that turn invalid later show no error.
-   */
-  schema: StandardSchemaV1<TForm>
 }
 
-export function useOptionForm<TForm extends object>({ category, toForm, schema }: UseOptionFormOptions<TForm>) {
-  const queryClient = useQueryClient()
+export interface OptionFormController<TForm extends ProValues> {
+  formRef: React.RefObject<ProFormInstance | undefined>
+  initialValues: TForm
+  optionMap: OptionMap
+  isLoading: boolean
+  isError: boolean
+  refetch: () => Promise<unknown>
+  isEdit: boolean
+  startEdit: () => void
+  cancelEdit: () => void
+  resetForm: () => void
+  save: (values: object) => Promise<boolean>
+  resetToDefault: () => void
+  isResetting: boolean
+  resetDialogOpen: boolean
+  setResetDialogOpen: React.Dispatch<React.SetStateAction<boolean>>
+}
 
+export function useOptionForm<TForm extends ProValues>({ category, toForm }: UseOptionFormOptions<TForm>): OptionFormController<TForm> {
+  const queryClient = useQueryClient()
+  // Public site metadata has its own cache, separate from the editable option list.
+  const refreshSiteOptions = () => {
+    if (category === 'SITE') {
+      void queryClient.invalidateQueries({ queryKey: siteOptionKeys.all })
+    }
+  }
+  const formRef = React.useRef<ProFormInstance>(undefined)
   const [isEdit, setIsEdit] = React.useState(false)
   const [resetDialogOpen, setResetDialogOpen] = React.useState(false)
-
   const query = useQuery({
     queryKey: optionKeys.list(category),
     queryFn: ({ signal }) => listOption({ category }, signal)
   })
   const options = query.data ?? EMPTY_OPTIONS
-
   const optionMap = React.useMemo(() => {
     const map: OptionMap = {}
-    for (const option of options) {
-      map[option.code] = option
-    }
+    for (const option of options) map[option.code] = option
     return map
   }, [options])
+  const initialValues = React.useMemo(() => toForm(optionMap), [optionMap, toForm])
+  const resetForm = () => {
+    formRef.current?.resetFields()
+    formRef.current?.setFieldsValue(initialValues)
+  }
 
-  const form = useForm({
-    defaultValues: toForm({}),
-    validators: { onSubmit: schema },
-    onSubmit: async ({ value }) => {
-      try {
-        await updateOption(buildPayload(value, optionMap))
-        toast.add({ title: '保存成功', type: 'success' })
-        setIsEdit(false)
-        void queryClient.invalidateQueries({ queryKey: optionKeys.list(category) })
-      } catch (err) {
-        reportError(err, '保存失败')
-      }
-    }
-  })
-
-  // `keepDefaultValues` is load-bearing: `reset(values)` otherwise rewrites the form's own
-  // defaultValues, and the next render's `update(opts)` reads that as "defaults changed" and puts the
-  // `toForm({})` fallbacks back into the form, which the panel would then save to the backend.
+  // Refetches refresh the read view, but never replace an in-progress edit.
   React.useEffect(() => {
-    if (!isEdit && options.length > 0) {
-      form.reset(toForm(optionMap), { keepDefaultValues: true })
-    }
-  }, [form, isEdit, optionMap, options.length, toForm])
+    if (!isEdit && query.data) formRef.current?.setFieldsValue(initialValues)
+  }, [initialValues, isEdit, query.data])
 
+  const startEdit = () => {
+    resetForm()
+    setIsEdit(true)
+  }
+  const cancelEdit = () => {
+    resetForm()
+    setIsEdit(false)
+  }
+  const save = async (values: object) => {
+    if (!isEdit) return false
+    try {
+      await updateOption(buildPayload(values, optionMap))
+      toast.add({ title: '保存成功', type: 'success' })
+      setIsEdit(false)
+      void queryClient.invalidateQueries({ queryKey: optionKeys.list(category) })
+      refreshSiteOptions()
+      return true
+    } catch (error) {
+      reportError(error, '保存失败')
+      return false
+    }
+  }
   const resetMutation = useMutation({
     mutationFn: () => resetOptionValue({ category }),
     onSuccess: () => {
@@ -90,52 +110,24 @@ export function useOptionForm<TForm extends object>({ category, toForm, schema }
       setResetDialogOpen(false)
       setIsEdit(false)
       void queryClient.invalidateQueries({ queryKey: optionKeys.list(category) })
+      refreshSiteOptions()
     },
-    onError: err => reportError(err, '恢复失败')
+    onError: error => reportError(error, '恢复失败')
   })
 
-  const resetForm = () => form.reset(toForm(optionMap), { keepDefaultValues: true })
-
-  const cancelEdit = () => {
-    resetForm()
-    setIsEdit(false)
-  }
-
-  const resetToDefault = () => resetMutation.mutate()
-
-  /**
-   * Validates the whole object before submitting: `handleSubmit` returns as soon as the field
-   * validators report an invalid form, so a form-level rule (a cross-field one, say) would otherwise
-   * stay hidden until the other errors were fixed.
-   */
-  const submit = async () => {
-    await form.validate('submit')
-    await form.handleSubmit()
-  }
-
-  /** The panel owns the form's layout; the hook owns the submit wiring. */
-  const formProps = {
-    noValidate: true,
-    onSubmit: (event: React.FormEvent<HTMLFormElement>) => {
-      event.preventDefault()
-      void submit()
-    }
-  }
-
   return {
-    form,
-    formProps,
+    formRef,
+    initialValues,
     optionMap,
     isLoading: query.isLoading,
-    isError: query.isError,
+    isError: query.isError && !query.data,
     refetch: query.refetch,
-    isSubmitting: useSelector(form.store, state => state.isSubmitting),
     isEdit,
-    setIsEdit,
+    startEdit,
     cancelEdit,
     resetForm,
-    submit,
-    resetToDefault,
+    save,
+    resetToDefault: () => resetMutation.mutate(),
     isResetting: resetMutation.isPending,
     resetDialogOpen,
     setResetDialogOpen

@@ -1,22 +1,13 @@
 import * as React from 'react'
 
-import { type ColumnVisibilityState, type PaginationState } from '@tanstack/react-table'
-
 import { Plus } from 'lucide-react'
 
-import { DataTable } from '@/components/data-table'
-import { FilterSelect } from '@/components/filter-select'
-import { ListPageCard } from '@/components/list-page-card'
-import { TableToolbar } from '@/components/table-toolbar'
+import { ProTable } from '@/components/pro'
 import { Button } from '@/components/ui/button'
-import { useFullscreenTransition } from '@/hooks/use-fullscreen-transition'
-import { useListTable } from '@/hooks/use-list-table'
 import { usePermission } from '@/hooks/use-permission'
 import { listClient, type ClientResp } from '@/lib/api/client'
-import type { PageResp } from '@/lib/api/types'
 import { clientKeys } from '@/lib/query-keys'
-
-import { type DictOption, toLabelMap, useDictOptions } from '../use-dict-options'
+import { type DictOption, useDictOptions } from '../use-dict-options'
 import {
   AUTH_TYPE_OPTIONS,
   createClientColumns,
@@ -35,29 +26,19 @@ const CLIENT_TYPE_PRESETS: DictOption[] = [
   { label: '三方Web服务', value: 'WEB' }
 ]
 
-const HIDDEN_BY_DEFAULT: ColumnVisibilityState = {
-  refreshTokenTimeout: false,
-  refreshTokenMode: false,
-  replacedRange: false,
-  maxLoginCount: false,
-  overflowLogoutMode: false,
-  createUserString: false,
-  updateUserString: false,
-  updateTime: false
+const HIDDEN_BY_DEFAULT = {
+  refreshTokenTimeout: { show: false },
+  refreshTokenMode: { show: false },
+  replacedRange: { show: false },
+  maxLoginCount: { show: false },
+  overflowLogoutMode: { show: false },
+  createUserString: { show: false },
+  updateUserString: { show: false },
+  updateTime: { show: false }
 }
-
-const STATUS_OPTIONS = [
-  { value: 'all', label: '全部' },
-  { value: '1', label: '启用' },
-  { value: '2', label: '禁用' }
-]
 
 export function ConfigClient() {
   const { hasPermission } = usePermission()
-  const fullscreen = useFullscreenTransition()
-
-  const [clientType, setClientType] = React.useState<string | undefined>(undefined)
-  const [status, setStatus] = React.useState<number | undefined>(undefined)
 
   // One state per overlay: a null value means it is closed. The form drawer holds an object, because
   // a null id there means 新增.
@@ -70,10 +51,6 @@ export function ConfigClient() {
   const replacedRangeOptions = useDictOptions('replaced_range_enum', REPLACED_RANGE_PRESETS)
   const logoutModeOptions = useDictOptions('logout_mode_enum', LOGOUT_MODE_PRESETS)
 
-  const clientTypeMap = React.useMemo(() => toLabelMap(clientTypeOptions), [clientTypeOptions])
-  const authTypeMap = React.useMemo(() => toLabelMap(authTypeOptions), [authTypeOptions])
-  const replacedRangeMap = React.useMemo(() => toLabelMap(replacedRangeOptions), [replacedRangeOptions])
-  const logoutModeMap = React.useMemo(() => toLabelMap(logoutModeOptions), [logoutModeOptions])
 
   const handleRowAction = React.useCallback((action: ClientAction, record: ClientResp) => {
     if (action === 'detail') {
@@ -89,108 +66,41 @@ export function ConfigClient() {
     setDeleteTarget(record)
   }, [])
 
-  const buildQuery = React.useCallback(
-    (pagination: PaginationState) => {
-      const params = { page: pagination.pageIndex + 1, size: pagination.pageSize, clientType, status }
-      return { queryKey: clientKeys.list(params), queryFn: (signal: AbortSignal) => listClient(params, signal) }
-    },
-    [clientType, status]
-  )
-
-  const buildColumns = React.useCallback(
-    (rowOffset: number) =>
-      createClientColumns(
-        { clientTypeMap, authTypeMap, replacedRangeMap, logoutModeMap, onAction: handleRowAction },
-        rowOffset
-      ),
-    [clientTypeMap, authTypeMap, replacedRangeMap, logoutModeMap, handleRowAction]
-  )
-
-  const { query, table, resetPage, resetColumns } = useListTable<ClientResp, PageResp<ClientResp>>({
-    buildQuery,
-    buildColumns,
-    getRowId: row => String(row.id),
-    initialColumnVisibility: HIDDEN_BY_DEFAULT
-  })
-
-  const filters = (
-    <>
-      <FilterSelect
-        label="客户端类型"
-        options={[{ value: 'all', label: '全部' }, ...clientTypeOptions]}
-        value={clientType ?? 'all'}
-        onValueChange={value => {
-          setClientType(!value || value === 'all' ? undefined : value)
-          resetPage()
-        }}
-        className="w-full sm:w-40"
-      />
-      <FilterSelect
-        label="状态"
-        options={STATUS_OPTIONS}
-        value={status === undefined ? 'all' : String(status)}
-        onValueChange={value => {
-          setStatus(!value || value === 'all' ? undefined : Number(value))
-          resetPage()
-        }}
-        className="w-full sm:w-32"
-      />
-    </>
-  )
-
-  const actions = (
-    <TableToolbar
-      table={table}
-      isRefreshing={query.isFetching && !query.isPending}
-      isFullscreen={fullscreen.isFullscreen}
-      onRefresh={() => void query.refetch()}
-      onToggleFullscreen={fullscreen.toggleFullscreen}
-      onResetColumns={resetColumns}
-      actions={
-        hasPermission('system:client:create') && (
-          <Button className="w-full sm:w-auto" onClick={() => setFormTarget({ clientId: null })}>
-            <Plus />
-            新增客户端
-          </Button>
-        )
-      }
-    />
-  )
+  const columns = React.useMemo(() => createClientColumns({
+    clientTypeOptions, authTypeOptions, replacedRangeOptions, logoutModeOptions, onAction: handleRowAction
+  }), [clientTypeOptions, authTypeOptions, replacedRangeOptions, logoutModeOptions, handleRowAction])
 
   return (
     <>
-      <ListPageCard
-        title="客户端配置"
-        description="管理客户端凭据、令牌策略与登录限制"
-        filters={filters}
-        actions={actions}
-        fullscreen={fullscreen}
-      >
-        <DataTable
-          table={table}
-          isLoading={query.isPending}
-          isError={query.isError}
-          isShowingPreviousRows={query.isPlaceholderData}
-          onRetry={() => void query.refetch()}
-        />
-      </ListPageCard>
+      <ProTable<ClientResp, { clientType?: string; status?: number }>
+        cardProps={false}
+        headerTitle="客户端配置"
+        toolbar={{ subTitle: '管理客户端凭据、令牌策略与登录限制' }}
+        columns={columns}
+        rowKey="id"
+        queryKey={clientKeys.lists()}
+        columnsState={{ defaultValue: HIDDEN_BY_DEFAULT }}
+        request={async ({ current, pageSize, clientType, status }, _sort, _filter, signal) => {
+          const result = await listClient({ page: current, size: pageSize, clientType, status }, signal)
+          return { data: result.list, total: result.total, success: true }
+        }}
+        toolBarRender={() => hasPermission('system:client:create') ? [
+          <Button key="create" className="w-full sm:w-auto" onClick={() => setFormTarget({ clientId: null })}>
+            <Plus />新增客户端
+          </Button>
+        ] : []}
+      />
 
       <ClientFormDrawer
         clientId={formTarget?.clientId ?? null}
         open={formTarget !== null}
-        clientTypeOptions={clientTypeOptions}
-        authTypeOptions={authTypeOptions}
-        replacedRangeOptions={replacedRangeOptions}
-        logoutModeOptions={logoutModeOptions}
+        columns={columns}
         onClose={() => setFormTarget(null)}
       />
       <ClientDetailDrawer
         client={detailTarget}
         open={detailTarget !== null}
-        clientTypeMap={clientTypeMap}
-        authTypeMap={authTypeMap}
-        replacedRangeMap={replacedRangeMap}
-        logoutModeMap={logoutModeMap}
+        columns={columns}
         onClose={() => setDetailTarget(null)}
       />
       <ClientDeleteDialog client={deleteTarget} open={deleteTarget !== null} onClose={() => setDeleteTarget(null)} />

@@ -3,7 +3,6 @@ import * as React from 'react'
 import { ImagePlus, Upload } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import { Field, FieldDescription, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { toast } from '@/components/ui/toast'
 import { cn } from 'cn'
@@ -14,8 +13,9 @@ const PREVIEW_BOX_CLASS =
 interface ImageUploadFieldProps {
   value: string
   onChange: (value: string) => void
-  label?: string
-  description?: string
+  id: string
+  invalid: boolean
+  onBlur: () => void
   accept?: string
   previewClassName?: string
   invalidFileMessage?: string
@@ -25,8 +25,9 @@ interface ImageUploadFieldProps {
 export function ImageUploadField({
   value,
   onChange,
-  label,
-  description,
+  id,
+  invalid,
+  onBlur,
   accept = 'image/*',
   previewClassName = 'size-full object-contain p-1.5',
   invalidFileMessage = '请选择有效的图片文件',
@@ -55,9 +56,6 @@ export function ImageUploadField({
   )
 
   return (
-    <Field>
-      <FieldLabel>{label}</FieldLabel>
-      {description && <FieldDescription>{description}</FieldDescription>}
       <div className="flex items-center">
         <Input
           ref={inputRef}
@@ -68,11 +66,14 @@ export function ImageUploadField({
           disabled={disabled}
         />
         {disabled ? (
-          <div className={PREVIEW_BOX_CLASS}>{preview}</div>
+          <div id={id} className={PREVIEW_BOX_CLASS} aria-invalid={invalid}>{preview}</div>
         ) : (
           <Button
             type="button"
             size="icon-lg"
+            id={id}
+            onBlur={onBlur}
+            aria-invalid={invalid}
             className={cn(PREVIEW_BOX_CLASS, 'hover:bg-muted/40')}
             onClick={() => inputRef.current?.click()}
           >
@@ -88,6 +89,5 @@ export function ImageUploadField({
           </Button>
         )}
       </div>
-    </Field>
   )
 }
