@@ -6,7 +6,7 @@ import { type StandardSchemaV1, useForm, useSelector } from '@tanstack/react-for
 import { toast } from '@/components/ui/toast'
 import { listOption, type OptionReq, type OptionResp, resetOptionValue, updateOption } from '@/lib/api/option'
 import { reportError } from '@/lib/http'
-import { optionKeys } from '@/lib/query-keys'
+import { optionKeys, siteOptionKeys } from '@/lib/query-keys'
 
 export type OptionMap = Record<string, OptionResp>
 
@@ -42,6 +42,15 @@ interface UseOptionFormOptions<TForm extends object> {
 export function useOptionForm<TForm extends object>({ category, toForm, schema }: UseOptionFormOptions<TForm>) {
   const queryClient = useQueryClient()
 
+  // Site options (title/logo/copyright/beian) are read by the shell from a separate public endpoint
+  // and cached in localStorage, so saving the SITE category must also refresh that query; otherwise
+  // the sidebar and auth screens keep showing the old values until a reload.
+  const refreshSiteOptions = () => {
+    if (category === 'SITE') {
+      void queryClient.invalidateQueries({ queryKey: siteOptionKeys.all })
+    }
+  }
+
   const [isEdit, setIsEdit] = React.useState(false)
   const [resetDialogOpen, setResetDialogOpen] = React.useState(false)
 
@@ -68,6 +77,7 @@ export function useOptionForm<TForm extends object>({ category, toForm, schema }
         toast.add({ title: '保存成功', type: 'success' })
         setIsEdit(false)
         void queryClient.invalidateQueries({ queryKey: optionKeys.list(category) })
+        refreshSiteOptions()
       } catch (err) {
         reportError(err, '保存失败')
       }
@@ -90,6 +100,7 @@ export function useOptionForm<TForm extends object>({ category, toForm, schema }
       setResetDialogOpen(false)
       setIsEdit(false)
       void queryClient.invalidateQueries({ queryKey: optionKeys.list(category) })
+      refreshSiteOptions()
     },
     onError: err => reportError(err, '恢复失败')
   })

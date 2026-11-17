@@ -1,6 +1,5 @@
 import { Link } from '@tanstack/react-router'
 
-import { Command } from 'lucide-react'
 import { useShallow } from 'zustand/react/shallow'
 
 import {
@@ -34,7 +33,7 @@ export function AppSidebar({
   )
   const { groups: hookGroups } = useMenuGroups()
   const groups = groupsProp ?? hookGroups
-  const { title } = useSiteOptions()
+  const { title, logo } = useSiteOptions()
 
   const variant = isSynced ? sidebarVariant : props.variant
   const collapsible = isSynced ? sidebarCollapsible : props.collapsible
@@ -46,7 +45,7 @@ export function AppSidebar({
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton render={<Link to="/dashboard" />}>
-                <Command />
+                <img src={logo} alt="" className="size-5 shrink-0 object-contain" />
                 <span className="text-base font-semibold">{title}</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
