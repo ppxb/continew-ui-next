@@ -3,6 +3,7 @@ import { Eye, Pen, Play, ScrollText, Trash2 } from 'lucide-react'
 
 import { RowActionsMenu } from '@/components/row-actions-menu'
 import { TextCell } from '@/components/text-cell'
+import { Button } from '@/components/ui/button'
 import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import type { JobResp, JobStatus } from '@/lib/api/job'
 import type { DataTableFeatures } from '@/lib/data-table-features'
@@ -41,19 +42,29 @@ function RowActions({
   canDelete: boolean
   onAction: (action: JobAction, job: JobResp) => void
 }) {
-  const hasPrimary = canGet || canTrigger || canUpdate || canViewLogs
+  const hasGroup = canTrigger || canUpdate || canViewLogs
+  const hasSecondary = hasGroup || canDelete
 
   return (
     <div className="flex items-center justify-center">
-      <RowActionsMenu>
-        {hasPrimary ? (
+      <RowActionsMenu
+        showMenu={hasSecondary}
+        primary={
+          canGet ? (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label="任务详情"
+              title="任务详情"
+              onClick={() => onAction('detail', job)}
+            >
+              <Eye />
+            </Button>
+          ) : undefined
+        }
+      >
+        {hasGroup ? (
           <DropdownMenuGroup>
-            {canGet ? (
-              <DropdownMenuItem onClick={() => onAction('detail', job)}>
-                <Eye />
-                详情
-              </DropdownMenuItem>
-            ) : null}
             {canTrigger ? (
               <DropdownMenuItem onClick={() => onAction('trigger', job)}>
                 <Play />
@@ -74,7 +85,7 @@ function RowActions({
             ) : null}
           </DropdownMenuGroup>
         ) : null}
-        {hasPrimary && canDelete ? <DropdownMenuSeparator /> : null}
+        {hasGroup && canDelete ? <DropdownMenuSeparator /> : null}
         {canDelete ? (
           <DropdownMenuItem variant="destructive" onClick={() => onAction('delete', job)}>
             <Trash2 />

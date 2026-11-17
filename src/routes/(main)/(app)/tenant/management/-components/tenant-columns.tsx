@@ -5,6 +5,7 @@ import { CopyableText } from '@/components/copyable-text'
 import { RowActionsMenu } from '@/components/row-actions-menu'
 import { StatusCell } from '@/components/status-cell'
 import { TextCell } from '@/components/text-cell'
+import { Button } from '@/components/ui/button'
 import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import type { TenantResp } from '@/lib/api/tenant'
 import type { DataTableFeatures } from '@/lib/data-table-features'
@@ -45,29 +46,36 @@ function textColumn(key: TextColumnKey, header: string): ColumnDef<DataTableFeat
 type RowActionsProps = Omit<TenantColumnOptions, 'rowOffset'> & { readonly tenant: TenantResp }
 
 function RowActions({ tenant, canGet, canUpdate, canUpdateAdminPassword, canDelete, onAction }: RowActionsProps) {
-  const hasPrimary = canGet || canUpdate
+  const hasGroup = canUpdate
   const hasSecondary = canUpdateAdminPassword || canDelete
 
   return (
     <div className="flex items-center justify-center">
-      <RowActionsMenu>
-        {hasPrimary ? (
+      <RowActionsMenu
+        showMenu={hasGroup || hasSecondary}
+        primary={
+          canGet ? (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label="租户详情"
+              title="租户详情"
+              onClick={() => onAction('detail', tenant)}
+            >
+              <Eye />
+            </Button>
+          ) : undefined
+        }
+      >
+        {hasGroup ? (
           <DropdownMenuGroup>
-            {canGet ? (
-              <DropdownMenuItem onClick={() => onAction('detail', tenant)}>
-                <Eye />
-                详情
-              </DropdownMenuItem>
-            ) : null}
-            {canUpdate ? (
-              <DropdownMenuItem onClick={() => onAction('edit', tenant)}>
-                <Pen />
-                修改
-              </DropdownMenuItem>
-            ) : null}
+            <DropdownMenuItem onClick={() => onAction('edit', tenant)}>
+              <Pen />
+              修改租户
+            </DropdownMenuItem>
           </DropdownMenuGroup>
         ) : null}
-        {hasPrimary && hasSecondary ? <DropdownMenuSeparator /> : null}
+        {hasGroup && hasSecondary ? <DropdownMenuSeparator /> : null}
         {hasSecondary ? (
           <DropdownMenuGroup>
             {canUpdateAdminPassword ? (

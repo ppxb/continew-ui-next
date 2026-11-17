@@ -1,7 +1,9 @@
+import { EMPTY_PLACEHOLDER } from '@/lib/constants'
+
 /** `domain` holds a host without a protocol, so the link adds one when it opens. */
 export function DomainCell({ domain }: { domain: string | null }) {
   if (!domain) {
-    return <span className="text-sm text-destructive">未设置</span>
+    return <span>{EMPTY_PLACEHOLDER}</span>
   }
 
   const href = /^https?:\/\//i.test(domain) ? domain : `https://${domain}`

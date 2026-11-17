@@ -1,16 +1,17 @@
 import type { ColumnDef } from '@tanstack/react-table'
 
-import { KeyRound, PenLine, ShieldCheck, Trash2, Users } from 'lucide-react'
+import { Eye, KeyRound, PenLine, ShieldCheck, Trash2, Users } from 'lucide-react'
 
 import { FlagBadge, TypeBadge, type TypeTone } from '@/components/data-badge'
 import { RowActionsMenu } from '@/components/row-actions-menu'
+import { Button } from '@/components/ui/button'
 import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import { DATA_SCOPE_MAP, type DataScope, type RoleResp } from '@/lib/api/role'
 import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 
 /** The row actions the table raises. */
-export type RoleAction = 'edit' | 'permission' | 'members' | 'delete'
+export type RoleAction = 'detail' | 'edit' | 'permission' | 'members' | 'delete'
 
 const DATA_SCOPE_TONES: Record<DataScope, TypeTone> = {
   1: 'blue',
@@ -20,7 +21,7 @@ const DATA_SCOPE_TONES: Record<DataScope, TypeTone> = {
   5: 'violet'
 }
 
-function DataScopeBadge({ scope }: { scope: DataScope }) {
+export function DataScopeBadge({ scope }: { scope: DataScope }) {
   return <TypeBadge tone={DATA_SCOPE_TONES[scope]} label={DATA_SCOPE_MAP[scope]} />
 }
 
@@ -38,7 +39,19 @@ function RowActions({ role, onAction }: { role: RoleResp; onAction: (action: Rol
   const isSystem = Boolean(role.isSystem)
 
   return (
-    <RowActionsMenu>
+    <RowActionsMenu
+      primary={
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-label="角色详情"
+          title="角色详情"
+          onClick={() => onAction('detail', role)}
+        >
+          <Eye />
+        </Button>
+      }
+    >
       <DropdownMenuGroup>
         <DropdownMenuItem disabled={isSystem} onClick={() => onAction('edit', role)}>
           <PenLine />

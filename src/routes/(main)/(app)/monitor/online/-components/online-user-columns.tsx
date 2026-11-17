@@ -29,17 +29,6 @@ function textColumn(key: TextColumnKey, header: string): OnlineUserColumn {
   }
 }
 
-function UserCell({ user }: { user: OnlineUserResp }) {
-  const name = user.nickname || user.username
-
-  return (
-    <div className="flex flex-col">
-      <span className="truncate">{name || EMPTY_PLACEHOLDER}</span>
-      {user.username !== '' && user.username !== name ? <span className="truncate">{user.username}</span> : null}
-    </div>
-  )
-}
-
 function KickoutCell({
   user,
   isCurrentSession,
@@ -54,9 +43,15 @@ function KickoutCell({
       {isCurrentSession(user.sessionId) ? (
         <Badge variant="secondary">当前会话</Badge>
       ) : (
-        <Button variant="destructive" onClick={() => onKickout(user)}>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+          aria-label="强退"
+          title="强退"
+          onClick={() => onKickout(user)}
+        >
           <LogOut />
-          强退
         </Button>
       )}
     </div>
@@ -77,9 +72,14 @@ export function createOnlineUserColumns({
       cell: ({ row }) => <div>{rowOffset + row.index + 1}</div>
     },
     {
-      id: 'user',
-      header: '用户昵称',
-      cell: ({ row }) => <UserCell user={row.original} />
+      accessorKey: 'nickname',
+      header: '昵称',
+      cell: ({ row }) => <span className="truncate">{row.original.nickname || EMPTY_PLACEHOLDER}</span>
+    },
+    {
+      accessorKey: 'username',
+      header: '用户名',
+      cell: ({ row }) => <span className="truncate">{row.original.username || EMPTY_PLACEHOLDER}</span>
     },
     textColumn('ip', '登录 IP'),
     textColumn('address', '登录地点'),

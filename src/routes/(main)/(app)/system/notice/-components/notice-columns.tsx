@@ -5,6 +5,7 @@ import { Eye, FileText, Pen, Trash2 } from 'lucide-react'
 import { FlagBadge } from '@/components/data-badge'
 import { RowActionsMenu } from '@/components/row-actions-menu'
 import { TextCell } from '@/components/text-cell'
+import { Button } from '@/components/ui/button'
 import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import { usePermission } from '@/hooks/use-permission'
 import type { NoticeResp } from '@/lib/api/notice'
@@ -49,40 +50,55 @@ function RowActions({
     return null
   }
 
+  const canDetail = hasPermission('system:notice:get')
+  const canPreview = hasPermission('system:notice:view')
+  const canEdit = hasPermission('system:notice:update')
+  const canDelete = hasPermission('system:notice:delete')
+  const hasGroup = canPreview || canEdit
+
   return (
     <div className="flex items-center justify-center">
-      <RowActionsMenu>
-        <DropdownMenuGroup>
-          {hasPermission('system:notice:get') && (
-            <DropdownMenuItem onClick={() => onAction('detail', notice)}>
-              <FileText />
-              详情
-            </DropdownMenuItem>
-          )}
-          {hasPermission('system:notice:view') && (
-            <DropdownMenuItem onClick={() => onAction('view', notice)}>
+      <RowActionsMenu
+        showMenu={hasGroup || canDelete}
+        primary={
+          canDetail ? (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label="公告详情"
+              title="公告详情"
+              onClick={() => onAction('detail', notice)}
+            >
               <Eye />
-              查看
-            </DropdownMenuItem>
-          )}
-          {hasPermission('system:notice:update') && (
-            <DropdownMenuItem onClick={() => onAction('edit', notice)}>
-              <Pen />
-              修改
-            </DropdownMenuItem>
-          )}
-        </DropdownMenuGroup>
-        {hasPermission('system:notice:delete') && (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem variant="destructive" onClick={() => onAction('delete', notice)}>
-                <Trash2 />
-                删除
+            </Button>
+          ) : undefined
+        }
+      >
+        {hasGroup ? (
+          <DropdownMenuGroup>
+            {canPreview && (
+              <DropdownMenuItem onClick={() => onAction('view', notice)}>
+                <FileText />
+                预览公告
               </DropdownMenuItem>
-            </DropdownMenuGroup>
-          </>
-        )}
+            )}
+            {canEdit && (
+              <DropdownMenuItem onClick={() => onAction('edit', notice)}>
+                <Pen />
+                修改公告
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuGroup>
+        ) : null}
+        {hasGroup && canDelete ? <DropdownMenuSeparator /> : null}
+        {canDelete ? (
+          <DropdownMenuGroup>
+            <DropdownMenuItem variant="destructive" onClick={() => onAction('delete', notice)}>
+              <Trash2 />
+              删除
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
+        ) : null}
       </RowActionsMenu>
     </div>
   )

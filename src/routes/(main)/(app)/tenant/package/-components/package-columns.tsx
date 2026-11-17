@@ -4,6 +4,7 @@ import { Eye, Pen, Trash2 } from 'lucide-react'
 import { RowActionsMenu } from '@/components/row-actions-menu'
 import { StatusCell } from '@/components/status-cell'
 import { TextCell } from '@/components/text-cell'
+import { Button } from '@/components/ui/button'
 import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import type { PackageResp } from '@/lib/api/package'
 import type { DataTableFeatures } from '@/lib/data-table-features'
@@ -50,28 +51,35 @@ function RowActions({
   canDelete: boolean
   onAction: (action: PackageAction, pkg: PackageResp) => void
 }) {
-  const hasPrimary = canGet || canUpdate
+  const hasGroup = canUpdate
 
   return (
     <div className="flex items-center justify-center">
-      <RowActionsMenu>
-        {hasPrimary ? (
+      <RowActionsMenu
+        showMenu={hasGroup || canDelete}
+        primary={
+          canGet ? (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label="套餐详情"
+              title="套餐详情"
+              onClick={() => onAction('detail', pkg)}
+            >
+              <Eye />
+            </Button>
+          ) : undefined
+        }
+      >
+        {hasGroup ? (
           <DropdownMenuGroup>
-            {canGet ? (
-              <DropdownMenuItem onClick={() => onAction('detail', pkg)}>
-                <Eye />
-                详情
-              </DropdownMenuItem>
-            ) : null}
-            {canUpdate ? (
-              <DropdownMenuItem onClick={() => onAction('edit', pkg)}>
-                <Pen />
-                修改
-              </DropdownMenuItem>
-            ) : null}
+            <DropdownMenuItem onClick={() => onAction('edit', pkg)}>
+              <Pen />
+              修改套餐
+            </DropdownMenuItem>
           </DropdownMenuGroup>
         ) : null}
-        {hasPrimary && canDelete ? <DropdownMenuSeparator /> : null}
+        {hasGroup && canDelete ? <DropdownMenuSeparator /> : null}
         {canDelete ? (
           <DropdownMenuGroup>
             <DropdownMenuItem

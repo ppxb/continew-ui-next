@@ -18,6 +18,7 @@ import { dataTableFeatures } from '@/lib/data-table-features'
 
 import { createRoleColumns, type RoleAction } from './role-columns'
 import { RoleDeleteDialog } from './role-delete-dialog'
+import { RoleDetailDrawer } from './role-detail-drawer'
 import { RoleFormDrawer } from './role-form-drawer'
 import { RolePermissionDrawer } from './role-permission-drawer'
 import { RoleUserDrawer } from './role-user-drawer'
@@ -38,6 +39,7 @@ export function RoleList() {
 
   // One state per overlay: a null value means it is closed, so "which record" and "is it open" can
   // never drift apart. The form drawer holds an object, because a null id there means 新增.
+  const [detailRoleId, setDetailRoleId] = React.useState<string | number | null>(null)
   const [formTarget, setFormTarget] = React.useState<{ roleId: string | number | null } | null>(null)
   const [permissionRole, setPermissionRole] = React.useState<RoleResp | null>(null)
   const [userRole, setUserRole] = React.useState<RoleResp | null>(null)
@@ -63,6 +65,11 @@ export function RoleList() {
   }
 
   const handleRowAction = React.useCallback((action: RoleAction, role: RoleResp) => {
+    if (action === 'detail') {
+      setDetailRoleId(role.id)
+      return
+    }
+
     if (action === 'edit') {
       setFormTarget({ roleId: role.id })
       return
@@ -137,6 +144,11 @@ export function RoleList() {
         </TableFillArea>
       </ListPageCard>
 
+      <RoleDetailDrawer
+        roleId={detailRoleId}
+        open={detailRoleId !== null}
+        onClose={() => setDetailRoleId(null)}
+      />
       <RoleFormDrawer
         roleId={formTarget?.roleId ?? null}
         open={formTarget !== null}

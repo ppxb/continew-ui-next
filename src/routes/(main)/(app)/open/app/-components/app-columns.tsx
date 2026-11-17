@@ -5,6 +5,7 @@ import { Eye, KeyRound, Pen, RotateCcw, Trash2 } from 'lucide-react'
 import { RowActionsMenu } from '@/components/row-actions-menu'
 import { StatusCell } from '@/components/status-cell'
 import { TextCell } from '@/components/text-cell'
+import { Button } from '@/components/ui/button'
 import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
 import type { AppResp } from '@/lib/api/app'
 import type { DataTableFeatures } from '@/lib/data-table-features'
@@ -29,19 +30,24 @@ function RowActions({ app, onAction }: { app: AppResp; onAction: (action: AppAct
 
   return (
     <div className="flex items-center">
-      <RowActionsMenu>
-        <DropdownMenuGroup>
-          <DropdownMenuItem onClick={() => onAction('detail', app)}>
+      <RowActionsMenu
+        primary={
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label="应用详情"
+            title="应用详情"
+            onClick={() => onAction('detail', app)}
+          >
             <Eye />
-            应用详情
-          </DropdownMenuItem>
+          </Button>
+        }
+      >
+        <DropdownMenuGroup>
           <DropdownMenuItem disabled={isLocked} onClick={() => onAction('edit', app)}>
             <Pen />
             修改应用
           </DropdownMenuItem>
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuGroup>
           <DropdownMenuItem onClick={() => onAction('secret', app)}>
             <KeyRound />
             查看密钥
