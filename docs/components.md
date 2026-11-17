@@ -77,7 +77,37 @@ const columns = [
 - 手写 `DataTable` 同样支持 `pagination={{ align: 'center', showQuickJumper: false }}`；直接使用 `TablePagination` 时传 `align`、`showQuickJumper`。
 - 自定义类型通过 `ProConfigProvider.valueTypeMap` 注册读/编辑实现，类型通过声明合并登记。项目注册表在 `src/components/pro-value-types.tsx`，已经在根组件挂载。
 - 配置是类型化 TS 对象，不是纯 JSON：zod 和渲染/联动函数仍在代码里。没有引入 antd 或新依赖。
-- 本轮仅应用管理迁为完整配置式。定时任务、公告和权限树等复杂抽屉继续手写，不因为有配置层就强行套用。
+- 主后台页面已迁移到配置式组件；权限／成员选择器、文件网格、上传队列、看板图表等专用控件保留原布局和行为。
+
+### 已迁移模块
+
+| 模块 | 封装组件 |
+|---|---|
+| 应用、用户、租户 | `ProTable`、`BetaSchemaForm`、`ProDescriptions` |
+| 部门、菜单、角色 | 树／本地数据 `ProTable`、条件表单；角色新增配置式详情 |
+| 字典、套餐 | 主从／嵌入式表格、配置式表单；套餐菜单树仍保留原授权逻辑 |
+| 定时任务、公告 | 配置式列表／详情／表单；分片参数、富文本、存草稿／发布自定义底栏 |
+| 日志、在线会话、短信日志 | 配置式筛选、分页、导出及原有动作 |
+| 客户端、短信、存储配置 | 配置式列表／表单；存储分组保留独立表格和高级字段折叠区 |
+| 网站、安全、登录、邮件配置 | `BetaSchemaForm(Form)`，保留原编辑、取消、恢复默认及批量保存控制器 |
+| 文件管理、个人资料 | 文件列表／元信息／名称表单；资料描述与密码表单。网格、上传和专用侧栏不强行套成 CRUD |
+
+### 复杂页面的保真选项
+
+- `ProTable` 的 `dataSource` 模式接收上游查询的数据，内部执行一次客户端分页；不同时传 `request`。`loading`、`isError`、`isShowingPreviousRows` 保留查询状态，`reload` 失效 `queryKey` 前缀以刷新上游查询。
+- `embedded` 让表格继承既有固定／flex 面板的剩余高度，不再单独测量视口。字典侧栏、文件列表及存储分组使用此模式。
+- `options.search.delay` 可调整关键字防抖，`0` 用于原本即时的前端树过滤。`onSearch` 返回 `false` 交由调用方筛选；清空仍调用它，不把未生效的关键字混入导出快照。
+- `BetaSchemaForm.grid` 启用两列布局；`formItemsRender(items)` 可按 `name` 把已经注册的 `dom` 分组，字段仍进入统一校验和提交。存储高级字段没有被合并成一份不透明对象。
+- `submitter.render(props, dom)` 自定义底栏，通过 `props.submit()` 进入统一校验；`form.isSubmitting` 从校验开始到请求结束都表示占用，标准字段自动禁用，自定义控件可读 `control.disabled`，避免草稿／发布快速连点改写状态。
+- `dependency` 里的共享字段不会丢掉：列表／搜索／列设置按默认依赖展开，详情按记录展开。表单专用克隆需标记 `hideInTable`／`hideInDescriptions`，避免重复列。
+
+### 默认主题与上游同步
+
+默认 `blue` 已重定义为 Arco 配色，选项名称为 `霁蓝`：浅色主色 `#165DFF`、深色主色 `#3C7EFF`；配套背景、卡片、边框、强调和状态颜色采用官方调色板。无主题属性的根节点也应用此默认色，保存的自定义主色仍优先，不重置其他主题。
+
+配色依据：[Arco 调色板](https://github.com/arco-design/arco-design/blob/main/components/style/theme/color/compiled-colors.less) 与 [全局语义变量](https://github.com/arco-design/arco-design/blob/main/components/style/theme/global.less)。没有安装 Arco 组件库。
+
+基于上游 `ppxb/continew-ui-next` 的 `4094d17` 做了兼容回移：用户导入与解析覆盖层、用户／角色详情主按钮、SITE 保存和默认恢复后刷新公开配置、租户编码登录、认证反馈、主题／全屏无障碍名称、其他暗色主题的独立 secondary 表面、无用地理依赖及资料占位字段清理。没有用上游整套 shell／偏好架构覆盖现有 Pro 和布局，也没有重复增加已有跳页功能。
 
 ---
 

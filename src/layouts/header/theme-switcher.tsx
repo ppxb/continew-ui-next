@@ -26,10 +26,10 @@ export function ThemeSwitcher({ showTooltip = true }: { readonly showTooltip?: b
           <Button
             variant="outline"
             size="icon-sm"
+            aria-label="切换主题"
             onClick={() => toggleTheme(resolved === 'dark' ? 'light' : 'dark')}
           >
             {resolved === 'dark' ? <Sun /> : <Moon />}
-            {showTooltip ? null : <span className="sr-only">切换主题</span>}
           </Button>
         )
 

@@ -17,7 +17,7 @@
 
 ### 已落地实现与原稿的差异
 
-- 应用管理的列、搜索、表单和详情共用 `appColumns`。页面的 API/抽屉生命周期仍保留在 `app-list.tsx`、`app-form-drawer.tsx`、`app-detail-drawer.tsx`；没有删掉仍有职责的包装文件，也没有批量迁移其他页面。
+- 主后台模块已从应用管理样板扩展到用户／租户、字典／套餐、部门／菜单／角色、任务／公告、日志／会话、客户端／短信／存储及根设置页面。文件和资料使用适合的表格／描述／表单封装，专用权限、上传、网格和看板保留原行为。最新模块清单见 `docs/components.md`。
 - `BetaSchemaForm` 在 `form/beta-schema-form.tsx`。它使用 `useAppForm` 和受控字段，字段级错误来自活动 schema 的聚合校验。函数 `formItemProps.rules` 和条件子列的规则也参与提交时的 parse/transform，不再受原稿的静态 schema 限制；它们的静态返回类型推导仍以 `typing.ts` 为准。
 - 编辑渲染由 `ProField` 返回受控控件，再由表单统一包一次 `FormItem`，避免双重标签/错误外壳。提交入口自带防重锁，不借用 `FormShell` 的入口。
 - `select` 支持 `fieldProps.mode: 'multiple'`，默认空数组；搜索对每个选项编码/解码，保留数字、布尔值。必填推断使用类型空值，而非列的非空默认值。
@@ -26,6 +26,7 @@
 - `ProDescriptions` 接受显式 `loading`，可复用页面已有详情查询。内部请求先解包，再以原始实体缓存，与表单共享详情 key。
 - `reload` 精确取消目标 key 在途请求并等候新请求；格式化搜索快照只含已生效筛选。搜索重置恢复 `form.initialValues`；重复防抖通知不再次回第一页。
 - 未做可编辑表格、列设置持久化、排序/筛选菜单、完整 ProComponents API 兼容；这不是安装或复制 antd 的组件实现。
+- 已补充本地 `dataSource` 客户端分页、`embedded` 面板布局、`formItemsRender` 分组、`submitter.render` 自定义底栏、完整校验阶段的提交锁以及依赖字段的读模式展开。Arco 默认配色与上游兼容回移记录同样见使用文档；未整套替换上游 shell。
 
 当前使用说明见 `docs/components.md` 的「配置式页面」章节。
 
