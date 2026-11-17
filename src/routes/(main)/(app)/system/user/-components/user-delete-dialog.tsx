@@ -1,5 +1,6 @@
 import { DeleteConfirmDialog } from '@/components/delete-confirm-dialog'
 import { useLastRecord } from '@/hooks/use-last-record'
+import { MENU_QUERY_KEY } from '@/hooks/use-menu'
 import { deleteUser, userKeys, type UserResp } from '@/lib/api/user'
 
 import { userLabel } from './user-display'
@@ -27,7 +28,7 @@ export function UserDeleteDialog({ user, open, onClose }: UserDeleteDialogProps)
       action={async () => {
         if (user) await deleteUser(user.id)
       }}
-      invalidateKeys={[userKeys.all]}
+      invalidateKeys={[userKeys.all, MENU_QUERY_KEY]}
     />
   )
 }

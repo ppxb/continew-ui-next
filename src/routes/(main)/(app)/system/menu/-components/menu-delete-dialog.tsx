@@ -1,5 +1,6 @@
 import { DeleteConfirmDialog } from '@/components/delete-confirm-dialog'
 import { useLastRecord } from '@/hooks/use-last-record'
+import { MENU_QUERY_KEY } from '@/hooks/use-menu'
 import { deleteMenu, menuKeys, type MenuResp } from '@/lib/api/menu'
 
 interface MenuDeleteDialogProps {
@@ -38,7 +39,7 @@ export function MenuDeleteDialog({ menu, open, onClose }: MenuDeleteDialogProps)
       action={async () => {
         if (menu && !hasChildren) await deleteMenu(menu.id)
       }}
-      invalidateKeys={[menuKeys.trees()]}
+      invalidateKeys={[menuKeys.trees(), MENU_QUERY_KEY]}
       errorMessage="删除失败，请重试"
       successMessage={menu ? `菜单「${menu.title}」已删除` : null}
     />

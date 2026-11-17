@@ -5,6 +5,7 @@ import { UserShield } from 'lucide-react'
 import type { CheckableTreeNode } from '@/components/checkable-tree'
 import { BetaSchemaForm } from '@/components/pro'
 import { toast } from '@/components/ui/toast'
+import { MENU_QUERY_KEY } from '@/hooks/use-menu'
 import { deptKeys, getDeptTree, type DeptResp } from '@/lib/api/dept'
 import { createRole, getRole, roleKeys, updateRole } from '@/lib/api/role'
 
@@ -45,6 +46,7 @@ export function RoleFormDrawer({ roleId, open, onClose }: RoleFormDrawerProps) {
       else await updateRole(roleId, payload)
       toast.add({ title: roleId === null ? '新增角色成功' : '修改角色成功', type: 'success' })
       void queryClient.invalidateQueries({ queryKey: roleKeys.all })
+      void queryClient.invalidateQueries({ queryKey: MENU_QUERY_KEY })
       return true
     }}
   />

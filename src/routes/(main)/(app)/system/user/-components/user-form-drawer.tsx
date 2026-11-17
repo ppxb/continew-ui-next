@@ -5,6 +5,7 @@ import { Pen, User2 } from 'lucide-react'
 
 import { BetaSchemaForm } from '@/components/pro'
 import { toast } from '@/components/ui/toast'
+import { MENU_QUERY_KEY } from '@/hooks/use-menu'
 import { createUser, getUser, updateUser, userKeys } from '@/lib/api/user'
 import { encryptByRsa } from '@/lib/crypto'
 
@@ -56,6 +57,7 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
           }
         }
         void queryClient.invalidateQueries({ queryKey: userKeys.all })
+        void queryClient.invalidateQueries({ queryKey: MENU_QUERY_KEY })
         toast.add({ title: isCreate ? '新增成功' : '修改成功', type: 'success' })
         return true
       }}

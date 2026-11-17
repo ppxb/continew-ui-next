@@ -96,7 +96,9 @@ const columns = [
 
 - `ProTable` 的 `dataSource` 模式接收上游查询的数据，内部执行一次客户端分页；不同时传 `request`。`loading`、`isError`、`isShowingPreviousRows` 保留查询状态，`reload` 失效 `queryKey` 前缀以刷新上游查询。
 - `embedded` 让表格继承既有固定／flex 面板的剩余高度，不再单独测量视口。字典侧栏、文件列表及存储分组使用此模式。
-- `options.search.delay` 可调整关键字防抖，`0` 用于原本即时的前端树过滤。`onSearch` 返回 `false` 交由调用方筛选；清空仍调用它，不把未生效的关键字混入导出快照。
+- `options.search.delay` 可调整关键字防抖；`0` 只用于轻量即时过滤。菜单树沿用默认 300ms 防抖，搜索自动展开匹配的祖先路径，清空后恢复搜索前的手动展开状态。`onSearch` 返回 `false` 交由调用方筛选；清空仍调用它，不把未生效的关键字混入导出快照。
+- `useAvailableHeight` 统一读取视口位置及祖先底部内边距、边框、外边距后，只在高度改变时写入 CSS 变量；不通过反复改高度、读取 `scrollHeight` 来试探页面溢出。固定定位的全屏容器不扣除外层页面留白；隐藏面板保留上次高度。
+- 登录菜单共享现有 5 分钟查询时效，新鲜缓存不因切页重复请求。恢复本地菜单时立即渲染缓存，同时后台重验证；过期或显式失效后重新获取。菜单增改删除、清缓存、角色权限和成员变更、用户角色变更成功后，除业务查询键外还须失效 `MENU_QUERY_KEY`，让已挂载的导航立即刷新。
 - `BetaSchemaForm.grid` 启用两列布局；`formItemsRender(items)` 可按 `name` 把已经注册的 `dom` 分组，字段仍进入统一校验和提交。存储高级字段没有被合并成一份不透明对象。
 - `submitter.render(props, dom)` 自定义底栏，通过 `props.submit()` 进入统一校验；`form.isSubmitting` 从校验开始到请求结束都表示占用，标准字段自动禁用，自定义控件可读 `control.disabled`，避免草稿／发布快速连点改写状态。
 - `dependency` 里的共享字段不会丢掉：列表／搜索／列设置按默认依赖展开，详情按记录展开。表单专用克隆需标记 `hideInTable`／`hideInDescriptions`，避免重复列。

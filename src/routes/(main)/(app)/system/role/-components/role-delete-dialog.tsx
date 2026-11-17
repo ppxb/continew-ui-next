@@ -1,5 +1,6 @@
 import { DeleteConfirmDialog } from '@/components/delete-confirm-dialog'
 import { useLastRecord } from '@/hooks/use-last-record'
+import { MENU_QUERY_KEY } from '@/hooks/use-menu'
 import { deleteRoles, roleKeys, type RoleResp } from '@/lib/api/role'
 
 interface RoleDeleteDialogProps {
@@ -26,7 +27,7 @@ export function RoleDeleteDialog({ role, open, onClose }: RoleDeleteDialogProps)
       action={async () => {
         if (role) await deleteRoles([role.id])
       }}
-      invalidateKeys={[roleKeys.all]}
+      invalidateKeys={[roleKeys.all, MENU_QUERY_KEY]}
       successMessage="删除角色成功"
     />
   )

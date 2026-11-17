@@ -21,6 +21,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
 import { useLastRecord } from '@/hooks/use-last-record'
+import { MENU_QUERY_KEY } from '@/hooks/use-menu'
 import { assignUserRoles, userKeys, type UserResp } from '@/lib/api/user'
 
 import { userLabel } from './user-display'
@@ -73,6 +74,7 @@ function UserAssignRolesForm({ userId, initialRoleIds, onClose, onSubmittingChan
 
       onClose()
       void queryClient.invalidateQueries({ queryKey: userKeys.all })
+      void queryClient.invalidateQueries({ queryKey: MENU_QUERY_KEY })
       toast.add({ title: '分配角色成功', type: 'success' })
     }
   })

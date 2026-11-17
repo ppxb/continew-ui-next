@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query'
 
 import { BetaSchemaForm } from '@/components/pro'
 import { toast } from '@/components/ui/toast'
+import { MENU_QUERY_KEY } from '@/hooks/use-menu'
 import { createMenu, getMenu, menuKeys, type MenuResp, updateMenu } from '@/lib/api/menu'
 
 import { menuColumns, toMenuPayload } from './menu-columns'
@@ -28,6 +29,7 @@ export function MenuFormDrawer({ menuId, defaultParentId, open, onClose, menuTre
       else await updateMenu(menuId, payload)
       toast.add({ title: menuId === null ? '新增菜单成功' : '修改菜单成功', type: 'success' })
       void queryClient.invalidateQueries({ queryKey: menuKeys.trees() })
+      void queryClient.invalidateQueries({ queryKey: MENU_QUERY_KEY })
       return true
     }}
   />

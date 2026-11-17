@@ -17,6 +17,7 @@ import { Switch } from '@/components/ui/switch'
 import { toast } from '@/components/ui/toast'
 import { useFillFormOnce } from '@/hooks/use-fill-form-once'
 import { useLastRecord } from '@/hooks/use-last-record'
+import { MENU_QUERY_KEY } from '@/hooks/use-menu'
 import {
   listRolePermissionTree,
   roleKeys,
@@ -105,6 +106,7 @@ export function RolePermissionDrawer({ role, open, onClose }: RolePermissionDraw
       toast.add({ title: '修改功能权限成功', type: 'success' })
       onClose()
       void queryClient.invalidateQueries({ queryKey: roleKeys.all })
+      void queryClient.invalidateQueries({ queryKey: MENU_QUERY_KEY })
     } catch {
       // The HTTP layer already reported the failure.
     } finally {

@@ -18,6 +18,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { toast } from '@/components/ui/toast'
 import { useLastRecord } from '@/hooks/use-last-record'
+import { MENU_QUERY_KEY } from '@/hooks/use-menu'
 import { listRoleUsers, roleKeys, type RoleResp, type RoleUserResp, unassignRoleFromUsers } from '@/lib/api/role'
 import { dataTableFeatures, type DataTableFeatures } from '@/lib/data-table-features'
 
@@ -138,6 +139,7 @@ export function RoleUserDrawer({ role, open, onClose }: RoleUserDrawerProps) {
   const refreshMembers = React.useCallback(() => {
     void queryClient.invalidateQueries({ queryKey: roleKeys.usersRoot(roleId) })
     void queryClient.invalidateQueries({ queryKey: roleKeys.userIds(roleId) })
+    void queryClient.invalidateQueries({ queryKey: MENU_QUERY_KEY })
   }, [queryClient, roleId])
 
   const handleUnassignSingle = React.useCallback(

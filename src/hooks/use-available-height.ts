@@ -7,10 +7,9 @@ import { type RefObject, useCallback, useLayoutEffect, useRef } from 'react'
  * The measurement is idempotent and re-runs when the element's box changes (for example a tab panel
  * that mounts hidden then becomes visible), not only on viewport resize.
  *
- * Returns a `remeasure` callback. Call it from a layout effect when the content height changes
- * (rows expanded, filtered or loaded): the observer-driven run lands after the frame that painted
- * the taller content, which briefly overflows the page and shifts the whole shell by a
- * scrollbar width. A layout-effect call corrects the height before that frame is painted.
+ * Reads geometry and ancestor bottom spacing before writing the height. Keeping the reads together
+ * avoids repeated synchronous layout passes while a page mounts or its rows change.
+ * Returns a callback for callers that need to remeasure after a content change.
  */
 export function useAvailableHeight<T extends HTMLElement>(ref: RefObject<T | null>, variable: string) {
   const applyRef = useRef<() => void>(() => {})
@@ -19,7 +18,6 @@ export function useAvailableHeight<T extends HTMLElement>(ref: RefObject<T | nul
     const element = ref.current
     if (!element) return
 
-    const root = document.documentElement
     let frame = 0
 
     const apply = () => {
@@ -30,25 +28,19 @@ export function useAvailableHeight<T extends HTMLElement>(ref: RefObject<T | nul
       if (element.getClientRects().length === 0) {
         return
       }
-      // Viewport coordinates: the space to the viewport bottom is innerHeight - rect.top. (Adding
-      // scrollY to `top` while subtracting from innerHeight undercounts by the scroll offset, which
-      // collapses the table to 0 once the page has scrolled.)
       const top = element.getBoundingClientRect().top
-      // Start from the full space below the area, then subtract the chrome below it (page paddings
-      // and borders) by however far the page still overflows. This offset is recomputed from scratch
-      // on every run rather than accumulated: a run in a shorter or mobile layout used to grow it
-      // without bound, so switching back to the desktop layout collapsed the table to 0px.
-      let chrome = 0
-      let available = Math.max(0, Math.round(window.innerHeight - top))
-      element.style.setProperty(variable, `${available}px`)
-
-      // A few bounded passes let the page end exactly at the viewport without drifting over time.
-      for (let pass = 0; pass < 3; pass += 1) {
-        const overflow = root.scrollHeight - root.clientHeight
-        if (overflow <= 0) break
-        chrome += overflow
-        available = Math.max(0, Math.round(window.innerHeight - top - chrome))
-        element.style.setProperty(variable, `${available}px`)
+      let bottomSpacing = 0
+      for (let ancestor: HTMLElement | null = element; ancestor; ancestor = ancestor.parentElement) {
+        const style = getComputedStyle(ancestor)
+        bottomSpacing += (Number.parseFloat(style.paddingBottom) || 0)
+          + (Number.parseFloat(style.borderBottomWidth) || 0)
+          + (Number.parseFloat(style.marginBottom) || 0)
+        // A fullscreen container is positioned against the viewport, not its DOM ancestors.
+        if (style.position === 'fixed') break
+      }
+      const available = `${Math.max(0, Math.round(window.innerHeight - top - bottomSpacing))}px`
+      if (element.style.getPropertyValue(variable) !== available) {
+        element.style.setProperty(variable, available)
       }
     }
 
@@ -60,7 +52,7 @@ export function useAvailableHeight<T extends HTMLElement>(ref: RefObject<T | nul
     applyRef.current = apply
     apply()
     const observer = new ResizeObserver(schedule)
-    observer.observe(root)
+    observer.observe(document.documentElement)
     observer.observe(element)
     window.addEventListener('resize', schedule)
     window.addEventListener('scroll', schedule, { passive: true })
