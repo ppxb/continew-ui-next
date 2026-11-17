@@ -5,7 +5,6 @@ import { Tabs, TabsContent, TabsIndicator, TabsList, TabsTrigger } from '@/compo
 import { useAuthStore } from '@/stores/auth/auth-provider'
 
 import { PasswordForm } from './-components/password-form'
-import { ProfileDocuments } from './-components/profile-documents'
 import { ProfileHeader } from './-components/profile-header'
 import { ProfileOverview } from './-components/profile-overview'
 import { PersonalDetails } from './-components/profile-personal-details'
@@ -36,9 +35,6 @@ function Page() {
             <TabsTrigger value="personal" className="gap-2 after:hidden">
               个人信息
             </TabsTrigger>
-            <TabsTrigger value="documents" className="gap-2 after:hidden">
-              个人文档
-            </TabsTrigger>
             <TabsTrigger value="security" className="gap-2 after:hidden">
               安全
             </TabsTrigger>
@@ -61,10 +57,6 @@ function Page() {
 
           <TabsContent className="py-4" value="personal">
             <PersonalDetails profile={profile} />
-          </TabsContent>
-
-          <TabsContent className="py-4" value="documents">
-            <ProfileDocuments documents={profile.documents} />
           </TabsContent>
 
           <TabsContent className="py-4" value="security">

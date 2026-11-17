@@ -1,8 +1,12 @@
 import { LockKeyhole } from 'lucide-react'
 
+import { ProDescriptions } from '@/components/pro'
 import { Badge } from '@/components/ui/badge'
 
+import { getProfileColumns } from './profile-columns'
 import type { ProfileRecord } from './profile-data'
+
+const columns = getProfileColumns('personal')
 
 export function PersonalDetails({ profile }: { profile: ProfileRecord }) {
   return (
@@ -15,40 +19,7 @@ export function PersonalDetails({ profile }: { profile: ProfileRecord }) {
             Private
           </Badge>
         </div>
-        <dl className="grid gap-8 sm:grid-cols-2 xl:grid-cols-3 xl:gap-12">
-          <div className="flex flex-col gap-5">
-            <div className="flex flex-col gap-1">
-              <dt className="text-xs text-muted-foreground">用户名</dt>
-              <dd className="text-sm">{profile.preferredName}</dd>
-            </div>
-            <div className="flex flex-col gap-1">
-              <dt className="text-xs text-muted-foreground">出生日期</dt>
-              <dd className="text-sm">{profile.dateOfBirth}</dd>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-5">
-            <div className="flex flex-col gap-1">
-              <dt className="text-xs text-muted-foreground">昵称</dt>
-              <dd className="text-sm">{profile.legalName}</dd>
-            </div>
-            <div className="flex flex-col gap-1">
-              <dt className="text-xs text-muted-foreground">个人邮箱</dt>
-              <dd className="text-sm">{profile.personalEmail}</dd>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-5">
-            <div className="flex flex-col gap-1">
-              <dt className="text-xs text-muted-foreground">性别</dt>
-              <dd className="text-sm">{profile.pronouns}</dd>
-            </div>
-            <div className="flex flex-col gap-1">
-              <dt className="text-xs text-muted-foreground">手机号码</dt>
-              <dd className="text-sm">{profile.workPhone}</dd>
-            </div>
-          </div>
-        </dl>
+        <ProDescriptions columns={columns} dataSource={profile} />
       </div>
     </>
   )

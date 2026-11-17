@@ -487,12 +487,15 @@ function IconGrid({ items, value, onSelect }: IconGridProps) {
 }
 
 interface IconPickerProps {
+  readonly id?: string
+  readonly invalid?: boolean
+  readonly onBlur?: () => void
   readonly value?: string | null
   readonly onChange: (value: string | null) => void
   readonly disabled?: boolean
 }
 
-export function IconPicker({ value, onChange, disabled = false }: IconPickerProps) {
+export function IconPicker({ id, invalid, onBlur, value, onChange, disabled = false }: IconPickerProps) {
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('common')
@@ -518,6 +521,9 @@ export function IconPicker({ value, onChange, disabled = false }: IconPickerProp
         <DialogTrigger
           render={
             <Button
+              id={id}
+              aria-invalid={invalid}
+              onBlur={onBlur}
               type="button"
               variant="outline"
               disabled={disabled}

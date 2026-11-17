@@ -1,11 +1,10 @@
-import { CopyableText } from '@/components/copyable-text'
-import { DetailField, DetailGrid } from '@/components/detail-field'
 import { EntityDrawer } from '@/components/entity-drawer'
+import { ProDescriptions } from '@/components/pro'
 import { useLastRecord } from '@/hooks/use-last-record'
 import type { FileResp } from '@/lib/api/file'
-import { EMPTY_PLACEHOLDER } from '@/lib/constants'
 
-import { FileTypeIcon, fileTypeLabel, formatFileSize } from './file-display'
+import { fileColumns } from './file-columns'
+import { FileTypeIcon } from './file-display'
 
 interface FileDetailDrawerProps {
   /** The row that was clicked; the API has no detail endpoint. */
@@ -38,25 +37,7 @@ export function FileDetailDrawer({ file, open, onClose }: FileDetailDrawerProps)
               />
             ) : null}
 
-            <DetailGrid>
-              <DetailField label="ID">
-                <CopyableText value={String(shownFile.id)} />
-              </DetailField>
-              <DetailField label="原始名称">{shownFile.originalName || EMPTY_PLACEHOLDER}</DetailField>
-              <DetailField label="类型">{fileTypeLabel(shownFile.type)}</DetailField>
-              <DetailField label="大小">{shownFile.type === 0 ? '—' : formatFileSize(shownFile.size)}</DetailField>
-              <DetailField label="扩展名">{shownFile.extension || EMPTY_PLACEHOLDER}</DetailField>
-              <DetailField label="内容类型">{shownFile.contentType || EMPTY_PLACEHOLDER}</DetailField>
-              <DetailField label="存储">{shownFile.storageName || EMPTY_PLACEHOLDER}</DetailField>
-              <DetailField label="路径">
-                <CopyableText value={shownFile.path} />
-              </DetailField>
-              <DetailField label="SHA256" className="sm:col-span-2">
-                {shownFile.sha256 ? <CopyableText value={shownFile.sha256} /> : EMPTY_PLACEHOLDER}
-              </DetailField>
-              <DetailField label="创建时间">{shownFile.createTime || EMPTY_PLACEHOLDER}</DetailField>
-              <DetailField label="修改时间">{shownFile.updateTime || EMPTY_PLACEHOLDER}</DetailField>
-            </DetailGrid>
+            <ProDescriptions columns={fileColumns} dataSource={shownFile} />
           </div>
         ) : null}
       </div>

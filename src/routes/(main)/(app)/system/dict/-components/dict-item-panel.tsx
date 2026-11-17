@@ -1,17 +1,13 @@
 import * as React from 'react'
 
-import type { PaginationState } from '@tanstack/react-table'
-
 import { Plus, Trash2 } from 'lucide-react'
 
-import { DataTable } from '@/components/data-table'
+import { ProTable } from '@/components/pro'
 import { RowActionsMenu } from '@/components/row-actions-menu'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu'
-import { useListTable } from '@/hooks/use-list-table'
-import { dictKeys, listDictItems, type DictItemQuery, type DictItemResp, type DictResp } from '@/lib/api/dict'
-import type { PageResp } from '@/lib/api/types'
+import { dictKeys, listDictItems, type DictItemResp, type DictResp } from '@/lib/api/dict'
 
 import { createDictItemColumns, type DictItemAction } from './dict-columns'
 
@@ -53,30 +49,10 @@ export function DictItemPanel({
     [dict, onEditItem, onDeleteItem]
   )
 
-  const buildQuery = React.useCallback(
-    (pagination: PaginationState) => {
-      const params: DictItemQuery = {
-        dictId: dict.id,
-        page: pagination.pageIndex + 1,
-        size: pagination.pageSize,
-        sort: DEFAULT_SORT
-      }
-      return { queryKey: dictKeys.itemList(params), queryFn: (signal: AbortSignal) => listDictItems(params, signal) }
-    },
-    [dict.id]
-  )
-
-  const buildColumns = React.useCallback(
-    (rowOffset: number) =>
-      createDictItemColumns({ canUpdate: canUpdateItem, canDelete: canDeleteItem, onAction: handleAction }, rowOffset),
+  const columns = React.useMemo(
+    () => createDictItemColumns({ canUpdate: canUpdateItem, canDelete: canDeleteItem, onAction: handleAction }),
     [canUpdateItem, canDeleteItem, handleAction]
   )
-
-  const { query, table } = useListTable<DictItemResp, PageResp<DictItemResp>>({
-    buildQuery,
-    buildColumns,
-    getRowId: row => String(row.id)
-  })
 
   const canDeleteThisDict = canDeleteDict && !dict.isSystem
 
@@ -96,33 +72,28 @@ export function DictItemPanel({
           ) : null}
         </div>
 
-        <div className="flex items-center gap-2">
-          {canCreateItem && (
-            <Button onClick={() => onCreateItem(dict)}>
-              <Plus />
-              新增字典项
-            </Button>
-          )}
-
-          {canDeleteThisDict && (
-            <RowActionsMenu triggerVariant="outline" triggerSize="icon">
-              <DropdownMenuItem variant="destructive" onClick={() => onDeleteDict(dict)}>
-                <Trash2 />
-                删除字典
-              </DropdownMenuItem>
-            </RowActionsMenu>
-          )}
-        </div>
       </div>
 
-      <DataTable
-        table={table}
-        isLoading={query.isPending}
-        isError={query.isError}
-        isShowingPreviousRows={query.isPlaceholderData}
-        onRetry={() => void query.refetch()}
-        emptyTitle="暂无字典项"
-        fillHeight
+      <ProTable<DictItemResp, { dictId: string | number }>
+        columns={columns}
+        rowKey="id"
+        cardProps={false}
+        embedded
+        search={false}
+        options={false}
+        queryKey={dictKeys.itemLists()}
+        params={{ dictId: dict.id }}
+        request={async ({ current, pageSize, dictId }, _sort, _filter, signal) => {
+          const page = await listDictItems({ dictId, page: current, size: pageSize, sort: DEFAULT_SORT }, signal)
+          return { data: page.list, total: page.total }
+        }}
+        locale={{ emptyText: '暂无字典项' }}
+        toolBarRender={() => [
+          canCreateItem && <Button key="create" onClick={() => onCreateItem(dict)}><Plus />新增字典项</Button>,
+          canDeleteThisDict && <RowActionsMenu key="delete" triggerVariant="outline" triggerSize="icon">
+            <DropdownMenuItem variant="destructive" onClick={() => onDeleteDict(dict)}><Trash2 />删除字典</DropdownMenuItem>
+          </RowActionsMenu>
+        ]}
       />
     </div>
   )

@@ -65,7 +65,7 @@ function formatActiveDuration(createdAt?: string | null): string | undefined {
  *
  * `GET /auth/user/info` only covers identity, contact, department, roles and password
  * dates, so every employee-directory field without a source (job level, team, leave,
- * documents, manager, emergency contacts) keeps its mock value.
+ * manager, emergency contacts) keeps its mock value.
  */
 export function toProfileRecord(user: UserInfoResp | null): ProfileRecord {
   if (!user) {

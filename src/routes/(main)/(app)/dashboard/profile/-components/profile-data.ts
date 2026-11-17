@@ -4,15 +4,6 @@ interface PersonReference {
   initials: string
 }
 
-export interface ProfileDocument {
-  id: string
-  name: string
-  category: string
-  updatedAt: string
-  status: 'Signed' | 'Current'
-  isRestricted: boolean
-}
-
 export interface ProfileRecord {
   name: string
   preferredName: string
@@ -40,7 +31,6 @@ export interface ProfileRecord {
   schedule: string
   contractingEntity: string
   noticePeriod: string
-  dateOfBirth: string
   manager: PersonReference
   bio: string
   leavePolicy: string
@@ -55,7 +45,6 @@ export interface ProfileRecord {
   lastWorkingDay: string
   updatedBy: string
   updatedAt: string
-  documents: ProfileDocument[]
 }
 
 export const profile: ProfileRecord = {
@@ -85,7 +74,6 @@ export const profile: ProfileRecord = {
   schedule: 'Monday–Friday · 9:00 AM–5:30 PM',
   contractingEntity: 'Studio Technologies Pte. Ltd.',
   noticePeriod: '30 days',
-  dateOfBirth: 'September 9, 1993',
   manager: {
     name: 'Pravi K.',
     role: 'Head of Product',
@@ -103,31 +91,5 @@ export const profile: ProfileRecord = {
   nextLeave: 'August 24–28, 2026',
   lastWorkingDay: 'October 3, 2026',
   updatedBy: 'Arham Khan',
-  updatedAt: 'August 8, 2026',
-  documents: [
-    {
-      id: 'doc-1',
-      name: 'Contractor agreement',
-      category: 'Contract',
-      updatedAt: 'Mar 18, 2022',
-      status: 'Signed',
-      isRestricted: false
-    },
-    {
-      id: 'doc-2',
-      name: 'Confidentiality agreement',
-      category: 'Compliance',
-      updatedAt: 'Mar 18, 2022',
-      status: 'Signed',
-      isRestricted: true
-    },
-    {
-      id: 'doc-4',
-      name: 'Information security policy acknowledgement',
-      category: 'Policy',
-      updatedAt: 'Jan 8, 2026',
-      status: 'Current',
-      isRestricted: false
-    }
-  ]
+  updatedAt: 'August 8, 2026'
 }
