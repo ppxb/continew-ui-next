@@ -75,6 +75,7 @@ const columns = [
 - `pagination.align` 可选 `'left'`、`'center'`、`'right'`，默认 `'right'`，控制整组分页信息的对齐。顺序是总条数、页码、每页条数、跳页输入。
 - `pagination.showQuickJumper` 默认 `true`。在「跳至」输入页码，按 Enter 或失焦跳转；空值、负数、小数和非数字不跳转，超过总页数会跳到末页，`0` 会跳到第一页。跳转后清空输入。
 - 手写 `DataTable` 同样支持 `pagination={{ align: 'center', showQuickJumper: false }}`；直接使用 `TablePagination` 时传 `align`、`showQuickJumper`。
+- 分页器当前页使用主题主色背景、边框和对应前景色，切换主题色或亮／暗模式即时同步；悬停仍保持主题色高亮。
 - 自定义类型通过 `ProConfigProvider.valueTypeMap` 注册读/编辑实现，类型通过声明合并登记。项目注册表在 `src/components/pro-value-types.tsx`，已经在根组件挂载。
 - 配置是类型化 TS 对象，不是纯 JSON：zod 和渲染/联动函数仍在代码里。没有引入 antd 或新依赖。
 - 主后台页面已迁移到配置式组件；权限／成员选择器、文件网格、上传队列、看板图表等专用控件保留原布局和行为。

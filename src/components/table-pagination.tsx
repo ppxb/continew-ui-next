@@ -128,6 +128,7 @@ export function TablePagination<TRow extends RowData>({ table, showTopBorder = t
                 <PaginationLink
                   href="#"
                   isActive={table.state.pagination.pageIndex === item - 1}
+                  className="data-[active=true]:border-primary data-[active=true]:bg-primary data-[active=true]:text-primary-foreground data-[active=true]:hover:bg-primary/90 data-[active=true]:hover:text-primary-foreground dark:data-[active=true]:border-primary dark:data-[active=true]:bg-primary dark:data-[active=true]:hover:bg-primary/90"
                   onClick={event => {
                     preventPaginationNavigation(event)
                     table.setPageIndex(item - 1)
