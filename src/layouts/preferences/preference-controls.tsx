@@ -100,7 +100,11 @@ export function PreferenceSegmented<K extends KeysOf<string>>({
         onValueChange={([next]) => next && setValue(next as PreferenceValueMap[K])}
       >
         {options.map(option => (
-          <ToggleGroupItem key={option.value} value={option.value} className="px-2.5 text-xs">
+          <ToggleGroupItem
+            key={option.value}
+            value={option.value}
+            className="px-2.5 text-xs aria-pressed:bg-primary aria-pressed:text-primary-foreground"
+          >
             {option.label}
           </ToggleGroupItem>
         ))}

@@ -109,6 +109,8 @@ const columns = [
 
 默认 `blue` 已重定义为 Arco 配色，选项名称为 `霁蓝`：浅色主色 `#165DFF`、深色主色 `#3C7EFF`；配套背景、卡片、边框、强调和状态颜色采用官方调色板。无主题属性的根节点也应用此默认色，保存的自定义主色仍优先，不重置其他主题。
 
+偏好设置抽屉的分段选项（`PreferenceSegmented`）选中时使用 `primary` 背景与 `primary-foreground` 文字，跟随主题配色和深浅色模式；悬停不覆盖选中配色。此样式只应用于偏好控件，不改变公共 `ToggleGroup` 的默认外观。
+
 配色依据：[Arco 调色板](https://github.com/arco-design/arco-design/blob/main/components/style/theme/color/compiled-colors.less) 与 [全局语义变量](https://github.com/arco-design/arco-design/blob/main/components/style/theme/global.less)。没有安装 Arco 组件库。
 
 基于上游 `ppxb/continew-ui-next` 的 `4094d17` 做了兼容回移：用户导入与解析覆盖层、用户／角色详情主按钮、SITE 保存和默认恢复后刷新公开配置、租户编码登录、认证反馈、主题／全屏无障碍名称、其他暗色主题的独立 secondary 表面、无用地理依赖及资料占位字段清理。没有用上游整套 shell／偏好架构覆盖现有 Pro 和布局，也没有重复增加已有跳页功能。
