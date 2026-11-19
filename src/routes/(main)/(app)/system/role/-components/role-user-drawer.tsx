@@ -19,6 +19,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { toast } from '@/components/ui/toast'
 import { useLastRecord } from '@/hooks/use-last-record'
 import { MENU_QUERY_KEY } from '@/hooks/use-menu'
+import { usePermission } from '@/hooks/use-permission'
 import { listRoleUsers, roleKeys, type RoleResp, type RoleUserResp, unassignRoleFromUsers } from '@/lib/api/role'
 import { dataTableFeatures, type DataTableFeatures } from '@/lib/data-table-features'
 
@@ -33,6 +34,7 @@ interface RoleUserDrawerProps {
 }
 
 interface MemberColumnOptions {
+  readonly canUnassign: boolean
   readonly isUnassigning: boolean
   readonly onUnassign: (member: RoleUserResp) => void
   /** Rows already shown on earlier pages, so the serial number keeps counting across pages. */
@@ -40,11 +42,12 @@ interface MemberColumnOptions {
 }
 
 function createMemberColumns({
+  canUnassign,
   isUnassigning,
   onUnassign,
   rowOffset
 }: MemberColumnOptions): ColumnDef<DataTableFeatures, RoleUserResp>[] {
-  return [
+  const columns: ColumnDef<DataTableFeatures, RoleUserResp>[] = [
     {
       id: 'select',
       meta: { valueType: 'option' },
@@ -94,10 +97,15 @@ function createMemberColumns({
       )
     }
   ]
+
+  return canUnassign ? columns : columns.filter(column => column.id !== 'select' && column.id !== 'actions')
 }
 
 export function RoleUserDrawer({ role, open, onClose }: RoleUserDrawerProps) {
   const queryClient = useQueryClient()
+  const { hasPermission } = usePermission()
+  const canAssign = hasPermission('system:role:assign')
+  const canUnassign = hasPermission('system:role:unassign')
   const shownRole = useLastRecord(role)
   const roleId = shownRole?.id ?? null
 
@@ -183,11 +191,12 @@ export function RoleUserDrawer({ role, open, onClose }: RoleUserDrawerProps) {
   const columns = React.useMemo(
     () =>
       createMemberColumns({
+        canUnassign,
         isUnassigning,
         onUnassign: handleUnassignSingle,
         rowOffset: pagination.pageIndex * pagination.pageSize
       }),
-    [isUnassigning, handleUnassignSingle, pagination.pageIndex, pagination.pageSize]
+    [canUnassign, isUnassigning, handleUnassignSingle, pagination.pageIndex, pagination.pageSize]
   )
 
   const table = useTable({
@@ -227,18 +236,22 @@ export function RoleUserDrawer({ role, open, onClose }: RoleUserDrawerProps) {
             </div>
 
             <div className="flex items-center gap-2">
-              <Button onClick={() => setIsAddOpen(true)}>
-                <Plus />
-                添加成员
-              </Button>
-              <Button
-                variant="destructive"
-                disabled={selectedCount === 0 || isUnassigning}
-                onClick={handleUnassignBatch}
-              >
-                <Trash2 />
-                {selectedCount > 0 ? `批量取消 ${selectedCount} 个授权` : '批量取消授权'}
-              </Button>
+              {canAssign && (
+                <Button onClick={() => setIsAddOpen(true)}>
+                  <Plus />
+                  添加成员
+                </Button>
+              )}
+              {canUnassign && (
+                <Button
+                  variant="destructive"
+                  disabled={selectedCount === 0 || isUnassigning}
+                  onClick={handleUnassignBatch}
+                >
+                  <Trash2 />
+                  {selectedCount > 0 ? `批量取消 ${selectedCount} 个授权` : '批量取消授权'}
+                </Button>
+              )}
             </div>
           </div>
 

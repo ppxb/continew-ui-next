@@ -102,16 +102,24 @@ export function toRolePayload(values: ProValues): RoleReq {
   }
 }
 
-export function createRoleColumns(onAction: (action: RoleAction, role: RoleResp) => void): readonly ProColumns<RoleEntity>[] {
+export interface RoleActionPermissions {
+  canGet: boolean
+  canUpdate: boolean
+  canUpdatePermission: boolean
+  canDelete: boolean
+}
+
+/** Members stay listed for everyone who can see the page; assigning is gated inside the drawer. */
+export function createRoleColumns(onAction: (action: RoleAction, role: RoleResp) => void, can: RoleActionPermissions): readonly ProColumns<RoleEntity>[] {
   return [...roleColumns(), {
     title: '操作', valueType: 'option', render: (_, role) => <TableDropdown<RoleAction> onSelect={action => onAction(action, role)}
-      primary={<Button variant="ghost" size="icon-sm" aria-label="角色详情" title="角色详情" onClick={() => onAction('detail', role)}><Eye /></Button>}
+      primary={can.canGet && <Button variant="ghost" size="icon-sm" aria-label="角色详情" title="角色详情" onClick={() => onAction('detail', role)}><Eye /></Button>}
       menus={[
-      { key: 'edit', name: '修改角色', icon: <PenLine />, disabled: Boolean(role.isSystem) },
-      { key: 'permission', name: '功能权限', icon: <KeyRound />, disabled: Boolean(role.isSystem) },
+      can.canUpdate && { key: 'edit', name: '修改角色', icon: <PenLine />, disabled: Boolean(role.isSystem) },
+      can.canUpdatePermission && { key: 'permission', name: '功能权限', icon: <KeyRound />, disabled: Boolean(role.isSystem) },
       { key: 'members', name: '关联用户', icon: <Users />, disabled: Boolean(role.isSystem) },
       { type: 'divider' },
-      { key: 'delete', name: '删除', icon: <Trash2 />, danger: true, disabled: Boolean(role.isSystem) }
+      can.canDelete && { key: 'delete', name: '删除', icon: <Trash2 />, danger: true, disabled: Boolean(role.isSystem) }
     ]} />
   }]
 }

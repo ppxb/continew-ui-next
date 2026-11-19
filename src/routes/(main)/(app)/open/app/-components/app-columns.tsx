@@ -69,19 +69,28 @@ export const appColumns = [
   { title: '修改时间', dataIndex: 'updateTime', valueType: 'dateTime', hideInForm: true }
 ] as const satisfies readonly ProColumns<AppResp>[]
 
-export function createAppColumns(onAction: (action: AppAction, app: AppResp) => void): readonly ProColumns<AppResp>[] {
+export interface AppActionPermissions {
+  canGet: boolean
+  canUpdate: boolean
+  canSecret: boolean
+  canResetSecret: boolean
+  canDelete: boolean
+}
+
+export function createAppColumns(onAction: (action: AppAction, app: AppResp) => void, can: AppActionPermissions): readonly ProColumns<AppResp>[] {
+  if (!can.canGet && !can.canUpdate && !can.canSecret && !can.canResetSecret && !can.canDelete) return appColumns
   return [...appColumns, {
     title: '操作', valueType: 'option',
     render: (_, app) => {
       const disabled = Boolean(app.disabled)
       return [<TableDropdown<AppAction> key="actions" onSelect={action => onAction(action, app)} menus={[
-        { key: 'detail', name: '应用详情', icon: <Eye /> },
-        { key: 'edit', name: '修改应用', icon: <Pen />, disabled },
+        can.canGet && { key: 'detail', name: '应用详情', icon: <Eye /> },
+        can.canUpdate && { key: 'edit', name: '修改应用', icon: <Pen />, disabled },
         { type: 'divider' },
-        { key: 'secret', name: '查看密钥', icon: <KeyRound /> },
-        { key: 'resetSecret', name: '重置密钥', icon: <RotateCcw />, disabled },
+        can.canSecret && { key: 'secret', name: '查看密钥', icon: <KeyRound /> },
+        can.canResetSecret && { key: 'resetSecret', name: '重置密钥', icon: <RotateCcw />, disabled },
         { type: 'divider' },
-        { key: 'delete', name: '删除', icon: <Trash2 />, danger: true, disabled }
+        can.canDelete && { key: 'delete', name: '删除', icon: <Trash2 />, danger: true, disabled }
       ]} />]
     }
   }]

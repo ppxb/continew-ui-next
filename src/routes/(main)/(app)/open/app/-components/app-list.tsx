@@ -6,6 +6,7 @@ import { ProTable, type ProFormInstance } from '@/components/pro'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
 import { useExport } from '@/hooks/use-export'
+import { usePermission } from '@/hooks/use-permission'
 import { appKeys, type AppPageQuery, type AppResp, exportApps, listApps } from '@/lib/api/app'
 
 import { type AppAction, createAppColumns } from './app-columns'
@@ -24,6 +25,14 @@ const HIDDEN_BY_DEFAULT = {
 const DEFAULT_SORT = 'id,desc'
 
 export function AppList() {
+  const { hasPermission } = usePermission()
+  const canCreate = hasPermission('open:app:create')
+  const canExport = hasPermission('open:app:export')
+  const canGet = hasPermission('open:app:get')
+  const canUpdate = hasPermission('open:app:update')
+  const canSecret = hasPermission('open:app:secret')
+  const canResetSecret = hasPermission('open:app:resetSecret')
+  const canDelete = hasPermission('open:app:delete')
   const formRef = React.useRef<ProFormInstance<Omit<AppPageQuery, 'page' | 'size'>>>(undefined)
   // One state per overlay: a null value means it is closed, so "which record" and "is it open" can
   // never drift apart. The form drawer holds an object, because a null id there means 新增.
@@ -58,7 +67,10 @@ export function AppList() {
     setDeletingApp(app)
   }, [])
 
-  const columns = React.useMemo(() => createAppColumns(handleRowAction), [handleRowAction])
+  const columns = React.useMemo(
+    () => createAppColumns(handleRowAction, { canGet, canUpdate, canSecret, canResetSecret, canDelete }),
+    [handleRowAction, canGet, canUpdate, canSecret, canResetSecret, canDelete]
+  )
 
   return (
     <>
@@ -76,12 +88,16 @@ export function AppList() {
           return { data: page.list, total: page.total }
         }}
         toolBarRender={() => [
-          <Button key="create" className="w-full sm:w-auto" onClick={() => setFormTarget({ appId: null })}>
-            <Plus />新增应用
-          </Button>,
-          <Button key="export" variant="outline" disabled={isExporting} onClick={() => void exportData({ ...formRef.current?.getFieldsFormatValue(), sort: DEFAULT_SORT })}>
-            {isExporting ? <Spinner /> : <Download />}导出
-          </Button>
+          canCreate && (
+            <Button key="create" className="w-full sm:w-auto" onClick={() => setFormTarget({ appId: null })}>
+              <Plus />新增应用
+            </Button>
+          ),
+          canExport && (
+            <Button key="export" variant="outline" disabled={isExporting} onClick={() => void exportData({ ...formRef.current?.getFieldsFormatValue(), sort: DEFAULT_SORT })}>
+              {isExporting ? <Spinner /> : <Download />}导出
+            </Button>
+          )
         ]}
       />
 
@@ -92,7 +108,8 @@ export function AppList() {
         app={resetSecretApp}
         open={resetSecretApp !== null}
         onClose={() => setResetSecretApp(null)}
-        onSuccess={setSecretApp}
+        // Showing the new secret needs the read permission too.
+        onSuccess={canSecret ? setSecretApp : undefined}
       />
       <AppDeleteDialog app={deletingApp} open={deletingApp !== null} onClose={() => setDeletingApp(null)} />
     </>
