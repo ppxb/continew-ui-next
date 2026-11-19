@@ -5,7 +5,7 @@ import { cn } from 'cn'
 import { useShallow } from 'zustand/react/shallow'
 
 import { Separator } from '@/components/ui/separator'
-import { SidebarTrigger } from '@/components/ui/sidebar'
+import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar'
 import { useSiteOptions } from '@/hooks/use-site-options'
 import type { MenuRoot } from '@/navigation/menu'
 import { usePreferencesStore } from '@/stores/preferences/preferences-provider'
@@ -20,15 +20,35 @@ import { ThemeSwitcher } from './theme-switcher'
 
 function HeaderBrand({ wide }: { wide: boolean }) {
   const { title, logo } = useSiteOptions()
+  const { state } = useSidebar()
+  const { variant, collapsible } = usePreferencesStore(
+    useShallow(s => ({ variant: s.values.sidebar_variant, collapsible: s.values.sidebar_collapsible }))
+  )
+  // The box tracks the sidebar under it, so the toggle stays on the content edge. An offcanvas
+  // sidebar leaves nothing to align with once collapsed. The plain `sidebar` variant has no
+  // inner padding, so the box starts half a padding further left to line the logo up with the icons.
+  const aligned = wide && !(state === 'collapsed' && collapsible === 'offcanvas')
+  const rail = aligned && state === 'collapsed' && collapsible === 'icon'
+  const plain = variant === 'sidebar'
 
   return (
     <Link
       to="/dashboard"
       aria-label={title || '返回仪表盘'}
-      className={cn('flex shrink-0 items-center gap-2 font-semibold', wide && 'md:w-[calc(var(--app-sidebar-width)-1rem)]')}
+      className={cn(
+        'flex shrink-0 items-center gap-2 overflow-hidden font-semibold',
+        aligned && 'transition-[width] duration-200 ease-linear motion-reduce:transition-none',
+        aligned && plain && 'md:-ml-2',
+        aligned && !rail && (plain ? 'md:w-[calc(var(--app-sidebar-width)-0.5rem)]' : 'md:w-[calc(var(--app-sidebar-width)-1rem)]'),
+        rail && (plain ? 'md:w-[calc(var(--sidebar-width-icon)-0.5rem)]' : 'md:w-(--sidebar-width-icon)')
+      )}
     >
-      <img src={logo} alt="" className="size-8 shrink-0 object-contain" />
-      <span className="hidden truncate sm:inline">{title}</span>
+      <img
+        src={logo}
+        alt=""
+        className={cn('size-8 shrink-0 object-contain', rail && 'md:ml-[max(0px,calc(var(--sidebar-width-icon)/2-1.5rem))]')}
+      />
+      <span className={cn('hidden truncate sm:inline', rail && 'md:hidden')}>{title}</span>
     </Link>
   )
 }
