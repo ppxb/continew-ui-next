@@ -12,7 +12,7 @@ const REPOSITORY_URL = 'https://github.com/ppxb/continew-ui-next'
 export function GithubHelp() {
   return (
     <PreviewCard.Root>
-      <PreviewCard.Trigger render={<Button variant="outline" size="icon-sm" aria-label="需要帮助" />}>
+      <PreviewCard.Trigger render={<Button variant="ghost" size="icon-sm" aria-label="需要帮助" />}>
         <SimpleIcon icon={siGithub} className="size-4 fill-current" />
       </PreviewCard.Trigger>
       <PreviewCard.Portal>

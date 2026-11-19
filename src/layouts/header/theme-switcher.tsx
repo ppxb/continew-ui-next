@@ -24,7 +24,7 @@ export function ThemeSwitcher({ showTooltip = true }: { readonly showTooltip?: b
       {({ resolved, toggleTheme }) => {
         const trigger = (
           <Button
-            variant="outline"
+            variant="ghost"
             size="icon-sm"
             aria-label="切换主题"
             onClick={() => toggleTheme(resolved === 'dark' ? 'light' : 'dark')}
