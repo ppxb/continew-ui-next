@@ -71,7 +71,9 @@ export function AppSecretDialog({ app, open, onClose }: AppSecretDialogProps) {
   const query = useQuery({
     queryKey: appKeys.secret(appId),
     queryFn: appId === null ? skipToken : ({ signal }) => getAppSecret(appId, signal),
-    enabled: open
+    enabled: open,
+    // The secret is dropped from the cache once the dialog closes instead of lingering in memory.
+    gcTime: 0
   })
 
   return (
