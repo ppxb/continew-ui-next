@@ -28,10 +28,11 @@ const formSchema = z.object({
 type LoginFormValues = z.infer<typeof formSchema>
 
 // FOR DEMO PURPOSES ONLY: Pre-fill the form with default values to make it easier to log in.
+// Development builds only, so production never shows the demo account.
 const DEFAULT_FORM: LoginFormValues = {
   tenantCode: '',
-  username: 'admin',
-  password: 'admin123',
+  username: import.meta.env.DEV ? 'admin' : '',
+  password: import.meta.env.DEV ? 'admin123' : '',
   captcha: '',
   remember: true
 }
@@ -78,7 +79,7 @@ export function LoginForm({ redirectTo }: { readonly redirectTo?: string }) {
 
       toast.add({ title: '登录成功', type: 'success' })
       // `href` keeps any query string that was part of the requested URL.
-      await navigate({ href: redirectTo?.startsWith('/') ? redirectTo : DEFAULT_REDIRECT, replace: true })
+      await navigate({ href: redirectTo?.startsWith('/') && !redirectTo.startsWith('//') ? redirectTo : DEFAULT_REDIRECT, replace: true })
     }
   })
 

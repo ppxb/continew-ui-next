@@ -39,7 +39,7 @@ function SocialLoginCallback() {
     socialLogin({ ...rest, source })
       .then(() => {
         toast.add({ title: '登录成功', type: 'success' })
-        const target = typeof redirect === 'string' && redirect.startsWith('/') ? redirect : '/dashboard'
+        const target = typeof redirect === 'string' && redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : '/dashboard'
         return navigate({ href: target, replace: true })
       })
       .catch(error => {
