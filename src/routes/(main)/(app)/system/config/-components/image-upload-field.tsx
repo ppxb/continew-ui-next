@@ -7,6 +7,9 @@ import { Input } from '@/components/ui/input'
 import { toast } from '@/components/ui/toast'
 import { cn } from 'cn'
 
+/** The image is stored inline as a data URL in the config value, so it has to stay small. */
+const MAX_IMAGE_BYTES = 1024 * 1024
+
 const PREVIEW_BOX_CLASS =
   'group relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted/20 transition-all'
 
@@ -40,6 +43,10 @@ export function ImageUploadField({
     if (!file) return
     if (!file.type.startsWith('image/')) {
       toast.add({ title: invalidFileMessage, type: 'error' })
+      return
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      toast.add({ title: '图片不能超过 1 MB', type: 'error' })
       return
     }
     const reader = new FileReader()

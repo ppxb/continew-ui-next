@@ -106,6 +106,7 @@ export function ExpiryPicker({
               clear()
             }}
             disabled={disabled}
+            aria-label="清除过期时间"
             className="absolute right-2.5 z-10 text-muted-foreground transition-colors hover:text-foreground"
           >
             <X className="size-3.5" />
