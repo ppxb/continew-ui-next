@@ -5,6 +5,7 @@ import { QueryState } from '@/components/query-state'
 import { ProDescriptions } from '@/components/pro'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tree } from '@/components/ui/tree'
+import { useLastRecord } from '@/hooks/use-last-record'
 
 import { packageColumns, type PackageRecord } from './package-columns'
 import { toMenuTreeNodes, usePackageMenuTree } from './use-package-menu-tree'
@@ -32,8 +33,11 @@ export function PackageDetailDrawer({ packageId, open, onClose }: PackageDetailD
   const menuTree = usePackageMenuTree(open)
 
   const treeNodes = toMenuTreeNodes(menuTree.data ?? [])
-  const pkg = detail.data
-  const isLoading = detail.isPending || menuTree.isPending
+  // Keep the last package during the close animation, when the id is already null and the
+  // query has collapsed to a pending state that would otherwise flash the skeleton.
+  const lastPkg = useLastRecord(detail.data ?? null)
+  const pkg = detail.data ?? (open ? null : lastPkg)
+  const isLoading = (detail.isPending || menuTree.isPending) && !pkg
 
   return (
     <EntityDrawer open={open} onClose={onClose} title="套餐详情" icon={<FolderTree className="size-4" />} width={40}>

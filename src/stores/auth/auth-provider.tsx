@@ -33,7 +33,14 @@ export function AuthStoreProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     return store.subscribe(state => {
-      if (!state.user?.pwdExpired || passwordExpiryNotified.current) {
+      // Reset the once-per-session flag when the session ends so a fresh login on the
+      // same tab can warn again if that account's password is also expired.
+      if (!state.user) {
+        passwordExpiryNotified.current = false
+        return
+      }
+
+      if (!state.user.pwdExpired || passwordExpiryNotified.current) {
         return
       }
 

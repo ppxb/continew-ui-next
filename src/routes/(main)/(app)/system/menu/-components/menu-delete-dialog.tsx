@@ -5,14 +5,29 @@ import { deleteMenu, menuKeys, type MenuResp } from '@/lib/api/menu'
 
 interface MenuDeleteDialogProps {
   readonly menu: MenuResp | null
+  /** The full (unfiltered) menu tree used to count real children; falls back to `menu` itself. */
+  readonly allMenus?: MenuResp[]
   readonly open: boolean
   readonly onClose: () => void
 }
 
-export function MenuDeleteDialog({ menu, open, onClose }: MenuDeleteDialogProps) {
+/** Returns the node with the matching id inside `tree`, or `null`. */
+function findMenu(nodes: MenuResp[], id: MenuResp['id']): MenuResp | null {
+  for (const node of nodes) {
+    if (node.id === id) return node
+    const hit = node.children?.length ? findMenu(node.children, id) : null
+    if (hit) return hit
+  }
+  return null
+}
+
+export function MenuDeleteDialog({ menu, allMenus, open, onClose }: MenuDeleteDialogProps) {
   const shownMenu = useLastRecord(menu)
 
-  const childCount = shownMenu?.children?.length ?? 0
+  // The filtered row keeps only matching children; count children on the unfiltered
+  // tree so a search that hides child nodes can't make the delete look safe.
+  const shownInFullTree = shownMenu && allMenus ? (findMenu(allMenus, shownMenu.id) ?? shownMenu) : shownMenu
+  const childCount = shownInFullTree?.children?.length ?? 0
   const hasChildren = childCount > 0
 
   const description = hasChildren ? (

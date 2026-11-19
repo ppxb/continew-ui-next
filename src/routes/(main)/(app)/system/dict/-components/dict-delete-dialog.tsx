@@ -2,7 +2,7 @@ import { DeleteConfirmDialog } from '@/components/delete-confirm-dialog'
 import { useLastRecord } from '@/hooks/use-last-record'
 import { deleteDict, deleteDictItem, dictKeys, type DictItemResp, type DictResp } from '@/lib/api/dict'
 
-export type DictDeleteTarget = { type: 'dict'; dict: DictResp } | { type: 'item'; item: DictItemResp }
+export type DictDeleteTarget = { type: 'dict'; dict: DictResp } | { type: 'item'; dict: DictResp; item: DictItemResp }
 
 interface DictDeleteDialogProps {
   readonly target: DictDeleteTarget | null
@@ -39,7 +39,10 @@ export function DictDeleteDialog({ target, open, onClose }: DictDeleteDialogProp
       }}
       // Deleting a dictionary only changes the dictionary list; its item page disappears with the
       // panel, so refetching `dictKeys.items()` there would hit a just-deleted dictionary for nothing.
-      invalidateKeys={target?.type === 'item' ? [dictKeys.items()] : [dictKeys.lists()]}
+      // An item delete must also invalidate the code-keyed dictionary cache that dropdowns read.
+      invalidateKeys={
+        target?.type === 'item' ? [dictKeys.items(), dictKeys.code(target.dict.code)] : [dictKeys.lists()]
+      }
     />
   )
 }

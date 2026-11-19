@@ -269,10 +269,12 @@ export function DictManager() {
             canCreateItem={canCreateItem}
             canUpdateItem={canUpdateItem}
             canDeleteItem={canDeleteItem}
+            canUpdateDict={canUpdateDict}
             canDeleteDict={canDeleteDict}
             onCreateItem={target => setItemFormTarget({ dict: target, item: null })}
+            onEditDict={target => setDictFormTarget({ dict: target })}
             onEditItem={(target, item) => setItemFormTarget({ dict: target, item })}
-            onDeleteItem={item => setDeleteTarget({ type: 'item', item })}
+            onDeleteItem={(dict, item) => setDeleteTarget({ type: 'item', dict, item })}
             onDeleteDict={target => setDeleteTarget({ type: 'dict', dict: target })}
           />
         ) : (
@@ -305,7 +307,7 @@ export function DictManager() {
       />
       <DictItemFormDrawer
         item={itemFormTarget?.item ?? null}
-        dictId={itemFormTarget?.dict.id ?? ''}
+        dict={itemFormTarget?.dict ?? null}
         open={itemFormTarget !== null}
         onClose={() => setItemFormTarget(null)}
       />

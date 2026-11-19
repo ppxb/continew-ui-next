@@ -85,6 +85,6 @@ export function DeptList() {
     />
     <DeptFormDrawer deptId={formTarget?.deptId ?? null} defaultParentId={formTarget?.parentId ?? null} open={formTarget !== null}
       deptTree={rawTree} onClose={() => setFormTarget(null)} />
-    <DeptDeleteDialog dept={deletingDept} open={deletingDept !== null} onClose={() => setDeletingDept(null)} />
+    <DeptDeleteDialog dept={deletingDept} allDepts={rawTree} open={deletingDept !== null} onClose={() => setDeletingDept(null)} />
   </>
 }

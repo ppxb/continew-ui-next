@@ -26,24 +26,24 @@
 
 ### P2
 
-- [ ] **【已核实】数字框删空后立即被回填**：`(app)/system/config/-components/sms/form-drawer.tsx:446,474,508,535`、`storage/form-drawer.tsx:697`（`NaN → 1/0`）；`(app)/system/dept/-components/dept-form-drawer.tsx:248`、`role-form-drawer.tsx:262`、`menu-form-drawer.tsx:410`（`valueAsNumber || 1`）。删空后马上变成 1，接着输入 5 就成了 15，`min(1)` 校验也永远触发不到。`client/form-drawer.tsx:31-35` 已有正确写法：值存字符串，用 zod 校验，提交时再转数字。建议统一改成这种写法。
+- [x] **【已核实】数字框删空后立即被回填**：`(app)/system/config/-components/sms/form-drawer.tsx:446,474,508,535`、`storage/form-drawer.tsx:697`（`NaN → 1/0`）；`(app)/system/dept/-components/dept-form-drawer.tsx:248`、`role-form-drawer.tsx:262`、`menu-form-drawer.tsx:410`（`valueAsNumber || 1`）。删空后马上变成 1，接着输入 5 就成了 15，`min(1)` 校验也永远触发不到。`client/form-drawer.tsx:31-35` 已有正确写法：值存字符串，用 zod 校验，提交时再转数字。建议统一改成这种写法。**2026-11-19 复核：已修复**，全部抽屉迁移到 `BetaSchemaForm` + `valueType:'digit'`，`DigitControl` 清空发 `null`（不再回填），zod 按字段规则校验；`valueAsNumber \|\| 1` 代码已随旧 form-drawer 删除。
 - [x] **【已核实】标签页右键"重新加载"无效**：`components/app-shell/header/header-tabs.tsx:171-179`。该操作只调用了 `router.invalidate()`，而只有 `(app)/route.tsx` 和 `(app)/$.tsx` 定义了 loader，页面数据都走 TanStack Query，所以当前页不会刷新。建议失效当前页的 query，或通过改变 key 让页面重挂载。**2026-11-19 已修复**：上游未修（其 shell 不同）；本地 `layouts/shell-store.ts` 的 `refresh()` 现在先 `queryClient.invalidateQueries()` 再 bump `refreshKey` 重挂载，tabbar 右键刷新与头部刷新按钮共用此路径。
-- [ ] **【已核实】套餐表单提交中可以点取消**：`(app)/tenant/package/-components/package-form-drawer.tsx:334`。取消按钮在 `form.Subscribe` 外，读取的 `form.state.isSubmitting` 不是响应式的，`onClick={onClose}` 也绕过了 `canClose`。建议照 `tenant-form-drawer.tsx:506-524` 把取消按钮放进 Subscribe。
+- [x] **【已核实】套餐表单提交中可以点取消**：`(app)/tenant/package/-components/package-form-drawer.tsx:334`。取消按钮在 `form.Subscribe` 外，读取的 `form.state.isSubmitting` 不是响应式的，`onClick={onClose}` 也绕过了 `canClose`。建议照 `tenant-form-drawer.tsx:506-524` 把取消按钮放进 Subscribe。**2026-11-19 复核：已修复**，抽屉已改用 `BetaSchemaForm`，`form.FormFooter` 的取消按钮订阅 `isSubmitting` 并禁用，`close()` 也额外校验提交中不关闭。
 - [x] **【已核实】会话过期时提示弹两次**：`lib/http.ts:240-248`、`stores/auth/auth-provider.tsx:47-48`。`handleSessionExpired` 触发的 handler 先 toast 一次，随后 `fail(..., silent)` 再 toast 一次。建议 `throwSessionExpired` 改为构造 `notified=true` 的 `ApiError`，不再重复 toast。**2026-11-19 已修复**：上游未修；`throwSessionExpired` 现构造 `notified=true` 的 `ApiError` 并删除自带 toast，只保留 handler 提示。
-- [ ] **【已核实】公告查看把更新时间当作发布时间**：`(app)/system/notice/-components/notice-view-drawer.tsx:51-53`。代码显示 `updateTime || createTime`，而 `NoticeResp.publishTime` 已经存在。建议改用 `publishTime`，并加上标签。
+- [x] **【已核实】公告查看把更新时间当作发布时间**：`(app)/system/notice/-components/notice-view-drawer.tsx:51-53`。代码显示 `updateTime || createTime`，而 `NoticeResp.publishTime` 已经存在。建议改用 `publishTime`，并加上标签。**2026-11-19 已修复**：`notice-columns.tsx` 查看态列改为 `publishTime || createTime`，标题改为“发布时间”。
 - [x] **【已核实】无头像时显示第三方头像**：`components/app-shell/header/user-menu.tsx:19,32,39`。回退地址是 `https://github.com/shadcn.png`，`AvatarFallback` 的首字母永远不会出现，还多发一个外部请求。建议去掉这个回退。**2026-11-19 已修复**：上游未修；`layouts/header/header-widgets.tsx`（迁移后同问题文件）删除 `AVATAR_URL`，无头像时走 `AvatarFallback` 首字母。
 - [x] **【已核实】编辑抽屉的详情不强制刷新**：`(app)/system/dept/-components/dept-form-drawer.tsx:59`、`(app)/system/config/-components/client/form-drawer.tsx:194-204`、`sms/form-drawer.tsx:142-146`、`storage/form-drawer.tsx:267-271`。这些地方用裸 `useQuery` 加 `id!`，可能拿到最长 5 分钟前的数据，与 `useDetailQuery`（打开即刷新）的约定不一致。建议统一改用 `useDetailQuery`。**2026-11-19 复核：已修复**，四处抽屉均已迁移到 `BetaSchemaForm`（`refetchOnMount:'always'`），打开即刷新。
 - [ ] **存储配置列表请求失败时显示为空**：`(app)/system/config/-components/storage/group-panel.tsx:50-58`、`config-storage.tsx:191-209`。组件没有错误分支，失败时显示"暂无配置"，也没有重试入口。建议传入 `isError`/`onRetry`，失败时渲染 `QueryState`。
-- [ ] **套餐详情关闭动画期间闪出骨架屏**：`(app)/tenant/package/-components/package-detail-drawer.tsx:40-50`。关闭时 id 置 null，查询变成 pending。建议照 `tenant-detail-drawer.tsx:47-49` 用 `useLastRecord` 保留上一条数据。
-- [ ] **表单抽屉关闭动画期间标题和字段错位**：`(app)/tenant/management/-components/tenant-form-drawer.tsx:123,227,232,319`、`(app)/tenant/package/-components/package-form-drawer.tsx:106,237`、`(app)/schedule/job/-components/job-form-drawer.tsx:174,362`。target 置 null 后 `isCreate` 变成 true，标题从"修改"跳成"新增"，租户表单还会多渲染出仅新增时才有的字段。建议保留上一次的 target 来计算 `isCreate`。
-- [ ] **邮件配置被隐藏字段的校验拦住**：`(app)/system/config/-components/config-mail.tsx:40,182-201`。`MAIL_SSL_PORT` 只在 SSL 开启时渲染，但 schema 始终要求它必填，关闭 SSL 后提交会失败且看不到错误。建议在 `superRefine` 中按 `MAIL_SSL_ENABLED` 决定是否校验。
-- [ ] **图片上传没有大小限制**：`(app)/system/config/-components/image-upload-field.tsx:37-47`。图片转成 base64 后写进配置，还会缓存到 localStorage，可能超出配额。另外 input 的 value 没有清空，同一文件无法再次选择。建议加大小上限，并在处理后执行 `event.target.value = ''`。
-- [ ] **菜单/部门搜索过滤后，删除判断用的是裁剪后的子节点**：`(app)/system/menu/-components/menu-list.tsx:36-44`、`menu-delete-dialog.tsx:14`、`(app)/system/dept/-components/dept-list.tsx:40-44`、`dept-delete-dialog.tsx:14-17`。父节点命中而子节点未命中时，`children.length===0`，弹窗会放行删除。**【待确认】** 后端是否会拒绝删除有子节点的记录。建议按 id 到原始树中取子节点数。
-- [ ] **触屏上无法修改字典**：`(app)/system/dict/-components/dict-manager.tsx:230`。操作菜单只在 hover 或 focus-within 时可见，右侧面板也没有"修改"入口。建议让按钮常驻，或在面板中补上修改入口。
-- [ ] **xl 以下无法按文件类型筛选**：`(app)/system/file/-components/file-storage-card.tsx:68-70`。类型导航是 `hidden xl:flex`，小屏上没有替代入口。
-- [ ] **用户/角色页没有前端权限控制**：`(app)/system/user/-components/user-list.tsx:174-185`、`user-columns.tsx:73-97`、`(app)/system/role/-components/role-list.tsx:110`、`role-columns.tsx:58-75`。dept/menu 页面用 `hasPermission` 控制按钮显隐，user/role 页面完全没有。建议统一使用 `Can`/`usePermission`。
-- [ ] **退出后重新登录不再提示密码过期**：`stores/auth/auth-provider.tsx:23,36-42`。`passwordExpiryNotified` 置 true 后从不复位，同一标签页换账号登录时不会提示。
-- [ ] **改了字典项，其他页面的字典选项不刷新**：`(app)/system/dict/-components/dict-item-form-drawer.tsx:86`、`dict-delete-dialog.tsx:42`。没有失效 `dictKeys.code(code)`。**【待确认】** 后端字典缓存的清除时机。
+- [x] **套餐详情关闭动画期间闪出骨架屏**：`(app)/tenant/package/-components/package-detail-drawer.tsx:40-50`。关闭时 id 置 null，查询变成 pending。建议照 `tenant-detail-drawer.tsx:47-49` 用 `useLastRecord` 保留上一条数据。**2026-11-19 已修复**：`useLastRecord` 保留上一条套餐，关闭动画期间不再闪骨架屏。
+- [x] **表单抽屉关闭动画期间标题和字段错位**：`(app)/tenant/management/-components/tenant-form-drawer.tsx:123,227,232,319`、`(app)/tenant/package/-components/package-form-drawer.tsx:106,237`、`(app)/schedule/job/-components/job-form-drawer.tsx:174,362`。target 置 null 后 `isCreate` 变成 true，标题从"修改"跳成"新增"，租户表单还会多渲染出仅新增时才有的字段。建议保留上一次的 target 来计算 `isCreate`。**2026-11-19 复核：已修复**，`BetaSchemaForm` 关闭期间保留上次 identity/entity，`isCreate` 不再跳变。
+- [x] **邮件配置被隐藏字段的校验拦住**：`(app)/system/config/-components/config-mail.tsx:40,182-201`。`MAIL_SSL_PORT` 只在 SSL 开启时渲染，但 schema 始终要求它必填，关闭 SSL 后提交会失败且看不到错误。建议在 `superRefine` 中按 `MAIL_SSL_ENABLED` 决定是否校验。**2026-11-19 复核：已修复**，`MAIL_SSL_PORT` 已迁移到 `dependency` 列，仅 `MAIL_SSL_ENABLED === 1` 时渲染；schema 中 `MAIL_SSL_PORT` 不再必填。
+- [x] **图片上传没有大小限制**：`(app)/system/config/-components/image-upload-field.tsx:37-47`。图片转成 base64 后写进配置，还会缓存到 localStorage，可能超出配额。另外 input 的 value 没有清空，同一文件无法再次选择。建议加大小上限，并在处理后执行 `event.target.value = ''`。**2026-11-19 复核：已修复**，`65742f5` 已加 1 MB 上限，input value 清空逻辑保留。
+- [x] **菜单/部门搜索过滤后，删除判断用的是裁剪后的子节点**：`(app)/system/menu/-components/menu-list.tsx:36-44`、`menu-delete-dialog.tsx:14`、`(app)/system/dept/-components/dept-list.tsx:40-44`、`dept-delete-dialog.tsx:14-17`。父节点命中而子节点未命中时，`children.length===0`，弹窗会放行删除。**【待确认】** 后端是否会拒绝删除有子节点的记录。建议按 id 到原始树中取子节点数。**2026-11-19 已修复**：两个删除对话框新增 `allMenus`/`allDepts`（完整树），子节点数从完整树取，过滤隐藏的子节点不再放行。
+- [x] **触屏上无法修改字典**：`(app)/system/dict/-components/dict-manager.tsx:230`。操作菜单只在 hover 或 focus-within 时可见，右侧面板也没有"修改"入口。建议让按钮常驻，或在面板中补上修改入口。**2026-11-19 已修复**：右侧 `DictItemPanel` 工具栏新增“修改字典”按钮（`canUpdateDict` 时显示），触屏可用；左侧 hover 菜单保持不变。
+- [x] **xl 以下无法按文件类型筛选**：`(app)/system/file/-components/file-storage-card.tsx:68-70`。类型导航是 `hidden xl:flex`，小屏上没有替代入口。**2026-11-19 复核：已修**，小屏已提供替代类型筛选入口。
+- [x] **用户/角色页没有前端权限控制**：`(app)/system/user/-components/user-list.tsx:174-185`、`user-columns.tsx:73-97`、`(app)/system/role/-components/role-list.tsx:110`、`role-columns.tsx:58-75`。dept/menu 页面用 `hasPermission` 控制按钮显隐，user/role 页面完全没有。建议统一使用 `Can`/`usePermission`。**2026-11-19 复核：已修**，`user-list`/`user-columns`/`role-list`/`role-columns` 均已接入 `hasPermission`/`Can`。
+- [x] **退出后重新登录不再提示密码过期**：`stores/auth/auth-provider.tsx:23,36-42`。`passwordExpiryNotified` 置 true 后从不复位，同一标签页换账号登录时不会提示。**2026-11-19 已修复**：`state.user` 变为 null（登出/会话清理）时复位标志，重新登录会重新提示。
+- [x] **改了字典项，其他页面的字典选项不刷新**：`(app)/system/dict/-components/dict-item-form-drawer.tsx:86`、`dict-delete-dialog.tsx:42`。没有失效 `dictKeys.code(code)`。**【待确认】** 后端字典缓存的清除时机。**2026-11-19 已修复（前端部分）**：保存和删除字典项时同时失效 `dictKeys.items()` 与 `dictKeys.code(dict.code)`，下拉选项立即刷新。后端缓存由“清除缓存”按钮按 code 逐个清理，保持现状。
 - [ ] **【待确认】关闭“父子联动”后套餐仍补齐祖先菜单**：`(app)/tenant/package/-components/package-form-drawer.tsx:119-130`。`menuCheckStrictly=true` 时树只勾叶子，但提交前 `selectedMenuIds()` 仍补全所有祖先；级联修复后这段对非 strict 模式也是冗余。同一文件还为兜底单独 `buildTreeIndex` 了一次（`:113`），与 `CheckableTree` 内部重复。建议确认后端是否强制要求祖先 id，再决定删除或只在非 strict 时补。
 - [ ] **【待确认】回跳地址校验不严**：`(main)/auth/-components/login-form.tsx:77`、`(main)/social/callback/route.tsx:41`。只校验了 `startsWith('/')`，`//evil.com` 也能通过。`hooks/use-site-options.ts:11` 已经排除了 `//`。建议抽一个共用的 `isSafeRedirect`。
 - [ ] **【待确认】任意 403 都会整页跳转**：`lib/http.ts:293-295,358-360`。按钮操作、字典这类次要请求返回 403 也会跳到 `/unauthorized`，用户会丢失当前页面状态。
@@ -52,8 +52,8 @@
 
 ### P3
 
-- [ ] **【已核实】个人中心密码规则提示与实际规则不符**：`(app)/dashboard/profile/-components/password-form.tsx:26-28`。正则要求小写字母，提示语却写"字母"，规则也与 `lib/password.ts` 重复定义。建议直接复用 `lib/password.ts`。
-- [ ] **标签数超上限时删掉的是最新标签**：`stores/tabs.ts:67-75`。`slice(0, MAX-1)` 删的是最新的，与注释写的"最旧"相反。
+- [x] **【已核实】个人中心密码规则提示与实际规则不符**：`(app)/dashboard/profile/-components/password-form.tsx:26-28`。正则要求小写字母，提示语却写"字母"，规则也与 `lib/password.ts` 重复定义。建议直接复用 `lib/password.ts`。**2026-11-19 已修复**：`newPasswordRule` 改用 `PASSWORD_PATTERN`（小写+数字+8-32），提示文案与 `lib/password.ts` 一致。
+- [x] **标签数超上限时删掉的是最新标签**：`stores/tabs.ts:67-75`。`slice(0, MAX-1)` 删的是最新的，与注释写的"最旧"相反。**2026-11-19 复核：已修**，现按 `visitHistory` LRU 剔除最不常用的可关闭标签。
 - [ ] **按位置排列的骨架宽度与列错位**：`(app)/open/app/-components/app-list.tsx:153`。隐藏列后错位还会继续加剧。建议改为按列 id 映射。
 - [ ] **ul 内放了 span**：`(app)/system/file/-components/file-manager.tsx:319`。`PaginationContent`（ul）里直接放 `<span>`，HTML 结构不合法。
 - [ ] **清空时间被强制改回 00:00**：`(app)/system/notice/-components/notice-publish-time-picker.tsx:41-48`。
@@ -61,8 +61,8 @@
 - [ ] **【待确认】日志 search 只作初始值**：`(app)/schedule/log/-components/job-log-list.tsx:61-64`。URL 中的 search 之后不再同步，同路由内导航后隐藏的 jobId 筛选会残留。
 - [ ] **数组查询参数被拼成逗号串**：`lib/http.ts:121-124` 及各 `lib/api/*.ts` 中的 `query as Query`。多字段排序会合并成 `a,asc,b,desc`。建议数组逐个 `append`。
 - [ ] **雪花 id 类型标注不准**：`lib/api/types.ts:65,79,97-98`。id 标为 number，但 FLEXIBLE 模式下大 id 会以字符串返回。
-- [ ] **导出吞掉了所有异常**：`hooks/use-export.ts:18-20`。`blob()` 失败这类错误没有任何提示。建议改为 `reportError(e)`。
-- [ ] **验证码请求有竞态**：`hooks/use-captcha.ts:12-57`。请求不可取消，连续刷新时旧响应可能覆盖新响应。建议改用 `useQuery`。
+- [x] **导出吞掉了所有异常**：`hooks/use-export.ts:18-20`。`blob()` 失败这类错误没有任何提示。建议改为 `reportError(e)`。**2026-11-19 已修复**：catch 分支改为 `reportError(error, '导出失败，请重试')`，HTTP 层已 toast 的错误仍被 `notified` 抑制不重复提示。
+- [x] **验证码请求有竞态**：`hooks/use-captcha.ts:12-57`。请求不可取消，连续刷新时旧响应可能覆盖新响应。建议改用 `useQuery`。**2026-11-19 已修复**：重写为 `useQuery`（`captchaKeys.image()`，`gcTime:0`/`retry:false`），并发刷新由 TanStack 去重，过期逻辑保留；`getImageCaptcha` 透传 `signal`。
 - [ ] **【待确认】下载受 30s 超时限制**：`lib/http.ts:69,274-282`。超时还会被报成"网络连接失败"。
 - [ ] **【待确认】清空字段可能不生效**：`(app)/open/app/-components/app-form-drawer.tsx:106-107`。清空描述时发送的是 `undefined`，取决于后端的更新策略。
 - [ ] **【待确认】最后登录时间可能取错**：`(app)/dashboard/profile/-components/profile-status-sidebar.tsx:25-42`。如果 `createUserString` 是模糊匹配，可能命中其他用户的记录。
@@ -82,7 +82,7 @@
 - [ ] **P2** `components/json-viewer/themes.ts`（693 行）及 `json-viewer.tsx:14-18,57-90,159-177,234-247`：唯一调用方没有传 `colorTheme` 等参数，主题系统不会生效，但主题表被打进了包。
 - [ ] **【已核实】P2** `(app)/dashboard/$.tsx`：页面是英文 "Page not found."，还绕过了父路由统一的 `notFoundComponent`，文件带 BOM。建议删除。
 - [ ] **【已核实】P3** `(app)/system/config/-components/storage/display.tsx:15-17`：`storageTypeDescription` 没有引用。
-- [ ] **P3** `lib/api/common.ts:9-28`：`uploadFile` 和 `FileUploadResp` 与 `lib/api/file.ts:57-80` 重复，且没有调用方。
+- [x] **P3** `lib/api/common.ts:9-28`：`uploadFile` 和 `FileUploadResp` 与 `lib/api/file.ts:57-80` 重复，且没有调用方。**2026-11-19 已修复**：删除 `common.ts` 中无调用方的 `uploadFile`/`FileUploadResp`，唯一上传入口保留 `lib/api/file.ts`。
 - [ ] **P3** 没有调用方的导出：`lib/utils.ts` 的 `formatCurrency`、`hooks/use-lg.ts` 的 `useIsLg`、`hooks/use-permission.ts:27` 的 `hasAllPermissions`、`lib/api/app.ts:79` 的 `deleteApps`、`lib/api/role.ts:155` 的 `deleteRole`、`lib/api/dict.ts:67,91` 的 `getDict`/`getDictItem`、`lib/api/job.ts:81` 的 `JOB_STATUS_LABELS`、`lib/api/types.ts:21` 的 `AuthType`。另外 `lib/api/auth.ts:18` 的 `tenantCode` 参数从未传入；`lib/api/user.ts:40-44` 重复定义了 `PageResp`。
 - [ ] **P3** `stores/auth/auth-store.ts:30-31`：`roles`、`isLoadingUser` 在 store 外没有读取。
 - [ ] **P3** `styles/theme-colors.css`：`--destructive-foreground` 定义了 18 处，但没有映射到 `@theme`，也没有使用。

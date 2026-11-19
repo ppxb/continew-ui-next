@@ -142,6 +142,11 @@ export const noticeKeys = {
   detail: (id: string | number | null) => [...noticeKeys.details(), id] as const
 }
 
+export const captchaKeys = {
+  all: ['captcha'] as const,
+  image: () => [...captchaKeys.all, 'image'] as const
+}
+
 export const siteOptionKeys = {
   all: ['system', 'site-option'] as const
 }

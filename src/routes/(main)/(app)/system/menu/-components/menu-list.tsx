@@ -95,6 +95,6 @@ export function MenuList() {
     />
     <MenuFormDrawer menuId={formTarget?.menuId ?? null} defaultParentId={formTarget?.parentId ?? null}
       open={formTarget !== null} onClose={() => setFormTarget(null)} menuTree={rawTree} />
-    <MenuDeleteDialog menu={deletingMenu} open={deletingMenu !== null} onClose={() => setDeletingMenu(null)} />
+    <MenuDeleteDialog menu={deletingMenu} allMenus={rawTree} open={deletingMenu !== null} onClose={() => setDeletingMenu(null)} />
   </>
 }

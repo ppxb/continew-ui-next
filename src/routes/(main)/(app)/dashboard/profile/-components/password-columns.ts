@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 import type { ProColumns } from '@/components/pro'
+import { PASSWORD_PATTERN } from '@/lib/password'
 
 export interface PasswordFormValues {
   oldPassword: string
@@ -8,11 +9,9 @@ export interface PasswordFormValues {
   confirmPassword: string
 }
 
-/** Keep the existing backend PASSWORD policy, without trimming password bytes. */
+/** Mirrors the backend password policy; pattern shared with `lib/password.ts`. */
 export const newPasswordRule = z.string()
-  .min(8, '新密码长度为 8-32 个字符')
-  .max(32, '新密码长度为 8-32 个字符')
-  .regex(/(?=.*\d)(?=.*[a-z])/, '新密码至少包含一个字母和一个数字')
+  .regex(PASSWORD_PATTERN, '新密码长度为 8-32 个字符，且至少包含一个小写字母和一个数字')
 
 export const passwordColumns = [
   {

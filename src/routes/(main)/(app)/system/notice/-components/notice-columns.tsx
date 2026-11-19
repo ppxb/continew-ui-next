@@ -141,7 +141,7 @@ export function noticeColumns(dicts: NoticeDicts, readerView = false): ProColumn
       formItemProps: { rules: noticeFormRules.isTop, required: false, description: '置顶公告在列表和通知中优先展示', className: 'sm:col-span-2' },
       render: (_, notice, _index, _action, schema) => schema.type === 'table' ? <FlagBadge active={notice.isTop} activeLabel="是" inactiveLabel="否" /> : notice.isTop ? '是' : '否'
     },
-    { title: '创建时间', dataIndex: 'createTime', valueType: 'dateTime', hideInTable: true, hideInForm: true, render: (dom, notice) => readerView ? notice.updateTime || notice.createTime || EMPTY_PLACEHOLDER : dom },
+    { title: '发布时间', dataIndex: 'createTime', valueType: 'dateTime', hideInTable: true, hideInForm: true, render: (dom, notice) => readerView ? notice.publishTime || notice.createTime || EMPTY_PLACEHOLDER : dom },
     { title: '修改人', dataIndex: 'updateUserString', hideInTable: true, hideInForm: true },
     { title: '修改时间', dataIndex: 'updateTime', valueType: 'dateTime', hideInTable: true, hideInForm: true },
     {

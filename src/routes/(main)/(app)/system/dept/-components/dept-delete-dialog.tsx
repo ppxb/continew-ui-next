@@ -4,14 +4,29 @@ import { deleteDept, deptKeys, type DeptResp } from '@/lib/api/dept'
 
 interface DeptDeleteDialogProps {
   readonly dept: DeptResp | null
+  /** The full (unfiltered) dept tree used to count real children; falls back to `dept` itself. */
+  readonly allDepts?: DeptResp[]
   readonly open: boolean
   readonly onClose: () => void
 }
 
-export function DeptDeleteDialog({ dept, open, onClose }: DeptDeleteDialogProps) {
+/** Returns the node with the matching id inside `tree`, or `null`. */
+function findDept(nodes: DeptResp[], id: DeptResp['id']): DeptResp | null {
+  for (const node of nodes) {
+    if (node.id === id) return node
+    const hit = node.children?.length ? findDept(node.children, id) : null
+    if (hit) return hit
+  }
+  return null
+}
+
+export function DeptDeleteDialog({ dept, allDepts, open, onClose }: DeptDeleteDialogProps) {
   const shownDept = useLastRecord(dept)
 
-  const childCount = shownDept?.children?.length ?? 0
+  // The filtered row keeps only matching children; count children on the unfiltered
+  // tree so a search that hides child nodes can't make the delete look safe.
+  const shownInFullTree = shownDept && allDepts ? (findDept(allDepts, shownDept.id) ?? shownDept) : shownDept
+  const childCount = shownInFullTree?.children?.length ?? 0
   const hasChildren = childCount > 0
   const isSystem = Boolean(shownDept?.isSystem)
   const cannotDelete = hasChildren || isSystem

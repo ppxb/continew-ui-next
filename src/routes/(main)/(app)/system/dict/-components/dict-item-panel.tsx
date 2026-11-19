@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import { Plus, Trash2 } from 'lucide-react'
+import { Pencil, Plus, Trash2 } from 'lucide-react'
 
 import { ProTable } from '@/components/pro'
 import { RowActionsMenu } from '@/components/row-actions-menu'
@@ -18,10 +18,12 @@ interface DictItemPanelProps {
   readonly canCreateItem: boolean
   readonly canUpdateItem: boolean
   readonly canDeleteItem: boolean
+  readonly canUpdateDict: boolean
   readonly canDeleteDict: boolean
   readonly onCreateItem: (dict: DictResp) => void
   readonly onEditItem: (dict: DictResp, item: DictItemResp) => void
-  readonly onDeleteItem: (item: DictItemResp) => void
+  readonly onEditDict: (dict: DictResp) => void
+  readonly onDeleteItem: (dict: DictResp, item: DictItemResp) => void
   readonly onDeleteDict: (dict: DictResp) => void
 }
 
@@ -32,7 +34,9 @@ export function DictItemPanel({
   canUpdateItem,
   canDeleteItem,
   canDeleteDict,
+  canUpdateDict,
   onCreateItem,
+  onEditDict,
   onEditItem,
   onDeleteItem,
   onDeleteDict
@@ -44,7 +48,7 @@ export function DictItemPanel({
         return
       }
 
-      onDeleteItem(item)
+      onDeleteItem(dict, item)
     },
     [dict, onEditItem, onDeleteItem]
   )
@@ -89,6 +93,7 @@ export function DictItemPanel({
         }}
         locale={{ emptyText: '暂无字典项' }}
         toolBarRender={() => [
+          canUpdateDict && <Button key="edit" variant="outline" onClick={() => onEditDict(dict)}><Pencil />修改字典</Button>,
           canCreateItem && <Button key="create" onClick={() => onCreateItem(dict)}><Plus />新增字典项</Button>,
           canDeleteThisDict && <RowActionsMenu key="delete" triggerVariant="outline" triggerSize="icon">
             <DropdownMenuItem variant="destructive" onClick={() => onDeleteDict(dict)}><Trash2 />删除字典</DropdownMenuItem>

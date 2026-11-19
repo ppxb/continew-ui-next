@@ -8,6 +8,6 @@ import type { CaptchaResp } from './types'
  * `isEnabled` reports whether the backend requires it, and `uuid` must be sent
  * back with the login request.
  */
-export function getImageCaptcha() {
-  return http.get<CaptchaResp>('/captcha/image', { skipAuthRefresh: true, silent: true })
+export function getImageCaptcha(signal?: AbortSignal) {
+  return http.get<CaptchaResp>('/captcha/image', { signal, skipAuthRefresh: true, silent: true })
 }

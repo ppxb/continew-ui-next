@@ -1,6 +1,9 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
+
+import { useQuery } from '@tanstack/react-query'
 
 import { getImageCaptcha } from '@/lib/api/captcha'
+import { captchaKeys } from '@/lib/query-keys'
 
 export type CaptchaState = {
   uuid: string
@@ -9,38 +12,26 @@ export type CaptchaState = {
   expireTime?: number
 }
 
+/**
+ * Fetch the login captcha through TanStack Query: `refetch()` dedupes concurrent refreshes and an
+ * in-flight request is aborted when a newer one starts, so a stale image can never overwrite a
+ * fresh one. The captcha is optional — a failed fetch must not block the login form.
+ */
 export function useCaptcha() {
-  const [captcha, setCaptcha] = useState<CaptchaState | null>(null)
+  const query = useQuery({
+    queryKey: captchaKeys.image(),
+    queryFn: ({ signal }) => getImageCaptcha(signal),
+    // Every open of the login form should fetch a new captcha.
+    staleTime: 0,
+    gcTime: 0,
+    retry: false
+  })
+  const captcha = query.data ?? null
   const [isExpired, setIsExpired] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-
-  const refresh = useCallback(async () => {
-    setIsLoading(true)
-
-    try {
-      const payload = await getImageCaptcha()
-      setCaptcha({
-        uuid: payload.uuid,
-        img: payload.img,
-        isEnabled: payload.isEnabled,
-        expireTime: payload.expireTime
-      })
-      setIsExpired(false)
-    } catch {
-      // The captcha is optional: a failed request must not block the login form.
-      setCaptcha(null)
-      setIsExpired(false)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    void refresh()
-  }, [refresh])
 
   useEffect(() => {
     const expireTime = captcha?.expireTime
+    setIsExpired(false)
 
     if (!expireTime) {
       return
@@ -62,7 +53,7 @@ export function useCaptcha() {
     isEnabled: captcha?.isEnabled ?? false,
     /** True once the captcha TTL has elapsed; the image can no longer be used. */
     isExpired: captcha !== null && isExpired,
-    isLoading,
-    refresh
+    isLoading: query.isFetching,
+    refresh: () => query.refetch()
   }
 }
