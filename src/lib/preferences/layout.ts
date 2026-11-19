@@ -46,6 +46,7 @@ export type Radius = (typeof RADIUS_VALUES)[number]
 
 // Layout mode
 export const LAYOUT_MODE_OPTIONS = [
+  { label: '经典', value: 'sidebar-tree-nav', description: '传统左侧折叠菜单，一级目录可展开收起' },
   { label: '垂直', value: 'sidebar-nav', description: '侧边菜单布局' },
   { label: '双列菜单', value: 'sidebar-mixed-nav', description: '垂直双列菜单模式' },
   { label: '水平', value: 'header-nav', description: '水平菜单模式，菜单全部显示在顶部' },

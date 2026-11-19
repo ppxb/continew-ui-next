@@ -25,7 +25,8 @@ function LayoutPreview({ layout }: { layout: LayoutMode }) {
   const headerTop = ['header-nav', 'header-sidebar-nav', 'mixed-nav', 'header-mixed-nav'].includes(layout)
   const header = layout !== 'full-content'
   const root = ['sidebar-mixed-nav', 'header-mixed-nav'].includes(layout)
-  const side = ['sidebar-nav', 'header-sidebar-nav', 'mixed-nav'].includes(layout) || root
+  const tree = layout === 'sidebar-tree-nav'
+  const side = ['sidebar-nav', 'header-sidebar-nav', 'mixed-nav'].includes(layout) || root || tree
   const sideTop = headerTop ? 9 : 0
   const rootW = root ? 9 : 0
   const sideW = side ? (root ? 15 : 22) : 0
@@ -37,6 +38,14 @@ function LayoutPreview({ layout }: { layout: LayoutMode }) {
       <rect width="104" height="66" rx="4" fill="currentColor" fillOpacity="0.02" />
       {root && <rect x="0" y={sideTop} width={rootW} height={66 - sideTop} fill={PRIMARY} />}
       {side && <rect x={rootW} y={sideTop} width={sideW} height={66 - sideTop} fill={root ? MUTED : PRIMARY} fillOpacity={root ? 1 : 0.9} />}
+      {tree &&
+        [
+          [4, 13, 14],
+          [8, 19, 10],
+          [8, 25, 10],
+          [4, 31, 14],
+          [4, 37, 14]
+        ].map(([x, y, w]) => <rect key={y} x={x} y={y} width={w} height="2.5" rx="1.25" fill="white" fillOpacity="0.7" />)}
       {header && (
         <rect
           x={headerX}

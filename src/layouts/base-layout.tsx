@@ -17,6 +17,7 @@ import {
   isMenuItemActive,
   isMenuRootActive,
   toMenuRoots,
+  toMenuTree,
   type MenuGroup,
   type MenuRoot
 } from '@/navigation/menu'
@@ -68,6 +69,7 @@ type LayoutFlags = {
 
 const LAYOUT_FLAGS: Record<LayoutMode, LayoutFlags> = {
   'sidebar-nav': { sidebar: 'primary', headerOnTop: false, headerMenu: null },
+  'sidebar-tree-nav': { sidebar: 'primary', headerOnTop: false, headerMenu: null },
   'sidebar-mixed-nav': { sidebar: 'mixed', headerOnTop: false, headerMenu: null },
   'header-nav': { sidebar: null, headerOnTop: true, headerMenu: 'navigate' },
   'header-sidebar-nav': { sidebar: 'primary', headerOnTop: true, headerMenu: null },
@@ -220,12 +222,15 @@ export function BaseLayout({ defaultOpen, children }: { defaultOpen: boolean; ch
 
   // Warm the preferences chunk while idle, so the first open is instant.
   React.useEffect(() => {
-    const id = window.requestIdleCallback?.(() => void loadPreferencesSheet()) ?? window.setTimeout(() => void loadPreferencesSheet(), 2000)
+    const id =
+      window.requestIdleCallback?.(() => void loadPreferencesSheet().then(() => setPreferencesMounted(true))) ??
+      window.setTimeout(() => void loadPreferencesSheet().then(() => setPreferencesMounted(true)), 2000)
     return () => (window.cancelIdleCallback ? window.cancelIdleCallback(id) : window.clearTimeout(id))
   }, [])
 
   // Mobile always uses the vertical layout: horizontal menus do not fit.
-  const layout: LayoutMode = isMobile && p.layout !== 'full-content' ? 'sidebar-nav' : p.layout
+  const layout: LayoutMode =
+    isMobile && p.layout !== 'full-content' && p.layout !== 'sidebar-tree-nav' ? 'sidebar-nav' : p.layout
   const flags = LAYOUT_FLAGS[layout]
   const splitEmpty = layout === 'mixed-nav' && p.navigationSplit && !selectedRootItems(roots, selectedId)
   const sidebarKind = contentMaximized || !p.sidebarEnable || p.sidebarHidden || splitEmpty ? null : flags.sidebar
@@ -255,8 +260,15 @@ export function BaseLayout({ defaultOpen, children }: { defaultOpen: boolean; ch
   // Sidebar content per layout; memoised so the sidebar skips renders that do not change it.
   const splitRoot = layout === 'mixed-nav' && p.navigationSplit ? selectedRoot : undefined
   const sidebarGroups = React.useMemo<readonly MenuGroup[]>(
-    () => (splitRoot ? (splitRoot.link ? [] : [{ id: splitRoot.id, items: [...splitRoot.items] }]) : groups),
-    [splitRoot, groups]
+    () =>
+      splitRoot
+        ? splitRoot.link
+          ? []
+          : [{ id: splitRoot.id, items: [...splitRoot.items] }]
+        : layout === 'sidebar-tree-nav'
+          ? toMenuTree(groups)
+          : groups,
+    [splitRoot, groups, layout]
   )
 
   // Two-column layouts: roots in the first column. In header-mixed the header carries the
