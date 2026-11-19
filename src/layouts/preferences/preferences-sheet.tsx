@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react'
+
 import { cn } from 'cn'
 import { Copy, Pin, PinOff, RotateCcw } from 'lucide-react'
 import { useShallow } from 'zustand/react/shallow'
@@ -29,6 +31,7 @@ function useHasChanges() {
 export function PreferencesSheet() {
   const open = useShellStore(state => state.preferencesOpen)
   const setOpen = useShellStore(state => state.setPreferencesOpen)
+  const [mounted, setMounted] = useState(false)
   const store = usePreferencesStoreApi()
   const logout = useLogout()
   const hasChanges = useHasChanges()
@@ -58,8 +61,12 @@ export function PreferencesSheet() {
     void logout()
   }
 
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
+    <Sheet open={open && mounted} onOpenChange={setOpen}>
       <SheetContent className="w-[400px] gap-0 sm:max-w-[400px]" showCloseButton>
         <SheetHeader className="border-b pr-24">
           <SheetTitle>偏好设置</SheetTitle>

@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { Highlight as SidebarHighlight } from '@animate-ui/react/primitives/sidebar'
 import { mergeProps } from '@base-ui/react/merge-props'
 import { useRender } from '@base-ui/react/use-render'
 import { cva, type VariantProps } from 'class-variance-authority'
@@ -339,7 +340,7 @@ function SidebarSeparator({ className, ...props }: React.ComponentProps<typeof S
 
 function SidebarContent({ className, ...props }: React.ComponentProps<'div'>) {
   return (
-    <div
+    <SidebarHighlight
       data-slot="sidebar-content"
       data-sidebar="content"
       className={cn(

@@ -1,5 +1,7 @@
 import { createContext, use, useEffect, useState } from 'react'
 
+import { AnimateUIProvider } from '@animate-ui/react/provider'
+
 import { type StoreApi, useStore } from 'zustand'
 
 import type { PreferenceValueMap } from '@/lib/preferences/preferences-config'
@@ -11,6 +13,7 @@ const PreferencesStoreContext = createContext<StoreApi<PreferencesState> | null>
 
 export function PreferencesStoreProvider({ children }: { children: React.ReactNode }) {
   const [store] = useState<StoreApi<PreferencesState>>(() => createPreferencesStore())
+  const animationEnable = useStore(store, state => state.values.animation_enable)
 
   useEffect(() => {
     let unsubscribeMedia: (() => void) | undefined
@@ -40,7 +43,11 @@ export function PreferencesStoreProvider({ children }: { children: React.ReactNo
     }
   }, [store])
 
-  return <PreferencesStoreContext.Provider value={store}>{children}</PreferencesStoreContext.Provider>
+  return (
+    <PreferencesStoreContext.Provider value={store}>
+      <AnimateUIProvider reducedMotion={animationEnable ? 'user' : 'always'}>{children}</AnimateUIProvider>
+    </PreferencesStoreContext.Provider>
+  )
 }
 
 /** The store itself, for event handlers that read the latest values without subscribing. */

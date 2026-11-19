@@ -1,5 +1,6 @@
 import * as React from 'react'
 
+import { Highlight as SidebarHighlight } from '@animate-ui/react/primitives/sidebar'
 import { cn } from 'cn'
 import { Pin, PinOff } from 'lucide-react'
 import { useShallow } from 'zustand/react/shallow'
@@ -149,9 +150,9 @@ export function MixedSidebar({ entries, selectedId, onSelect, topOffset, showBra
             </Tooltip>
           )}
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto">
+        <SidebarHighlight className="min-h-0 flex-1 overflow-y-auto">
           <NavMain items={groups} />
-        </div>
+        </SidebarHighlight>
       </div>
     </aside>
   )

@@ -138,7 +138,7 @@ const NavItem = React.memo(function NavItem({ item, pathname, open, onToggle, fo
   const { state, isMobile } = useSidebar()
   const isCollapsedDesktop = state === 'collapsed' && !isMobile && !forceExpanded
   // Tooltips only make sense on the bare icon rail.
-  const tooltip = isCollapsedDesktop ? item.title : undefined
+  const tooltip = { children: item.title, hidden: !isCollapsedDesktop }
   const isActive = isMenuItemActive(item, pathname)
 
   if (!hasSubItems(item)) {
