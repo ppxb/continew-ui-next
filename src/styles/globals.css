@@ -311,10 +311,11 @@
   border-radius: 0;
 }
 
-/* Collapsed sidebar that keeps the titles under the icons. In the utilities layer so these
-   !important rules win over the `size-8!`/`p-2!` utilities on the menu button. */
+/* Collapsed sidebar that keeps the titles under the icons. Scoped to the nav area so the
+   brand button in the sidebar header keeps its icon-only look. In the utilities layer so
+   these !important rules win over the `size-8!`/`p-2!` utilities on the menu button. */
 @layer utilities {
-  :root[data-sidebar-show-title='true'] [data-slot='sidebar'][data-collapsible='icon'] [data-sidebar='menu-button'] {
+  :root[data-sidebar-show-title='true'] [data-slot='sidebar'][data-collapsible='icon'] [data-slot='sidebar-content'] [data-sidebar='menu-button'] {
     width: 100% !important;
     height: 3.25rem !important;
     flex-direction: column;
@@ -323,7 +324,7 @@
     padding: 0.35rem 0.25rem !important;
   }
 
-  :root[data-sidebar-show-title='true'] [data-slot='sidebar'][data-collapsible='icon'] [data-sidebar='menu-button'] > span:last-child {
+  :root[data-sidebar-show-title='true'] [data-slot='sidebar'][data-collapsible='icon'] [data-slot='sidebar-content'] [data-sidebar='menu-button'] > span:last-child {
     display: block;
     max-width: 100%;
     font-size: 0.625rem;
@@ -331,7 +332,7 @@
     text-align: center;
   }
 
-  :root[data-sidebar-show-title='true'] [data-slot='sidebar'][data-collapsible='icon'] [data-sidebar='menu-button'] > svg:last-child:not(:first-child) {
+  :root[data-sidebar-show-title='true'] [data-slot='sidebar'][data-collapsible='icon'] [data-slot='sidebar-content'] [data-sidebar='menu-button'] > svg:last-child:not(:first-child) {
     display: none;
   }
 }

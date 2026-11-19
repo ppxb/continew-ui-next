@@ -27,11 +27,11 @@ export function SidebarBrand() {
     <SidebarMenu>
       <SidebarMenuItem>
         <SidebarMenuButton
-          className="h-10 p-1 hover:bg-transparent active:bg-transparent group-data-[collapsible=icon]:p-0!"
+          className="h-10 p-1 hover:bg-transparent active:bg-transparent group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:p-0!"
           render={<Link to="/dashboard" aria-label={title || '返回仪表盘'} />}
         >
           <img src={logo} alt="" className="size-8 shrink-0 object-contain" />
-          <span className="text-base font-semibold">{title}</span>
+          <span className="text-base font-semibold group-data-[collapsible=icon]:hidden">{title}</span>
         </SidebarMenuButton>
       </SidebarMenuItem>
     </SidebarMenu>
