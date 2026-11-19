@@ -20,7 +20,6 @@ export default defineConfig(({ mode }) => {
 
   return {
     base: VITE_BASE_PATH || '/',
-    cacheDir: 'node_modules/.vite/app',
     resolve: {
       tsconfigPaths: true
     },

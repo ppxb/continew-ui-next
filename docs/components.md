@@ -78,7 +78,6 @@ const columns = [
 - 分页器当前页使用主题主色背景、边框和对应前景色，切换主题色或亮／暗模式即时同步；悬停仍保持主题色高亮。
 - 自定义类型通过 `ProConfigProvider.valueTypeMap` 注册读/编辑实现，类型通过声明合并登记。项目注册表在 `src/components/pro-value-types.tsx`，已经在根组件挂载。
 - 配置是类型化 TS 对象，不是纯 JSON：zod 和渲染/联动函数仍在代码里。没有引入 antd 或新依赖。
-- 主应用 Vite 依赖预构建缓存使用 `node_modules/.vite/app`；独立组件预览应使用不同的 `cacheDir`，避免覆盖缓存造成 `Outdated Optimize Dep` 和动态导入失败。
 - 主后台页面已迁移到配置式组件；权限／成员选择器、文件网格、上传队列、看板图表等专用控件保留原布局和行为。
 
 ### 已迁移模块
