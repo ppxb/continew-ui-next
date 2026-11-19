@@ -21,22 +21,40 @@ export interface ProFieldProps<T> {
   emptyText?: ReactNode
 }
 
-export function ProField<T>({ column, value, entity, type, mode = 'read', light, form, control, emptyText = EMPTY_PLACEHOLDER }: ProFieldProps<T>) {
+export function ProField<T>({
+  column,
+  value,
+  entity,
+  type,
+  mode = 'read',
+  light,
+  form,
+  control,
+  emptyText = EMPTY_PLACEHOLDER
+}: ProFieldProps<T>) {
   const registry = useProConfig()
   const options = useFieldOptions(column)
   const valueType = column.valueType ?? 'text'
   const renderer = registry[valueType]
   if (!renderer) throw new Error(`Unregistered valueType: ${valueType}`)
   const fieldProps = getFieldProps(column, type, form, entity)
-  if (column.request && options.isError) return <QueryState state="error" title="选项加载失败" onRetry={() => void options.refetch()} className="p-2" />
+  if (column.request && options.isError)
+    return <QueryState state="error" title="选项加载失败" onRetry={() => void options.refetch()} className="p-2" />
   if (mode === 'edit') {
     const onChange = fieldProps.onChange
     if (!renderer.formItemRender) throw new Error(`valueType cannot be edited: ${valueType}`)
     return renderer.formItemRender(value, {
-      mode, type, light, label: getColumnTitle(column, type), options: options.options,
+      mode,
+      type,
+      light,
+      label: getColumnTitle(column, type),
+      options: options.options,
       fieldProps: {
-        ...fieldProps, ...control, value,
-        disabled: Boolean(fieldProps.disabled) || Boolean(control?.disabled) || (Boolean(column.request) && options.isPending),
+        ...fieldProps,
+        ...control,
+        value,
+        disabled:
+          Boolean(fieldProps.disabled) || Boolean(control?.disabled) || (Boolean(column.request) && options.isPending),
         onChange: next => {
           control?.onChange(next)
           if (typeof onChange === 'function') onChange(next)
@@ -45,14 +63,34 @@ export function ProField<T>({ column, value, entity, type, mode = 'read', light,
     })
   }
   if (value == null || value === '' || (Array.isArray(value) && value.length === 0)) return <span>{emptyText}</span>
-  const dom = column.valueEnum || column.request
-    ? renderEnumValue(value, column.valueEnum, options.options)
-    : renderer.render
-      ? renderer.render(value, { mode, type, fieldProps })
-      : isValidElement(value) ? value : String(value)
+  const dom =
+    column.valueEnum || column.request
+      ? renderEnumValue(value, column.valueEnum, options.options)
+      : renderer.render
+        ? renderer.render(value, { mode, type, fieldProps })
+        : isValidElement(value)
+          ? value
+          : String(value)
   const text = typeof value === 'string' || typeof value === 'number' ? String(value) : undefined
-  const output = column.ellipsis || (valueType === 'textarea' && type === 'descriptions')
-    ? <span className={type === 'table' && column.ellipsis ? 'inline-block max-w-56 truncate align-middle' : 'whitespace-pre-wrap'} title={column.ellipsis ? text : undefined}>{dom}</span>
-    : dom
-  return column.copyable && text ? <span className="inline-flex items-center gap-1.5">{output}<CopyButton value={text} /></span> : <>{output}</>
+  const output =
+    column.ellipsis || (valueType === 'textarea' && type === 'descriptions') ? (
+      <span
+        className={
+          type === 'table' && column.ellipsis ? 'inline-block max-w-56 truncate align-middle' : 'whitespace-pre-wrap'
+        }
+        title={column.ellipsis ? text : undefined}
+      >
+        {dom}
+      </span>
+    ) : (
+      dom
+    )
+  return column.copyable && text ? (
+    <span className="inline-flex items-center gap-1.5">
+      {output}
+      <CopyButton value={text} />
+    </span>
+  ) : (
+    <>{output}</>
+  )
 }

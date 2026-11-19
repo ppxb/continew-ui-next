@@ -26,7 +26,9 @@ export function SmsFormDrawer({ smsId, open, columns, onClose }: SmsFormDrawerPr
       grid
       drawerProps={{ icon: <MessageSquare className="size-4" /> }}
       open={open}
-      onOpenChange={next => { if (!next) onClose() }}
+      onOpenChange={next => {
+        if (!next) onClose()
+      }}
       columns={columns}
       queryKey={smsKeys.detail(smsId ?? '')}
       request={smsId === null ? undefined : (_params, signal) => getSmsConfig(smsId, signal)}

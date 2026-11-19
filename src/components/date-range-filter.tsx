@@ -29,11 +29,22 @@ interface DateRangeFilterProps {
  * Unlike `DateRangePicker`, it starts empty when the caller passes no value, so a screen
  * can decide whether a range applies by default.
  */
-export function DateRangeFilter({ value, onChange, placeholder = '选择日期', className, id, invalid, disabled = false, onBlur }: DateRangeFilterProps) {
+export function DateRangeFilter({
+  value,
+  onChange,
+  placeholder = '选择日期',
+  className,
+  id,
+  invalid,
+  disabled = false,
+  onBlur
+}: DateRangeFilterProps) {
   const [open, setOpen] = React.useState(false)
   const isMobile = useIsMobile()
 
-  React.useEffect(() => { if (disabled) setOpen(false) }, [disabled])
+  React.useEffect(() => {
+    if (disabled) setOpen(false)
+  }, [disabled])
   let label = placeholder
 
   if (value?.from) {
@@ -52,7 +63,7 @@ export function DateRangeFilter({ value, onChange, placeholder = '选择日期',
             disabled={disabled}
             onBlur={onBlur}
             className={cn(
-              'min-w-0 max-w-full justify-start overflow-hidden border-input bg-transparent font-normal',
+              'max-w-full min-w-0 justify-start overflow-hidden border-input bg-transparent font-normal',
               className
             )}
           />
@@ -66,7 +77,9 @@ export function DateRangeFilter({ value, onChange, placeholder = '选择日期',
           mode="range"
           defaultMonth={value?.from}
           selected={value}
-          onSelect={next => { if (!disabled) onChange(next) }}
+          onSelect={next => {
+            if (!disabled) onChange(next)
+          }}
           disabled={disabled}
           numberOfMonths={isMobile ? 1 : 2}
         />

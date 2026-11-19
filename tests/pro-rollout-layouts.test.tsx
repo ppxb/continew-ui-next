@@ -11,13 +11,34 @@ import { installBrowserAnimationApis } from './browser-apis'
 const clients: QueryClient[] = []
 let restoreAnimations: () => void
 beforeEach(() => {
-  vi.stubGlobal('ResizeObserver', class { observe() {} unobserve() {} disconnect() {} })
-  vi.stubGlobal('matchMedia', (query: string) => ({ matches: false, media: query, onchange: null, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {}, dispatchEvent: () => false }))
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    }
+  )
+  vi.stubGlobal('matchMedia', (query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener() {},
+    removeListener() {},
+    addEventListener() {},
+    removeEventListener() {},
+    dispatchEvent: () => false
+  }))
   vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => setTimeout(() => callback(0), 0))
   vi.stubGlobal('cancelAnimationFrame', (id: number) => clearTimeout(id))
   restoreAnimations = installBrowserAnimationApis()
 })
-afterEach(() => { cleanup(); clients.splice(0).forEach(client => client.clear()); restoreAnimations(); vi.unstubAllGlobals() })
+afterEach(() => {
+  cleanup()
+  clients.splice(0).forEach(client => client.clear())
+  restoreAnimations()
+  vi.unstubAllGlobals()
+})
 function mount(element: ReactElement) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } })
   clients.push(client)
@@ -26,10 +47,34 @@ function mount(element: ReactElement) {
 
 describe('rollout layout and submission contracts', () => {
   it('clears client filters that veto remote keyword submission', async () => {
-    const rows = [{ id: 1, name: 'Alice' }, { id: 2, name: 'Bob' }]
+    const rows = [
+      { id: 1, name: 'Alice' },
+      { id: 2, name: 'Bob' }
+    ]
     function Example() {
       const [keyword, setKeyword] = useState('')
-      return <ProTable columns={[{ dataIndex: 'name', title: 'Name' }]} dataSource={rows.filter(row => row.name.includes(keyword))} rowKey="id" queryKey={['veto-clear']} params={{ keyword }} options={{ setting: false, fullScreen: false, reload: false, search: { delay: 0, placeholder: 'Filter locally', onSearch: value => { setKeyword(value); return false } } }} />
+      return (
+        <ProTable
+          columns={[{ dataIndex: 'name', title: 'Name' }]}
+          dataSource={rows.filter(row => row.name.includes(keyword))}
+          rowKey="id"
+          queryKey={['veto-clear']}
+          params={{ keyword }}
+          options={{
+            setting: false,
+            fullScreen: false,
+            reload: false,
+            search: {
+              delay: 0,
+              placeholder: 'Filter locally',
+              onSearch: value => {
+                setKeyword(value)
+                return false
+              }
+            }
+          }}
+        />
+      )
     }
     mount(<Example />)
     await screen.findByText('Alice')
@@ -44,11 +89,31 @@ describe('rollout layout and submission contracts', () => {
     const onFinish = vi.fn(async () => false)
     const columns = [
       { dataIndex: 'name', title: 'Name', formItemProps: { required: false, rules: z.string().trim().min(1) } },
-      { dataIndex: 'threshold', title: 'Threshold', valueType: 'digit', formItemProps: { required: false, rules: z.number().min(10, 'Threshold too small') } }
+      {
+        dataIndex: 'threshold',
+        title: 'Threshold',
+        valueType: 'digit',
+        formItemProps: { required: false, rules: z.number().min(10, 'Threshold too small') }
+      }
     ] as const
-    mount(<BetaSchemaForm columns={columns} onFinish={onFinish} formItemsRender={items => <><div>{items.filter(item => item.name !== 'threshold').map(item => item.dom)}</div><section aria-label="Advanced">{items.filter(item => item.name === 'threshold').map(item => item.dom)}</section></>} />)
+    mount(
+      <BetaSchemaForm
+        columns={columns}
+        onFinish={onFinish}
+        formItemsRender={items => (
+          <>
+            <div>{items.filter(item => item.name !== 'threshold').map(item => item.dom)}</div>
+            <section aria-label="Advanced">
+              {items.filter(item => item.name === 'threshold').map(item => item.dom)}
+            </section>
+          </>
+        )}
+      />
+    )
     fireEvent.change(screen.getByRole('textbox', { name: 'Name' }), { target: { value: '  Grouped  ' } })
-    fireEvent.change(within(screen.getByRole('region', { name: 'Advanced' })).getByRole('spinbutton'), { target: { value: '5' } })
+    fireEvent.change(within(screen.getByRole('region', { name: 'Advanced' })).getByRole('spinbutton'), {
+      target: { value: '5' }
+    })
     fireEvent.click(screen.getByRole('button', { name: '提交' }))
     expect(await screen.findByText('Threshold too small')).toBeTruthy()
     expect(onFinish).not.toHaveBeenCalled()
@@ -61,12 +126,53 @@ describe('rollout layout and submission contracts', () => {
     const modes: string[] = []
     function Example() {
       const selectedMode = useRef('')
-      return <BetaSchemaForm columns={[{ dataIndex: 'name', title: 'Name', initialValue: 'Ready', formItemProps: { rules: z.string().min(1) } }]} onFinish={async () => { modes.push(selectedMode.current); return false }} submitter={{ render: ({ form, submit }) => <><button type="button" onClick={() => { if (!form.isSubmitting) { selectedMode.current = 'draft'; submit() } }}>Draft</button><button type="button" onClick={() => { if (!form.isSubmitting) { selectedMode.current = 'publish'; submit() } }}>Publish</button></> }} />
+      return (
+        <BetaSchemaForm
+          columns={[
+            { dataIndex: 'name', title: 'Name', initialValue: 'Ready', formItemProps: { rules: z.string().min(1) } }
+          ]}
+          onFinish={async () => {
+            modes.push(selectedMode.current)
+            return false
+          }}
+          submitter={{
+            render: ({ form, submit }) => (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!form.isSubmitting) {
+                      selectedMode.current = 'draft'
+                      submit()
+                    }
+                  }}
+                >
+                  Draft
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!form.isSubmitting) {
+                      selectedMode.current = 'publish'
+                      submit()
+                    }
+                  }}
+                >
+                  Publish
+                </button>
+              </>
+            )
+          }}
+        />
+      )
     }
     mount(<Example />)
     const draft = screen.getByRole('button', { name: 'Draft' })
     const publish = screen.getByRole('button', { name: 'Publish' })
-    act(() => { draft.click(); publish.click() })
+    act(() => {
+      draft.click()
+      publish.click()
+    })
     await waitFor(() => expect(modes).toEqual(['draft']))
   })
 })

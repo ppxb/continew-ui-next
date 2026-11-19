@@ -21,7 +21,9 @@ const itemClass =
   'flex h-9 shrink-0 items-center gap-1.5 rounded-md px-3 text-sm whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/50 [&_svg]:size-4'
 
 function itemState(active: boolean) {
-  return active ? 'bg-primary/10 font-medium text-primary' : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+  return active
+    ? 'bg-primary/10 font-medium text-primary'
+    : 'text-muted-foreground hover:bg-accent hover:text-foreground'
 }
 
 function MenuEntries({ items, pathname }: { items: readonly MenuItem[]; pathname: string }) {

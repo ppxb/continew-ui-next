@@ -17,9 +17,11 @@ interface JobDetailDrawerProps {
 
 export function JobDetailDrawer({ job, open, onClose }: JobDetailDrawerProps) {
   const shownJob = useLastRecord(job)
-  return <EntityDrawer open={open} onClose={onClose} title="任务详情" icon={<ListChecks className="size-4" />} width={36}>
-    <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
-      {shownJob ? <ProDescriptions<JobRecord> columns={DETAIL_COLUMNS} dataSource={shownJob} /> : null}
-    </div>
-  </EntityDrawer>
+  return (
+    <EntityDrawer open={open} onClose={onClose} title="任务详情" icon={<ListChecks className="size-4" />} width={36}>
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
+        {shownJob ? <ProDescriptions<JobRecord> columns={DETAIL_COLUMNS} dataSource={shownJob} /> : null}
+      </div>
+    </EntityDrawer>
+  )
 }

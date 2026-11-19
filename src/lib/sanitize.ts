@@ -104,7 +104,8 @@ function sanitizeAttrs(tag: string, attrsText: string): string {
     }
 
     // Numeric cell sizing only — an arbitrary string here is pointless.
-    if ((name === 'width' || name === 'height' || name === 'colspan' || name === 'rowspan') && !/^\d+$/.test(value)) continue
+    if ((name === 'width' || name === 'height' || name === 'colspan' || name === 'rowspan') && !/^\d+$/.test(value))
+      continue
 
     out.push(` ${name}="${escapeAttr(value)}"`)
   }

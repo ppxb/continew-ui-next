@@ -38,5 +38,12 @@ export function RowActionsMenu({
       </DropdownMenuContent>
     </DropdownMenu>
   ) : null
-  return primary ? <div className="inline-flex items-center gap-1">{primary}{menu}</div> : menu
+  return primary ? (
+    <div className="inline-flex items-center gap-1">
+      {primary}
+      {menu}
+    </div>
+  ) : (
+    menu
+  )
 }

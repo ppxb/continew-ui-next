@@ -35,9 +35,12 @@ export function FileNameDialog({ open, mode, parentPath, file, onClose, onComple
   const columns = React.useMemo(() => createFileNameColumns(isCreate), [isCreate])
 
   return (
-    <Dialog open={open} onOpenChange={nextOpen => {
-      if (!nextOpen && !formRef.current?.isSubmitting) onClose()
-    }}>
+    <Dialog
+      open={open}
+      onOpenChange={nextOpen => {
+        if (!nextOpen && !formRef.current?.isSubmitting) onClose()
+      }}
+    >
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{isCreate ? '新建文件夹' : '重命名'}</DialogTitle>
@@ -46,29 +49,46 @@ export function FileNameDialog({ open, mode, parentPath, file, onClose, onComple
           </DialogDescription>
         </DialogHeader>
 
-        {open ? <BetaSchemaForm<FileResp, typeof columns>
-          key={`${mode}:${String(file?.id ?? '')}:${parentPath}`}
-          layoutType="Form"
-          columns={columns}
-          formRef={formRef}
-          initialValues={{ originalName: isCreate ? '' : file?.originalName ?? '' }}
-          onFinish={async values => {
-            if (!isCreate && !file) return false
-            const originalName = values.originalName
-            if (isCreate) await createDir(parentPath, originalName)
-            else if (file) await updateFile(file.id, { originalName, parentPath: file.parentPath })
-            toast.add({ title: isCreate ? '创建成功' : '修改成功', type: 'success' })
-            onCompleted()
-            onClose()
-            return true
-          }}
-          submitter={{ render: ({ isSubmitting }) => <DialogFooter>
-            <Button type="button" variant="outline" disabled={isSubmitting} onClick={onClose}>取消</Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? <><Spinner />{isCreate ? '创建中' : '保存中'}</> : isCreate ? '创建' : '保存'}
-            </Button>
-          </DialogFooter> }}
-        /> : null}
+        {open ? (
+          <BetaSchemaForm<FileResp, typeof columns>
+            key={`${mode}:${String(file?.id ?? '')}:${parentPath}`}
+            layoutType="Form"
+            columns={columns}
+            formRef={formRef}
+            initialValues={{ originalName: isCreate ? '' : (file?.originalName ?? '') }}
+            onFinish={async values => {
+              if (!isCreate && !file) return false
+              const originalName = values.originalName
+              if (isCreate) await createDir(parentPath, originalName)
+              else if (file) await updateFile(file.id, { originalName, parentPath: file.parentPath })
+              toast.add({ title: isCreate ? '创建成功' : '修改成功', type: 'success' })
+              onCompleted()
+              onClose()
+              return true
+            }}
+            submitter={{
+              render: ({ isSubmitting }) => (
+                <DialogFooter>
+                  <Button type="button" variant="outline" disabled={isSubmitting} onClick={onClose}>
+                    取消
+                  </Button>
+                  <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? (
+                      <>
+                        <Spinner />
+                        {isCreate ? '创建中' : '保存中'}
+                      </>
+                    ) : isCreate ? (
+                      '创建'
+                    ) : (
+                      '保存'
+                    )}
+                  </Button>
+                </DialogFooter>
+              )
+            }}
+          />
+        ) : null}
       </DialogContent>
     </Dialog>
   )

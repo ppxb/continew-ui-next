@@ -9,9 +9,17 @@ export function installBrowserAnimationApis() {
   Object.defineProperty(Element.prototype, 'animate', {
     configurable: true,
     value: () => ({
-      finished: Promise.resolve(), ready: Promise.resolve(), playState: 'finished', currentTime: 0,
+      finished: Promise.resolve(),
+      ready: Promise.resolve(),
+      playState: 'finished',
+      currentTime: 0,
       effect: { getComputedTiming: () => ({ endTime: 0 }) },
-      cancel() {}, finish() {}, play() {}, pause() {}, addEventListener() {}, removeEventListener() {}
+      cancel() {},
+      finish() {},
+      play() {},
+      pause() {},
+      addEventListener() {},
+      removeEventListener() {}
     })
   })
   return () => {

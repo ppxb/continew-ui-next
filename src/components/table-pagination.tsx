@@ -64,7 +64,7 @@ function PageJumper({ pageCount, onJump }: { pageCount: number; onJump: (page: n
   }
 
   return (
-    <label className="flex items-center gap-2 whitespace-nowrap text-sm text-muted-foreground">
+    <label className="flex items-center gap-2 text-sm whitespace-nowrap text-muted-foreground">
       <span>跳至</span>
       <Input
         aria-label="跳转页码"
@@ -94,7 +94,12 @@ interface TablePaginationProps<TRow extends RowData> extends TablePaginationOpti
 }
 
 /** Shared pagination footer: total, page links, page size and an optional quick jumper. */
-export function TablePagination<TRow extends RowData>({ table, showTopBorder = true, align = 'right', showQuickJumper = true }: TablePaginationProps<TRow>) {
+export function TablePagination<TRow extends RowData>({
+  table,
+  showTopBorder = true,
+  align = 'right',
+  showQuickJumper = true
+}: TablePaginationProps<TRow>) {
   const rowCount = table.getRowCount()
 
   if (rowCount === 0) {
@@ -106,14 +111,12 @@ export function TablePagination<TRow extends RowData>({ table, showTopBorder = t
   const pageNumbers = getPageNumbers(currentPage, pageCount)
 
   return (
-    <div className={cn('flex flex-wrap items-center gap-3 px-4 py-4', ALIGN_CLASSES[align], showTopBorder && 'border-t')}>
-      <span className="whitespace-nowrap text-sm text-muted-foreground tabular-nums">共 {rowCount} 条</span>
+    <div
+      className={cn('flex flex-wrap items-center gap-3 px-4 py-4', ALIGN_CLASSES[align], showTopBorder && 'border-t')}
+    >
+      <span className="text-sm whitespace-nowrap text-muted-foreground tabular-nums">共 {rowCount} 条</span>
 
-      <AnimatePagination
-        role="navigation"
-        aria-label="pagination"
-        className="mx-0 flex w-auto"
-      >
+      <AnimatePagination role="navigation" aria-label="pagination" className="mx-0 flex w-auto">
         <PaginationContent>
           <PaginationItem>
             <PaginationArrow
@@ -150,7 +153,9 @@ export function TablePagination<TRow extends RowData>({ table, showTopBorder = t
       </AnimatePagination>
       <Select
         value={`${table.state.pagination.pageSize}`}
-        onValueChange={value => { if (value !== null) table.setPageSize(Number(value)) }}
+        onValueChange={value => {
+          if (value !== null) table.setPageSize(Number(value))
+        }}
       >
         <SelectTrigger size="sm" className="h-8 w-28" aria-label="每页条数">
           <SelectValue>{table.state.pagination.pageSize} 条/页</SelectValue>
@@ -158,7 +163,9 @@ export function TablePagination<TRow extends RowData>({ table, showTopBorder = t
         <SelectContent side="top">
           <SelectGroup>
             {PAGE_SIZE_OPTIONS.map(pageSize => (
-              <SelectItem key={pageSize} value={`${pageSize}`}>{pageSize} 条/页</SelectItem>
+              <SelectItem key={pageSize} value={`${pageSize}`}>
+                {pageSize} 条/页
+              </SelectItem>
             ))}
           </SelectGroup>
         </SelectContent>
@@ -167,7 +174,9 @@ export function TablePagination<TRow extends RowData>({ table, showTopBorder = t
         <PageJumper
           key={`${currentPage}:${pageCount}:${table.state.pagination.pageSize}`}
           pageCount={pageCount}
-          onJump={page => { if (page !== currentPage) table.setPageIndex(page - 1) }}
+          onJump={page => {
+            if (page !== currentPage) table.setPageIndex(page - 1)
+          }}
         />
       ) : null}
     </div>

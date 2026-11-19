@@ -74,7 +74,6 @@ export function JobList() {
     }
   }, [groups.isSuccess, groups.isError, groups.data])
 
-
   const handleToggleStatus = React.useCallback(
     async (job: JobResp, next: JobStatus) => {
       await updateJobStatus(job.id, { jobStatus: next })
@@ -114,12 +113,23 @@ export function JobList() {
     [navigate]
   )
 
-  const columns = React.useMemo(() => createJobColumns({
-    canGet, canTrigger, canUpdate, canViewLogs, canDelete,
-    groupOptions: groups.data,
-    onGroupChange: () => { groupTouchedRef.current = true },
-    onAction: handleAction, onToggleStatus: handleToggleStatus
-  }), [canGet, canTrigger, canUpdate, canViewLogs, canDelete, groups.data, handleAction, handleToggleStatus])
+  const columns = React.useMemo(
+    () =>
+      createJobColumns({
+        canGet,
+        canTrigger,
+        canUpdate,
+        canViewLogs,
+        canDelete,
+        groupOptions: groups.data,
+        onGroupChange: () => {
+          groupTouchedRef.current = true
+        },
+        onAction: handleAction,
+        onToggleStatus: handleToggleStatus
+      }),
+    [canGet, canTrigger, canUpdate, canViewLogs, canDelete, groups.data, handleAction, handleToggleStatus]
+  )
 
   // The API has no detail endpoint, so keep the drawer on the freshest copy of the row the
   // list currently holds and fall back to the clicked snapshot once it leaves the page.
@@ -130,7 +140,6 @@ export function JobList() {
 
     return currentRows.find(job => String(job.id) === String(detailJob.id)) ?? detailJob
   }, [detailJob, currentRows])
-
 
   return (
     <>
@@ -145,15 +154,32 @@ export function JobList() {
         manualRequest={!groupReady}
         loading={!groupReady ? true : undefined}
         options={{ search: { name: 'jobName', placeholder: '搜索任务名称' } }}
-        request={async ({ current, pageSize, groupName: selectedGroup, jobName, jobStatus }, _sort, _filter, signal) => {
-          const result = await listJobs({ page: current, size: pageSize, groupName: selectedGroup, jobName: jobName || undefined, jobStatus }, signal)
+        request={async (
+          { current, pageSize, groupName: selectedGroup, jobName, jobStatus },
+          _sort,
+          _filter,
+          signal
+        ) => {
+          const result = await listJobs(
+            { page: current, size: pageSize, groupName: selectedGroup, jobName: jobName || undefined, jobStatus },
+            signal
+          )
           if (!signal.aborted) {
             setCurrentRows(result.list)
             setGroupName(selectedGroup)
           }
           return { data: result.list, total: result.total, success: true }
         }}
-        toolBarRender={() => canCreate ? [<Button key="create" className="w-full sm:w-auto" onClick={() => setFormTarget({ job: null })}><Plus />新增任务</Button>] : []}
+        toolBarRender={() =>
+          canCreate
+            ? [
+                <Button key="create" className="w-full sm:w-auto" onClick={() => setFormTarget({ job: null })}>
+                  <Plus />
+                  新增任务
+                </Button>
+              ]
+            : []
+        }
       />
 
       <JobDetailDrawer job={liveDetailJob} open={detailJob !== null} onClose={() => setDetailJob(null)} />

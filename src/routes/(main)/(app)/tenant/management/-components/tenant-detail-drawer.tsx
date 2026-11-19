@@ -29,7 +29,11 @@ export function TenantDetailDrawer({ tenantId, open, onClose }: TenantDetailDraw
         {query.isError || (!detail && !query.isPending) ? (
           <QueryState state="error" onRetry={() => void query.refetch()} />
         ) : (
-          <ProDescriptions<TenantRecord> columns={tenantColumns} dataSource={detail ?? undefined} loading={!detail && query.isPending} />
+          <ProDescriptions<TenantRecord>
+            columns={tenantColumns}
+            dataSource={detail ?? undefined}
+            loading={!detail && query.isPending}
+          />
         )}
       </div>
     </EntityDrawer>

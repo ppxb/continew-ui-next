@@ -12,12 +12,7 @@ interface ClientDetailDrawerProps {
   readonly onClose: () => void
 }
 
-export function ClientDetailDrawer({
-  client,
-  open,
-  columns,
-  onClose
-}: ClientDetailDrawerProps) {
+export function ClientDetailDrawer({ client, open, columns, onClose }: ClientDetailDrawerProps) {
   // Keep the last client during the close animation, where `client` is already null.
   const detail = useLastRecord(client)
 

@@ -16,8 +16,24 @@ const clients: QueryClient[] = []
 let restoreAnimations: () => void
 beforeEach(() => {
   restoreAnimations = installBrowserAnimationApis()
-  vi.stubGlobal('matchMedia', (query: string) => ({ matches: false, media: query, onchange: null, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {}, dispatchEvent: () => false }))
-  vi.stubGlobal('ResizeObserver', class { observe() {} unobserve() {} disconnect() {} })
+  vi.stubGlobal('matchMedia', (query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener() {},
+    removeListener() {},
+    addEventListener() {},
+    removeEventListener() {},
+    dispatchEvent: () => false
+  }))
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    }
+  )
 })
 afterEach(() => {
   cleanup()
@@ -28,10 +44,12 @@ afterEach(() => {
 
 describe('ProField value enums', () => {
   it('keeps numeric and boolean keys instead of stringifying select values', () => {
-    const options = valueEnumToOptions(new Map<ProValue, ProSchemaValueEnumType>([
-      [0, { text: '未启用', status: 'Default' as const }],
-      [false, { text: '否', disabled: true }]
-    ]))
+    const options = valueEnumToOptions(
+      new Map<ProValue, ProSchemaValueEnumType>([
+        [0, { text: '未启用', status: 'Default' as const }],
+        [false, { text: '否', disabled: true }]
+      ])
+    )
     expect(options).toEqual([
       { value: 0, label: '未启用', status: 'Default', disabled: undefined, color: undefined },
       { value: false, label: '否', disabled: true, status: undefined, color: undefined }
@@ -46,7 +64,19 @@ describe('ProField value enums', () => {
     expect(html).toContain('停止')
     expect(html).toContain('text-destructive')
     expect(renderToStaticMarkup(<>{renderEnumValue('unknown', known)}</>)).toBe('unknown')
-    expect(renderToStaticMarkup(<>{renderEnumValue([0, 1], new Map([[0, '关闭'], [1, '开启']]))}</>)).toContain('关闭')
+    expect(
+      renderToStaticMarkup(
+        <>
+          {renderEnumValue(
+            [0, 1],
+            new Map([
+              [0, '关闭'],
+              [1, '开启']
+            ])
+          )}
+        </>
+      )
+    ).toContain('关闭')
   })
 })
 
@@ -55,12 +85,43 @@ describe('ProField controlled values', () => {
     const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
     clients.push(client)
     const onChange = vi.fn()
-    const column: ProFieldColumn<{ tags: ProValue[] }> = { dataIndex: 'tags', valueType: 'select', title: 'Tags', fieldProps: { mode: 'multiple' }, valueEnum: new Map<ProValue, string>([[0, 'Zero'], [false, 'False']]) }
+    const column: ProFieldColumn<{ tags: ProValue[] }> = {
+      dataIndex: 'tags',
+      valueType: 'select',
+      title: 'Tags',
+      fieldProps: { mode: 'multiple' },
+      valueEnum: new Map<ProValue, string>([
+        [0, 'Zero'],
+        [false, 'False']
+      ])
+    }
     function Example() {
       const [value, setValue] = useState<ProValue[]>([])
-      return <ProField column={column} type="table" mode="edit" light value={value} control={{ id: 'tags', value, onChange: next => { onChange(next); setValue(next as ProValue[]) }, onBlur: () => {}, invalid: false }} />
+      return (
+        <ProField
+          column={column}
+          type="table"
+          mode="edit"
+          light
+          value={value}
+          control={{
+            id: 'tags',
+            value,
+            onChange: next => {
+              onChange(next)
+              setValue(next as ProValue[])
+            },
+            onBlur: () => {},
+            invalid: false
+          }}
+        />
+      )
     }
-    render(<QueryClientProvider client={client}><Example /></QueryClientProvider>)
+    render(
+      <QueryClientProvider client={client}>
+        <Example />
+      </QueryClientProvider>
+    )
     fireEvent.click(screen.getByRole('combobox'))
     const zeroOption = await screen.findByRole('option', { name: 'Zero' })
     fireEvent.pointerDown(zeroOption, { pointerType: 'mouse' })
@@ -75,8 +136,23 @@ describe('ProField controlled values', () => {
   it('passes the loaded entity into record-dependent field props', () => {
     const client = new QueryClient()
     clients.push(client)
-    const column: ProFieldColumn<{ name: string; disabled: boolean }> = { dataIndex: 'name', title: 'Name', fieldProps: (_form, schema) => ({ disabled: schema.entity?.disabled }) }
-    render(<QueryClientProvider client={client}><ProField column={column} entity={{ name: 'Ada', disabled: true }} value="Ada" type="form" mode="edit" control={{ id: 'name', value: 'Ada', onChange: vi.fn(), onBlur: vi.fn(), invalid: false }} /></QueryClientProvider>)
+    const column: ProFieldColumn<{ name: string; disabled: boolean }> = {
+      dataIndex: 'name',
+      title: 'Name',
+      fieldProps: (_form, schema) => ({ disabled: schema.entity?.disabled })
+    }
+    render(
+      <QueryClientProvider client={client}>
+        <ProField
+          column={column}
+          entity={{ name: 'Ada', disabled: true }}
+          value="Ada"
+          type="form"
+          mode="edit"
+          control={{ id: 'name', value: 'Ada', onChange: vi.fn(), onBlur: vi.fn(), invalid: false }}
+        />
+      </QueryClientProvider>
+    )
     expect((screen.getByRole('textbox') as HTMLInputElement).disabled).toBe(true)
   })
 

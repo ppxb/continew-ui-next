@@ -14,7 +14,12 @@ import { PREFERENCE_DEFAULTS, PREFERENCE_KEYS } from '@/lib/preferences/preferen
 import { usePreferencesStore, usePreferencesStoreApi } from '@/stores/preferences/preferences-provider'
 
 import { useShellStore } from '../shell-store'
-import { AppearancePreferences, GeneralPreferences, LayoutPreferences, ShortcutPreferences } from './preference-sections'
+import {
+  AppearancePreferences,
+  GeneralPreferences,
+  LayoutPreferences,
+  ShortcutPreferences
+} from './preference-sections'
 
 const TABS = [
   { value: 'appearance', label: '外观', Content: AppearancePreferences },
@@ -46,7 +51,9 @@ export function PreferencesSheet() {
 
   const copy = async () => {
     const { values } = store.getState()
-    const diff = Object.fromEntries(PREFERENCE_KEYS.filter(key => values[key] !== PREFERENCE_DEFAULTS[key]).map(key => [key, values[key]]))
+    const diff = Object.fromEntries(
+      PREFERENCE_KEYS.filter(key => values[key] !== PREFERENCE_DEFAULTS[key]).map(key => [key, values[key]])
+    )
     try {
       await navigator.clipboard.writeText(JSON.stringify(diff, null, 2))
       toast.add({ title: '已复制偏好配置', description: '可粘贴到 preferences-config.ts 作为默认值', type: 'success' })
@@ -75,7 +82,14 @@ export function PreferencesSheet() {
             <Tooltip>
               <TooltipTrigger
                 render={
-                  <Button variant="ghost" size="icon-sm" aria-label="恢复默认" disabled={!hasChanges} onClick={resetPreferences} className="relative" />
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label="恢复默认"
+                    disabled={!hasChanges}
+                    onClick={resetPreferences}
+                    className="relative"
+                  />
                 }
               >
                 {hasChanges && <span className="absolute top-1 right-1 size-1.5 rounded-full bg-primary" />}

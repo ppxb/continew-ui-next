@@ -73,54 +73,116 @@ function RowActions({
 
 export const jobLogColumns: readonly ProColumns<JobLogRecord>[] = [
   { title: '序号', valueType: 'index' },
-  { title: '任务组', dataIndex: 'groupName', valueType: 'select', search: true, hideInForm: true,
-    render: (_, log) => <TextCell value={log.groupName} /> },
+  {
+    title: '任务组',
+    dataIndex: 'groupName',
+    valueType: 'select',
+    search: true,
+    hideInForm: true,
+    render: (_, log) => <TextCell value={log.groupName} />
+  },
   { title: '任务名称', dataIndex: 'jobName', hideInForm: true },
   { title: '调度时间', dataIndex: 'createDt', valueType: 'dateTime', hideInForm: true },
-  { title: '执行状态', dataIndex: 'taskBatchStatus', valueType: 'select', valueEnum: STATUS_ENUM, search: true, hideInForm: true, align: 'center',
-    render: (_, log) => <div className="flex justify-center"><JobExecuteStatusBadge status={log.taskBatchStatus} /></div> },
-  { title: '执行备注', dataIndex: 'operationReason', hideInForm: true, render: (_, log) => <OperationReasonCell reason={log.operationReason} /> },
+  {
+    title: '执行状态',
+    dataIndex: 'taskBatchStatus',
+    valueType: 'select',
+    valueEnum: STATUS_ENUM,
+    search: true,
+    hideInForm: true,
+    align: 'center',
+    render: (_, log) => (
+      <div className="flex justify-center">
+        <JobExecuteStatusBadge status={log.taskBatchStatus} />
+      </div>
+    )
+  },
+  {
+    title: '执行备注',
+    dataIndex: 'operationReason',
+    hideInForm: true,
+    render: (_, log) => <OperationReasonCell reason={log.operationReason} />
+  },
   { title: '执行时间', dataIndex: 'executionAt', valueType: 'dateTime', hideInForm: true },
   {
-    title: '调度时间', dataIndex: 'dateRange', valueType: 'dateRange', hideInTable: true, hideInForm: true, hideInDescriptions: true,
+    title: '调度时间',
+    dataIndex: 'dateRange',
+    valueType: 'dateRange',
+    hideInTable: true,
+    hideInForm: true,
+    hideInDescriptions: true,
     search: { transform: value => ({ datetimeRange: toDateTimeRangeQuery(value as DateRange | undefined) }) }
   }
 ]
 
-export function createJobLogColumns({ canStop, canRetry, onAction, groupOptions, onGroupChange, onFilterChange }: JobLogColumnOptions): readonly ProColumns<JobLogRecord>[] {
+export function createJobLogColumns({
+  canStop,
+  canRetry,
+  onAction,
+  groupOptions,
+  onGroupChange,
+  onFilterChange
+}: JobLogColumnOptions): readonly ProColumns<JobLogRecord>[] {
   const columns = jobLogColumns.map<ProColumns<JobLogRecord>>(column => {
     if (column.valueType === 'dependency') return column
-    if (column.dataIndex === 'groupName') return {
-      ...column,
-      formItemRender: (_, control) => <FilterSelect label="任务组" className="w-full sm:w-40"
-        options={[{ value: 'all', label: '全部' }, ...groupOptions.map(group => ({ value: group, label: group }))]}
-        value={typeof control.value === 'string' ? control.value : 'all'}
-        onValueChange={value => {
-          const group = !value || value === 'all' ? undefined : value
-          control.onChange(group)
-          onGroupChange(group)
-          onFilterChange()
-        }} />
-    }
-    if (column.dataIndex === 'taskBatchStatus') return {
-      ...column,
-      formItemRender: (_, control) => <FilterSelect label="状态" options={JOB_EXECUTE_STATUS_OPTIONS} className="w-full sm:w-32"
-        value={control.value === undefined ? 'all' : String(control.value)}
-        onValueChange={value => {
-          control.onChange(!value || value === 'all' ? undefined : Number(value) as JobExecuteStatus)
-          onFilterChange()
-        }} />
-    }
-    if (column.dataIndex === 'dateRange') return {
-      ...column,
-      formItemRender: (_, control) => <DateRangeFilter id={control.id} invalid={control.invalid} onBlur={control.onBlur}
-        value={control.value as DateRange | undefined} onChange={value => { control.onChange(value); onFilterChange() }} />
-    }
+    if (column.dataIndex === 'groupName')
+      return {
+        ...column,
+        formItemRender: (_, control) => (
+          <FilterSelect
+            label="任务组"
+            className="w-full sm:w-40"
+            options={[{ value: 'all', label: '全部' }, ...groupOptions.map(group => ({ value: group, label: group }))]}
+            value={typeof control.value === 'string' ? control.value : 'all'}
+            onValueChange={value => {
+              const group = !value || value === 'all' ? undefined : value
+              control.onChange(group)
+              onGroupChange(group)
+              onFilterChange()
+            }}
+          />
+        )
+      }
+    if (column.dataIndex === 'taskBatchStatus')
+      return {
+        ...column,
+        formItemRender: (_, control) => (
+          <FilterSelect
+            label="状态"
+            options={JOB_EXECUTE_STATUS_OPTIONS}
+            className="w-full sm:w-32"
+            value={control.value === undefined ? 'all' : String(control.value)}
+            onValueChange={value => {
+              control.onChange(!value || value === 'all' ? undefined : (Number(value) as JobExecuteStatus))
+              onFilterChange()
+            }}
+          />
+        )
+      }
+    if (column.dataIndex === 'dateRange')
+      return {
+        ...column,
+        formItemRender: (_, control) => (
+          <DateRangeFilter
+            id={control.id}
+            invalid={control.invalid}
+            onBlur={control.onBlur}
+            value={control.value as DateRange | undefined}
+            onChange={value => {
+              control.onChange(value)
+              onFilterChange()
+            }}
+          />
+        )
+      }
     return column
   })
-  if (canStop || canRetry) columns.push({
-    title: '操作', valueType: 'option', align: 'center',
-    render: (_, log) => <RowActions log={log} canStop={canStop} canRetry={canRetry} onAction={onAction} />
-  })
+  if (canStop || canRetry)
+    columns.push({
+      title: '操作',
+      valueType: 'option',
+      align: 'center',
+      render: (_, log) => <RowActions log={log} canStop={canStop} canRetry={canRetry} onAction={onAction} />
+    })
   return columns
 }

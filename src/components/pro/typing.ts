@@ -31,12 +31,12 @@ export interface RequestOptionsType {
   color?: BadgeTone
 }
 
-export type ProFieldRequestData = (
-  params: ProValues,
-  props: { signal: AbortSignal }
-) => Promise<RequestOptionsType[]>
+export type ProFieldRequestData = (params: ProValues, props: { signal: AbortSignal }) => Promise<RequestOptionsType[]>
 
-type InputProps = Omit<ComponentProps<'input'>, 'value' | 'defaultValue' | 'onChange' | 'onBlur' | 'id' | 'name' | 'required' | 'className'>
+type InputProps = Omit<
+  ComponentProps<'input'>,
+  'value' | 'defaultValue' | 'onChange' | 'onBlur' | 'id' | 'name' | 'required' | 'className'
+>
 
 interface ProFieldEvents {
   onChange?: (value: unknown) => void
@@ -48,7 +48,11 @@ export interface ProFieldValueTypeWithFieldProps {
   option: Record<string, never>
   text: InputProps & ProFieldEvents & { addonStart?: ReactNode; addonEnd?: ReactNode }
   password: InputProps & ProFieldEvents
-  textarea: Omit<ComponentProps<'textarea'>, 'value' | 'defaultValue' | 'onChange' | 'onBlur' | 'id' | 'name' | 'required' | 'className'> & ProFieldEvents
+  textarea: Omit<
+    ComponentProps<'textarea'>,
+    'value' | 'defaultValue' | 'onChange' | 'onBlur' | 'id' | 'name' | 'required' | 'className'
+  > &
+    ProFieldEvents
   digit: InputProps & ProFieldEvents & { addonEnd?: ReactNode }
   select: ProFieldEvents & { placeholder?: string; disabled?: boolean; mode?: 'multiple' }
   switch: ProFieldEvents & { checkedValue?: ProValue; uncheckedValue?: ProValue; disabled?: boolean }
@@ -93,7 +97,13 @@ export interface ProColumnBase<T> {
   title?: ReactNode | ((schema: ProColumnBase<T>, type: ProSchemaComponentTypes) => ReactNode)
   valueEnum?: ProFieldValueEnum
   renderText?: (text: unknown, record: T, index: number, action: ActionType | undefined) => unknown
-  render?: (dom: ReactNode, record: T, index: number, action: ActionType | undefined, schema: ProSchemaConfig<T>) => ReactNode
+  render?: (
+    dom: ReactNode,
+    record: T,
+    index: number,
+    action: ActionType | undefined,
+    schema: ProSchemaConfig<T>
+  ) => ReactNode
   formItemProps?: ProFormItemProps | ((form: ProFormInstance, schema: ProSchemaConfig<T>) => ProFormItemProps)
   formItemRender?: (schema: ProSchemaConfig<T>, config: ProFormItemRenderConfig, form: ProFormInstance) => ReactNode
   ignoreFormItem?: boolean
@@ -119,9 +129,12 @@ type ColumnRequest =
   | { request: ProFieldRequestData; params?: ProValues; proFieldProps: { proFieldKey: QueryKey } }
 
 export type ProFieldColumn<T> = {
-  [V in ProFieldValueType]: ProColumnBase<T> & ColumnRequest & {
-    fieldProps?: ProFieldValueTypeWithFieldProps[V] | ((form: ProFormInstance | undefined, schema: ProSchemaConfig<T>) => ProFieldValueTypeWithFieldProps[V])
-  } & (V extends 'text' ? { valueType?: V } : { valueType: V })
+  [V in ProFieldValueType]: ProColumnBase<T> &
+    ColumnRequest & {
+      fieldProps?:
+        | ProFieldValueTypeWithFieldProps[V]
+        | ((form: ProFormInstance | undefined, schema: ProSchemaConfig<T>) => ProFieldValueTypeWithFieldProps[V])
+    } & (V extends 'text' ? { valueType?: V } : { valueType: V })
 }[ProFieldValueType]
 
 export interface ProDependencyColumn<T> {
@@ -171,10 +184,17 @@ export interface OptionConfig {
   reload?: boolean
   setting?: boolean
   fullScreen?: boolean
-  search?: boolean | { name?: string; placeholder?: string; delay?: number; onSearch?: (keyword: string) => boolean | void }
+  search?:
+    | boolean
+    | { name?: string; placeholder?: string; delay?: number; onSearch?: (keyword: string) => boolean | void }
 }
 
-export type ProTableRequest<T, P> = (params: P, sort: Record<string, SortOrder>, filter: Record<string, FilterValue>, signal: AbortSignal) => Promise<RequestData<T>>
+export type ProTableRequest<T, P> = (
+  params: P,
+  sort: Record<string, SortOrder>,
+  filter: Record<string, FilterValue>,
+  signal: AbortSignal
+) => Promise<RequestData<T>>
 
 export type ProTableProps<T, U extends ProValues = ProValues> = {
   columns: readonly ProColumns<T>[]
@@ -208,17 +228,28 @@ export type ProTableProps<T, U extends ProValues = ProValues> = {
   cardProps?: false
   tableClassName?: string
 } & (
-  | { dataSource?: never; pagination?: TablePaginationOptions & { defaultPageSize?: number }; request: ProTableRequest<T, U & { current: number; pageSize: number }> }
+  | {
+      dataSource?: never
+      pagination?: TablePaginationOptions & { defaultPageSize?: number }
+      request: ProTableRequest<T, U & { current: number; pageSize: number }>
+    }
   | { dataSource?: never; pagination: false; request: ProTableRequest<T, U> }
   | { dataSource: T[]; request?: never; pagination?: false | (TablePaginationOptions & { defaultPageSize?: number }) }
 )
 
-type FormColumn<C> = C extends { hideInForm: true } ? never
-  : C extends { valueType: 'index' | 'option' | 'dependency' } ? never
-  : C extends { dataIndex: string } ? C : never
+type FormColumn<C> = C extends { hideInForm: true }
+  ? never
+  : C extends { valueType: 'index' | 'option' | 'dependency' }
+    ? never
+    : C extends { dataIndex: string }
+      ? C
+      : never
 
-type FieldValue<T, C> = C extends { formItemProps: { rules: infer R extends z.ZodType } } ? z.output<R>
-  : C extends { dataIndex: infer K extends keyof T } ? T[K] : unknown
+type FieldValue<T, C> = C extends { formItemProps: { rules: infer R extends z.ZodType } }
+  ? z.output<R>
+  : C extends { dataIndex: infer K extends keyof T }
+    ? T[K]
+    : unknown
 
 export type InferFormValues<T, C extends readonly unknown[]> = {
   [Col in FormColumn<C[number]> as Col['dataIndex']]: FieldValue<T, Col>
@@ -242,13 +273,22 @@ export type FormSchema<T, C extends readonly ProColumns<T>[] = readonly ProColum
   queryKey?: QueryKey
   onFinish: (values: InferFormValues<T, C>) => Promise<boolean | void>
   formRef?: Ref<ProFormInstance | undefined>
-  submitter?: false | {
-    searchConfig?: { submitText?: string; resetText?: string }
-    render?: (props: ProSubmitterProps, dom: ReactNode[]) => ReactNode
-  }
+  submitter?:
+    | false
+    | {
+        searchConfig?: { submitText?: string; resetText?: string }
+        render?: (props: ProSubmitterProps, dom: ReactNode[]) => ReactNode
+      }
 } & (
   | { layoutType?: 'Form'; className?: string }
-  | { layoutType: 'DrawerForm'; title: string; open: boolean; onOpenChange: (open: boolean) => void; width?: 30 | 32 | 36 | 38 | 40 | 42 | 44 | 46 | 48; drawerProps?: { icon?: ReactNode; badge?: ReactNode; description?: string } }
+  | {
+      layoutType: 'DrawerForm'
+      title: string
+      open: boolean
+      onOpenChange: (open: boolean) => void
+      width?: 30 | 32 | 36 | 38 | 40 | 42 | 44 | 46 | 48
+      drawerProps?: { icon?: ReactNode; badge?: ReactNode; description?: string }
+    }
 )
 
 export interface ProDescriptionsProps<T, U = ProValues> {

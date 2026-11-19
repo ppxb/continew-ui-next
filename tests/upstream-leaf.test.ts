@@ -76,12 +76,24 @@ describe('upstream tenant login forwarding', () => {
   it('forwards the tenant separately while preserving encryption, captcha and remembered sessions', async () => {
     const store = createAuthStore()
     await store.getState().login({
-      username: 'unit-user', password: 'unit-password', captcha: '1234', uuid: 'unit-captcha', persist: true, tenantCode: 'tenant-unit'
+      username: 'unit-user',
+      password: 'unit-password',
+      captcha: '1234',
+      uuid: 'unit-captcha',
+      persist: true,
+      tenantCode: 'tenant-unit'
     })
     expect(mocks.encrypt).toHaveBeenCalledWith('unit-password')
-    expect(mocks.login).toHaveBeenCalledWith(expect.objectContaining({
-      authType: 'ACCOUNT', username: 'unit-user', password: 'unit-encrypted-password', captcha: '1234', uuid: 'unit-captcha'
-    }), 'tenant-unit')
+    expect(mocks.login).toHaveBeenCalledWith(
+      expect.objectContaining({
+        authType: 'ACCOUNT',
+        username: 'unit-user',
+        password: 'unit-encrypted-password',
+        captcha: '1234',
+        uuid: 'unit-captcha'
+      }),
+      'tenant-unit'
+    )
     expect(mocks.login.mock.calls[0][0]).not.toHaveProperty('tenantCode')
     expect(store.getState().status).toBe('authenticated')
     expect(getTenantId()).toBe('7')
@@ -99,23 +111,29 @@ describe('upstream tenant login forwarding', () => {
   it('rejects failed authentication without establishing a session', async () => {
     mocks.login.mockRejectedValueOnce(new Error('Rejected account'))
     const store = createAuthStore()
-    await expect(store.getState().login({ username: 'unit-user', password: 'unit-password', tenantCode: 'tenant-unit' })).rejects.toThrow('Rejected account')
+    await expect(
+      store.getState().login({ username: 'unit-user', password: 'unit-password', tenantCode: 'tenant-unit' })
+    ).rejects.toThrow('Rejected account')
     expect(mocks.getUserInfo).not.toHaveBeenCalled()
     expect(store.getState().status).toBe('anonymous')
     expect(getAccessToken()).toBeNull()
   })
 
-  it.each(['account', 'social'] as const)('rejects %s login when profile loading fails and clears the new session', async method => {
-    mocks.getUserInfo.mockRejectedValueOnce(new Error('Profile unavailable'))
-    const store = createAuthStore()
-    const login = method === 'account'
-      ? store.getState().login({ username: 'unit-user', password: 'unit-password', tenantCode: 'tenant-unit' })
-      : store.getState().socialLogin({ source: 'unit-provider', code: 'unit-code' })
-    await expect(login).rejects.toThrow('Profile unavailable')
-    expect(store.getState().status).toBe('anonymous')
-    expect(getAccessToken()).toBeNull()
-    expect(getTenantId()).toBeNull()
-  })
+  it.each(['account', 'social'] as const)(
+    'rejects %s login when profile loading fails and clears the new session',
+    async method => {
+      mocks.getUserInfo.mockRejectedValueOnce(new Error('Profile unavailable'))
+      const store = createAuthStore()
+      const login =
+        method === 'account'
+          ? store.getState().login({ username: 'unit-user', password: 'unit-password', tenantCode: 'tenant-unit' })
+          : store.getState().socialLogin({ source: 'unit-provider', code: 'unit-code' })
+      await expect(login).rejects.toThrow('Profile unavailable')
+      expect(store.getState().status).toBe('anonymous')
+      expect(getAccessToken()).toBeNull()
+      expect(getTenantId()).toBeNull()
+    }
+  )
 })
 
 describe('upstream site metadata refresh', () => {
@@ -123,7 +141,9 @@ describe('upstream site metadata refresh', () => {
     const { result, client } = await renderOptions()
     act(() => result.current.startEdit())
     expect(result.current.isEdit).toBe(true)
-    await act(async () => { expect(await result.current.save({ SITE_TITLE: 'After' })).toBe(true) })
+    await act(async () => {
+      expect(await result.current.save({ SITE_TITLE: 'After' })).toBe(true)
+    })
     expect(mocks.updateOption).toHaveBeenCalledWith([{ id: 1, code: 'SITE_TITLE', value: 'After' }])
     expect(result.current.isEdit).toBe(false)
     expect(client.getQueryState(siteOptionKeys.all)?.isInvalidated).toBe(true)
@@ -147,7 +167,9 @@ describe('upstream site metadata refresh', () => {
   it('does not invalidate SITE metadata for another option category', async () => {
     const { result, client } = await renderOptions('LOGIN')
     act(() => result.current.startEdit())
-    await act(async () => { await result.current.save({ SITE_TITLE: 'After' }) })
+    await act(async () => {
+      await result.current.save({ SITE_TITLE: 'After' })
+    })
     act(() => result.current.resetToDefault())
     await waitFor(() => expect(mocks.resetOptionValue).toHaveBeenCalledWith({ category: 'LOGIN' }))
     await waitFor(() => expect(result.current.isResetting).toBe(false))
@@ -158,7 +180,9 @@ describe('upstream site metadata refresh', () => {
     mocks.updateOption.mockRejectedValueOnce(new Error('Save rejected'))
     const { result, client } = await renderOptions()
     act(() => result.current.startEdit())
-    await act(async () => { expect(await result.current.save({ SITE_TITLE: 'After' })).toBe(false) })
+    await act(async () => {
+      expect(await result.current.save({ SITE_TITLE: 'After' })).toBe(false)
+    })
     expect(result.current.isEdit).toBe(true)
     expect(client.getQueryState(siteOptionKeys.all)?.isInvalidated).toBe(false)
     expect(mocks.reportError).toHaveBeenCalledOnce()

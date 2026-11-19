@@ -13,7 +13,9 @@ function formFor(values: ProValues): ProFormInstance {
     getFieldValue: name => values[name],
     getFieldsValue: () => values,
     getFieldsFormatValue: () => values,
-    setFieldsValue: next => { Object.assign(values, next) },
+    setFieldsValue: next => {
+      Object.assign(values, next)
+    },
     resetFields: () => {},
     submit: () => {}
   }
@@ -21,7 +23,12 @@ function formFor(values: ProValues): ProFormInstance {
 
 describe('file and profile submission contracts', () => {
   it('trims file names without rewriting extensions or submitting metadata', () => {
-    const values: ProValues = { originalName: '  report.final.pdf  ', id: '9007199254740993123', extension: 'pdf', parentPath: '/' }
+    const values: ProValues = {
+      originalName: '  report.final.pdf  ',
+      id: '9007199254740993123',
+      extension: 'pdf',
+      parentPath: '/'
+    }
     const form = formFor(values)
     expect(formatFormValues(fileColumns, values, form)).toEqual({ originalName: 'report.final.pdf' })
     for (const originalName of ['   ', 'folder/name', 'folder\\name']) {
@@ -31,7 +38,11 @@ describe('file and profile submission contracts', () => {
   })
 
   it('checks password confirmation against current values and preserves password bytes', () => {
-    const values: ProValues = { oldPassword: ' current-test-password ', newPassword: ' abc12345 ', confirmPassword: 'abc12345' }
+    const values: ProValues = {
+      oldPassword: ' current-test-password ',
+      newPassword: ' abc12345 ',
+      confirmPassword: 'abc12345'
+    }
     const form = formFor(values)
     expect(() => formatFormValues(passwordColumns, values, form)).toThrow('两次输入的新密码不一致')
     values.confirmPassword = values.newPassword

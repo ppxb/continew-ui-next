@@ -33,21 +33,36 @@ export function DeptFormDrawer({ deptId, defaultParentId, open, deptTree, onClos
     }
   }, [open, deptId, createParentId])
 
-  return <BetaSchemaForm<DeptResp, typeof columns> layoutType="DrawerForm" title={deptId === null ? '新增部门' : '修改部门'}
-    width={30} drawerProps={{ icon: <Building2 className="size-4" /> }} open={open} onOpenChange={next => { if (!next) onClose() }}
-    columns={columns} formRef={formRef} initialValues={{ parentId: createParentId ?? '' }} queryKey={deptKeys.detail(deptId)}
-    request={deptId === null ? undefined : (_params, signal) => getDept(deptId, signal)}
-    onFinish={async values => {
-      const payload: DeptReq = {
-        // The parent column validates string/number IDs, including the root's numeric zero.
-        parentId: values.parentId as string | number,
-        name: values.name, sort: values.sort, status: values.status, description: values.description
-      }
-      if (deptId === null) await createDept(payload)
-      else await updateDept(deptId, payload)
-      void queryClient.invalidateQueries({ queryKey: deptKeys.all })
-      toast.add({ title: deptId === null ? '新增部门成功' : '修改部门成功', type: 'success' })
-      return true
-    }}
-  />
+  return (
+    <BetaSchemaForm<DeptResp, typeof columns>
+      layoutType="DrawerForm"
+      title={deptId === null ? '新增部门' : '修改部门'}
+      width={30}
+      drawerProps={{ icon: <Building2 className="size-4" /> }}
+      open={open}
+      onOpenChange={next => {
+        if (!next) onClose()
+      }}
+      columns={columns}
+      formRef={formRef}
+      initialValues={{ parentId: createParentId ?? '' }}
+      queryKey={deptKeys.detail(deptId)}
+      request={deptId === null ? undefined : (_params, signal) => getDept(deptId, signal)}
+      onFinish={async values => {
+        const payload: DeptReq = {
+          // The parent column validates string/number IDs, including the root's numeric zero.
+          parentId: values.parentId as string | number,
+          name: values.name,
+          sort: values.sort,
+          status: values.status,
+          description: values.description
+        }
+        if (deptId === null) await createDept(payload)
+        else await updateDept(deptId, payload)
+        void queryClient.invalidateQueries({ queryKey: deptKeys.all })
+        toast.add({ title: deptId === null ? '新增部门成功' : '修改部门成功', type: 'success' })
+        return true
+      }}
+    />
+  )
 }

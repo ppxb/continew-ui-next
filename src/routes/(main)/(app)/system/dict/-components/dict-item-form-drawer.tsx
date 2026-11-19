@@ -3,7 +3,14 @@ import { ListChecks } from 'lucide-react'
 
 import { BetaSchemaForm } from '@/components/pro'
 import { toast } from '@/components/ui/toast'
-import { createDictItem, dictKeys, updateDictItem, type DictItemReq, type DictItemResp, type DictResp } from '@/lib/api/dict'
+import {
+  createDictItem,
+  dictKeys,
+  updateDictItem,
+  type DictItemReq,
+  type DictItemResp,
+  type DictResp
+} from '@/lib/api/dict'
 
 import { dictItemColumns } from './dict-columns'
 
@@ -25,7 +32,9 @@ export function DictItemFormDrawer({ item, dict, open, onClose }: DictItemFormDr
       grid
       drawerProps={{ icon: <ListChecks className="size-4" /> }}
       open={open}
-      onOpenChange={next => { if (!next) onClose() }}
+      onOpenChange={next => {
+        if (!next) onClose()
+      }}
       columns={dictItemColumns}
       queryKey={[...dictKeys.items(), 'form', dict?.id ?? null, item?.id ?? null]}
       initialValues={item ? { ...item, color: item.color || 'none', description: item.description ?? '' } : undefined}

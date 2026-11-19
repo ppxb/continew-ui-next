@@ -27,7 +27,7 @@ export function SidebarBrand() {
     <SidebarMenu>
       <SidebarMenuItem>
         <SidebarMenuButton
-          className="h-10 p-1 hover:bg-transparent active:bg-transparent group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:p-0!"
+          className="h-10 p-1 group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:p-0! hover:bg-transparent active:bg-transparent"
           render={<Link to="/dashboard" aria-label={title || '返回仪表盘'} />}
         >
           <img src={logo} alt="" className="size-8 shrink-0 object-contain" />
@@ -140,13 +140,7 @@ export const AdminSidebar = React.memo(function AdminSidebar({
   const { expanded, handlers } = useHoverExpand(expandOnHover && collapsible === 'icon')
 
   return (
-    <Sidebar
-      variant={variant}
-      collapsible={collapsible}
-      peek={expanded}
-      className={className}
-      {...handlers}
-    >
+    <Sidebar variant={variant} collapsible={collapsible} peek={expanded} className={className} {...handlers}>
       {showBrand && (
         <SidebarHeader>
           <SidebarBrand />

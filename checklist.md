@@ -269,8 +269,9 @@
   - `(app)/open/app/-components/app-secret-dialog.tsx`、`app-reset-secret-dialog.tsx`（amber）
   - `(app)/system/dict/-components/dict-toolbar.tsx:33` 与 `(app)/system/menu/-components/menu-list.tsx:188`（同一串 amber）
   - `(app)/system/menu/-components/menu-form-drawer.tsx:87-115`（sky/emerald/purple）
-  
+
   其中同一个"菜单类型"，表单用 sky/emerald/purple，`menu-columns.tsx:37-41` 的 TypeBadge 用 blue/teal/violet，两边色系对不上。搜索高亮也有两种：Tree 用 `bg-primary/20`，JSON 用 amber。`site-preview.tsx` 的窗口红黄绿圆点属于模拟窗口装饰，可以保留。
+
 - [ ] **P2** 状态和类型徽标有三套色调映射：`components/status-cell.tsx`、`components/data-badge.tsx`、`(app)/system/dict/-components/dict-display.tsx:14-28`。
 - [ ] **P2** 空值占位写法不一致：`EMPTY_PLACEHOLDER`（有的加 muted，有的不加）、写死的 `'—'`、`'-'`、`'无'` 混用。涉及 `components/data-badge.tsx:63,85`、`(app)/system/file/-components/file-table.tsx:49,52`、`file-detail-drawer.tsx:47`、`file-storage-card.tsx:88`、`(app)/system/notice/-components/notice-display.tsx:34`、`(app)/system/config/-components/sms/columns.tsx:110-148`、`(app)/dashboard/-components/dashboard-metrics.tsx:10`。`(app)/tenant/management/-components/tenant-display.tsx:4` 还把空值"未设置"标成了 `text-destructive`。
 - [ ] **P2** 三种"像输入框的弹出触发器"背景和内边距各不相同：`components/date-range-filter.tsx:45`、`components/expiry-picker.tsx:91`、`components/ui/tree-select.tsx:715-718`。建议参照 SelectTrigger 抽一个共享的 `PickerTrigger` 类。

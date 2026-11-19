@@ -90,11 +90,17 @@ export function AppList() {
         toolBarRender={() => [
           canCreate && (
             <Button key="create" className="w-full sm:w-auto" onClick={() => setFormTarget({ appId: null })}>
-              <Plus />新增应用
+              <Plus />
+              新增应用
             </Button>
           ),
           canExport && (
-            <Button key="export" variant="outline" disabled={isExporting} onClick={() => void exportData({ ...formRef.current?.getFieldsFormatValue(), sort: DEFAULT_SORT })}>
+            <Button
+              key="export"
+              variant="outline"
+              disabled={isExporting}
+              onClick={() => void exportData({ ...formRef.current?.getFieldsFormatValue(), sort: DEFAULT_SORT })}
+            >
               {isExporting ? <Spinner /> : <Download />}导出
             </Button>
           )

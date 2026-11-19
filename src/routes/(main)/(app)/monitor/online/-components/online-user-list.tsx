@@ -19,8 +19,14 @@ export function OnlineUserList() {
   const { hasPermission } = usePermission()
   const canKickout = hasPermission('monitor:online:kickout')
   const currentSessionId = getSessionId()
-  const isCurrentSession = React.useCallback((sessionId: string) => currentSessionId !== null && sessionId === currentSessionId, [currentSessionId])
-  const columns = React.useMemo(() => createOnlineUserColumns({ canKickout, isCurrentSession, onKickout: setKickingUser }), [canKickout, isCurrentSession])
+  const isCurrentSession = React.useCallback(
+    (sessionId: string) => currentSessionId !== null && sessionId === currentSessionId,
+    [currentSessionId]
+  )
+  const columns = React.useMemo(
+    () => createOnlineUserColumns({ canKickout, isCurrentSession, onKickout: setKickingUser }),
+    [canKickout, isCurrentSession]
+  )
 
   return (
     <>

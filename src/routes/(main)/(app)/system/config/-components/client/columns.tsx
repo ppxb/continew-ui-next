@@ -125,10 +125,17 @@ const toInteger = (value: unknown) => {
 }
 
 function LabelWithHint({ label, hint }: { label: string; hint: string }) {
-  return <><span>{label}</span><Tooltip>
-    <TooltipTrigger render={<span className="inline-flex cursor-help text-muted-foreground" />}><HelpCircle className="size-3.5" /></TooltipTrigger>
-    <TooltipContent side="top">{hint}</TooltipContent>
-  </Tooltip></>
+  return (
+    <>
+      <span>{label}</span>
+      <Tooltip>
+        <TooltipTrigger render={<span className="inline-flex cursor-help text-muted-foreground" />}>
+          <HelpCircle className="size-3.5" />
+        </TooltipTrigger>
+        <TooltipContent side="top">{hint}</TooltipContent>
+      </Tooltip>
+    </>
+  )
 }
 
 export interface ClientSubmitValues {
@@ -173,110 +180,295 @@ export function createClientColumns(options: ClientColumnOptions): readonly ProC
     { title: '序号', valueType: 'index' },
     { title: 'ID', dataIndex: 'id', hideInTable: true, hideInForm: true },
     {
-      title: '客户端 ID', dataIndex: 'clientId', hideInForm: true, hideInSetting: true, span: 2,
-      render: (_, client, _index, _action, { type }) => type === 'table'
-        ? <ClientIdCell clientId={client.clientId} />
-        : <CopyableText value={client.clientId} label="复制客户端 ID" successMessage="已复制客户端 ID" className="break-all" />
+      title: '客户端 ID',
+      dataIndex: 'clientId',
+      hideInForm: true,
+      hideInSetting: true,
+      span: 2,
+      render: (_, client, _index, _action, { type }) =>
+        type === 'table' ? (
+          <ClientIdCell clientId={client.clientId} />
+        ) : (
+          <CopyableText
+            value={client.clientId}
+            label="复制客户端 ID"
+            successMessage="已复制客户端 ID"
+            className="break-all"
+          />
+        )
     },
     {
-      title: '客户端类型', dataIndex: 'clientType', valueType: 'select', search: true, initialValue: 'PC', span: 2,
-      valueEnum: clientTypeMap, fieldProps: { placeholder: '请选择客户端类型' },
+      title: '客户端类型',
+      dataIndex: 'clientType',
+      valueType: 'select',
+      search: true,
+      initialValue: 'PC',
+      span: 2,
+      valueEnum: clientTypeMap,
+      fieldProps: { placeholder: '请选择客户端类型' },
       formItemProps: { rules: z.string().min(1, '请选择客户端类型') },
-      formItemRender: (_schema, control) => control.type === 'table' ? <FilterSelect
-        label="客户端类型" options={[{ value: 'all', label: '全部' }, ...clientTypeOptions]}
-        value={typeof control.value === 'string' ? control.value : 'all'}
-        onValueChange={value => control.onChange(!value || value === 'all' ? undefined : value)} className="w-full sm:w-40"
-      /> : control.defaultRender(),
-      render: (_, client, _index, _action, { type }) => type === 'table'
-        ? <TypeBadge tone={CLIENT_TYPE_TONES[client.clientType] ?? 'neutral'} label={clientTypeMap[client.clientType] || client.clientType} />
-        : <Badge variant="outline">{clientTypeMap[client.clientType] || client.clientType}</Badge>
+      formItemRender: (_schema, control) =>
+        control.type === 'table' ? (
+          <FilterSelect
+            label="客户端类型"
+            options={[{ value: 'all', label: '全部' }, ...clientTypeOptions]}
+            value={typeof control.value === 'string' ? control.value : 'all'}
+            onValueChange={value => control.onChange(!value || value === 'all' ? undefined : value)}
+            className="w-full sm:w-40"
+          />
+        ) : (
+          control.defaultRender()
+        ),
+      render: (_, client, _index, _action, { type }) =>
+        type === 'table' ? (
+          <TypeBadge
+            tone={CLIENT_TYPE_TONES[client.clientType] ?? 'neutral'}
+            label={clientTypeMap[client.clientType] || client.clientType}
+          />
+        ) : (
+          <Badge variant="outline">{clientTypeMap[client.clientType] || client.clientType}</Badge>
+        )
     },
     {
-      title: '认证类型', dataIndex: 'authType', valueType: 'select', valueEnum: authTypeMap, initialValue: ['ACCOUNT'], span: 2,
+      title: '认证类型',
+      dataIndex: 'authType',
+      valueType: 'select',
+      valueEnum: authTypeMap,
+      initialValue: ['ACCOUNT'],
+      span: 2,
       convertValue: value => value ?? ['ACCOUNT'],
       formItemProps: { rules: z.array(z.string()).min(1, '请至少选择一种认证类型') },
-      formItemRender: (_schema, control) => <ClientAuthTypeSelect
-        id={control.id} onBlur={control.onBlur} value={control.value as string[]} onChange={control.onChange}
-        options={authTypeOptions} invalid={control.invalid} disabled={control.disabled}
-      />,
-      render: (_, client, _index, _action, { type }) => type === 'table'
-        ? <TagList items={(client.authType ?? []).map(authType => authTypeMap[authType] || authType)} max={1} />
-        : <div className="flex items-center gap-1 overflow-x-auto whitespace-nowrap">{client.authType?.map(authType => <Badge key={authType} variant="secondary" className="shrink-0 font-normal whitespace-nowrap">{authTypeMap[authType] || authType}</Badge>)}</div>
+      formItemRender: (_schema, control) => (
+        <ClientAuthTypeSelect
+          id={control.id}
+          onBlur={control.onBlur}
+          value={control.value as string[]}
+          onChange={control.onChange}
+          options={authTypeOptions}
+          invalid={control.invalid}
+          disabled={control.disabled}
+        />
+      ),
+      render: (_, client, _index, _action, { type }) =>
+        type === 'table' ? (
+          <TagList items={(client.authType ?? []).map(authType => authTypeMap[authType] || authType)} max={1} />
+        ) : (
+          <div className="flex items-center gap-1 overflow-x-auto whitespace-nowrap">
+            {client.authType?.map(authType => (
+              <Badge key={authType} variant="secondary" className="shrink-0 font-normal whitespace-nowrap">
+                {authTypeMap[authType] || authType}
+              </Badge>
+            ))}
+          </div>
+        )
     },
     {
-      title: '状态', dataIndex: 'status', valueType: 'switch', initialValue: 1, order: -1, span: 2, search: true,
-      valueEnum: new Map([[1, '启用'], [2, '禁用']]),
-      formItemProps: { rules: z.literal([1, 2]), required: false, description: '启用或禁用该客户端通道', className: 'sm:col-span-2' },
-      formItemRender: (_schema, control) => control.type === 'table' ? <FilterSelect
-        label="状态" options={[{ value: 'all', label: '全部' }, { value: '1', label: '启用' }, { value: '2', label: '禁用' }]}
-        value={control.value === undefined ? 'all' : String(control.value)}
-        onValueChange={value => control.onChange(!value || value === 'all' ? undefined : Number(value))} className="w-full sm:w-32"
-      /> : control.defaultRender(),
+      title: '状态',
+      dataIndex: 'status',
+      valueType: 'switch',
+      initialValue: 1,
+      order: -1,
+      span: 2,
+      search: true,
+      valueEnum: new Map([
+        [1, '启用'],
+        [2, '禁用']
+      ]),
+      formItemProps: {
+        rules: z.literal([1, 2]),
+        required: false,
+        description: '启用或禁用该客户端通道',
+        className: 'sm:col-span-2'
+      },
+      formItemRender: (_schema, control) =>
+        control.type === 'table' ? (
+          <FilterSelect
+            label="状态"
+            options={[
+              { value: 'all', label: '全部' },
+              { value: '1', label: '启用' },
+              { value: '2', label: '禁用' }
+            ]}
+            value={control.value === undefined ? 'all' : String(control.value)}
+            onValueChange={value => control.onChange(!value || value === 'all' ? undefined : Number(value))}
+            className="w-full sm:w-32"
+          />
+        ) : (
+          control.defaultRender()
+        ),
       render: (_, client) => <StatusCell status={client.status} />
     },
     {
-      title: (_, type) => type === 'form' ? <LabelWithHint label="Token 最低活跃频率" hint="-1：不限制，永不冻结" /> : 'Token 最低活跃频率',
-      dataIndex: 'activeTimeout', initialValue: '1800', convertValue: value => String(value ?? 1800),
-      fieldProps: { inputMode: 'numeric', addonEnd: '秒' }, formItemProps: { rules: integerText.transform(Number) },
+      title: (_, type) =>
+        type === 'form' ? (
+          <LabelWithHint label="Token 最低活跃频率" hint="-1：不限制，永不冻结" />
+        ) : (
+          'Token 最低活跃频率'
+        ),
+      dataIndex: 'activeTimeout',
+      initialValue: '1800',
+      convertValue: value => String(value ?? 1800),
+      fieldProps: { inputMode: 'numeric', addonEnd: '秒' },
+      formItemProps: { rules: integerText.transform(Number) },
       render: (_, client) => <span>{client.activeTimeout === -1 ? '不限制' : `${client.activeTimeout} 秒`}</span>
     },
     {
-      title: (_, type) => type === 'form' ? <LabelWithHint label="Token 有效期" hint="-1：永不过期" /> : 'Token 有效期',
-      dataIndex: 'timeout', initialValue: '86400', convertValue: value => String(value ?? 86400),
-      fieldProps: { inputMode: 'numeric', addonEnd: '秒' }, formItemProps: { rules: integerText.transform(Number) },
+      title: (_, type) =>
+        type === 'form' ? <LabelWithHint label="Token 有效期" hint="-1：永不过期" /> : 'Token 有效期',
+      dataIndex: 'timeout',
+      initialValue: '86400',
+      convertValue: value => String(value ?? 86400),
+      fieldProps: { inputMode: 'numeric', addonEnd: '秒' },
+      formItemProps: { rules: integerText.transform(Number) },
       render: (_, client) => <span>{client.timeout === -1 ? '永不过期' : `${client.timeout} 秒`}</span>
     },
     {
-      title: (_, type) => type === 'form' ? <LabelWithHint label="Refresh Token 有效期" hint="轮换不会延长该绝对有效期；单位：秒" /> : 'Refresh Token 有效期',
-      dataIndex: 'refreshTokenTimeout', initialValue: '2592000', convertValue: value => String(value ?? 2592000),
+      title: (_, type) =>
+        type === 'form' ? (
+          <LabelWithHint label="Refresh Token 有效期" hint="轮换不会延长该绝对有效期；单位：秒" />
+        ) : (
+          'Refresh Token 有效期'
+        ),
+      dataIndex: 'refreshTokenTimeout',
+      initialValue: '2592000',
+      convertValue: value => String(value ?? 2592000),
       fieldProps: { inputMode: 'numeric', addonEnd: '秒' },
-      formItemProps: { rules: integerText.refine(value => Number(value) >= 60, 'Refresh Token 有效期不能少于 60 秒').refine(value => Number(value) <= 315360000, 'Refresh Token 有效期不能超过 10 年').transform(Number) },
-      render: (_, client) => <span>{client.refreshTokenTimeout ? `${client.refreshTokenTimeout} 秒` : EMPTY_PLACEHOLDER}</span>
+      formItemProps: {
+        rules: integerText
+          .refine(value => Number(value) >= 60, 'Refresh Token 有效期不能少于 60 秒')
+          .refine(value => Number(value) <= 315360000, 'Refresh Token 有效期不能超过 10 年')
+          .transform(Number)
+      },
+      render: (_, client) => (
+        <span>{client.refreshTokenTimeout ? `${client.refreshTokenTimeout} 秒` : EMPTY_PLACEHOLDER}</span>
+      )
     },
     {
-      title: 'Refresh Token 传输模式', dataIndex: 'refreshTokenMode', valueType: 'select', valueEnum: REFRESH_TOKEN_MODE_MAP,
-      initialValue: 'COOKIE', fieldProps: { placeholder: '请选择 Refresh Token 传输模式' },
+      title: 'Refresh Token 传输模式',
+      dataIndex: 'refreshTokenMode',
+      valueType: 'select',
+      valueEnum: REFRESH_TOKEN_MODE_MAP,
+      initialValue: 'COOKIE',
+      fieldProps: { placeholder: '请选择 Refresh Token 传输模式' },
       formItemProps: { rules: z.string().min(1, '请选择 Refresh Token 传输模式') }
     },
     {
-      title: (_, type) => type === 'form' ? '是否允许同一账号多地同时登录' : '多地登录', dataIndex: 'isConcurrent', valueType: 'switch', initialValue: true,
-      formItemProps: { rules: z.boolean(), required: false, description: '新登录是否允许与旧登录共存', className: 'sm:col-span-2' },
-      fieldProps: form => ({ checkedValue: true, uncheckedValue: false, onChange: value => {
-        if (value) form?.setFieldsValue({ replacedRange: undefined })
-        else form?.setFieldsValue({ maxLoginCount: '-1', overflowLogoutMode: undefined })
-      } }),
-      render: (_, client, _index, _action, { type }) => type === 'table'
-        ? <FlagBadge active={client.isConcurrent} activeLabel="允许" inactiveLabel="互斥" />
-        : <Badge variant={client.isConcurrent ? 'default' : 'secondary'} className="font-normal">{client.isConcurrent ? '允许' : '互斥'}</Badge>
+      title: (_, type) => (type === 'form' ? '是否允许同一账号多地同时登录' : '多地登录'),
+      dataIndex: 'isConcurrent',
+      valueType: 'switch',
+      initialValue: true,
+      formItemProps: {
+        rules: z.boolean(),
+        required: false,
+        description: '新登录是否允许与旧登录共存',
+        className: 'sm:col-span-2'
+      },
+      fieldProps: form => ({
+        checkedValue: true,
+        uncheckedValue: false,
+        onChange: value => {
+          if (value) form?.setFieldsValue({ replacedRange: undefined })
+          else form?.setFieldsValue({ maxLoginCount: '-1', overflowLogoutMode: undefined })
+        }
+      }),
+      render: (_, client, _index, _action, { type }) =>
+        type === 'table' ? (
+          <FlagBadge active={client.isConcurrent} activeLabel="允许" inactiveLabel="互斥" />
+        ) : (
+          <Badge variant={client.isConcurrent ? 'default' : 'secondary'} className="font-normal">
+            {client.isConcurrent ? '允许' : '互斥'}
+          </Badge>
+        )
     },
     {
-      valueType: 'dependency', name: ['isConcurrent', 'maxLoginCount'], columns: () => [
+      valueType: 'dependency',
+      name: ['isConcurrent', 'maxLoginCount'],
+      columns: () => [
         {
-          title: (_, type) => type === 'form' ? '顶人下线的范围' : '下线范围', dataIndex: 'replacedRange', valueType: 'select', valueEnum: replacedRangeMap,
-          convertValue: (value, _field, entity) => entity.isConcurrent !== false ? undefined : value || undefined,
-          fieldProps: form => ({ disabled: form?.getFieldValue('isConcurrent') !== false, placeholder: form?.getFieldValue('isConcurrent') !== false ? '允许并发登录时不适用' : '请选择顶人下线的范围' }),
-          formItemProps: form => ({ required: form.getFieldValue('isConcurrent') === false, rules: z.string().optional().refine(value => form.getFieldValue('isConcurrent') !== false || !!value, '不允许并发登录时必须选择顶人下线的范围') })
+          title: (_, type) => (type === 'form' ? '顶人下线的范围' : '下线范围'),
+          dataIndex: 'replacedRange',
+          valueType: 'select',
+          valueEnum: replacedRangeMap,
+          convertValue: (value, _field, entity) => (entity.isConcurrent !== false ? undefined : value || undefined),
+          fieldProps: form => ({
+            disabled: form?.getFieldValue('isConcurrent') !== false,
+            placeholder: form?.getFieldValue('isConcurrent') !== false ? '允许并发登录时不适用' : '请选择顶人下线的范围'
+          }),
+          formItemProps: form => ({
+            required: form.getFieldValue('isConcurrent') === false,
+            rules: z
+              .string()
+              .optional()
+              .refine(
+                value => form.getFieldValue('isConcurrent') !== false || !!value,
+                '不允许并发登录时必须选择顶人下线的范围'
+              )
+          })
         },
         {
-          title: (_, type) => type === 'form' ? <LabelWithHint label="同一账号最大登录数量" hint="-1：不限制" /> : '登录数量', dataIndex: 'maxLoginCount', initialValue: '-1',
-          convertValue: (value, _field, entity) => entity.isConcurrent === false ? '-1' : String(value ?? -1),
-          fieldProps: form => ({ inputMode: 'numeric', addonEnd: '个', disabled: form?.getFieldValue('isConcurrent') === false, onChange: value => {
-            if (Number(value) === -1 || Number(value) === 0) form?.setFieldsValue({ overflowLogoutMode: undefined })
-          } }),
-          formItemProps: form => ({ required: false, rules: integerText.refine(value => form.getFieldValue('isConcurrent') === false || Number(value) === -1 || Number(value) > 0, '最大登录数量只能为 -1 或正整数').transform(Number) }),
-          render: (_, client) => <span>{client.maxLoginCount === -1 ? '不限制' : client.maxLoginCount != null ? `${client.maxLoginCount} 个` : EMPTY_PLACEHOLDER}</span>
+          title: (_, type) =>
+            type === 'form' ? <LabelWithHint label="同一账号最大登录数量" hint="-1：不限制" /> : '登录数量',
+          dataIndex: 'maxLoginCount',
+          initialValue: '-1',
+          convertValue: (value, _field, entity) => (entity.isConcurrent === false ? '-1' : String(value ?? -1)),
+          fieldProps: form => ({
+            inputMode: 'numeric',
+            addonEnd: '个',
+            disabled: form?.getFieldValue('isConcurrent') === false,
+            onChange: value => {
+              if (Number(value) === -1 || Number(value) === 0) form?.setFieldsValue({ overflowLogoutMode: undefined })
+            }
+          }),
+          formItemProps: form => ({
+            required: false,
+            rules: integerText
+              .refine(
+                value => form.getFieldValue('isConcurrent') === false || Number(value) === -1 || Number(value) > 0,
+                '最大登录数量只能为 -1 或正整数'
+              )
+              .transform(Number)
+          }),
+          render: (_, client) => (
+            <span>
+              {client.maxLoginCount === -1
+                ? '不限制'
+                : client.maxLoginCount != null
+                  ? `${client.maxLoginCount} 个`
+                  : EMPTY_PLACEHOLDER}
+            </span>
+          )
         },
         {
-          title: (_, type) => type === 'form' ? '溢出人数的下线方式' : '溢出处理', dataIndex: 'overflowLogoutMode', valueType: 'select', valueEnum: logoutModeMap,
-          convertValue: (value, _field, entity) => entity.isConcurrent === false || [-1, 0].includes(entity.maxLoginCount ?? -1) ? undefined : value || undefined,
+          title: (_, type) => (type === 'form' ? '溢出人数的下线方式' : '溢出处理'),
+          dataIndex: 'overflowLogoutMode',
+          valueType: 'select',
+          valueEnum: logoutModeMap,
+          convertValue: (value, _field, entity) =>
+            entity.isConcurrent === false || [-1, 0].includes(entity.maxLoginCount ?? -1)
+              ? undefined
+              : value || undefined,
           fieldProps: form => {
-            const disabled = form?.getFieldValue('isConcurrent') === false || [-1, 0].includes(Number(form?.getFieldValue('maxLoginCount')))
+            const disabled =
+              form?.getFieldValue('isConcurrent') === false ||
+              [-1, 0].includes(Number(form?.getFieldValue('maxLoginCount')))
             return { disabled, placeholder: disabled ? '最大登录数量未限制时不适用' : '请选择溢出人数的下线方式' }
           },
           formItemProps: form => {
             const count = toInteger(form.getFieldValue('maxLoginCount'))
-            const required = form.getFieldValue('isConcurrent') !== false && ![-1, 0].includes(Number(form.getFieldValue('maxLoginCount')))
-            return { required, className: 'sm:col-span-2', rules: z.string().optional().refine(value => form.getFieldValue('isConcurrent') === false || count === null || count === -1 || !!value, '设置最大登录数量时必须选择溢出人数的下线方式') }
+            const required =
+              form.getFieldValue('isConcurrent') !== false &&
+              ![-1, 0].includes(Number(form.getFieldValue('maxLoginCount')))
+            return {
+              required,
+              className: 'sm:col-span-2',
+              rules: z
+                .string()
+                .optional()
+                .refine(
+                  value => form.getFieldValue('isConcurrent') === false || count === null || count === -1 || !!value,
+                  '设置最大登录数量时必须选择溢出人数的下线方式'
+                )
+            }
           }
         }
       ]

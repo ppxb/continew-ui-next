@@ -22,7 +22,11 @@ export function TenantFormDrawer({ tenantId, open, onClose }: TenantFormDrawerPr
   const queryClient = useQueryClient()
   const isCreate = tenantId === null
   const columns = useMemo(() => getTenantFormColumns(isCreate), [isCreate])
-  const packages = useQuery({ queryKey: packageKeys.dicts(), queryFn: ({ signal }) => listPackageDict(signal), enabled: open })
+  const packages = useQuery({
+    queryKey: packageKeys.dicts(),
+    queryFn: ({ signal }) => listPackageDict(signal),
+    enabled: open
+  })
 
   return (
     <BetaSchemaForm<TenantRecord>
@@ -31,7 +35,9 @@ export function TenantFormDrawer({ tenantId, open, onClose }: TenantFormDrawerPr
       width={32}
       drawerProps={{ icon: <Building2 className="size-4" /> }}
       open={open}
-      onOpenChange={next => { if (!next) onClose() }}
+      onOpenChange={next => {
+        if (!next) onClose()
+      }}
       columns={columns}
       queryKey={tenantKeys.detail(tenantId)}
       request={tenantId === null ? undefined : (_params, signal) => getTenant(tenantId, signal)}

@@ -69,16 +69,18 @@ export function MixedSidebar({ entries, selectedId, onSelect, topOffset, showBra
       }}
       className={cn(
         'sticky z-20 hidden shrink-0 md:flex',
-        topOffset ? 'top-(--app-header-offset) h-[calc(100svh-var(--app-header-offset))] transition-[top,height] duration-200' : 'top-0 h-svh'
+        topOffset
+          ? 'top-(--app-header-offset) h-[calc(100svh-var(--app-header-offset))] transition-[top,height] duration-200'
+          : 'top-0 h-svh'
       )}
     >
       <nav
         data-slot="mixed-sidebar-root"
         aria-label="一级菜单"
-        className="flex w-(--app-sidebar-mixed-width) flex-col items-stretch gap-1 overflow-y-auto border-r bg-sidebar px-1.5 py-2 text-sidebar-foreground scrollbar-none"
+        className="flex w-(--app-sidebar-mixed-width) scrollbar-none flex-col items-stretch gap-1 overflow-y-auto border-r bg-sidebar px-1.5 py-2 text-sidebar-foreground"
       >
         {showBrand && (
-          <div className="mb-1 flex justify-center [&_[data-sidebar=menu]]:items-center [&_[data-sidebar=menu-button]>span]:hidden [&_[data-sidebar=menu-button]]:size-10 [&_[data-sidebar=menu-button]]:justify-center">
+          <div className="mb-1 flex justify-center [&_[data-sidebar=menu-button]]:size-10 [&_[data-sidebar=menu-button]]:justify-center [&_[data-sidebar=menu-button]>span]:hidden [&_[data-sidebar=menu]]:items-center">
             <SidebarBrand />
           </div>
         )}

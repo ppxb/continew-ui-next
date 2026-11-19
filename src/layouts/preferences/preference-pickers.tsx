@@ -37,7 +37,16 @@ function LayoutPreview({ layout }: { layout: LayoutMode }) {
     <svg viewBox="0 0 104 66" className="h-14 w-full text-foreground" fill="none" aria-hidden>
       <rect width="104" height="66" rx="4" fill="currentColor" fillOpacity="0.02" />
       {root && <rect x="0" y={sideTop} width={rootW} height={66 - sideTop} fill={PRIMARY} />}
-      {side && <rect x={rootW} y={sideTop} width={sideW} height={66 - sideTop} fill={root ? MUTED : PRIMARY} fillOpacity={root ? 1 : 0.9} />}
+      {side && (
+        <rect
+          x={rootW}
+          y={sideTop}
+          width={sideW}
+          height={66 - sideTop}
+          fill={root ? MUTED : PRIMARY}
+          fillOpacity={root ? 1 : 0.9}
+        />
+      )}
       {tree &&
         [
           [4, 13, 14],
@@ -45,18 +54,17 @@ function LayoutPreview({ layout }: { layout: LayoutMode }) {
           [8, 25, 10],
           [4, 31, 14],
           [4, 37, 14]
-        ].map(([x, y, w]) => <rect key={y} x={x} y={y} width={w} height="2.5" rx="1.25" fill="white" fillOpacity="0.7" />)}
+        ].map(([x, y, w]) => (
+          <rect key={y} x={x} y={y} width={w} height="2.5" rx="1.25" fill="white" fillOpacity="0.7" />
+        ))}
       {header && (
-        <rect
-          x={headerX}
-          y="0"
-          width={104 - headerX}
-          height="9"
-          fill={headerTop && !side ? PRIMARY : MUTED}
-        />
+        <rect x={headerX} y="0" width={104 - headerX} height="9" fill={headerTop && !side ? PRIMARY : MUTED} />
       )}
-      {headerTop && ['header-nav', 'mixed-nav', 'header-mixed-nav'].includes(layout) &&
-        [30, 42, 54].map(x => <rect key={x} x={x} y="3" width="8" height="3" rx="1.5" fill="currentColor" fillOpacity="0.35" />)}
+      {headerTop &&
+        ['header-nav', 'mixed-nav', 'header-mixed-nav'].includes(layout) &&
+        [30, 42, 54].map(x => (
+          <rect key={x} x={x} y="3" width="8" height="3" rx="1.5" fill="currentColor" fillOpacity="0.35" />
+        ))}
       <rect x={contentX} y={header ? 13 : 4} width={98 - contentX} height="22" rx="2" fill={MUTED} />
       <rect x={contentX} y={header ? 39 : 30} width={98 - contentX} height="22" rx="2" fill={MUTED} />
     </svg>
@@ -77,7 +85,9 @@ export function LayoutModePicker() {
           onClick={() => setLayout(option.value)}
         >
           <LayoutPreview layout={option.value} />
-          {layout === option.value && <Check className="absolute right-1 bottom-1 size-3.5 text-primary" strokeWidth={3} />}
+          {layout === option.value && (
+            <Check className="absolute right-1 bottom-1 size-3.5 text-primary" strokeWidth={3} />
+          )}
         </ChoiceTile>
       ))}
     </div>
@@ -98,8 +108,22 @@ export function ContentModePicker() {
         >
           <svg viewBox="0 0 104 66" className="h-14 w-full" fill="none" aria-hidden>
             <rect width="104" height="9" fill={MUTED} />
-            <rect x={value === 'full-width' ? 4 : 18} y="14" width={value === 'full-width' ? 96 : 68} height="22" rx="2" fill={MUTED} />
-            <rect x={value === 'full-width' ? 4 : 18} y="40" width={value === 'full-width' ? 96 : 68} height="22" rx="2" fill={MUTED} />
+            <rect
+              x={value === 'full-width' ? 4 : 18}
+              y="14"
+              width={value === 'full-width' ? 96 : 68}
+              height="22"
+              rx="2"
+              fill={MUTED}
+            />
+            <rect
+              x={value === 'full-width' ? 4 : 18}
+              y="40"
+              width={value === 'full-width' ? 96 : 68}
+              height="22"
+              rx="2"
+              fill={MUTED}
+            />
           </svg>
         </ChoiceTile>
       ))}
@@ -228,7 +252,9 @@ export function RadiusPicker() {
           onClick={() => setRadius(option.value)}
           className={cn(
             'h-8 rounded-md border text-xs transition-colors',
-            radius === option.value ? 'border-primary bg-primary/10 font-medium text-primary' : 'hover:border-primary/50'
+            radius === option.value
+              ? 'border-primary bg-primary/10 font-medium text-primary'
+              : 'hover:border-primary/50'
           )}
         >
           {option.label}
@@ -244,7 +270,12 @@ export function TransitionPicker() {
   return (
     <div className="grid grid-cols-4 gap-3 px-2 py-1">
       {TRANSITION_NAME_OPTIONS.map(option => (
-        <ChoiceTile key={option.value} active={name === option.value} label={option.label} onClick={() => setName(option.value)}>
+        <ChoiceTile
+          key={option.value}
+          active={name === option.value}
+          label={option.label}
+          onClick={() => setName(option.value)}
+        >
           <span className="flex h-12 w-full items-center justify-center">
             <span className={cn('h-7 w-8 rounded-sm bg-primary', `transition-preview-${option.value}`)} />
           </span>

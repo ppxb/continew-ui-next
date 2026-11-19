@@ -4,7 +4,12 @@ import { getColumnKey, getColumnTitle } from '../column-utils'
 import { ProField } from '../field/pro-field'
 import type { ProFieldColumn, ProFormInstance, ProValues } from '../typing'
 
-export function ProTableSearchFields<T>({ columns, values, form, onChange }: {
+export function ProTableSearchFields<T>({
+  columns,
+  values,
+  form,
+  onChange
+}: {
   columns: readonly ProFieldColumn<T>[]
   values: ProValues
   form: ProFormInstance
@@ -14,12 +19,24 @@ export function ProTableSearchFields<T>({ columns, values, form, onChange }: {
   return columns.map((column, index) => {
     const name = column.dataIndex!
     const id = `${prefix}-${getColumnKey(column, index)}`
-    const control = { id, value: values[name], onChange: (value: unknown) => onChange(name, value), onBlur: () => {}, invalid: false }
-    const defaultRender = () => <ProField column={column} value={values[name]} type="table" mode="edit" light form={form} control={control} />
+    const control = {
+      id,
+      value: values[name],
+      onChange: (value: unknown) => onChange(name, value),
+      onBlur: () => {},
+      invalid: false
+    }
+    const defaultRender = () => (
+      <ProField column={column} value={values[name]} type="table" mode="edit" light form={form} control={control} />
+    )
     return (
       <div key={getColumnKey(column, index)} className="min-w-0">
-        <label htmlFor={id} className="sr-only">{getColumnTitle(column, 'table')}</label>
-        {column.formItemRender ? column.formItemRender({ ...column, type: 'table' }, { ...control, type: 'table', defaultRender }, form) : defaultRender()}
+        <label htmlFor={id} className="sr-only">
+          {getColumnTitle(column, 'table')}
+        </label>
+        {column.formItemRender
+          ? column.formItemRender({ ...column, type: 'table' }, { ...control, type: 'table', defaultRender }, form)
+          : defaultRender()}
       </div>
     )
   })

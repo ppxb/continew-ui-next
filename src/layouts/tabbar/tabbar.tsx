@@ -201,7 +201,12 @@ const Tab = React.memo(function Tab({
   draggable,
   middleClickClose
 }: TabProps) {
-  const { ref, isDragging } = useSortable({ id: tab.path, index, disabled: !draggable, group: tab.closable ? 'closable' : 'pinned' })
+  const { ref, isDragging } = useSortable({
+    id: tab.path,
+    index,
+    disabled: !draggable,
+    group: tab.closable ? 'closable' : 'pinned'
+  })
   const style = TAB_STYLES[styleType]
 
   return (
@@ -417,10 +422,7 @@ export function Tabbar() {
         </TabbarTool>
       )}
       {prefs.showMaximize && (
-        <TabbarTool
-          label={contentMaximized ? '还原' : '最大化'}
-          onClick={() => setContentMaximized(!contentMaximized)}
-        >
+        <TabbarTool label={contentMaximized ? '还原' : '最大化'} onClick={() => setContentMaximized(!contentMaximized)}>
           {contentMaximized ? <Minimize2 /> : <Fullscreen />}
         </TabbarTool>
       )}

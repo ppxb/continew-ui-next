@@ -26,7 +26,9 @@ export function ClientFormDrawer({ clientId, open, columns, onClose }: ClientFor
       grid
       drawerProps={{ icon: <Smartphone className="size-4" /> }}
       open={open}
-      onOpenChange={next => { if (!next) onClose() }}
+      onOpenChange={next => {
+        if (!next) onClose()
+      }}
       columns={columns}
       queryKey={clientKeys.detail(clientId ?? '')}
       request={clientId === null ? undefined : (_params, signal) => getClient(clientId, signal)}

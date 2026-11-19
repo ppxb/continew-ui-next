@@ -5,12 +5,7 @@ import { Plus } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { usePermission } from '@/hooks/use-permission'
-import {
-  listPackages,
-  packageKeys,
-  type PackagePageQuery,
-  type PackageResp
-} from '@/lib/api/package'
+import { listPackages, packageKeys, type PackagePageQuery, type PackageResp } from '@/lib/api/package'
 
 import { createPackageColumns, type PackageAction, type PackageRecord } from './package-columns'
 import { PackageDeleteDialog } from './package-delete-dialog'
@@ -68,10 +63,22 @@ export function PackageList() {
         columnsState={{ defaultValue: HIDDEN_BY_DEFAULT }}
         options={{ search: { name: 'description', placeholder: '搜索名称、描述' } }}
         request={async ({ current, pageSize, description, status }, _sort, _filter, signal) => {
-          const page = await listPackages({ page: current, size: pageSize, sort: DEFAULT_SORT, description: description || undefined, status }, signal)
+          const page = await listPackages(
+            { page: current, size: pageSize, sort: DEFAULT_SORT, description: description || undefined, status },
+            signal
+          )
           return { data: page.list, total: page.total }
         }}
-        toolBarRender={() => canCreate ? [<Button key="create" onClick={() => setFormTarget({ packageId: null })}><Plus />新增套餐</Button>] : []}
+        toolBarRender={() =>
+          canCreate
+            ? [
+                <Button key="create" onClick={() => setFormTarget({ packageId: null })}>
+                  <Plus />
+                  新增套餐
+                </Button>
+              ]
+            : []
+        }
       />
 
       <PackageDetailDrawer packageId={detailId} open={detailId !== null} onClose={() => setDetailId(null)} />

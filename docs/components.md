@@ -51,19 +51,19 @@ const columns = [
 
 接口函数和页面状态由调用方提供。表格管理分页、查询缓存、取消请求、加载/错误/空状态、列显隐、刷新和全屏；表单管理校验、回填、提交和关闭保护。
 
-| 列配置 | 用途 |
-|---|---|
-| `title`、`dataIndex`、`key` | 标签、实体字段名、稳定列标识；`title` 可按 `type` 返回不同标签 |
-| `valueType` | `text`、`textarea`、`password`、`digit`、`select`、`switch`、`dateTime`、`dateRange`、`dateTimeRange`、`index`、`option`；项目注册了 `expiry` 和 `deptTreeSelect` |
-| `valueEnum` | 只读标签/徽标和编辑选项；数字、布尔键用 `Map`，对象键是字符串 |
-| `fieldProps`、`formItemProps` | 控件属性、字段说明/必填标记和 zod `rules`，可写函数读取当前表单与实体 |
-| `hideInTable`、`hideInForm`、`hideInDescriptions` | 各场景独立隐藏；表单提交会排除隐藏字段和已消失的条件字段 |
-| `search: true`、`search.transform` | 列默认不生成搜索控件；显式开启，或转换为接口要求的筛选参数 |
-| `initialValue`、`convertValue` | 新增默认值、记录到表单的值转换；搜索默认值另外写在 `ProTable.form.initialValues` |
-| `renderText`、`render`、`formItemRender` | 改只读值、改只读节点、改受控编辑控件；名字跟 ProComponents 3.x，不提供旧别名 |
-| `dependencies`、`valueType: 'dependency'` | 函数属性联动，以及根据依赖值生成条件子列；活动规则一起校验并执行转换 |
-| `request`、`params`、`proFieldProps.proFieldKey` | 异步选项；提供 query key，让字典缓存可共享和失效 |
-| `ellipsis`、`copyable`、`align`、`span`、`order` | 截断、复制、列对齐、详情跨列、表单字段排序 |
+| 列配置                                            | 用途                                                                                                                                                              |
+| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `title`、`dataIndex`、`key`                       | 标签、实体字段名、稳定列标识；`title` 可按 `type` 返回不同标签                                                                                                    |
+| `valueType`                                       | `text`、`textarea`、`password`、`digit`、`select`、`switch`、`dateTime`、`dateRange`、`dateTimeRange`、`index`、`option`；项目注册了 `expiry` 和 `deptTreeSelect` |
+| `valueEnum`                                       | 只读标签/徽标和编辑选项；数字、布尔键用 `Map`，对象键是字符串                                                                                                     |
+| `fieldProps`、`formItemProps`                     | 控件属性、字段说明/必填标记和 zod `rules`，可写函数读取当前表单与实体                                                                                             |
+| `hideInTable`、`hideInForm`、`hideInDescriptions` | 各场景独立隐藏；表单提交会排除隐藏字段和已消失的条件字段                                                                                                          |
+| `search: true`、`search.transform`                | 列默认不生成搜索控件；显式开启，或转换为接口要求的筛选参数                                                                                                        |
+| `initialValue`、`convertValue`                    | 新增默认值、记录到表单的值转换；搜索默认值另外写在 `ProTable.form.initialValues`                                                                                  |
+| `renderText`、`render`、`formItemRender`          | 改只读值、改只读节点、改受控编辑控件；名字跟 ProComponents 3.x，不提供旧别名                                                                                      |
+| `dependencies`、`valueType: 'dependency'`         | 函数属性联动，以及根据依赖值生成条件子列；活动规则一起校验并执行转换                                                                                              |
+| `request`、`params`、`proFieldProps.proFieldKey`  | 异步选项；提供 query key，让字典缓存可共享和失效                                                                                                                  |
+| `ellipsis`、`copyable`、`align`、`span`、`order`  | 截断、复制、列对齐、详情跨列、表单字段排序                                                                                                                        |
 
 注意：
 
@@ -82,16 +82,16 @@ const columns = [
 
 ### 已迁移模块
 
-| 模块 | 封装组件 |
-|---|---|
-| 应用、用户、租户 | `ProTable`、`BetaSchemaForm`、`ProDescriptions` |
-| 部门、菜单、角色 | 树／本地数据 `ProTable`、条件表单；角色新增配置式详情 |
-| 字典、套餐 | 主从／嵌入式表格、配置式表单；套餐菜单树仍保留原授权逻辑 |
-| 定时任务、公告 | 配置式列表／详情／表单；分片参数、富文本、存草稿／发布自定义底栏 |
-| 日志、在线会话、短信日志 | 配置式筛选、分页、导出及原有动作 |
-| 客户端、短信、存储配置 | 配置式列表／表单；存储分组保留独立表格和高级字段折叠区 |
-| 网站、安全、登录、邮件配置 | `BetaSchemaForm(Form)`，保留原编辑、取消、恢复默认及批量保存控制器 |
-| 文件管理、个人资料 | 文件列表／元信息／名称表单；资料描述与密码表单。网格、上传和专用侧栏不强行套成 CRUD |
+| 模块                       | 封装组件                                                                            |
+| -------------------------- | ----------------------------------------------------------------------------------- |
+| 应用、用户、租户           | `ProTable`、`BetaSchemaForm`、`ProDescriptions`                                     |
+| 部门、菜单、角色           | 树／本地数据 `ProTable`、条件表单；角色新增配置式详情                               |
+| 字典、套餐                 | 主从／嵌入式表格、配置式表单；套餐菜单树仍保留原授权逻辑                            |
+| 定时任务、公告             | 配置式列表／详情／表单；分片参数、富文本、存草稿／发布自定义底栏                    |
+| 日志、在线会话、短信日志   | 配置式筛选、分页、导出及原有动作                                                    |
+| 客户端、短信、存储配置     | 配置式列表／表单；存储分组保留独立表格和高级字段折叠区                              |
+| 网站、安全、登录、邮件配置 | `BetaSchemaForm(Form)`，保留原编辑、取消、恢复默认及批量保存控制器                  |
+| 文件管理、个人资料         | 文件列表／元信息／名称表单；资料描述与密码表单。网格、上传和专用侧栏不强行套成 CRUD |
 
 ### 复杂页面的保真选项
 
@@ -116,17 +116,17 @@ const columns = [
 
 ---
 
-| 组件 | 位置 | 用途 |
-|---|---|---|
-| `useAppForm` 和字段组件 | `src/components/form/` | 表单抽屉里的输入框、下拉框、开关、底栏 |
-| `FormShell` | `src/components/form/form-shell.tsx` | 抽屉里的 `<form>`：可滚动的字段区加固定底栏，负责提交和聚焦第一个错误字段 |
-| `CustomField` | `src/components/form/custom-field.tsx` | 自定义控件（树选择、日期选择等）的标签和错误提示外壳 |
-| `FormItem` | `src/components/form/form-item.tsx` | 不绑定单个字段的行的标签和错误提示外壳 |
-| `ConfirmDialog` | `src/components/confirm-dialog.tsx` | 需要用户确认的操作，如重置、强退 |
-| `DeleteConfirmDialog` | `src/components/delete-confirm-dialog.tsx` | 删除确认 |
-| `ToneBadge` | `src/components/tone-badge.tsx` | 状态和类型徽标 |
-| `FormSkeleton` | `src/components/form-skeleton.tsx` | 编辑抽屉加载详情时的骨架屏 |
-| 列定义 helper | `src/components/table/columns.tsx` | 表格的序号、文本、时间、状态、操作列 |
+| 组件                    | 位置                                       | 用途                                                                      |
+| ----------------------- | ------------------------------------------ | ------------------------------------------------------------------------- |
+| `useAppForm` 和字段组件 | `src/components/form/`                     | 表单抽屉里的输入框、下拉框、开关、底栏                                    |
+| `FormShell`             | `src/components/form/form-shell.tsx`       | 抽屉里的 `<form>`：可滚动的字段区加固定底栏，负责提交和聚焦第一个错误字段 |
+| `CustomField`           | `src/components/form/custom-field.tsx`     | 自定义控件（树选择、日期选择等）的标签和错误提示外壳                      |
+| `FormItem`              | `src/components/form/form-item.tsx`        | 不绑定单个字段的行的标签和错误提示外壳                                    |
+| `ConfirmDialog`         | `src/components/confirm-dialog.tsx`        | 需要用户确认的操作，如重置、强退                                          |
+| `DeleteConfirmDialog`   | `src/components/delete-confirm-dialog.tsx` | 删除确认                                                                  |
+| `ToneBadge`             | `src/components/tone-badge.tsx`            | 状态和类型徽标                                                            |
+| `FormSkeleton`          | `src/components/form-skeleton.tsx`         | 编辑抽屉加载详情时的骨架屏                                                |
+| 列定义 helper           | `src/components/table/columns.tsx`         | 表格的序号、文本、时间、状态、操作列                                      |
 
 ---
 
@@ -195,24 +195,24 @@ const form = useAppForm({
 
 所有字段组件都接受以下属性：
 
-| 属性 | 类型 | 说明 |
-|---|---|---|
-| `label` | `ReactNode` | 标签文字 |
-| `description` | `ReactNode` | 控件下方的说明；开关类组件显示在标签下方 |
-| `required` | `boolean` | 是否显示必填星号 |
-| `hideDescriptionOnError` | `boolean` | 字段出错时隐藏说明，只显示错误，避免两行文字叠在一起 |
-| `className` | `string` | 加在字段外层，常用于网格布局里跨两列：`className="sm:col-span-2"` |
+| 属性                     | 类型        | 说明                                                              |
+| ------------------------ | ----------- | ----------------------------------------------------------------- |
+| `label`                  | `ReactNode` | 标签文字                                                          |
+| `description`            | `ReactNode` | 控件下方的说明；开关类组件显示在标签下方                          |
+| `required`               | `boolean`   | 是否显示必填星号                                                  |
+| `hideDescriptionOnError` | `boolean`   | 字段出错时隐藏说明，只显示错误，避免两行文字叠在一起              |
+| `className`              | `string`    | 加在字段外层，常用于网格布局里跨两列：`className="sm:col-span-2"` |
 
 #### TextInput：单行文本
 
 字段类型：`string`。
 
-| 属性 | 说明 |
-|---|---|
-| `type` | `'text' \| 'email' \| 'tel' \| 'url'`，默认 `'text'`。密码请用 `PasswordInput` |
-| `addonStart` | 输入框开头的前缀，如「http(s)://」 |
-| `addonEnd` | 输入框末尾的单位或提示，如「秒」 |
-| 其余 | 透传原生 `<input>` 属性，如 `maxLength`、`placeholder`、`autoComplete`、`disabled`、`inputMode` |
+| 属性         | 说明                                                                                            |
+| ------------ | ----------------------------------------------------------------------------------------------- |
+| `type`       | `'text' \| 'email' \| 'tel' \| 'url'`，默认 `'text'`。密码请用 `PasswordInput`                  |
+| `addonStart` | 输入框开头的前缀，如「http(s)://」                                                              |
+| `addonEnd`   | 输入框末尾的单位或提示，如「秒」                                                                |
+| 其余         | 透传原生 `<input>` 属性，如 `maxLength`、`placeholder`、`autoComplete`、`disabled`、`inputMode` |
 
 ```tsx
 <form.AppField name="phone">
@@ -263,10 +263,10 @@ const form = useAppForm({
 
 字段类型必须是 `number | null`。用户删空输入框时字段存 `null`，不会被回填成默认值。
 
-| 属性 | 说明 |
-|---|---|
-| `addonEnd` | 输入框末尾的单位，如「秒」「MB」 |
-| 其余 | 透传原生 `<input>` 属性，如 `min`、`max`、`step` |
+| 属性       | 说明                                             |
+| ---------- | ------------------------------------------------ |
+| `addonEnd` | 输入框末尾的单位，如「秒」「MB」                 |
+| 其余       | 透传原生 `<input>` 属性，如 `min`、`max`、`step` |
 
 schema 要显式拒绝 `null`，表单值类型用 `z.input`，提交时再收窄成 `number`：
 
@@ -298,11 +298,11 @@ const payload = { sort: value.sort as number }
 
 字段类型：`string` 或 `number`，存的就是选中项的 `value`。`''` 和 `null` 显示占位提示，`0` 是有效值。
 
-| 属性 | 说明 |
-|---|---|
-| `options` | `{ label: string; value: string \| number }[]` |
-| `placeholder` | 未选择时的提示 |
-| `disabled` | 是否禁用 |
+| 属性           | 说明                                                              |
+| -------------- | ----------------------------------------------------------------- |
+| `options`      | `{ label: string; value: string \| number }[]`                    |
+| `placeholder`  | 未选择时的提示                                                    |
+| `disabled`     | 是否禁用                                                          |
 | `renderOption` | 自定义选项内容，如在文字前加颜色圆点。参数是 `options` 里的那一项 |
 
 ```tsx
@@ -346,11 +346,11 @@ const formSchema = z.object({
 
 标签在左，开关在右。默认开 = `1`、关 = `2`，对应后端的启用和禁用。
 
-| 属性 | 说明 |
-|---|---|
-| `checkedValue` | 打开时存的值，默认 `1` |
+| 属性             | 说明                   |
+| ---------------- | ---------------------- |
+| `checkedValue`   | 打开时存的值，默认 `1` |
 | `uncheckedValue` | 关闭时存的值，默认 `2` |
-| `disabled` | 是否禁用 |
+| `disabled`       | 是否禁用               |
 
 布尔字段：
 
@@ -390,19 +390,19 @@ const formSchema = z.object({
 
 `FormShell` 的属性：
 
-| 属性 | 说明 |
-|---|---|
-| `footer` | 字段区下方的内容，通常是 `<form.FormFooter onCancel={onClose} />` |
-| `className` | 加在可滚动的字段区上 |
+| 属性        | 说明                                                              |
+| ----------- | ----------------------------------------------------------------- |
+| `footer`    | 字段区下方的内容，通常是 `<form.FormFooter onCancel={onClose} />` |
+| `className` | 加在可滚动的字段区上                                              |
 
 `FormFooter` 的属性：
 
-| 属性 | 默认值 | 说明 |
-|---|---|---|
-| `onCancel` | 必填 | 点击取消时调用 |
-| `cancelText` | `'取消'` | 取消按钮文字 |
-| `submitText` | `'保存'` | 保存按钮文字 |
-| `submittingText` | `'保存中'` | 提交中的文字 |
+| 属性             | 默认值     | 说明           |
+| ---------------- | ---------- | -------------- |
+| `onCancel`       | 必填       | 点击取消时调用 |
+| `cancelText`     | `'取消'`   | 取消按钮文字   |
+| `submitText`     | `'保存'`   | 保存按钮文字   |
+| `submittingText` | `'保存中'` | 提交中的文字   |
 
 新增和编辑文字不同时：
 
@@ -436,10 +436,10 @@ const formSchema = z.object({
 
 回调参数：
 
-| 参数 | 说明 |
-|---|---|
-| `id` | 传给控件后，点击标签会聚焦控件。控件没有 `id` 属性时可以不传 |
-| `invalid` | 字段当前是否有错误，传给控件画红框 |
+| 参数      | 说明                                                         |
+| --------- | ------------------------------------------------------------ |
+| `id`      | 传给控件后，点击标签会聚焦控件。控件没有 `id` 属性时可以不传 |
+| `invalid` | 字段当前是否有错误，传给控件画红框                           |
 
 错误提示由 `CustomField` 自己从字段上读取，不用再传 `errors`。`label`、`description`、`required`、`hideDescriptionOnError`、`className` 和字段组件相同；`orientation="horizontal"` 时控件在标签右侧。
 
@@ -475,17 +475,17 @@ const formSchema = z.object({
 ```tsx
 import { FormItem } from '@/components/form'
 
-<FormItem id="dept-root-parent" label="上级部门" description="根机构部门不支持变更上级部门" errors={[]}>
+;<FormItem id="dept-root-parent" label="上级部门" description="根机构部门不支持变更上级部门" errors={[]}>
   <Input id="dept-root-parent" value="顶级部门（根机构）" disabled readOnly />
 </FormItem>
 ```
 
-| 属性 | 说明 |
-|---|---|
-| `errors` | 必填。要显示的错误，没有就传 `[]` |
-| `id` | 控件的 id。传了之后点击标签会聚焦控件，控件本身也要设置相同的 id |
-| `label`、`description`、`required`、`hideDescriptionOnError`、`className` | 同字段组件 |
-| `orientation` | `'vertical'`（默认）或 `'horizontal'`。`horizontal` 时控件在标签右侧 |
+| 属性                                                                      | 说明                                                                 |
+| ------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| `errors`                                                                  | 必填。要显示的错误，没有就传 `[]`                                    |
+| `id`                                                                      | 控件的 id。传了之后点击标签会聚焦控件，控件本身也要设置相同的 id     |
+| `label`、`description`、`required`、`hideDescriptionOnError`、`className` | 同字段组件                                                           |
+| `orientation`                                                             | `'vertical'`（默认）或 `'horizontal'`。`horizontal` 时控件在标签右侧 |
 
 ### 6. 什么时候不用字段组件
 
@@ -539,23 +539,24 @@ export function AppResetSecretDialog({ app, open, onClose, onSuccess }: AppReset
 }
 ```
 
-| 属性 | 默认值 | 说明 |
-|---|---|---|
-| `open`、`onClose` | 必填 | 打开状态和关闭回调 |
-| `title`、`description` | 必填 | 标题和说明 |
-| `action` | 必填 | 确认后执行的请求，返回 Promise |
-| `tone` | `'danger'` | `danger` 红色，用于删除、强退；`warning` 琥珀色，用于重置这类可恢复但有影响的操作；`primary` 主题色 |
-| `icon` | 三角警告图标 | 标题左侧的图标 |
-| `confirmLabel` | `'确认'` | 确认按钮文字 |
-| `pendingLabel` | `'处理中'` | 请求中的按钮文字 |
-| `invalidateKeys` | 无 | 成功后要刷新的 query key 列表 |
-| `successMessage` | `'操作成功'` | 成功提示；传 `null` 不提示 |
-| `errorMessage` | 无 | 失败时的兜底提示 |
-| `onSuccess` | 无 | 成功后、关闭前调用 |
-| `disabled` | `false` | 禁用确认按钮 |
-| `showConfirm` | `true` | 是否显示确认按钮。传 `false` 时只展示警告，不允许操作 |
+| 属性                   | 默认值       | 说明                                                                                                |
+| ---------------------- | ------------ | --------------------------------------------------------------------------------------------------- |
+| `open`、`onClose`      | 必填         | 打开状态和关闭回调                                                                                  |
+| `title`、`description` | 必填         | 标题和说明                                                                                          |
+| `action`               | 必填         | 确认后执行的请求，返回 Promise                                                                      |
+| `tone`                 | `'danger'`   | `danger` 红色，用于删除、强退；`warning` 琥珀色，用于重置这类可恢复但有影响的操作；`primary` 主题色 |
+| `icon`                 | 三角警告图标 | 标题左侧的图标                                                                                      |
+| `confirmLabel`         | `'确认'`     | 确认按钮文字                                                                                        |
+| `pendingLabel`         | `'处理中'`   | 请求中的按钮文字                                                                                    |
+| `invalidateKeys`       | 无           | 成功后要刷新的 query key 列表                                                                       |
+| `successMessage`       | `'操作成功'` | 成功提示；传 `null` 不提示                                                                          |
+| `errorMessage`         | 无           | 失败时的兜底提示                                                                                    |
+| `onSuccess`            | 无           | 成功后、关闭前调用                                                                                  |
+| `disabled`             | `false`      | 禁用确认按钮                                                                                        |
+| `showConfirm`          | `true`       | 是否显示确认按钮。传 `false` 时只展示警告，不允许操作                                               |
 
 完整示例：
+
 - `src/routes/(main)/(app)/open/app/-components/app-reset-secret-dialog.tsx`
 - `src/routes/(main)/(app)/monitor/online/-components/online-user-kickout-dialog.tsx`
 
@@ -566,7 +567,7 @@ export function AppResetSecretDialog({ app, open, onClose, onSuccess }: AppReset
 ```tsx
 import { DeleteConfirmDialog } from '@/components/delete-confirm-dialog'
 
-<DeleteConfirmDialog
+;<DeleteConfirmDialog
   open={open}
   onClose={onClose}
   title="删除应用"
@@ -598,20 +599,20 @@ import { ToneBadge } from '@/components/tone-badge'
 <ToneBadge tone="blue" label="目录" kind="type" />
 ```
 
-| 属性 | 默认值 | 说明 |
-|---|---|---|
-| `tone` | 必填 | 颜色，见下表 |
-| `label` | 必填 | 文字 |
-| `kind` | `'status'` | `status` 带圆点、字体加粗；`type` 不带圆点、字体常规 |
-| `dot` | `kind === 'status'` | 单独控制是否显示圆点 |
-| `className` | 无 | 额外样式 |
+| 属性        | 默认值              | 说明                                                 |
+| ----------- | ------------------- | ---------------------------------------------------- |
+| `tone`      | 必填                | 颜色，见下表                                         |
+| `label`     | 必填                | 文字                                                 |
+| `kind`      | `'status'`          | `status` 带圆点、字体加粗；`type` 不带圆点、字体常规 |
+| `dot`       | `kind === 'status'` | 单独控制是否显示圆点                                 |
+| `className` | 无                  | 额外样式                                             |
 
 可用的 `tone`：
 
-| 分组 | 取值 |
-|---|---|
+| 分组   | 取值                                                                    |
+| ------ | ----------------------------------------------------------------------- |
 | 状态色 | `success`、`warning`、`caution`、`danger`、`info`、`primary`、`neutral` |
-| 类型色 | `blue`、`violet`、`teal`、`amber` |
+| 类型色 | `blue`、`violet`、`teal`、`amber`                                       |
 
 原有的 `StatusBadge`（`status-cell.tsx`）和 `TypeBadge`（`data-badge.tsx`）仍然可以用，它们内部转调 `ToneBadge`，样式不变。新代码直接用 `ToneBadge`。
 
@@ -624,14 +625,14 @@ import { ToneBadge } from '@/components/tone-badge'
 ```tsx
 import { FormSkeleton } from '@/components/form-skeleton'
 
-<FormSkeleton fields={['input', 'input', 'textarea', 'switch']} />
+;<FormSkeleton fields={['input', 'input', 'textarea', 'switch']} />
 ```
 
-| 取值 | 形状 |
-|---|---|
-| `'input'` | 标签 + 单行输入框 |
-| `'textarea'` | 标签 + 多行输入框 |
-| `'switch'` | 左侧标签和说明，右侧开关 |
+| 取值         | 形状                     |
+| ------------ | ------------------------ |
+| `'input'`    | 标签 + 单行输入框        |
+| `'textarea'` | 标签 + 多行输入框        |
+| `'switch'`   | 左侧标签和说明，右侧开关 |
 
 传 `onCancel` 时，骨架屏下方会画出抽屉底栏：一个可用的「取消」按钮和一个禁用的「保存」按钮，加载期间抽屉的高度和按钮位置不会跳动。
 
@@ -642,13 +643,15 @@ import { FormSkeleton } from '@/components/form-skeleton'
 典型用法：新增时直接渲染表单，编辑时等详情加载完成再渲染，失败显示重试。
 
 ```tsx
-{isCreate || (!detail.isError && detail.data && detail.fetchStatus === 'idle') ? (
-  <form>…</form>
-) : detail.isError ? (
-  <QueryState state="error" className="p-6" onRetry={() => void detail.refetch()} />
-) : (
-  <FormSkeleton fields={['input', 'input', 'textarea', 'switch']} />
-)}
+{
+  isCreate || (!detail.isError && detail.data && detail.fetchStatus === 'idle') ? (
+    <form>…</form>
+  ) : detail.isError ? (
+    <QueryState state="error" className="p-6" onRetry={() => void detail.refetch()} />
+  ) : (
+    <FormSkeleton fields={['input', 'input', 'textarea', 'switch']} />
+  )
+}
 ```
 
 加载骨架的配置式调用见 `src/components/pro/form/beta-schema-form.tsx`；手写调用见 `src/routes/(main)/(app)/system/user/-components/user-form-drawer.tsx`。
@@ -681,13 +684,13 @@ export function createAppColumns(onAction: (action: AppAction, app: AppResp) => 
 
 第一个参数是字段名，写错或者传了布尔类型的字段时 TypeScript 会报错。
 
-| helper | `valueType` | 说明 |
-|---|---|---|
-| `indexColumn(rowOffset)` | `index` | 序号，列 id 为 `index`。传 `rowOffset` 让翻页后序号连续；不出现在列设置里 |
-| `textColumn(key, header)` | `text` | 文本。空值显示占位符，超长截断 |
-| `dateTimeColumn(key, header)` | `dateTime` | 时间，等宽数字 |
-| `statusColumn(key)` | `status` | 表头「状态」。后端的 1 显示绿色「启用」，2 显示红色「禁用」 |
-| `optionColumn(render)` | `option` | 表头「操作」，列 id 为 `actions`。`render` 返回该行的 `RowActionsMenu`；不出现在列设置里 |
+| helper                        | `valueType` | 说明                                                                                     |
+| ----------------------------- | ----------- | ---------------------------------------------------------------------------------------- |
+| `indexColumn(rowOffset)`      | `index`     | 序号，列 id 为 `index`。传 `rowOffset` 让翻页后序号连续；不出现在列设置里                |
+| `textColumn(key, header)`     | `text`      | 文本。空值显示占位符，超长截断                                                           |
+| `dateTimeColumn(key, header)` | `dateTime`  | 时间，等宽数字                                                                           |
+| `statusColumn(key)`           | `status`    | 表头「状态」。后端的 1 显示绿色「启用」，2 显示红色「禁用」                              |
+| `optionColumn(render)`        | `option`    | 表头「操作」，列 id 为 `actions`。`render` 返回该行的 `RowActionsMenu`；不出现在列设置里 |
 
 ### 自定义单元格
 

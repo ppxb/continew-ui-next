@@ -4,7 +4,8 @@ import { sanitizeRichText } from '@/lib/sanitize'
 
 describe('sanitizeRichText', () => {
   it('keeps the editor-schema markup untouched', () => {
-    const html = '<h2>标题</h2><p><strong>加粗</strong> <em>斜体</em></p><ul><li>一</li><li>二</li></ul><blockquote><p>引用</p></blockquote>'
+    const html =
+      '<h2>标题</h2><p><strong>加粗</strong> <em>斜体</em></p><ul><li>一</li><li>二</li></ul><blockquote><p>引用</p></blockquote>'
     expect(sanitizeRichText(html)).toBe(html)
   })
 

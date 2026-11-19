@@ -23,7 +23,8 @@ export function JobLogList(props: JobLogListProps) {
   const [session, setSession] = React.useState(() => ({ routeKey, version: 0, defaults: props }))
   // A new URL target starts on page one; clearing the URL after editing a filter keeps that edit.
   if (session.routeKey !== routeKey) {
-    const hasTarget = props.initialJobId !== undefined || props.initialJobName !== undefined || props.initialGroupName !== undefined
+    const hasTarget =
+      props.initialJobId !== undefined || props.initialJobName !== undefined || props.initialGroupName !== undefined
     setSession(hasTarget ? { routeKey, version: session.version + 1, defaults: props } : { ...session, routeKey })
   }
   return <JobLogContent key={session.version} {...session.defaults} initialJobId={props.initialJobId} />
@@ -38,9 +39,17 @@ function JobLogContent({ initialJobId, initialJobName, initialGroupName }: JobLo
   const [releasedJob, setReleasedJob] = React.useState(false)
   const jobId = releasedJob ? undefined : initialJobId
   const [groupName, setGroupName] = React.useState(initialGroupName)
-  const [initialValues] = React.useState(() => ({ jobName: initialJobName ?? '', groupName: initialGroupName, dateRange: createRecentDateRange() }))
+  const [initialValues] = React.useState(() => ({
+    jobName: initialJobName ?? '',
+    groupName: initialGroupName,
+    dateRange: createRecentDateRange()
+  }))
   const [actionTarget, setActionTarget] = React.useState<JobLogActionTarget | null>(null)
-  const groups = useQuery({ queryKey: jobKeys.groups(), queryFn: ({ signal }) => listJobGroups(signal), enabled: canListJobs })
+  const groups = useQuery({
+    queryKey: jobKeys.groups(),
+    queryFn: ({ signal }) => listJobGroups(signal),
+    enabled: canListJobs
+  })
   const groupOptions = React.useMemo(() => {
     const list = groups.data ?? []
     return groupName && !list.includes(groupName) ? [groupName, ...list] : list
@@ -51,9 +60,18 @@ function JobLogContent({ initialJobId, initialJobName, initialGroupName }: JobLo
     void navigate({ to: '/schedule/log', search: {}, replace: true })
   }, [jobId, navigate])
   const handleAction = React.useCallback((type: JobLogAction, log: JobLogResp) => setActionTarget({ type, log }), [])
-  const columns = React.useMemo(() => createJobLogColumns({ canStop, canRetry, onAction: handleAction,
-    groupOptions, onGroupChange: setGroupName, onFilterChange: releaseJobFilter }),
-  [canStop, canRetry, handleAction, groupOptions, releaseJobFilter])
+  const columns = React.useMemo(
+    () =>
+      createJobLogColumns({
+        canStop,
+        canRetry,
+        onAction: handleAction,
+        groupOptions,
+        onGroupChange: setGroupName,
+        onFilterChange: releaseJobFilter
+      }),
+    [canStop, canRetry, handleAction, groupOptions, releaseJobFilter]
+  )
 
   return (
     <>

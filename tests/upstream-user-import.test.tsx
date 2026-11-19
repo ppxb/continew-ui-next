@@ -9,12 +9,20 @@ import { UserImportDrawer } from '@/routes/(main)/(app)/system/user/-components/
 import { installBrowserAnimationApis } from './browser-apis'
 
 const requests = vi.hoisted(() => ({ post: vi.fn(), downloadFile: vi.fn(), reportError: vi.fn(), toast: vi.fn() }))
-vi.mock('@/lib/http', () => ({ http: { post: requests.post }, downloadFile: requests.downloadFile, reportError: requests.reportError }))
+vi.mock('@/lib/http', () => ({
+  http: { post: requests.post },
+  downloadFile: requests.downloadFile,
+  reportError: requests.reportError
+}))
 vi.mock('@/components/ui/toast', () => ({ toast: { add: requests.toast } }))
 
 const parsed: UserImportParseResp = {
-  importKey: 'parsed-workbook-key', totalRows: 8, validRows: 6,
-  duplicateUserRows: 2, duplicateEmailRows: 1, duplicatePhoneRows: 3
+  importKey: 'parsed-workbook-key',
+  totalRows: 8,
+  validRows: 6,
+  duplicateUserRows: 2,
+  duplicateEmailRows: 1,
+  duplicatePhoneRows: 3
 }
 const clients: QueryClient[] = []
 let restoreAnimations: () => void
@@ -23,8 +31,24 @@ beforeEach(() => {
   vi.clearAllMocks()
   requests.post.mockReset()
   requests.downloadFile.mockResolvedValue(undefined)
-  vi.stubGlobal('ResizeObserver', class { observe() {} unobserve() {} disconnect() {} })
-  vi.stubGlobal('matchMedia', (query: string) => ({ matches: false, media: query, onchange: null, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {}, dispatchEvent: () => false }))
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    }
+  )
+  vi.stubGlobal('matchMedia', (query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener() {},
+    removeListener() {},
+    addEventListener() {},
+    removeEventListener() {},
+    dispatchEvent: () => false
+  }))
   vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => setTimeout(() => callback(0), 0))
   vi.stubGlobal('cancelAnimationFrame', (id: number) => clearTimeout(id))
   restoreAnimations = installBrowserAnimationApis()
@@ -42,7 +66,11 @@ function renderDrawer() {
   clients.push(client)
   const invalidate = vi.spyOn(client, 'invalidateQueries')
   const onClose = vi.fn()
-  render(<QueryClientProvider client={client}><UserImportDrawer open onClose={onClose} /></QueryClientProvider>)
+  render(
+    <QueryClientProvider client={client}>
+      <UserImportDrawer open onClose={onClose} />
+    </QueryClientProvider>
+  )
   return { invalidate, onClose }
 }
 
@@ -82,7 +110,9 @@ describe('upstream user import', () => {
   it('locks parsing, overlays the counts and TTL, and submits every selected policy once', async () => {
     const parseRequest = Promise.withResolvers<UserImportParseResp>()
     const importRequest = Promise.withResolvers<{ totalRows: number; insertRows: number; updateRows: number }>()
-    requests.post.mockImplementation((path: string) => path.endsWith('/parse') ? parseRequest.promise : importRequest.promise)
+    requests.post.mockImplementation((path: string) =>
+      path.endsWith('/parse') ? parseRequest.promise : importRequest.promise
+    )
     const { invalidate, onClose } = renderDrawer()
     const workbook = new File(['workbook bytes'], 'USERS.XLSX')
     upload(workbook)
@@ -108,7 +138,11 @@ describe('upstream user import', () => {
     await screen.findByRole('button', { name: '导入中' })
     expect(requests.post).toHaveBeenCalledTimes(2)
     expect(requests.post).toHaveBeenLastCalledWith('/system/user/import', {
-      importKey: parsed.importKey, duplicateUser: 2, duplicateEmail: 3, duplicatePhone: 1, defaultStatus: 2
+      importKey: parsed.importKey,
+      duplicateUser: 2,
+      duplicateEmail: 3,
+      duplicatePhone: 1,
+      defaultStatus: 2
     })
     expect((screen.getByRole('button', { name: '重新上传' }) as HTMLButtonElement).disabled).toBe(true)
     await act(async () => importRequest.resolve({ totalRows: 6, insertRows: 2, updateRows: 1 }))
@@ -132,7 +166,10 @@ describe('upstream user import', () => {
 
   it('discards an expired import key and requires a new successful parse', async () => {
     const expired = new Error('导入已过期，请重新上传')
-    requests.post.mockResolvedValueOnce(parsed).mockRejectedValueOnce(expired).mockResolvedValueOnce({ ...parsed, importKey: 'replacement-key' })
+    requests.post
+      .mockResolvedValueOnce(parsed)
+      .mockRejectedValueOnce(expired)
+      .mockResolvedValueOnce({ ...parsed, importKey: 'replacement-key' })
     const { invalidate, onClose } = renderDrawer()
     upload()
     await screen.findByText('解析结果')
@@ -149,7 +186,10 @@ describe('upstream user import', () => {
 
   it('keeps a non-expired import failure retryable but blocks imports without valid rows', async () => {
     const error = new Error('数据不符合导入策略，已退出导入')
-    requests.post.mockResolvedValueOnce(parsed).mockRejectedValueOnce(error).mockResolvedValueOnce({ ...parsed, validRows: 0 })
+    requests.post
+      .mockResolvedValueOnce(parsed)
+      .mockRejectedValueOnce(error)
+      .mockResolvedValueOnce({ ...parsed, validRows: 0 })
     const { invalidate, onClose } = renderDrawer()
     upload()
     await screen.findByText('解析结果')

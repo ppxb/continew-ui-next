@@ -156,7 +156,9 @@ export const useTabsStore = create<TabsState>()(
 /** `tabbar_persist` off: stop writing to sessionStorage and drop what is there. */
 export function setTabsPersistence(enabled: boolean) {
   useTabsStore.persist.setOptions({
-    storage: createJSONStorage(() => (enabled ? sessionStorage : { getItem: () => null, setItem: () => {}, removeItem: () => {} }))
+    storage: createJSONStorage(() =>
+      enabled ? sessionStorage : { getItem: () => null, setItem: () => {}, removeItem: () => {} }
+    )
   })
   if (enabled) {
     // Write the current tabs right away instead of waiting for the next change.

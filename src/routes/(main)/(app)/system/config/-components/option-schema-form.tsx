@@ -30,7 +30,8 @@ export function OptionSchemaForm<T extends ProValues>({
   variant = 'panel',
   skeletonFields
 }: OptionSchemaFormProps<T>) {
-  if (options.isLoading) return <ConfigPanelSkeleton variant={variant === 'card' ? 'card' : 'form'} fields={skeletonFields} />
+  if (options.isLoading)
+    return <ConfigPanelSkeleton variant={variant === 'card' ? 'card' : 'form'} fields={skeletonFields} />
   if (options.isError) return <ConfigPanelError onRetry={() => void options.refetch()} />
 
   return (

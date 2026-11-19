@@ -19,18 +19,20 @@ function toForm(optionMap: OptionMap): LoginFormState {
 }
 
 export function createLoginColumns(optionMap: OptionMap, isEdit: boolean) {
-  return [{
-    title: optionMap.LOGIN_CAPTCHA_ENABLED?.name,
-    dataIndex: 'LOGIN_CAPTCHA_ENABLED',
-    valueType: 'switch',
-    fieldProps: { checkedValue: 1, uncheckedValue: 0, disabled: !isEdit },
-    formItemProps: {
-      className: 'max-w-xl',
-      rules: schema.shape.LOGIN_CAPTCHA_ENABLED,
-      required: false,
-      description: '开启后，用户在后台登录时需要输入图形验证码以防止暴力破解'
+  return [
+    {
+      title: optionMap.LOGIN_CAPTCHA_ENABLED?.name,
+      dataIndex: 'LOGIN_CAPTCHA_ENABLED',
+      valueType: 'switch',
+      fieldProps: { checkedValue: 1, uncheckedValue: 0, disabled: !isEdit },
+      formItemProps: {
+        className: 'max-w-xl',
+        rules: schema.shape.LOGIN_CAPTCHA_ENABLED,
+        required: false,
+        description: '开启后，用户在后台登录时需要输入图形验证码以防止暴力破解'
+      }
     }
-  }] satisfies ProColumns<LoginFormState>[]
+  ] satisfies ProColumns<LoginFormState>[]
 }
 
 export function ConfigLogin() {

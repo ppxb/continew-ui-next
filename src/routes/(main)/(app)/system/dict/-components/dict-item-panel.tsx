@@ -75,7 +75,6 @@ export function DictItemPanel({
             <span className="hidden min-w-0 truncate text-xs text-muted-foreground sm:inline">{dict.description}</span>
           ) : null}
         </div>
-
       </div>
 
       <ProTable<DictItemResp, { dictId: string | number }>
@@ -93,11 +92,26 @@ export function DictItemPanel({
         }}
         locale={{ emptyText: '暂无字典项' }}
         toolBarRender={() => [
-          canUpdateDict && <Button key="edit" variant="outline" onClick={() => onEditDict(dict)}><Pencil />修改字典</Button>,
-          canCreateItem && <Button key="create" onClick={() => onCreateItem(dict)}><Plus />新增字典项</Button>,
-          canDeleteThisDict && <RowActionsMenu key="delete" triggerVariant="outline" triggerSize="icon">
-            <DropdownMenuItem variant="destructive" onClick={() => onDeleteDict(dict)}><Trash2 />删除字典</DropdownMenuItem>
-          </RowActionsMenu>
+          canUpdateDict && (
+            <Button key="edit" variant="outline" onClick={() => onEditDict(dict)}>
+              <Pencil />
+              修改字典
+            </Button>
+          ),
+          canCreateItem && (
+            <Button key="create" onClick={() => onCreateItem(dict)}>
+              <Plus />
+              新增字典项
+            </Button>
+          ),
+          canDeleteThisDict && (
+            <RowActionsMenu key="delete" triggerVariant="outline" triggerSize="icon">
+              <DropdownMenuItem variant="destructive" onClick={() => onDeleteDict(dict)}>
+                <Trash2 />
+                删除字典
+              </DropdownMenuItem>
+            </RowActionsMenu>
+          )
         ]}
       />
     </div>

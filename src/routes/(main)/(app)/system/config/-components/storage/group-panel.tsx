@@ -25,7 +25,18 @@ interface StorageGroupPanelProps {
  * One storage type as a collapsible group panel holding its table, sharing the dictionary screen's
  * section shape: a top-separated section whose header carries the group name and row count.
  */
-export function StorageGroupPanel({ title, icon, minWidth, items, columns, queryKey, params, isLoading, isError, isShowingPreviousRows }: StorageGroupPanelProps) {
+export function StorageGroupPanel({
+  title,
+  icon,
+  minWidth,
+  items,
+  columns,
+  queryKey,
+  params,
+  isLoading,
+  isError,
+  isShowingPreviousRows
+}: StorageGroupPanelProps) {
   return (
     <Collapsible defaultOpen className="flex flex-col border-t">
       <div className="flex flex-col gap-2 px-5 py-3 sm:flex-row sm:items-center">
@@ -68,4 +79,3 @@ export function StorageGroupPanel({ title, icon, minWidth, items, columns, query
     </Collapsible>
   )
 }
-

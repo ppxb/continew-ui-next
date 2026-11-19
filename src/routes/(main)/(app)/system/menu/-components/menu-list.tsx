@@ -23,13 +23,16 @@ function filterMenuTree(nodes: MenuResp[], keyword: string): MenuResp[] {
   if (!q) return nodes
   return nodes.flatMap(node => {
     const children = filterMenuTree(node.children ?? [], q)
-    const matches = node.title.toLowerCase().includes(q) || Boolean(node.path?.toLowerCase().includes(q)) || Boolean(node.permission?.toLowerCase().includes(q))
+    const matches =
+      node.title.toLowerCase().includes(q) ||
+      Boolean(node.path?.toLowerCase().includes(q)) ||
+      Boolean(node.permission?.toLowerCase().includes(q))
     return matches || children.length > 0 ? [{ ...node, children }] : []
   })
 }
 
 function expandableMenuIds(nodes: MenuResp[]): string[] {
-  return nodes.flatMap(node => node.children?.length ? [String(node.id), ...expandableMenuIds(node.children)] : [])
+  return nodes.flatMap(node => (node.children?.length ? [String(node.id), ...expandableMenuIds(node.children)] : []))
 }
 
 interface FormTarget {
@@ -49,9 +52,15 @@ export function MenuList() {
   const rawTree = query.data ?? EMPTY_TREE
   const filteredTree = React.useMemo(() => filterMenuTree(rawTree, keyword), [rawTree, keyword])
   // Search expansion never overwrites the manual expansion restored when the keyword clears.
-  const expandedRowKeys = React.useMemo(() => keyword
-    ? searchExpanded ?? expandableMenuIds(filteredTree)
-    : expanded === 'all' ? expandableMenuIds(filteredTree) : expanded, [keyword, searchExpanded, expanded, filteredTree])
+  const expandedRowKeys = React.useMemo(
+    () =>
+      keyword
+        ? (searchExpanded ?? expandableMenuIds(filteredTree))
+        : expanded === 'all'
+          ? expandableMenuIds(filteredTree)
+          : expanded,
+    [keyword, searchExpanded, expanded, filteredTree]
+  )
   const handleExpansionChange = (keys: string[] | 'all') => {
     if (keyword) setSearchExpanded(keys === 'all' ? expandableMenuIds(filteredTree) : keys)
     else setExpanded(keys)
@@ -72,29 +81,72 @@ export function MenuList() {
     onError: error => reportError(error, '清除缓存失败，请重试')
   })
   const isExpanded = expandedRowKeys.length > 0 || (!keyword && expanded === 'all')
-  return <>
-    <ProTable<MenuResp> columns={columns} rowKey="id" dataSource={filteredTree} queryKey={menuKeys.trees()} pagination={false}
-      params={{ keyword }} loading={query.isPending || query.isFetching} isError={query.isError} isShowingPreviousRows={query.isPlaceholderData}
-      headerTitle="菜单管理" toolbar={{ subTitle: '配置系统目录、路由页面与按钮权限' }}
-      expandable={{ expandedRowKeys, onExpandedRowsChange: handleExpansionChange }}
-      options={{ search: { placeholder: '搜索名称、路由、权限', onSearch: next => {
-        setKeyword(next)
-        if (next !== keyword) setSearchExpanded(null)
-        return false
-      } } }}
-      toolBarRender={() => [
-        hasPermission('system:menu:create') && <Button key="create" onClick={() => setFormTarget({ menuId: null, parentId: null })}><Plus />新增菜单</Button>,
-        hasPermission('system:menu:clearCache') && <Button key="clear" variant="outline" disabled={clearCacheMutation.isPending} onClick={() => clearCacheMutation.mutate()}
-          className="text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300">
-          {clearCacheMutation.isPending ? <Spinner /> : <Trash2 />}清除缓存
-        </Button>,
-        <Button key="expand" variant="outline" size="icon" onClick={() => handleExpansionChange(isExpanded ? [] : 'all')}>
-          {isExpanded ? <ChevronsDownUp /> : <ChevronsUpDown />}
-        </Button>
-      ]}
-    />
-    <MenuFormDrawer menuId={formTarget?.menuId ?? null} defaultParentId={formTarget?.parentId ?? null}
-      open={formTarget !== null} onClose={() => setFormTarget(null)} menuTree={rawTree} />
-    <MenuDeleteDialog menu={deletingMenu} allMenus={rawTree} open={deletingMenu !== null} onClose={() => setDeletingMenu(null)} />
-  </>
+  return (
+    <>
+      <ProTable<MenuResp>
+        columns={columns}
+        rowKey="id"
+        dataSource={filteredTree}
+        queryKey={menuKeys.trees()}
+        pagination={false}
+        params={{ keyword }}
+        loading={query.isPending || query.isFetching}
+        isError={query.isError}
+        isShowingPreviousRows={query.isPlaceholderData}
+        headerTitle="菜单管理"
+        toolbar={{ subTitle: '配置系统目录、路由页面与按钮权限' }}
+        expandable={{ expandedRowKeys, onExpandedRowsChange: handleExpansionChange }}
+        options={{
+          search: {
+            placeholder: '搜索名称、路由、权限',
+            onSearch: next => {
+              setKeyword(next)
+              if (next !== keyword) setSearchExpanded(null)
+              return false
+            }
+          }
+        }}
+        toolBarRender={() => [
+          hasPermission('system:menu:create') && (
+            <Button key="create" onClick={() => setFormTarget({ menuId: null, parentId: null })}>
+              <Plus />
+              新增菜单
+            </Button>
+          ),
+          hasPermission('system:menu:clearCache') && (
+            <Button
+              key="clear"
+              variant="outline"
+              disabled={clearCacheMutation.isPending}
+              onClick={() => clearCacheMutation.mutate()}
+              className="text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300"
+            >
+              {clearCacheMutation.isPending ? <Spinner /> : <Trash2 />}清除缓存
+            </Button>
+          ),
+          <Button
+            key="expand"
+            variant="outline"
+            size="icon"
+            onClick={() => handleExpansionChange(isExpanded ? [] : 'all')}
+          >
+            {isExpanded ? <ChevronsDownUp /> : <ChevronsUpDown />}
+          </Button>
+        ]}
+      />
+      <MenuFormDrawer
+        menuId={formTarget?.menuId ?? null}
+        defaultParentId={formTarget?.parentId ?? null}
+        open={formTarget !== null}
+        onClose={() => setFormTarget(null)}
+        menuTree={rawTree}
+      />
+      <MenuDeleteDialog
+        menu={deletingMenu}
+        allMenus={rawTree}
+        open={deletingMenu !== null}
+        onClose={() => setDeletingMenu(null)}
+      />
+    </>
+  )
 }

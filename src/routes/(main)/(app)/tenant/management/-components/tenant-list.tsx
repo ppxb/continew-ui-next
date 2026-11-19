@@ -50,7 +50,10 @@ export function TenantList() {
     setDeletingTenant(tenant)
   }, [])
 
-  const columns = React.useMemo(() => createTenantColumns({ canGet, canUpdate, canUpdateAdminPassword, canDelete, onAction: handleAction }), [canGet, canUpdate, canUpdateAdminPassword, canDelete, handleAction])
+  const columns = React.useMemo(
+    () => createTenantColumns({ canGet, canUpdate, canUpdateAdminPassword, canDelete, onAction: handleAction }),
+    [canGet, canUpdate, canUpdateAdminPassword, canDelete, handleAction]
+  )
 
   return (
     <>
@@ -66,13 +69,34 @@ export function TenantList() {
           const page = await listTenants({ ...search, page: current, size: pageSize, sort: DEFAULT_SORT }, signal)
           return { data: page.list, total: page.total }
         }}
-        toolBarRender={() => canCreate ? [<Button key="create" onClick={() => setFormTarget({ tenantId: null })}><Plus />新增租户</Button>] : []}
+        toolBarRender={() =>
+          canCreate
+            ? [
+                <Button key="create" onClick={() => setFormTarget({ tenantId: null })}>
+                  <Plus />
+                  新增租户
+                </Button>
+              ]
+            : []
+        }
       />
 
       <TenantDetailDrawer tenantId={detailId} open={detailId !== null} onClose={() => setDetailId(null)} />
-      <TenantFormDrawer tenantId={formTarget?.tenantId ?? null} open={formTarget !== null} onClose={() => setFormTarget(null)} />
-      <TenantAdminPasswordDialog tenant={passwordTenant} open={passwordTenant !== null} onClose={() => setPasswordTenant(null)} />
-      <TenantDeleteDialog tenant={deletingTenant} open={deletingTenant !== null} onClose={() => setDeletingTenant(null)} />
+      <TenantFormDrawer
+        tenantId={formTarget?.tenantId ?? null}
+        open={formTarget !== null}
+        onClose={() => setFormTarget(null)}
+      />
+      <TenantAdminPasswordDialog
+        tenant={passwordTenant}
+        open={passwordTenant !== null}
+        onClose={() => setPasswordTenant(null)}
+      />
+      <TenantDeleteDialog
+        tenant={deletingTenant}
+        open={deletingTenant !== null}
+        onClose={() => setDeletingTenant(null)}
+      />
     </>
   )
 }

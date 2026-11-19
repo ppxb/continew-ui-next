@@ -63,38 +63,40 @@ export function ImageUploadField({
   )
 
   return (
-      <div className="flex items-center">
-        <Input
-          ref={inputRef}
-          type="file"
-          accept={accept}
-          className="hidden"
-          onChange={handleFileChange}
-          disabled={disabled}
-        />
-        {disabled ? (
-          <div id={id} className={PREVIEW_BOX_CLASS} aria-invalid={invalid}>{preview}</div>
-        ) : (
-          <Button
-            type="button"
-            size="icon-lg"
-            id={id}
-            onBlur={onBlur}
-            aria-invalid={invalid}
-            className={cn(PREVIEW_BOX_CLASS, 'hover:bg-muted/40')}
-            onClick={() => inputRef.current?.click()}
+    <div className="flex items-center">
+      <Input
+        ref={inputRef}
+        type="file"
+        accept={accept}
+        className="hidden"
+        onChange={handleFileChange}
+        disabled={disabled}
+      />
+      {disabled ? (
+        <div id={id} className={PREVIEW_BOX_CLASS} aria-invalid={invalid}>
+          {preview}
+        </div>
+      ) : (
+        <Button
+          type="button"
+          size="icon-lg"
+          id={id}
+          onBlur={onBlur}
+          aria-invalid={invalid}
+          className={cn(PREVIEW_BOX_CLASS, 'hover:bg-muted/40')}
+          onClick={() => inputRef.current?.click()}
+        >
+          {preview}
+          <span
+            className={cn(
+              'absolute inset-0 flex flex-col items-center justify-center',
+              'bg-black/45 text-white opacity-0 transition-opacity group-hover:opacity-100'
+            )}
           >
-            {preview}
-            <span
-              className={cn(
-                'absolute inset-0 flex flex-col items-center justify-center',
-                'bg-black/45 text-white opacity-0 transition-opacity group-hover:opacity-100'
-              )}
-            >
-              <Upload />
-            </span>
-          </Button>
-        )}
-      </div>
+            <Upload />
+          </span>
+        </Button>
+      )}
+    </div>
   )
 }

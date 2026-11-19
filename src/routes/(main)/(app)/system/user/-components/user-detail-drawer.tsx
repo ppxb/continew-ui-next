@@ -29,7 +29,11 @@ export function UserDetailDrawer({ userId, open, onClose }: UserDetailDrawerProp
         {query.isError || (!detail && !query.isPending) ? (
           <QueryState state="error" onRetry={() => void query.refetch()} />
         ) : (
-          <ProDescriptions<UserRecord> columns={userColumns} dataSource={detail ?? undefined} loading={!detail && query.isPending} />
+          <ProDescriptions<UserRecord>
+            columns={userColumns}
+            dataSource={detail ?? undefined}
+            loading={!detail && query.isPending}
+          />
         )}
       </div>
     </EntityDrawer>

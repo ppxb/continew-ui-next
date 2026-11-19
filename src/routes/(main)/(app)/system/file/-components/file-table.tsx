@@ -16,7 +16,10 @@ interface FileTableProps {
 
 /** The list mode, using the same data and actions as the grid. */
 export function FileTable({ files, canDownload, canUpdate, canDelete, handlers }: FileTableProps) {
-  const columns = useMemo(() => createFileTableColumns({ canDownload, canUpdate, canDelete, handlers }), [canDownload, canUpdate, canDelete, handlers])
+  const columns = useMemo(
+    () => createFileTableColumns({ canDownload, canUpdate, canDelete, handlers }),
+    [canDownload, canUpdate, canDelete, handlers]
+  )
   return (
     <ProTable<FileResp>
       columns={columns}

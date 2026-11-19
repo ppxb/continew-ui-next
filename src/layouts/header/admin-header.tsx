@@ -39,14 +39,19 @@ function HeaderBrand({ wide }: { wide: boolean }) {
         'flex shrink-0 items-center gap-2 overflow-hidden font-semibold',
         aligned && 'transition-[width] duration-200 ease-linear motion-reduce:transition-none',
         aligned && plain && 'md:-ml-2',
-        aligned && !rail && (plain ? 'md:w-[calc(var(--app-sidebar-width)-0.5rem)]' : 'md:w-[calc(var(--app-sidebar-width)-1rem)]'),
+        aligned &&
+          !rail &&
+          (plain ? 'md:w-[calc(var(--app-sidebar-width)-0.5rem)]' : 'md:w-[calc(var(--app-sidebar-width)-1rem)]'),
         rail && (plain ? 'md:w-[calc(var(--sidebar-width-icon)-0.5rem)]' : 'md:w-(--sidebar-width-icon)')
       )}
     >
       <img
         src={logo}
         alt=""
-        className={cn('size-8 shrink-0 object-contain', rail && 'md:ml-[max(0px,calc(var(--sidebar-width-icon)/2-1.5rem))]')}
+        className={cn(
+          'size-8 shrink-0 object-contain',
+          rail && 'md:ml-[max(0px,calc(var(--sidebar-width-icon)/2-1.5rem))]'
+        )}
       />
       <span className={cn('hidden truncate sm:inline', rail && 'md:hidden')}>{title}</span>
     </Link>
@@ -107,7 +112,10 @@ export const AdminHeader = React.memo(function AdminHeader({
         {showBrand && <HeaderBrand wide={brandAlignsSidebar} />}
         {showSidebarToggle && <SidebarTrigger className="-ml-1" />}
         {(showSidebarToggle || showBrand) && (showBreadcrumb || w.search) && (
-          <Separator orientation="vertical" className="mx-1 data-[orientation=vertical]:h-4 data-[orientation=vertical]:self-center" />
+          <Separator
+            orientation="vertical"
+            className="mx-1 data-[orientation=vertical]:h-4 data-[orientation=vertical]:self-center"
+          />
         )}
         {showBreadcrumb && <AppBreadcrumb className="hidden md:flex" />}
       </div>

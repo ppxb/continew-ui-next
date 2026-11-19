@@ -36,12 +36,20 @@ export function SmsLogList() {
           const page = await listSmsLogs({ ...filters, page: current, size: pageSize, sort: DEFAULT_SORT }, signal)
           return { data: page.list, total: page.total }
         }}
-        toolBarRender={() => canExport ? [
-          <Button key="export" variant="outline" disabled={isExporting}
-            onClick={() => void exportData({ ...formRef.current?.getFieldsFormatValue(), sort: DEFAULT_SORT })}>
-            {isExporting ? <Spinner /> : <Download />}导出
-          </Button>
-        ] : []}
+        toolBarRender={() =>
+          canExport
+            ? [
+                <Button
+                  key="export"
+                  variant="outline"
+                  disabled={isExporting}
+                  onClick={() => void exportData({ ...formRef.current?.getFieldsFormatValue(), sort: DEFAULT_SORT })}
+                >
+                  {isExporting ? <Spinner /> : <Download />}导出
+                </Button>
+              ]
+            : []
+        }
       />
       <SmsLogDeleteDialog log={deletingLog} open={deletingLog !== null} onClose={() => setDeletingLog(null)} />
     </>

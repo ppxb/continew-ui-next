@@ -13,8 +13,24 @@ const clients: QueryClient[] = []
 let restoreAnimations: () => void
 
 beforeEach(() => {
-  vi.stubGlobal('matchMedia', (query: string) => ({ matches: false, media: query, onchange: null, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {}, dispatchEvent: () => false }))
-  vi.stubGlobal('ResizeObserver', class { observe() {} unobserve() {} disconnect() {} })
+  vi.stubGlobal('matchMedia', (query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener() {},
+    removeListener() {},
+    addEventListener() {},
+    removeEventListener() {},
+    dispatchEvent: () => false
+  }))
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    }
+  )
   vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => setTimeout(() => callback(0), 0))
   vi.stubGlobal('cancelAnimationFrame', (id: number) => clearTimeout(id))
   restoreAnimations = installBrowserAnimationApis()
@@ -30,8 +46,23 @@ afterEach(() => {
 function renderPagination(pagination?: ProTableProps<Row>['pagination']) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } })
   clients.push(client)
-  const request = vi.fn(async (params: { current?: number }) => ({ data: [{ id: params.current ?? 1, name: `Page ${params.current ?? 1}` }], total: 1000 }))
-  render(<QueryClientProvider client={client}><ProTable<Row> columns={[{ dataIndex: 'name', title: '记录' }]} rowKey="id" queryKey={['pagination-controls']} request={request} pagination={pagination} search={false} options={false} /></QueryClientProvider>)
+  const request = vi.fn(async (params: { current?: number }) => ({
+    data: [{ id: params.current ?? 1, name: `Page ${params.current ?? 1}` }],
+    total: 1000
+  }))
+  render(
+    <QueryClientProvider client={client}>
+      <ProTable<Row>
+        columns={[{ dataIndex: 'name', title: '记录' }]}
+        rowKey="id"
+        queryKey={['pagination-controls']}
+        request={request}
+        pagination={pagination}
+        search={false}
+        options={false}
+      />
+    </QueryClientProvider>
+  )
   return request
 }
 

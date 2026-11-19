@@ -46,7 +46,9 @@ export function TableToolbar<TRow extends RowData>({
   columnLabels,
   options
 }: TableToolbarProps<TRow>) {
-  const hideableColumns = table.getAllColumns().filter(column => column.getCanHide() && !column.columnDef.meta?.hideInSetting)
+  const hideableColumns = table
+    .getAllColumns()
+    .filter(column => column.getCanHide() && !column.columnDef.meta?.hideInSetting)
 
   return (
     <div className={cn('flex flex-wrap items-center gap-2', className)}>
@@ -58,41 +60,48 @@ export function TableToolbar<TRow extends RowData>({
         </Button>
       ) : null}
 
-      {options !== false && options?.setting !== false ? <DropdownMenu>
-        <DropdownMenuTrigger render={<Button variant="outline" size="icon" aria-label="显示的列" />}>
-          <SlidersHorizontal />
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="min-w-44">
-          <DropdownMenuGroup>
-            <DropdownMenuLabel>显示的列</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {hideableColumns.map(column => {
-              const label =
-                typeof column.columnDef.header === 'string'
-                  ? column.columnDef.header
-                  : (columnLabels?.[column.id] ?? column.id)
+      {options !== false && options?.setting !== false ? (
+        <DropdownMenu>
+          <DropdownMenuTrigger render={<Button variant="outline" size="icon" aria-label="显示的列" />}>
+            <SlidersHorizontal />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="min-w-44">
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>显示的列</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {hideableColumns.map(column => {
+                const label =
+                  typeof column.columnDef.header === 'string'
+                    ? column.columnDef.header
+                    : (columnLabels?.[column.id] ?? column.id)
 
-              return (
-                <DropdownMenuCheckboxItem
-                  key={column.id}
-                  checked={column.getIsVisible()}
-                  onCheckedChange={value => column.toggleVisibility(value)}
-                >
-                  {label}
-                </DropdownMenuCheckboxItem>
-              )
-            })}
-          </DropdownMenuGroup>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={onResetColumns}>
-            <RotateCcw />
-            重置
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu> : null}
+                return (
+                  <DropdownMenuCheckboxItem
+                    key={column.id}
+                    checked={column.getIsVisible()}
+                    onCheckedChange={value => column.toggleVisibility(value)}
+                  >
+                    {label}
+                  </DropdownMenuCheckboxItem>
+                )
+              })}
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={onResetColumns}>
+              <RotateCcw />
+              重置
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ) : null}
 
       {options !== false && options?.fullScreen !== false ? (
-        <Button variant="outline" onClick={onToggleFullscreen} size="icon" aria-label={isFullscreen ? '退出全屏' : '全屏'}>
+        <Button
+          variant="outline"
+          onClick={onToggleFullscreen}
+          size="icon"
+          aria-label={isFullscreen ? '退出全屏' : '全屏'}
+        >
           {isFullscreen ? <Minimize /> : <Maximize />}
         </Button>
       ) : null}

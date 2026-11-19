@@ -19,7 +19,7 @@ export function PageSurface({ showLoading, children }: { showLoading: boolean; c
       {loading && (
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 z-10 flex items-start justify-center pt-24 motion-safe:animate-in motion-safe:fade-in motion-safe:delay-150 motion-safe:fill-mode-backwards"
+          className="pointer-events-none absolute inset-0 z-10 flex items-start justify-center pt-24 motion-safe:animate-in motion-safe:delay-150 motion-safe:fill-mode-backwards motion-safe:fade-in"
         >
           <Spinner className="size-5 text-primary" />
         </div>

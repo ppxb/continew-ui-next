@@ -51,7 +51,6 @@ export function ConfigClient() {
   const replacedRangeOptions = useDictOptions('replaced_range_enum', REPLACED_RANGE_PRESETS)
   const logoutModeOptions = useDictOptions('logout_mode_enum', LOGOUT_MODE_PRESETS)
 
-
   const handleRowAction = React.useCallback((action: ClientAction, record: ClientResp) => {
     if (action === 'detail') {
       setDetailTarget(record)
@@ -66,9 +65,17 @@ export function ConfigClient() {
     setDeleteTarget(record)
   }, [])
 
-  const columns = React.useMemo(() => createClientColumns({
-    clientTypeOptions, authTypeOptions, replacedRangeOptions, logoutModeOptions, onAction: handleRowAction
-  }), [clientTypeOptions, authTypeOptions, replacedRangeOptions, logoutModeOptions, handleRowAction])
+  const columns = React.useMemo(
+    () =>
+      createClientColumns({
+        clientTypeOptions,
+        authTypeOptions,
+        replacedRangeOptions,
+        logoutModeOptions,
+        onAction: handleRowAction
+      }),
+    [clientTypeOptions, authTypeOptions, replacedRangeOptions, logoutModeOptions, handleRowAction]
+  )
 
   return (
     <>
@@ -84,11 +91,16 @@ export function ConfigClient() {
           const result = await listClient({ page: current, size: pageSize, clientType, status }, signal)
           return { data: result.list, total: result.total, success: true }
         }}
-        toolBarRender={() => hasPermission('system:client:create') ? [
-          <Button key="create" className="w-full sm:w-auto" onClick={() => setFormTarget({ clientId: null })}>
-            <Plus />新增客户端
-          </Button>
-        ] : []}
+        toolBarRender={() =>
+          hasPermission('system:client:create')
+            ? [
+                <Button key="create" className="w-full sm:w-auto" onClick={() => setFormTarget({ clientId: null })}>
+                  <Plus />
+                  新增客户端
+                </Button>
+              ]
+            : []
+        }
       />
 
       <ClientFormDrawer

@@ -22,7 +22,9 @@ export function AppFormDrawer({ appId, open, onClose }: AppFormDrawerProps) {
       width={30}
       drawerProps={{ icon: <LayoutGrid className="size-4" /> }}
       open={open}
-      onOpenChange={next => { if (!next) onClose() }}
+      onOpenChange={next => {
+        if (!next) onClose()
+      }}
       columns={appColumns}
       queryKey={appKeys.detail(appId)}
       request={appId === null ? undefined : (_params, signal) => getApp(appId, signal)}

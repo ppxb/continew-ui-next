@@ -1,14 +1,31 @@
 import { z } from 'zod'
 
 import { getFieldProps, isFieldColumn } from '../column-utils'
-import type { ProColumns, ProFieldColumn, ProFormInstance, ProFormItemProps, ProValues, ProValueTypeMap } from '../typing'
+import type {
+  ProColumns,
+  ProFieldColumn,
+  ProFormInstance,
+  ProFormItemProps,
+  ProValues,
+  ProValueTypeMap
+} from '../typing'
 
-export function getFormEmptyValue<T>(column: ProFieldColumn<T>, registry: ProValueTypeMap, form?: ProFormInstance, entity?: T): unknown {
+export function getFormEmptyValue<T>(
+  column: ProFieldColumn<T>,
+  registry: ProValueTypeMap,
+  form?: ProFormInstance,
+  entity?: T
+): unknown {
   if (column.valueType === 'select' && getFieldProps(column, 'form', form, entity).mode === 'multiple') return []
   return registry[column.valueType ?? 'text']?.initialValue
 }
 
-export function getFormInitialValue<T>(column: ProFieldColumn<T>, registry: ProValueTypeMap, form?: ProFormInstance, entity?: T): unknown {
+export function getFormInitialValue<T>(
+  column: ProFieldColumn<T>,
+  registry: ProValueTypeMap,
+  form?: ProFormInstance,
+  entity?: T
+): unknown {
   return column.initialValue !== undefined ? column.initialValue : getFormEmptyValue(column, registry, form, entity)
 }
 export function getFormColumns<T>(columns: readonly ProColumns<T>[], values: ProValues): ProFieldColumn<T>[] {
@@ -17,7 +34,12 @@ export function getFormColumns<T>(columns: readonly ProColumns<T>[], values: Pro
     if (!isFieldColumn(column)) {
       const watched = Object.fromEntries(column.name.map(name => [name, values[name]])) as Partial<T>
       active.push(...getFormColumns(column.columns(watched), values))
-    } else if (!column.hideInForm && column.valueType !== 'index' && column.valueType !== 'option' && column.dataIndex) {
+    } else if (
+      !column.hideInForm &&
+      column.valueType !== 'index' &&
+      column.valueType !== 'option' &&
+      column.dataIndex
+    ) {
       active.push(column)
     }
   }
@@ -25,25 +47,50 @@ export function getFormColumns<T>(columns: readonly ProColumns<T>[], values: Pro
 }
 
 export function getFormItemProps<T>(column: ProFieldColumn<T>, form: ProFormInstance, entity?: T): ProFormItemProps {
-  return (typeof column.formItemProps === 'function'
-    ? column.formItemProps(form, { ...column, type: 'form', entity })
-    : column.formItemProps) ?? {}
+  return (
+    (typeof column.formItemProps === 'function'
+      ? column.formItemProps(form, { ...column, type: 'form', entity })
+      : column.formItemProps) ?? {}
+  )
 }
 
-export function buildFormDefaults<T>(columns: readonly ProColumns<T>[], registry: ProValueTypeMap, initialValues: ProValues = {}, entity?: T, form?: ProFormInstance): ProValues {
+export function buildFormDefaults<T>(
+  columns: readonly ProColumns<T>[],
+  registry: ProValueTypeMap,
+  initialValues: ProValues = {},
+  entity?: T,
+  form?: ProFormInstance
+): ProValues {
   const values: ProValues = { ...initialValues }
-  const defaultForm: ProFormInstance | undefined = form ? {
-    ...form,
-    getFieldValue: name => Object.hasOwn(values, name) ? values[name] : entity === undefined ? undefined : (entity as ProValues)[name],
-    getFieldsValue: () => values
-  } : undefined
+  const defaultForm: ProFormInstance | undefined = form
+    ? {
+        ...form,
+        getFieldValue: name =>
+          Object.hasOwn(values, name) ? values[name] : entity === undefined ? undefined : (entity as ProValues)[name],
+        getFieldsValue: () => values
+      }
+    : undefined
   const visit = (items: readonly ProColumns<T>[]) => {
     for (const column of items) {
-      if (!isFieldColumn(column) || !column.dataIndex || column.hideInForm || column.valueType === 'index' || column.valueType === 'option') continue
+      if (
+        !isFieldColumn(column) ||
+        !column.dataIndex ||
+        column.hideInForm ||
+        column.valueType === 'index' ||
+        column.valueType === 'option'
+      )
+        continue
       const name = column.dataIndex
-      const fallback = Object.hasOwn(initialValues, name) ? initialValues[name] : getFormInitialValue(column, registry, defaultForm, entity)
+      const fallback = Object.hasOwn(initialValues, name)
+        ? initialValues[name]
+        : getFormInitialValue(column, registry, defaultForm, entity)
       const value = entity === undefined ? undefined : (entity as ProValues)[name]
-      values[name] = entity === undefined ? fallback : column.convertValue ? column.convertValue(value, name, entity) : value ?? fallback
+      values[name] =
+        entity === undefined
+          ? fallback
+          : column.convertValue
+            ? column.convertValue(value, name, entity)
+            : (value ?? fallback)
     }
     for (const column of items) {
       if (!isFieldColumn(column)) {
@@ -66,10 +113,17 @@ export function buildFormSchema<T>(columns: readonly ProFieldColumn<T>[], form: 
 }
 
 export function pickFormValues<T>(columns: readonly ProFieldColumn<T>[], values: ProValues): ProValues {
-  return Object.fromEntries(columns.flatMap(column => column.dataIndex ? [[column.dataIndex, values[column.dataIndex]]] : []))
+  return Object.fromEntries(
+    columns.flatMap(column => (column.dataIndex ? [[column.dataIndex, values[column.dataIndex]]] : []))
+  )
 }
 
-export function formatFormValues<T>(columns: readonly ProColumns<T>[], values: ProValues, form: ProFormInstance, entity?: T): ProValues {
+export function formatFormValues<T>(
+  columns: readonly ProColumns<T>[],
+  values: ProValues,
+  form: ProFormInstance,
+  entity?: T
+): ProValues {
   const active = getFormColumns(columns, values)
   return buildFormSchema(active, form, entity).parse(pickFormValues(active, values))
 }

@@ -20,9 +20,15 @@ export function NoticeDetailDrawer({ noticeId, open, onClose }: NoticeDetailDraw
   const columns = React.useMemo(() => noticeColumns(dicts), [dicts])
   const query = useNoticeDetail(noticeId, { enabled: open })
 
-  return <EntityDrawer open={open} onClose={onClose} title="公告详情" icon={<FileText className="size-4" />} width={40}>
-    <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-5">
-      {query.isError || (!query.isPending && !query.data) ? <QueryState state="error" onRetry={() => void query.refetch()} /> : <ProDescriptions columns={columns} dataSource={query.data} loading={query.isPending} />}
-    </div>
-  </EntityDrawer>
+  return (
+    <EntityDrawer open={open} onClose={onClose} title="公告详情" icon={<FileText className="size-4" />} width={40}>
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-5">
+        {query.isError || (!query.isPending && !query.data) ? (
+          <QueryState state="error" onRetry={() => void query.refetch()} />
+        ) : (
+          <ProDescriptions columns={columns} dataSource={query.data} loading={query.isPending} />
+        )}
+      </div>
+    </EntityDrawer>
+  )
 }

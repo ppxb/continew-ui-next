@@ -12,8 +12,24 @@ import { installBrowserAnimationApis } from './browser-apis'
 const clients: QueryClient[] = []
 let restoreAnimations: () => void
 beforeEach(() => {
-  vi.stubGlobal('ResizeObserver', class { observe() {} unobserve() {} disconnect() {} })
-  vi.stubGlobal('matchMedia', (query: string) => ({ matches: false, media: query, onchange: null, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {}, dispatchEvent: () => false }))
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    }
+  )
+  vi.stubGlobal('matchMedia', (query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener() {},
+    removeListener() {},
+    addEventListener() {},
+    removeEventListener() {},
+    dispatchEvent: () => false
+  }))
   vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => setTimeout(() => callback(0), 0))
   vi.stubGlobal('cancelAnimationFrame', (id: number) => clearTimeout(id))
   restoreAnimations = installBrowserAnimationApis()
@@ -35,7 +51,21 @@ function createClient() {
 describe('rollout table sources and custom submitters', () => {
   it('paginates a local data source once and keeps continuous serial numbers', async () => {
     const dataSource = Array.from({ length: 26 }, (_, index) => ({ id: index + 1, name: `Row ${index + 1}` }))
-    render(<QueryClientProvider client={createClient()}><ProTable columns={[{ valueType: 'index', title: '序号' }, { dataIndex: 'name', title: 'Name' }]} dataSource={dataSource} rowKey="id" queryKey={['local-paging']} options={false} search={false} /></QueryClientProvider>)
+    render(
+      <QueryClientProvider client={createClient()}>
+        <ProTable
+          columns={[
+            { valueType: 'index', title: '序号' },
+            { dataIndex: 'name', title: 'Name' }
+          ]}
+          dataSource={dataSource}
+          rowKey="id"
+          queryKey={['local-paging']}
+          options={false}
+          search={false}
+        />
+      </QueryClientProvider>
+    )
     expect(await screen.findByText('Row 1')).toBeTruthy()
     expect(screen.queryByText('Row 11')).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: '下一页' }))
@@ -48,12 +78,32 @@ describe('rollout table sources and custom submitters', () => {
   })
 
   it('refreshes the upstream query for local tables and clamps a shrinking result', async () => {
-    const request = vi.fn(async () => Array.from({ length: request.mock.calls.length === 1 ? 26 : 2 }, (_, index) => ({ id: index + 1, name: `${request.mock.calls.length === 1 ? 'Original' : 'Updated'} ${index + 1}` })))
+    const request = vi.fn(async () =>
+      Array.from({ length: request.mock.calls.length === 1 ? 26 : 2 }, (_, index) => ({
+        id: index + 1,
+        name: `${request.mock.calls.length === 1 ? 'Original' : 'Updated'} ${index + 1}`
+      }))
+    )
     function Example() {
       const query = useQuery({ queryKey: ['local-source', 'rows'], queryFn: request })
-      return <ProTable columns={[{ dataIndex: 'name', title: 'Name' }]} dataSource={query.data ?? []} loading={query.isFetching} isError={query.isError} rowKey="id" queryKey={['local-source']} options={{ setting: false, fullScreen: false }} search={false} />
+      return (
+        <ProTable
+          columns={[{ dataIndex: 'name', title: 'Name' }]}
+          dataSource={query.data ?? []}
+          loading={query.isFetching}
+          isError={query.isError}
+          rowKey="id"
+          queryKey={['local-source']}
+          options={{ setting: false, fullScreen: false }}
+          search={false}
+        />
+      )
     }
-    render(<QueryClientProvider client={createClient()}><Example /></QueryClientProvider>)
+    render(
+      <QueryClientProvider client={createClient()}>
+        <Example />
+      </QueryClientProvider>
+    )
     await screen.findByText('Original 1')
     fireEvent.click(screen.getByRole('button', { name: '下一页' }))
     await screen.findByText('Original 11')
@@ -70,8 +120,29 @@ describe('rollout table sources and custom submitters', () => {
 
   it('routes a custom draft footer through validation and parsed form submission', async () => {
     const onFinish = vi.fn(async () => false)
-    const columns = [{ dataIndex: 'name', title: 'Name', formItemProps: { required: false, rules: z.string().trim().min(1, 'Name is required') } }] as const
-    render(<QueryClientProvider client={createClient()}><BetaSchemaForm columns={columns} grid onFinish={onFinish} submitter={{ render: ({ submit, isSubmitting }) => <button type="button" disabled={isSubmitting} onClick={submit}>存草稿</button> }} /></QueryClientProvider>)
+    const columns = [
+      {
+        dataIndex: 'name',
+        title: 'Name',
+        formItemProps: { required: false, rules: z.string().trim().min(1, 'Name is required') }
+      }
+    ] as const
+    render(
+      <QueryClientProvider client={createClient()}>
+        <BetaSchemaForm
+          columns={columns}
+          grid
+          onFinish={onFinish}
+          submitter={{
+            render: ({ submit, isSubmitting }) => (
+              <button type="button" disabled={isSubmitting} onClick={submit}>
+                存草稿
+              </button>
+            )
+          }}
+        />
+      </QueryClientProvider>
+    )
     fireEvent.click(screen.getByRole('button', { name: '存草稿' }))
     expect(await screen.findByText('Name is required')).toBeTruthy()
     expect(onFinish).not.toHaveBeenCalled()

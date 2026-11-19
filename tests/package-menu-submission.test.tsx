@@ -15,12 +15,24 @@ let client: QueryClient | undefined
 beforeEach(() => {
   vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => window.setTimeout(() => callback(0), 0))
   vi.stubGlobal('cancelAnimationFrame', (handle: number) => window.clearTimeout(handle))
-  vi.stubGlobal('ResizeObserver', class {
-    observe() {}
-    unobserve() {}
-    disconnect() {}
-  })
-  vi.stubGlobal('matchMedia', (query: string) => ({ matches: false, media: query, onchange: null, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {}, dispatchEvent: () => false }))
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    }
+  )
+  vi.stubGlobal('matchMedia', (query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener() {},
+    removeListener() {},
+    addEventListener() {},
+    removeEventListener() {},
+    dispatchEvent: () => false
+  }))
 })
 
 afterEach(() => {
@@ -49,10 +61,18 @@ describe('package menu submission', () => {
     const leaf = '9223372036854775807'
     const result = completePackageMenuIds(
       [leaf, '8', leaf, 'unknown'],
-      new Map([[leaf, [root, '8']], ['8', [root]]]),
-      [{ key: root, parentId: null, title: 'Root', children: [
-        { key: 8, parentId: root, title: 'Parent', children: [{ key: leaf, parentId: 8, title: 'Leaf' }] }
-      ] }]
+      new Map([
+        [leaf, [root, '8']],
+        ['8', [root]]
+      ]),
+      [
+        {
+          key: root,
+          parentId: null,
+          title: 'Root',
+          children: [{ key: 8, parentId: root, title: 'Parent', children: [{ key: leaf, parentId: 8, title: 'Leaf' }] }]
+        }
+      ]
     )
     expect(result).toEqual([leaf, 8, 'unknown', root])
   })

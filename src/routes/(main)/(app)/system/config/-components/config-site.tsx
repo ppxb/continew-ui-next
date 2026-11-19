@@ -35,42 +35,67 @@ function toForm(optionMap: OptionMap): SiteFormState {
 export function createSiteColumns(optionMap: OptionMap, isEdit: boolean) {
   return [
     {
-      title: optionMap.SITE_LOGO?.name, dataIndex: 'SITE_LOGO',
+      title: optionMap.SITE_LOGO?.name,
+      dataIndex: 'SITE_LOGO',
       formItemProps: { rules: schema.shape.SITE_LOGO, description: optionMap.SITE_LOGO?.description },
-      formItemRender: (_, control) => <ImageUploadField {...control} value={String(control.value ?? '')} disabled={!isEdit || control.disabled} />
-    },
-    {
-      title: optionMap.SITE_FAVICON?.name, dataIndex: 'SITE_FAVICON',
-      formItemProps: { rules: schema.shape.SITE_FAVICON, description: optionMap.SITE_FAVICON?.description },
       formItemRender: (_, control) => (
-        <ImageUploadField {...control} value={String(control.value ?? '')} disabled={!isEdit || control.disabled}
-          accept="image/*,.ico" previewClassName="size-7 object-contain" invalidFileMessage="请选择有效的图标文件" />
+        <ImageUploadField {...control} value={String(control.value ?? '')} disabled={!isEdit || control.disabled} />
       )
     },
     {
-      title: optionMap.SITE_TITLE?.name, dataIndex: 'SITE_TITLE',
+      title: optionMap.SITE_FAVICON?.name,
+      dataIndex: 'SITE_FAVICON',
+      formItemProps: { rules: schema.shape.SITE_FAVICON, description: optionMap.SITE_FAVICON?.description },
+      formItemRender: (_, control) => (
+        <ImageUploadField
+          {...control}
+          value={String(control.value ?? '')}
+          disabled={!isEdit || control.disabled}
+          accept="image/*,.ico"
+          previewClassName="size-7 object-contain"
+          invalidFileMessage="请选择有效的图标文件"
+        />
+      )
+    },
+    {
+      title: optionMap.SITE_TITLE?.name,
+      dataIndex: 'SITE_TITLE',
       fieldProps: { placeholder: '请输入系统名称', maxLength: 18, disabled: !isEdit },
       formItemProps: { rules: schema.shape.SITE_TITLE, description: optionMap.SITE_TITLE?.description }
     },
     {
-      title: optionMap.SITE_BEIAN?.name, dataIndex: 'SITE_BEIAN',
+      title: optionMap.SITE_BEIAN?.name,
+      dataIndex: 'SITE_BEIAN',
       fieldProps: { placeholder: '请输入备案号', maxLength: 30, disabled: !isEdit },
       formItemProps: { rules: schema.shape.SITE_BEIAN, description: optionMap.SITE_BEIAN?.description }
     },
     {
-      title: optionMap.SITE_COPYRIGHT?.name, dataIndex: 'SITE_COPYRIGHT',
+      title: optionMap.SITE_COPYRIGHT?.name,
+      dataIndex: 'SITE_COPYRIGHT',
       fieldProps: { placeholder: '请输入版权声明', disabled: !isEdit },
-      formItemProps: { rules: schema.shape.SITE_COPYRIGHT, description: optionMap.SITE_COPYRIGHT?.description, className: 'sm:col-span-2' }
+      formItemProps: {
+        rules: schema.shape.SITE_COPYRIGHT,
+        description: optionMap.SITE_COPYRIGHT?.description,
+        className: 'sm:col-span-2'
+      }
     },
     {
-      title: optionMap.SITE_DESCRIPTION?.name, dataIndex: 'SITE_DESCRIPTION', valueType: 'textarea',
+      title: optionMap.SITE_DESCRIPTION?.name,
+      dataIndex: 'SITE_DESCRIPTION',
+      valueType: 'textarea',
       fieldProps: { placeholder: '请输入系统描述', rows: 2, disabled: !isEdit },
-      formItemProps: { rules: schema.shape.SITE_DESCRIPTION, description: optionMap.SITE_DESCRIPTION?.description, className: 'sm:col-span-2' },
+      formItemProps: {
+        rules: schema.shape.SITE_DESCRIPTION,
+        description: optionMap.SITE_DESCRIPTION?.description,
+        className: 'sm:col-span-2'
+      },
       formItemRender: (_, control, form) => (
         <>
           {control.defaultRender()}
-          <SitePreview values={form.getFieldsValue() as SiteFormState}
-            className="xl:absolute xl:left-[calc(100%+1.25rem)] xl:top-0 xl:h-full xl:w-full" />
+          <SitePreview
+            values={form.getFieldsValue() as SiteFormState}
+            className="xl:absolute xl:top-0 xl:left-[calc(100%+1.25rem)] xl:h-full xl:w-full"
+          />
         </>
       )
     }

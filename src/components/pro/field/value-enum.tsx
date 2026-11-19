@@ -5,7 +5,11 @@ import type { BadgeTone } from '@/components/tone-badge'
 import type { ProFieldValueEnum, ProSchemaValueEnumType, ProValue, RequestOptionsType } from '../typing'
 
 const STATUS_TONES: Record<NonNullable<ProSchemaValueEnumType['status']>, BadgeTone> = {
-  Success: 'success', Error: 'danger', Processing: 'info', Warning: 'warning', Default: 'neutral'
+  Success: 'success',
+  Error: 'danger',
+  Processing: 'info',
+  Warning: 'warning',
+  Default: 'neutral'
 }
 
 export function isEnumItem(value: ProSchemaValueEnumType | ReactNode): value is ProSchemaValueEnumType {
@@ -14,22 +18,37 @@ export function isEnumItem(value: ProSchemaValueEnumType | ReactNode): value is 
 
 export function valueEnumToOptions(valueEnum: ProFieldValueEnum | undefined): RequestOptionsType[] {
   if (!valueEnum) return []
-  const entries: Iterable<[ProValue, ProSchemaValueEnumType | ReactNode]> = valueEnum instanceof Map
-    ? valueEnum.entries() : Object.entries(valueEnum)
-  return Array.from(entries, ([value, item]) => isEnumItem(item)
-    ? { value, label: item.text, disabled: item.disabled, status: item.status, color: item.color }
-    : { value, label: item })
+  const entries: Iterable<[ProValue, ProSchemaValueEnumType | ReactNode]> =
+    valueEnum instanceof Map ? valueEnum.entries() : Object.entries(valueEnum)
+  return Array.from(entries, ([value, item]) =>
+    isEnumItem(item)
+      ? { value, label: item.text, disabled: item.disabled, status: item.status, color: item.color }
+      : { value, label: item }
+  )
 }
 
-export function renderEnumValue(value: unknown, valueEnum: ProFieldValueEnum | undefined, options?: readonly RequestOptionsType[]): ReactNode {
-  if (Array.isArray(value)) return value.map((item, index) => (
-    <span key={index}>{index > 0 ? '、' : null}{renderEnumValue(item, valueEnum, options)}</span>
-  ))
-  const item = valueEnum instanceof Map
-    ? (valueEnum.get(value as ProValue) ?? valueEnum.get(String(value)))
-    : valueEnum?.[String(value)]
-  const option = item === undefined ? options?.find(entry => entry.value === value || String(entry.value) === String(value)) : undefined
-  if (isEnumItem(item)) return renderOption({ value: value as ProValue, label: item.text, status: item.status, color: item.color })
+export function renderEnumValue(
+  value: unknown,
+  valueEnum: ProFieldValueEnum | undefined,
+  options?: readonly RequestOptionsType[]
+): ReactNode {
+  if (Array.isArray(value))
+    return value.map((item, index) => (
+      <span key={index}>
+        {index > 0 ? '、' : null}
+        {renderEnumValue(item, valueEnum, options)}
+      </span>
+    ))
+  const item =
+    valueEnum instanceof Map
+      ? (valueEnum.get(value as ProValue) ?? valueEnum.get(String(value)))
+      : valueEnum?.[String(value)]
+  const option =
+    item === undefined
+      ? options?.find(entry => entry.value === value || String(entry.value) === String(value))
+      : undefined
+  if (isEnumItem(item))
+    return renderOption({ value: value as ProValue, label: item.text, status: item.status, color: item.color })
   return item !== undefined ? item : option ? renderOption(option) : String(value)
 }
 

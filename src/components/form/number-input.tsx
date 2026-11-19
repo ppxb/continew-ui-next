@@ -31,7 +31,9 @@ export function NumberInput(props: NumberInputProps) {
     type: 'number',
     value: value ?? '',
     onChange: (event: React.ChangeEvent<HTMLInputElement>) =>
-      field.handleChange(event.target.value === '' || Number.isNaN(event.target.valueAsNumber) ? null : event.target.valueAsNumber),
+      field.handleChange(
+        event.target.value === '' || Number.isNaN(event.target.valueAsNumber) ? null : event.target.valueAsNumber
+      ),
     onBlur: field.handleBlur,
     'aria-invalid': invalid
   }

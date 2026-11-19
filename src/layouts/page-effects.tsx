@@ -152,8 +152,8 @@ export function UpdateChecker() {
     const check = async () => {
       if (notified || document.visibilityState !== 'visible') return
       try {
-        const html = await fetch(`${import.meta.env.BASE_URL}index.html?t=${Date.now()}`, { cache: 'no-store' }).then(r =>
-          r.text()
+        const html = await fetch(`${import.meta.env.BASE_URL}index.html?t=${Date.now()}`, { cache: 'no-store' }).then(
+          r => r.text()
         )
         const match = html.match(/<script[^>]+type="module"[^>]+src="([^"]+)"/)
         if (match && new URL(match[1], location.href).href !== current) {

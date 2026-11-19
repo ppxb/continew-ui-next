@@ -59,21 +59,30 @@ function toForm(optionMap: OptionMap): SecurityFormState {
 }
 
 export function createSecurityColumns(optionMap: OptionMap, isEdit: boolean) {
-  const numberColumn = (name: NumberFieldName, min: number, max: number, unit?: string): ProColumns<SecurityFormState> => ({
+  const numberColumn = (
+    name: NumberFieldName,
+    min: number,
+    max: number,
+    unit?: string
+  ): ProColumns<SecurityFormState> => ({
     title: optionMap[name]?.name,
     dataIndex: name,
     fieldProps: {
-      type: 'number', min, max, disabled: !isEdit,
+      type: 'number',
+      min,
+      max,
+      disabled: !isEdit,
       addonEnd: unit ? <InputGroupText className="text-xs font-normal">{unit}</InputGroupText> : undefined
     },
     formItemProps: form => ({
       description: optionMap[name]?.description,
-      rules: name === 'PASSWORD_EXPIRATION_WARNING_DAYS'
-        ? fields.shape[name].refine(value => {
-          const days = Number(form.getFieldValue('PASSWORD_EXPIRATION_DAYS'))
-          return !days || Number(value) < days
-        }, '密码到期提醒时间应小于密码有效期')
-        : fields.shape[name]
+      rules:
+        name === 'PASSWORD_EXPIRATION_WARNING_DAYS'
+          ? fields.shape[name].refine(value => {
+              const days = Number(form.getFieldValue('PASSWORD_EXPIRATION_DAYS'))
+              return !days || Number(value) < days
+            }, '密码到期提醒时间应小于密码有效期')
+          : fields.shape[name]
     })
   })
   return [

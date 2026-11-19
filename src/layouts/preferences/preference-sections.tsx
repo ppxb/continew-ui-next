@@ -46,8 +46,16 @@ export function AppearancePreferences() {
     <>
       <PreferenceBlock title="主题">
         <ThemeModePicker />
-        <PreferenceSwitch field="semi_dark_sidebar" label="深色侧边栏" disabled={dark || layout === 'header-nav' || layout === 'full-content'} />
-        <PreferenceSwitch field="semi_dark_sidebar_sub" label="深色二级侧边栏" disabled={dark || !twoColumn || !semiDarkSidebar} />
+        <PreferenceSwitch
+          field="semi_dark_sidebar"
+          label="深色侧边栏"
+          disabled={dark || layout === 'header-nav' || layout === 'full-content'}
+        />
+        <PreferenceSwitch
+          field="semi_dark_sidebar_sub"
+          label="深色二级侧边栏"
+          disabled={dark || !twoColumn || !semiDarkSidebar}
+        />
         <PreferenceSwitch field="semi_dark_header" label="深色顶栏" disabled={dark} />
       </PreferenceBlock>
       <PreferenceBlock title="内置主题">
@@ -128,19 +136,44 @@ export function LayoutPreferences() {
         />
         <PreferenceSwitch field="sidebar_draggable" label="拖拽调整宽度" disabled={sidebarOff || twoColumn} />
         <PreferenceSwitch field="sidebar_fixed_button" label="显示固定按钮" disabled={sidebarOff || !twoColumn} />
-        <PreferenceSwitch field="sidebar_auto_activate_child" label="自动激活子菜单" hint="点击一级菜单时打开其第一个页面" disabled={!twoColumn && v.layout !== 'mixed-nav'} />
+        <PreferenceSwitch
+          field="sidebar_auto_activate_child"
+          label="自动激活子菜单"
+          hint="点击一级菜单时打开其第一个页面"
+          disabled={!twoColumn && v.layout !== 'mixed-nav'}
+        />
         <PreferenceNumber field="sidebar_width" label="宽度" disabled={sidebarOff} />
         <PreferenceNumber field="sidebar_mixed_width" label="一级栏宽度" disabled={sidebarOff || !twoColumn} />
       </PreferenceBlock>
       <PreferenceBlock title="顶栏">
         <PreferenceSwitch field="header_visible" label="显示顶栏" disabled={full} />
-        <PreferenceSegmented field="navbar_style" label="模式" options={NAVBAR_STYLE_OPTIONS} disabled={full || !v.headerVisible} />
-        <PreferenceSegmented field="header_menu_align" label="菜单位置" options={HEADER_MENU_ALIGN_OPTIONS} disabled={!hasHeaderMenu || !v.headerVisible} />
+        <PreferenceSegmented
+          field="navbar_style"
+          label="模式"
+          options={NAVBAR_STYLE_OPTIONS}
+          disabled={full || !v.headerVisible}
+        />
+        <PreferenceSegmented
+          field="header_menu_align"
+          label="菜单位置"
+          options={HEADER_MENU_ALIGN_OPTIONS}
+          disabled={!hasHeaderMenu || !v.headerVisible}
+        />
         <PreferenceNumber field="header_height" label="高度" disabled={full || !v.headerVisible} />
       </PreferenceBlock>
       <PreferenceBlock title="导航菜单">
-        <PreferenceSegmented field="navigation_style" label="导航菜单风格" options={NAVIGATION_STYLE_OPTIONS} disabled={full} />
-        <PreferenceSwitch field="navigation_split" label="导航菜单分离" hint="顶部显示一级菜单，侧边显示其子菜单" disabled={v.layout !== 'mixed-nav'} />
+        <PreferenceSegmented
+          field="navigation_style"
+          label="导航菜单风格"
+          options={NAVIGATION_STYLE_OPTIONS}
+          disabled={full}
+        />
+        <PreferenceSwitch
+          field="navigation_split"
+          label="导航菜单分离"
+          hint="顶部显示一级菜单，侧边显示其子菜单"
+          disabled={v.layout !== 'mixed-nav'}
+        />
         <PreferenceSwitch field="navigation_accordion" label="侧边导航手风琴" disabled={!hasSidebar} />
       </PreferenceBlock>
       <PreferenceBlock title="面包屑">
@@ -148,12 +181,22 @@ export function LayoutPreferences() {
         <PreferenceSwitch field="breadcrumb_hide_only_one" label="仅一级时隐藏" disabled={!v.breadcrumbEnable} />
         <PreferenceSwitch field="breadcrumb_show_icon" label="显示面包屑图标" disabled={!v.breadcrumbEnable} />
         <PreferenceSwitch field="breadcrumb_show_home" label="显示首页按钮" disabled={!v.breadcrumbEnable} />
-        <PreferenceSegmented field="breadcrumb_style" label="面包屑风格" options={BREADCRUMB_STYLE_OPTIONS} disabled={!v.breadcrumbEnable} />
+        <PreferenceSegmented
+          field="breadcrumb_style"
+          label="面包屑风格"
+          options={BREADCRUMB_STYLE_OPTIONS}
+          disabled={!v.breadcrumbEnable}
+        />
       </PreferenceBlock>
       <PreferenceBlock title="标签栏">
         <PreferenceSwitch field="tabbar_enable" label="启用标签栏" disabled={full} />
         <PreferenceSwitch field="tabbar_persist" label="持久化标签页" disabled={!v.tabbarEnable} />
-        <PreferenceSwitch field="tabbar_visit_history" label="访问历史记录" hint="关闭标签时回到上一个访问的页面" disabled={!v.tabbarEnable} />
+        <PreferenceSwitch
+          field="tabbar_visit_history"
+          label="访问历史记录"
+          hint="关闭标签时回到上一个访问的页面"
+          disabled={!v.tabbarEnable}
+        />
         <PreferenceNumber field="tabbar_max_count" label="最大标签数" suffix="个" disabled={!v.tabbarEnable} />
         <PreferenceSwitch field="tabbar_draggable" label="启动拖拽排序" disabled={!v.tabbarEnable} />
         <PreferenceSwitch field="tabbar_wheelable" label="启用纵向滚轮响应" disabled={!v.tabbarEnable} />
@@ -162,7 +205,12 @@ export function LayoutPreferences() {
         <PreferenceSwitch field="tabbar_show_more" label="显示更多按钮" disabled={!v.tabbarEnable} />
         <PreferenceSwitch field="tabbar_show_refresh" label="显示刷新按钮" disabled={!v.tabbarEnable} />
         <PreferenceSwitch field="tabbar_show_maximize" label="显示最大化按钮" disabled={!v.tabbarEnable} />
-        <PreferenceSegmented field="tabbar_style" label="标签页风格" options={TABBAR_STYLE_OPTIONS} disabled={!v.tabbarEnable} />
+        <PreferenceSegmented
+          field="tabbar_style"
+          label="标签页风格"
+          options={TABBAR_STYLE_OPTIONS}
+          disabled={!v.tabbarEnable}
+        />
         <PreferenceNumber field="tabbar_height" label="高度" disabled={!v.tabbarEnable} />
       </PreferenceBlock>
       <PreferenceBlock title="小部件">
@@ -173,10 +221,19 @@ export function LayoutPreferences() {
         <PreferenceSwitch field="widget_lock_screen" label="启用锁屏" />
         <PreferenceSwitch field="widget_sidebar_toggle" label="启用侧边栏切换" />
         <PreferenceSwitch field="widget_refresh" label="启用刷新" />
-        <PreferenceSegmented field="app_preferences_button_position" label="偏好设置位置" options={PREFERENCES_BUTTON_POSITION_OPTIONS} />
+        <PreferenceSegmented
+          field="app_preferences_button_position"
+          label="偏好设置位置"
+          options={PREFERENCES_BUTTON_POSITION_OPTIONS}
+        />
       </PreferenceBlock>
       <PreferenceBlock title="页脚">
-        <PreferenceSwitch field="footer_enable" label="显示页脚" hint="内容取自系统配置的版权与备案信息" disabled={full} />
+        <PreferenceSwitch
+          field="footer_enable"
+          label="显示页脚"
+          hint="内容取自系统配置的版权与备案信息"
+          disabled={full}
+        />
         <PreferenceSwitch field="footer_fixed" label="固定在底部" disabled={full || !v.footerEnable} />
       </PreferenceBlock>
       <PreferenceBlock title="动画">
@@ -211,7 +268,12 @@ export function GeneralPreferences() {
     <PreferenceBlock title="通用">
       <PreferenceSwitch field="app_dynamic_title" label="动态标题" hint="浏览器标题跟随当前页面" />
       <PreferenceSwitch field="app_watermark" label="水印" />
-      <PreferenceText field="app_watermark_content" label="水印文案" placeholder="默认使用用户名" disabled={!watermark} />
+      <PreferenceText
+        field="app_watermark_content"
+        label="水印文案"
+        placeholder="默认使用用户名"
+        disabled={!watermark}
+      />
       <PreferenceSwitch field="app_enable_check_updates" label="定时检查更新" />
       <PreferenceSwitch field="app_enable_copy_preferences" label="显示复制按钮" />
     </PreferenceBlock>

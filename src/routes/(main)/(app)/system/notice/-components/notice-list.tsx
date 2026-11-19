@@ -1,6 +1,5 @@
 import * as React from 'react'
 
-
 import { Plus, RefreshCw } from 'lucide-react'
 
 import { ProTable, type ProFormInstance } from '@/components/pro'
@@ -16,7 +15,6 @@ import { NoticeViewDrawer } from './notice-view-drawer'
 import { useNoticeDicts } from './use-notice-dicts'
 
 const DEFAULT_SORT = 'id,desc'
-
 
 export function NoticeList() {
   const { hasPermission } = usePermission()
@@ -64,14 +62,31 @@ export function NoticeList() {
         formRef={formRef}
         options={{ search: { name: 'title', placeholder: '搜索公告标题' } }}
         request={async ({ current, pageSize, title, type }, _sort, _filter, signal) => {
-          const result = await listNotices({ page: current, size: pageSize, title: title || undefined, type, sort: DEFAULT_SORT }, signal)
+          const result = await listNotices(
+            { page: current, size: pageSize, title: title || undefined, type, sort: DEFAULT_SORT },
+            signal
+          )
           return { data: result.list, total: result.total, success: true }
         }}
         toolBarRender={action => {
           const filters = formRef.current?.getFieldsFormatValue()
           return [
-            ...(filters?.title || filters?.type ? [<Button key="reset" type="button" variant="ghost" onClick={() => action?.reset()}><RefreshCw />重置</Button>] : []),
-            ...(hasPermission('system:notice:create') ? [<Button key="create" className="w-full sm:w-auto" onClick={() => setFormTarget({ noticeId: null })}><Plus />新增公告</Button>] : [])
+            ...(filters?.title || filters?.type
+              ? [
+                  <Button key="reset" type="button" variant="ghost" onClick={() => action?.reset()}>
+                    <RefreshCw />
+                    重置
+                  </Button>
+                ]
+              : []),
+            ...(hasPermission('system:notice:create')
+              ? [
+                  <Button key="create" className="w-full sm:w-auto" onClick={() => setFormTarget({ noticeId: null })}>
+                    <Plus />
+                    新增公告
+                  </Button>
+                ]
+              : [])
           ]
         }}
       />

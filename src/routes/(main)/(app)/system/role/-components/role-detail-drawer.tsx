@@ -36,7 +36,10 @@ export function RoleDetailDrawer({ roleId, open, onClose }: RoleDetailDrawerProp
     enabled: open && detail?.dataScope === 5
   })
   const deptNames = React.useMemo(() => collectDeptNames(depts.data ?? [], new Map<string, string>()), [depts.data])
-  const columns = React.useMemo(() => roleColumns({ deptNames, deptsLoading: depts.isPending && detail?.dataScope === 5 }), [deptNames, depts.isPending, detail?.dataScope])
+  const columns = React.useMemo(
+    () => roleColumns({ deptNames, deptsLoading: depts.isPending && detail?.dataScope === 5 }),
+    [deptNames, depts.isPending, detail?.dataScope]
+  )
 
   return (
     <EntityDrawer open={open} onClose={onClose} title="角色详情" icon={<UserShield className="size-4" />} width={32}>
@@ -45,8 +48,14 @@ export function RoleDetailDrawer({ roleId, open, onClose }: RoleDetailDrawerProp
           <QueryState state="error" title="角色加载失败" onRetry={() => void query.refetch()} />
         ) : (
           <>
-            {detail?.dataScope === 5 && depts.isError ? <QueryState state="error" title="权限部门加载失败" onRetry={() => void depts.refetch()} /> : null}
-            <ProDescriptions<RoleEntity> columns={columns} dataSource={detail ?? undefined} loading={!detail && query.isPending} />
+            {detail?.dataScope === 5 && depts.isError ? (
+              <QueryState state="error" title="权限部门加载失败" onRetry={() => void depts.refetch()} />
+            ) : null}
+            <ProDescriptions<RoleEntity>
+              columns={columns}
+              dataSource={detail ?? undefined}
+              loading={!detail && query.isPending}
+            />
           </>
         )}
       </div>

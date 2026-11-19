@@ -89,7 +89,10 @@ export const PREFERENCE_REGISTRY = {
   // Appearance
   theme_mode: enumPref(THEME_MODE_VALUES, 'light', cookie('data-theme-mode')),
   theme_color: enumPref(THEME_COLOR_VALUES, 'blue', cookie('data-theme-color')),
-  theme_color_primary: textPref('', 32, { ...local, cssVar: ['--primary', '--ring', '--sidebar-primary', '--sidebar-ring'] }),
+  theme_color_primary: textPref('', 32, {
+    ...local,
+    cssVar: ['--primary', '--ring', '--sidebar-primary', '--sidebar-ring']
+  }),
   theme_color_success: textPref('', 32, { ...local, cssVar: '--status-success' }),
   theme_color_warning: textPref('', 32, { ...local, cssVar: '--status-warning' }),
   theme_color_destructive: textPref('', 32, { ...local, cssVar: '--destructive' }),

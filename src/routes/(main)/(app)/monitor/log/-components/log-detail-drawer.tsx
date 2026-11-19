@@ -96,7 +96,6 @@ function LogDetailSkeleton() {
   )
 }
 
-
 interface LogDetailDrawerProps {
   /** The log to show, or `null` before the first one is picked. */
   readonly logId: string | number | null

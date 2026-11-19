@@ -49,7 +49,10 @@ export interface OptionFormController<TForm extends ProValues> {
   setResetDialogOpen: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-export function useOptionForm<TForm extends ProValues>({ category, toForm }: UseOptionFormOptions<TForm>): OptionFormController<TForm> {
+export function useOptionForm<TForm extends ProValues>({
+  category,
+  toForm
+}: UseOptionFormOptions<TForm>): OptionFormController<TForm> {
   const queryClient = useQueryClient()
   // Public site metadata has its own cache, separate from the editable option list.
   const refreshSiteOptions = () => {

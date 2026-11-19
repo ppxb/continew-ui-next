@@ -8,10 +8,10 @@
 
 先说明一个版本差异，后面所有命名都受它影响：`master` 是 3.x，和很多人熟悉的 2.x 有两处改名。
 
-| 2.x 写法 | `master`（3.x）写法 | 依据 |
-|---|---|---|
-| `hideInSearch: true` | `search: false` | `site/zh-CN/docs/api-changes.mdx`「已移除的 API」；`src/table/typing.ts` 里只有 `search` |
-| `renderFormItem` | `formItemRender` | `src/utils/typing.ts` 的 `ProSchema.formItemRender`；`src/` 下已搜不到 `renderFormItem` |
+| 2.x 写法             | `master`（3.x）写法 | 依据                                                                                     |
+| -------------------- | ------------------- | ---------------------------------------------------------------------------------------- |
+| `hideInSearch: true` | `search: false`     | `site/zh-CN/docs/api-changes.mdx`「已移除的 API」；`src/table/typing.ts` 里只有 `search` |
+| `renderFormItem`     | `formItemRender`    | `src/utils/typing.ts` 的 `ProSchema.formItemRender`；`src/` 下已搜不到 `renderFormItem`  |
 
 本设计按 `master` 命名（见第七节问题 1）。
 
@@ -463,7 +463,10 @@ type ProTableRequest<T, P> = (
 
 /** The request params carry the page only when the table paginates. */
 type ProTablePaging<T, U> =
-  | { pagination?: { defaultPageSize?: number }; request: ProTableRequest<T, U & { current: number; pageSize: number }> }
+  | {
+      pagination?: { defaultPageSize?: number }
+      request: ProTableRequest<T, U & { current: number; pageSize: number }>
+    }
   | { pagination: false; request: ProTableRequest<T, U> }
 
 export interface ColumnsState {
@@ -674,26 +677,26 @@ export type * from './typing'
 
 内置类型（`src/components/pro/field/value-type-map.tsx`）：
 
-| `valueType` | 只读（表格、详情） | 编辑（表单） | 搜索栏（`light`） | 空值 |
-|---|---|---|---|---|
-| `index` | 序号，翻页后连续 | 忽略 | 忽略 | — |
-| `text`（默认） | 文本；`ellipsis` 时用 `TextCell` 截断 | `TextInput` | 带防抖的输入框（`TableSearch`），占位文字取 `fieldProps.placeholder`，没有就用列标题 | `''` |
-| `textarea` | 表格里同 `text`；详情里保留换行 | `TextareaInput` | 同 `text` | `''` |
-| `password` | 不显示内容 | `PasswordInput` | 不支持 | `''` |
-| `digit` | 等宽数字 | `NumberInput` | 不支持 | `null` |
-| `select` | 按 `valueEnum` / `request` 出徽标或文字 | `SelectInput` | `FilterSelect`，自动加「全部」 | `''` |
-| `switch` | 按 `valueEnum` 出徽标 | `SwitchInput` | `FilterSelect`（筛选需要「全部 / 开 / 关」三态） | 无，列上写 `initialValue` |
-| `dateTime` | 等宽文本 | 起步不提供，用项目类型 `expiry` 或 `formItemRender` | 不支持，用 `dateTimeRange` 列 | `''` |
-| `dateRange`、`dateTimeRange` | 不用于展示 | 起步不提供 | `DateRangeFilter`；值是 `[开始, 结束]` 两个字符串，`dateTimeRange` 扩到整天 | — |
-| `option` | `render` 返回的数组排成一行 | 忽略 | 忽略 | — |
-| `dependency` | — | 布局类型，见 2.7 | — | — |
+| `valueType`                  | 只读（表格、详情）                      | 编辑（表单）                                        | 搜索栏（`light`）                                                                    | 空值                      |
+| ---------------------------- | --------------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------------ | ------------------------- |
+| `index`                      | 序号，翻页后连续                        | 忽略                                                | 忽略                                                                                 | —                         |
+| `text`（默认）               | 文本；`ellipsis` 时用 `TextCell` 截断   | `TextInput`                                         | 带防抖的输入框（`TableSearch`），占位文字取 `fieldProps.placeholder`，没有就用列标题 | `''`                      |
+| `textarea`                   | 表格里同 `text`；详情里保留换行         | `TextareaInput`                                     | 同 `text`                                                                            | `''`                      |
+| `password`                   | 不显示内容                              | `PasswordInput`                                     | 不支持                                                                               | `''`                      |
+| `digit`                      | 等宽数字                                | `NumberInput`                                       | 不支持                                                                               | `null`                    |
+| `select`                     | 按 `valueEnum` / `request` 出徽标或文字 | `SelectInput`                                       | `FilterSelect`，自动加「全部」                                                       | `''`                      |
+| `switch`                     | 按 `valueEnum` 出徽标                   | `SwitchInput`                                       | `FilterSelect`（筛选需要「全部 / 开 / 关」三态）                                     | 无，列上写 `initialValue` |
+| `dateTime`                   | 等宽文本                                | 起步不提供，用项目类型 `expiry` 或 `formItemRender` | 不支持，用 `dateTimeRange` 列                                                        | `''`                      |
+| `dateRange`、`dateTimeRange` | 不用于展示                              | 起步不提供                                          | `DateRangeFilter`；值是 `[开始, 结束]` 两个字符串，`dateTimeRange` 扩到整天          | —                         |
+| `option`                     | `render` 返回的数组排成一行             | 忽略                                                | 忽略                                                                                 | —                         |
+| `dependency`                 | —                                       | 布局类型，见 2.7                                    | —                                                                                    | —                         |
 
 项目类型（`src/components/pro-value-types.tsx`，通过 `ProConfigProvider` 注册）：
 
-| `valueType` | 实现 | 用到的页面 |
-|---|---|---|
-| `deptTreeSelect` | `DeptTreeSelect`，表单和搜索栏两种形态 | 用户 |
-| `expiry` | `ExpiryPicker` | 应用、租户 |
+| `valueType`      | 实现                                   | 用到的页面 |
+| ---------------- | -------------------------------------- | ---------- |
+| `deptTreeSelect` | `DeptTreeSelect`，表单和搜索栏两种形态 | 用户       |
+| `expiry`         | `ExpiryPicker`                         | 应用、租户 |
 
 和 ProComponents 不同的三处：
 
@@ -707,13 +710,13 @@ export type * from './typing'
 
 只读态由 `valueEnum`（或 `request` 取回的选项）决定文字和颜色，统一画成 `ToneBadge`：
 
-| ProComponents `status` | `ToneBadge` | 说明 |
-|---|---|---|
-| `Success` | `tone="success"`，带圆点 | |
-| `Error` | `tone="danger"`，带圆点 | |
-| `Warning` | `tone="warning"`，带圆点 | |
-| `Processing` | `tone="info"`，带圆点 | antd 是蓝色呼吸点，这里没有动画 |
-| `Default` | `tone="neutral"`，带圆点 | |
+| ProComponents `status` | `ToneBadge`              | 说明                            |
+| ---------------------- | ------------------------ | ------------------------------- |
+| `Success`              | `tone="success"`，带圆点 |                                 |
+| `Error`                | `tone="danger"`，带圆点  |                                 |
+| `Warning`              | `tone="warning"`，带圆点 |                                 |
+| `Processing`           | `tone="info"`，带圆点    | antd 是蓝色呼吸点，这里没有动画 |
+| `Default`              | `tone="neutral"`，带圆点 |                                 |
 
 没有 `status` 但有 `color` 时，`color` 直接是 `ToneBadge` 的 `tone`：状态色（`success`、`warning`、`caution`、`danger`、`info`、`primary`、`neutral`）带圆点，类型色（`blue`、`violet`、`teal`、`amber`）不带圆点，对应现在的 `kind="type"`。两者都没有就只出文字。值是数组时逐个渲染。
 
@@ -770,12 +773,12 @@ export function dictColumn(code: string) {
 
 **从列推导出四样东西**（`src/components/pro/form/schema.ts`）：
 
-| 推导结果 | 规则 |
-|---|---|
-| 字段级校验 | 每个字段：`<form.AppField validators={{ onDynamic: rules }}>` |
-| 表单级 schema | `z.looseObject({ [dataIndex]: rules })`，只收对象写法里的 `rules`；用 `looseObject` 是为了保留没有规则的字段 |
-| 默认值 | 每个字段：列的 `initialValue`，没有就用该 `valueType` 的空值（`''`、`null`……），最后被表单的 `initialValues` 覆盖 |
-| 必填星号 | `formItemProps.required` 写了就用它；没写时，该类型有空值且 `rules.safeParse(空值)` 不通过，就画星号。这和 antd「不设置则根据校验规则自动生成」的语义相同 |
+| 推导结果      | 规则                                                                                                                                                      |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 字段级校验    | 每个字段：`<form.AppField validators={{ onDynamic: rules }}>`                                                                                             |
+| 表单级 schema | `z.looseObject({ [dataIndex]: rules })`，只收对象写法里的 `rules`；用 `looseObject` 是为了保留没有规则的字段                                              |
+| 默认值        | 每个字段：列的 `initialValue`，没有就用该 `valueType` 的空值（`''`、`null`……），最后被表单的 `initialValues` 覆盖                                         |
+| 必填星号      | `formItemProps.required` 写了就用它；没写时，该类型有空值且 `rules.safeParse(空值)` 不通过，就画星号。这和 antd「不设置则根据校验规则自动生成」的语义相同 |
 
 **校验行为保持现状。** 表单仍然是 `useAppForm` + `revalidateLogic()`：表单级 `validators.onDynamic` 是上面的 schema，字段级 `validators.onDynamic` 是各自的 `rules`；提交仍然走 `FormShell` 的三步（先 `form.validate('submit')`，再 `form.handleSubmit()`，最后聚焦第一个 `aria-invalid` 的控件）。
 
@@ -783,7 +786,11 @@ export function dictColumn(code: string) {
 
 ```ts
 // '' -> null, and `onFinish` sees `string | null`
-formItemProps: { rules: z.string().refine(isEmptyOrFuture, '失效时间必须是未来时间').transform(value => value || null) }
+formItemProps: {
+  rules: z.string()
+    .refine(isEmptyOrFuture, '失效时间必须是未来时间')
+    .transform(value => value || null)
+}
 ```
 
 因此表单这一侧不再需要 ProComponents 的 `transform`，只保留反方向的 `convertValue`（详情 → 表单值）。填充修改表单时，记录里的 `null` / `undefined` 自动换成该类型的空值，所以现在各页面的 `toFormValues` 里那些 `?? ''` 不用再写；只有真正要换形状的字段才写 `convertValue`，比如 `deptId` 转成字符串。
@@ -833,14 +840,14 @@ request(params, sort, filter, signal)
 
 **`actionRef` 和失效的对应关系。**
 
-| `actionRef.current` | 实现 |
-|---|---|
-| `reload()` | `queryClient.invalidateQueries({ queryKey: props.queryKey })`：这个列表所有页都标记过期，当前页立即重取 |
-| `reload(true)` | 页码回 1，再做同样的失效 |
-| `reloadAndRest()` | 同 `reload(true)`；ProComponents 还会清空选中行，这里没有行选择 |
-| `reset()` | 关键字和搜索栏回到 `form.initialValues`，页码回 1，再失效 |
-| `setPageInfo()`、`pageInfo` | 读写内部的分页状态 |
-| `fullScreen()` | 现有的 `useFullscreenTransition().toggleFullscreen` |
+| `actionRef.current`         | 实现                                                                                                    |
+| --------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `reload()`                  | `queryClient.invalidateQueries({ queryKey: props.queryKey })`：这个列表所有页都标记过期，当前页立即重取 |
+| `reload(true)`              | 页码回 1，再做同样的失效                                                                                |
+| `reloadAndRest()`           | 同 `reload(true)`；ProComponents 还会清空选中行，这里没有行选择                                         |
+| `reset()`                   | 关键字和搜索栏回到 `form.initialValues`，页码回 1，再失效                                               |
+| `setPageInfo()`、`pageInfo` | 读写内部的分页状态                                                                                      |
+| `fullScreen()`              | 现有的 `useFullscreenTransition().toggleFullscreen`                                                     |
 
 工具栏的刷新按钮调用的就是 `reload()`。它和现在的 `query.refetch()` 的区别是，其他页的缓存也会被标记过期。
 
@@ -858,17 +865,17 @@ request(params, sort, filter, signal)
 
 ### 2.7 逃生口
 
-| 需求 | 写法 | 来源 |
-|---|---|---|
-| 单元格、详情项自己画 | `render(dom, entity, index, action, schema)`，用 `schema.type` 区分表格和详情 | 同 ProComponents |
-| 先改值再按类型渲染 | `renderText` | 同 ProComponents |
-| 表单控件自己画 | `formItemRender(schema, { id, value, onChange, onBlur, invalid, type, defaultRender }, form)`，返回受控控件；`type === 'table'` 表示在搜索栏里 | 同 ProComponents，多了 `id`、`onBlur`、`invalid` |
-| 连标签和错误也自己画 | 再加 `ignoreFormItem: true` | 同 ProComponents |
-| 属性随表单值变化 | `fieldProps` / `formItemProps` 写成函数 `(form, config) => props`；读别的字段时加 `dependencies: ['那个字段']` | 同 ProComponents |
-| 改一个字段时联动改另一个 | `fieldProps: form => ({ onChange: value => form.setFieldsValue({ ... }) })` | 同 ProComponents |
-| 一组字段按条件出现 | `{ valueType: 'dependency', name: ['a'], columns: ({ a }) => [...] }` | 同 ProComponents |
-| 新增和修改的字段不同 | 页面按模式传不同的 `columns`（见下） | 同 ProComponents |
-| 整个抽屉手写 | 不用 `BetaSchemaForm`，见本节末尾 | — |
+| 需求                     | 写法                                                                                                                                           | 来源                                             |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| 单元格、详情项自己画     | `render(dom, entity, index, action, schema)`，用 `schema.type` 区分表格和详情                                                                  | 同 ProComponents                                 |
+| 先改值再按类型渲染       | `renderText`                                                                                                                                   | 同 ProComponents                                 |
+| 表单控件自己画           | `formItemRender(schema, { id, value, onChange, onBlur, invalid, type, defaultRender }, form)`，返回受控控件；`type === 'table'` 表示在搜索栏里 | 同 ProComponents，多了 `id`、`onBlur`、`invalid` |
+| 连标签和错误也自己画     | 再加 `ignoreFormItem: true`                                                                                                                    | 同 ProComponents                                 |
+| 属性随表单值变化         | `fieldProps` / `formItemProps` 写成函数 `(form, config) => props`；读别的字段时加 `dependencies: ['那个字段']`                                 | 同 ProComponents                                 |
+| 改一个字段时联动改另一个 | `fieldProps: form => ({ onChange: value => form.setFieldsValue({ ... }) })`                                                                    | 同 ProComponents                                 |
+| 一组字段按条件出现       | `{ valueType: 'dependency', name: ['a'], columns: ({ a }) => [...] }`                                                                          | 同 ProComponents                                 |
+| 新增和修改的字段不同     | 页面按模式传不同的 `columns`（见下）                                                                                                           | 同 ProComponents                                 |
+| 整个抽屉手写             | 不用 `BetaSchemaForm`，见本节末尾                                                                                                              | —                                                |
 
 **新增和修改不同。** ProComponents 的 `hideInForm` 只是布尔值，`BetaSchemaForm` 也不区分新增和修改；它的做法是调用方给不同的 `columns`。这里照做：
 
@@ -951,80 +958,80 @@ toolBarRender={() => [
 
 状态：**相同** = 名字和语义都一样；**调整** = 名字一样，语义或类型有出入；**新增** = ProComponents 没有；**不做** = 起步不支持。
 
-| ProComponents | 本项目 | 状态 | 说明 |
-|---|---|---|---|
-| `ProTable` | `ProTable` | 调整 | 请求走 TanStack Query；内部是 `DataTable` |
-| `ProColumns<T, ValueType>` | `ProColumns<T>` | 调整 | 一个类型覆盖表格、表单、详情；自定义 `valueType` 用声明合并登记，不用第二个泛型 |
-| `ProFormColumnsType`、`ProDescriptionsColumn` | 并入 `ProColumns` | 不做 | 一份数组一种类型，不需要强转 |
-| `title` | `title` | 调整 | 函数形式是 `(schema, type)`，少了第三个参数 `dom` |
-| `dataIndex` | `dataIndex` | 调整 | 类型是 `keyof T`，写错会报错；不支持数组路径 |
-| `key` | `key` | 相同 | |
-| `valueType` | `valueType` | 调整 | 只支持字符串；函数形式和 `{ type: 'money' }` 对象形式不做 |
-| `valueEnum` | `valueEnum` | 调整 | 对象和 `Map` 都支持；`status` 映射到 `ToneBadge`；`color` 只能是 `ToneBadge` 的色名；函数形式不做 |
-| `fieldProps` | `fieldProps` | 相同 | 类型按 `valueType` 收窄 |
-| `formItemProps` | `formItemProps` | 调整 | 内容是项目 `FormItem` 的属性（`description`、`required`、`className`……）加 `rules` |
-| `formItemProps.rules` | `formItemProps.rules` | 调整 | 一个 zod schema，不是 antd 规则数组 |
-| `render` | `render` | 相同 | |
-| `renderText` | `renderText` | 相同 | |
-| `formItemRender`（2.x：`renderFormItem`） | `formItemRender` | 调整 | `config` 里多了 `id`、`onBlur`、`invalid`；不自动给返回的节点注入 `value` / `onChange` |
-| `ignoreFormItem` | `ignoreFormItem` | 相同 | 注册表条目上也能写 |
-| `hideInTable`、`hideInForm`、`hideInDescriptions`、`hideInSetting` | 同名 | 相同 | |
-| `search: false`（2.x：`hideInSearch`） | `search` | 调整 | 默认值相反：写了 `search: true` 才进搜索栏 |
-| `search.transform` | `search.transform` | 相同 | |
-| `initialValue` | `initialValue` | 调整 | 只是新增表单的默认值，不作为搜索默认值 |
-| `order` | `order` | 调整 | 影响表单和搜索栏；详情按数组顺序，不看 `order` |
-| `convertValue` | `convertValue` | 相同 | |
-| `transform`（表单提交） | zod 的 `.transform()` | 不做 | 写在 `rules` 里，类型能跟着变 |
-| `ellipsis`、`copyable` | 同名 | 调整 | 只支持布尔值 |
-| `dependencies` | `dependencies` | 调整 | 只做「依赖字段变化时重渲染」；ProComponents 还会把值注入 `request` 的 `params` |
-| 列级 `request`、`params` | 同名 | 调整 | 走 `useQuery`；第二个参数是 `{ signal }` |
-| `proFieldProps.proFieldKey` | 同名 | 调整 | 是 query key，和 `request` 一起必填 |
-| `valueType: 'dependency'` + `name` + `columns` | 同名 | 相同 | |
-| `span`（详情） | `span` | 调整 | 只有 1 和 2 |
-| `colSize`、`colProps`、`rowProps`、`width`、`formWidth` | — | 不做 | 表单目前都是单列；需要跨列时用 `formItemProps.className` |
-| `tooltip` | — | 不做 | 现有页面没有用到表头提示 |
-| `editable`、`readonly`、`hidden` | — | 不做 | 没有可编辑表格 |
-| `sorter`、`filters`、`onFilter`、`fixed`、`children` | — | 不做 | 现有页面没有表头排序、筛选、固定列、分组表头 |
-| 表级 `request(params, sort, filter)` | `request(params, sort, filter, signal)` | 调整 | 多一个 `signal`；`sort`、`filter` 起步恒为 `{}` |
-| `RequestData`（`data`、`total`、`success`） | `RequestData` | 相同 | |
-| — | `queryKey` | 新增 | TanStack Query 需要 |
-| `params` | `params` | 相同 | |
-| `rowKey` | `rowKey` | 调整 | 必填 |
-| `actionRef` / `ActionType` | 同名 | 调整 | 见 2.6；没有 `clearSelected`、`getSortFilter`、`scrollTo` 和行编辑方法 |
-| `formRef` | `formRef` | 调整 | `ProFormInstance` 只有 6 个方法 |
-| `toolBarRender` | `toolBarRender` | 调整 | 没有第二个参数（选中行） |
-| `headerTitle` | `headerTitle` | 调整 | 画成卡片标题 |
-| `toolbar.subTitle` | `toolbar.subTitle` | 调整 | 画成卡片标题下的说明 |
-| `options`（`reload`、`setting`、`fullScreen`、`search`） | 同名 | 调整 | `fullScreen` 默认开；全屏是页内动画，不是浏览器全屏；没有 `density` |
-| `options.search.name`、`onSearch` | 同名 | 调整 | 关键字框在筛选行最左，不在工具栏里 |
-| `search`（`SearchConfig`） | `search?: false` | 调整 | 只有开关；`QueryFilter` 的配置项不适用 |
-| `form.initialValues` | 同名 | 相同 | |
-| `pagination` | `pagination` | 调整 | `false` 或 `{ defaultPageSize }` |
-| `columnsState` | `columnsState` | 调整 | 只有 `defaultValue`；受控和持久化不做 |
-| `manualRequest` | `manualRequest` | 相同 | |
-| `postData` | `postData` | 调整 | 每次渲染时执行，不只在请求返回后 |
-| `expandable` | `expandable` | 调整 | 只有 4 个字段 |
-| `columnEmptyText` | `columnEmptyText` | 调整 | 默认是项目的 `EMPTY_PLACEHOLDER`（`—`） |
-| `cardProps` | `cardProps?: false` | 调整 | 只能关掉卡片 |
-| `TableDropdown` | `TableDropdown` | 调整 | 菜单项多了 `icon`、`danger` 和分隔线，跳过假值 |
-| `dataSource`、`loading`（不走 `request`） | — | 不做 | 本地过滤用 `postData` |
-| `rowSelection`、`tableAlertRender` | — | 不做 | 只有「角色分配用户」一处用到选择，保持手写 |
-| `polling`、`debounceTime`、`revalidateOnFocus`、`onLoad`、`onRequestError`、`beforeSearchSubmit`、`tableRender` 等 | — | 不做 | 没有页面需要 |
-| `BetaSchemaForm` / `FormSchema` | 同名 | 调整 | 内部是 `useAppForm` + `FormShell` |
-| `layoutType` | `layoutType` | 调整 | 只有 `'Form'` 和 `'DrawerForm'` |
-| `onFinish` | `onFinish` | 相同 | 返回真值关闭抽屉 |
-| 表单的 `request`、`params` | 同名 | 调整 | 走 `useDetailQuery`；多一个 `signal` 和 `queryKey` |
-| `initialValues` | `initialValues` | 相同 | |
-| `open`、`onOpenChange`、`title`、`width`、`drawerProps` | 同名 | 调整 | `width` 取 `EntityDrawer` 的档位；`drawerProps` 是 `EntityDrawer` 的头部属性 |
-| `trigger` | — | 不做 | 同一个抽屉既要从工具栏开（新增），也要从行菜单开（修改），必须受控 |
-| `submitter` | `submitter` | 调整 | 只有 `false` 和 `searchConfig` |
-| `ProDescriptions` | `ProDescriptions` | 调整 | 内部是 `DetailGrid` + `DetailField`；没有行内编辑、`actionRef` |
-| `ProConfigProvider` 的 `valueTypeMap` | 同名 | 调整 | 只有这一个属性 |
-| `ProRenderFieldPropsType` | 同名 | 调整 | 回调少了第三个参数 `dom`；多了 `ignoreFormItem`、`initialValue` |
-| `ProFieldValueTypeWithFieldProps` | 同名 | 调整 | 是 `interface`，可以声明合并 |
-| `mode: 'read' \| 'edit' \| 'update'` | `'read' \| 'edit'` | 调整 | |
-| `light` | `light` | 相同 | 表示在搜索栏里 |
-| `ProForm`、`ProFormText` 等逐个字段组件 | 现有的 `useAppForm` + `field.TextInput` 等 | 不做 | 手写表单继续用现有组件 |
+| ProComponents                                                                                                      | 本项目                                     | 状态 | 说明                                                                                              |
+| ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------ | ---- | ------------------------------------------------------------------------------------------------- |
+| `ProTable`                                                                                                         | `ProTable`                                 | 调整 | 请求走 TanStack Query；内部是 `DataTable`                                                         |
+| `ProColumns<T, ValueType>`                                                                                         | `ProColumns<T>`                            | 调整 | 一个类型覆盖表格、表单、详情；自定义 `valueType` 用声明合并登记，不用第二个泛型                   |
+| `ProFormColumnsType`、`ProDescriptionsColumn`                                                                      | 并入 `ProColumns`                          | 不做 | 一份数组一种类型，不需要强转                                                                      |
+| `title`                                                                                                            | `title`                                    | 调整 | 函数形式是 `(schema, type)`，少了第三个参数 `dom`                                                 |
+| `dataIndex`                                                                                                        | `dataIndex`                                | 调整 | 类型是 `keyof T`，写错会报错；不支持数组路径                                                      |
+| `key`                                                                                                              | `key`                                      | 相同 |                                                                                                   |
+| `valueType`                                                                                                        | `valueType`                                | 调整 | 只支持字符串；函数形式和 `{ type: 'money' }` 对象形式不做                                         |
+| `valueEnum`                                                                                                        | `valueEnum`                                | 调整 | 对象和 `Map` 都支持；`status` 映射到 `ToneBadge`；`color` 只能是 `ToneBadge` 的色名；函数形式不做 |
+| `fieldProps`                                                                                                       | `fieldProps`                               | 相同 | 类型按 `valueType` 收窄                                                                           |
+| `formItemProps`                                                                                                    | `formItemProps`                            | 调整 | 内容是项目 `FormItem` 的属性（`description`、`required`、`className`……）加 `rules`                |
+| `formItemProps.rules`                                                                                              | `formItemProps.rules`                      | 调整 | 一个 zod schema，不是 antd 规则数组                                                               |
+| `render`                                                                                                           | `render`                                   | 相同 |                                                                                                   |
+| `renderText`                                                                                                       | `renderText`                               | 相同 |                                                                                                   |
+| `formItemRender`（2.x：`renderFormItem`）                                                                          | `formItemRender`                           | 调整 | `config` 里多了 `id`、`onBlur`、`invalid`；不自动给返回的节点注入 `value` / `onChange`            |
+| `ignoreFormItem`                                                                                                   | `ignoreFormItem`                           | 相同 | 注册表条目上也能写                                                                                |
+| `hideInTable`、`hideInForm`、`hideInDescriptions`、`hideInSetting`                                                 | 同名                                       | 相同 |                                                                                                   |
+| `search: false`（2.x：`hideInSearch`）                                                                             | `search`                                   | 调整 | 默认值相反：写了 `search: true` 才进搜索栏                                                        |
+| `search.transform`                                                                                                 | `search.transform`                         | 相同 |                                                                                                   |
+| `initialValue`                                                                                                     | `initialValue`                             | 调整 | 只是新增表单的默认值，不作为搜索默认值                                                            |
+| `order`                                                                                                            | `order`                                    | 调整 | 影响表单和搜索栏；详情按数组顺序，不看 `order`                                                    |
+| `convertValue`                                                                                                     | `convertValue`                             | 相同 |                                                                                                   |
+| `transform`（表单提交）                                                                                            | zod 的 `.transform()`                      | 不做 | 写在 `rules` 里，类型能跟着变                                                                     |
+| `ellipsis`、`copyable`                                                                                             | 同名                                       | 调整 | 只支持布尔值                                                                                      |
+| `dependencies`                                                                                                     | `dependencies`                             | 调整 | 只做「依赖字段变化时重渲染」；ProComponents 还会把值注入 `request` 的 `params`                    |
+| 列级 `request`、`params`                                                                                           | 同名                                       | 调整 | 走 `useQuery`；第二个参数是 `{ signal }`                                                          |
+| `proFieldProps.proFieldKey`                                                                                        | 同名                                       | 调整 | 是 query key，和 `request` 一起必填                                                               |
+| `valueType: 'dependency'` + `name` + `columns`                                                                     | 同名                                       | 相同 |                                                                                                   |
+| `span`（详情）                                                                                                     | `span`                                     | 调整 | 只有 1 和 2                                                                                       |
+| `colSize`、`colProps`、`rowProps`、`width`、`formWidth`                                                            | —                                          | 不做 | 表单目前都是单列；需要跨列时用 `formItemProps.className`                                          |
+| `tooltip`                                                                                                          | —                                          | 不做 | 现有页面没有用到表头提示                                                                          |
+| `editable`、`readonly`、`hidden`                                                                                   | —                                          | 不做 | 没有可编辑表格                                                                                    |
+| `sorter`、`filters`、`onFilter`、`fixed`、`children`                                                               | —                                          | 不做 | 现有页面没有表头排序、筛选、固定列、分组表头                                                      |
+| 表级 `request(params, sort, filter)`                                                                               | `request(params, sort, filter, signal)`    | 调整 | 多一个 `signal`；`sort`、`filter` 起步恒为 `{}`                                                   |
+| `RequestData`（`data`、`total`、`success`）                                                                        | `RequestData`                              | 相同 |                                                                                                   |
+| —                                                                                                                  | `queryKey`                                 | 新增 | TanStack Query 需要                                                                               |
+| `params`                                                                                                           | `params`                                   | 相同 |                                                                                                   |
+| `rowKey`                                                                                                           | `rowKey`                                   | 调整 | 必填                                                                                              |
+| `actionRef` / `ActionType`                                                                                         | 同名                                       | 调整 | 见 2.6；没有 `clearSelected`、`getSortFilter`、`scrollTo` 和行编辑方法                            |
+| `formRef`                                                                                                          | `formRef`                                  | 调整 | `ProFormInstance` 只有 6 个方法                                                                   |
+| `toolBarRender`                                                                                                    | `toolBarRender`                            | 调整 | 没有第二个参数（选中行）                                                                          |
+| `headerTitle`                                                                                                      | `headerTitle`                              | 调整 | 画成卡片标题                                                                                      |
+| `toolbar.subTitle`                                                                                                 | `toolbar.subTitle`                         | 调整 | 画成卡片标题下的说明                                                                              |
+| `options`（`reload`、`setting`、`fullScreen`、`search`）                                                           | 同名                                       | 调整 | `fullScreen` 默认开；全屏是页内动画，不是浏览器全屏；没有 `density`                               |
+| `options.search.name`、`onSearch`                                                                                  | 同名                                       | 调整 | 关键字框在筛选行最左，不在工具栏里                                                                |
+| `search`（`SearchConfig`）                                                                                         | `search?: false`                           | 调整 | 只有开关；`QueryFilter` 的配置项不适用                                                            |
+| `form.initialValues`                                                                                               | 同名                                       | 相同 |                                                                                                   |
+| `pagination`                                                                                                       | `pagination`                               | 调整 | `false` 或 `{ defaultPageSize }`                                                                  |
+| `columnsState`                                                                                                     | `columnsState`                             | 调整 | 只有 `defaultValue`；受控和持久化不做                                                             |
+| `manualRequest`                                                                                                    | `manualRequest`                            | 相同 |                                                                                                   |
+| `postData`                                                                                                         | `postData`                                 | 调整 | 每次渲染时执行，不只在请求返回后                                                                  |
+| `expandable`                                                                                                       | `expandable`                               | 调整 | 只有 4 个字段                                                                                     |
+| `columnEmptyText`                                                                                                  | `columnEmptyText`                          | 调整 | 默认是项目的 `EMPTY_PLACEHOLDER`（`—`）                                                           |
+| `cardProps`                                                                                                        | `cardProps?: false`                        | 调整 | 只能关掉卡片                                                                                      |
+| `TableDropdown`                                                                                                    | `TableDropdown`                            | 调整 | 菜单项多了 `icon`、`danger` 和分隔线，跳过假值                                                    |
+| `dataSource`、`loading`（不走 `request`）                                                                          | —                                          | 不做 | 本地过滤用 `postData`                                                                             |
+| `rowSelection`、`tableAlertRender`                                                                                 | —                                          | 不做 | 只有「角色分配用户」一处用到选择，保持手写                                                        |
+| `polling`、`debounceTime`、`revalidateOnFocus`、`onLoad`、`onRequestError`、`beforeSearchSubmit`、`tableRender` 等 | —                                          | 不做 | 没有页面需要                                                                                      |
+| `BetaSchemaForm` / `FormSchema`                                                                                    | 同名                                       | 调整 | 内部是 `useAppForm` + `FormShell`                                                                 |
+| `layoutType`                                                                                                       | `layoutType`                               | 调整 | 只有 `'Form'` 和 `'DrawerForm'`                                                                   |
+| `onFinish`                                                                                                         | `onFinish`                                 | 相同 | 返回真值关闭抽屉                                                                                  |
+| 表单的 `request`、`params`                                                                                         | 同名                                       | 调整 | 走 `useDetailQuery`；多一个 `signal` 和 `queryKey`                                                |
+| `initialValues`                                                                                                    | `initialValues`                            | 相同 |                                                                                                   |
+| `open`、`onOpenChange`、`title`、`width`、`drawerProps`                                                            | 同名                                       | 调整 | `width` 取 `EntityDrawer` 的档位；`drawerProps` 是 `EntityDrawer` 的头部属性                      |
+| `trigger`                                                                                                          | —                                          | 不做 | 同一个抽屉既要从工具栏开（新增），也要从行菜单开（修改），必须受控                                |
+| `submitter`                                                                                                        | `submitter`                                | 调整 | 只有 `false` 和 `searchConfig`                                                                    |
+| `ProDescriptions`                                                                                                  | `ProDescriptions`                          | 调整 | 内部是 `DetailGrid` + `DetailField`；没有行内编辑、`actionRef`                                    |
+| `ProConfigProvider` 的 `valueTypeMap`                                                                              | 同名                                       | 调整 | 只有这一个属性                                                                                    |
+| `ProRenderFieldPropsType`                                                                                          | 同名                                       | 调整 | 回调少了第三个参数 `dom`；多了 `ignoreFormItem`、`initialValue`                                   |
+| `ProFieldValueTypeWithFieldProps`                                                                                  | 同名                                       | 调整 | 是 `interface`，可以声明合并                                                                      |
+| `mode: 'read' \| 'edit' \| 'update'`                                                                               | `'read' \| 'edit'`                         | 调整 |                                                                                                   |
+| `light`                                                                                                            | `light`                                    | 相同 | 表示在搜索栏里                                                                                    |
+| `ProForm`、`ProFormText` 等逐个字段组件                                                                            | 现有的 `useAppForm` + `field.TextInput` 等 | 不做 | 手写表单继续用现有组件                                                                            |
 
 ### 2.11 故意不做的部分
 
@@ -1080,18 +1087,18 @@ src/components/pro/
 
 ### 2. 每一块落在哪些现有组件上
 
-| pro 层 | 用到的现有代码 |
-|---|---|
-| `ProTable` 外框 | `ListPageCard`（标题、说明、全屏占位）、`ListFilterRow`、`TableFillArea`、`useFullscreenTransition` |
-| 表格本体 | `DataTable`（含 `TablePagination`、`TableSkeletonRows`、`QueryState`）、`dataTableFeatures`、`useTable` |
-| 取数 | `useQuery` + `keepPreviousData`、`usePageClamp` |
-| 工具栏 | `TableToolbar`（刷新、列显隐、全屏、重置列） |
-| 搜索栏 | `TableSearch`、`FilterSelect`、`DateRangeFilter`、`toDateTimeRangeQuery` 里的格式化逻辑 |
-| `TableDropdown` | `RowActionsMenu` + `DropdownMenuItem` / `DropdownMenuSeparator` |
-| 只读渲染 | `ToneBadge`、`TextCell`、`CopyButton`、`EMPTY_PLACEHOLDER` |
-| `BetaSchemaForm` | `useAppForm`、`FormShell`、`FormFooter`、`FormItem`，以及 `src/components/form/*` 的六个输入组件 |
-| `DrawerForm` 布局 | `EntityDrawer`、`useDetailQuery`、`useFillFormOnce`、`FormSkeleton`、`QueryState`、`reportError` |
-| `ProDescriptions` | `DetailGrid`、`DetailField`、`useDetailQuery`、`useLastRecord`、`Skeleton` |
+| pro 层            | 用到的现有代码                                                                                          |
+| ----------------- | ------------------------------------------------------------------------------------------------------- |
+| `ProTable` 外框   | `ListPageCard`（标题、说明、全屏占位）、`ListFilterRow`、`TableFillArea`、`useFullscreenTransition`     |
+| 表格本体          | `DataTable`（含 `TablePagination`、`TableSkeletonRows`、`QueryState`）、`dataTableFeatures`、`useTable` |
+| 取数              | `useQuery` + `keepPreviousData`、`usePageClamp`                                                         |
+| 工具栏            | `TableToolbar`（刷新、列显隐、全屏、重置列）                                                            |
+| 搜索栏            | `TableSearch`、`FilterSelect`、`DateRangeFilter`、`toDateTimeRangeQuery` 里的格式化逻辑                 |
+| `TableDropdown`   | `RowActionsMenu` + `DropdownMenuItem` / `DropdownMenuSeparator`                                         |
+| 只读渲染          | `ToneBadge`、`TextCell`、`CopyButton`、`EMPTY_PLACEHOLDER`                                              |
+| `BetaSchemaForm`  | `useAppForm`、`FormShell`、`FormFooter`、`FormItem`，以及 `src/components/form/*` 的六个输入组件        |
+| `DrawerForm` 布局 | `EntityDrawer`、`useDetailQuery`、`useFillFormOnce`、`FormSkeleton`、`QueryState`、`reportError`        |
+| `ProDescriptions` | `DetailGrid`、`DetailField`、`useDetailQuery`、`useLastRecord`、`Skeleton`                              |
 
 `BetaSchemaForm` 的抽屉流程就是现在每个表单抽屉里重复的那一段：新增直接渲染表单；修改等详情取回、且不在重取中再渲染，失败显示重试，加载中显示 `FormSkeleton`（形状按列的 `valueType` 生成）；提交中不允许关闭；`onFinish` 抛错时调用 `reportError` 并保持抽屉打开。
 
@@ -1393,7 +1400,9 @@ export function AppList() {
             columns={appColumns}
             queryKey={appKeys.detail(detailAppId)}
             request={
-              detailAppId === null ? undefined : async (_params, signal) => ({ data: await getApp(detailAppId, signal) })
+              detailAppId === null
+                ? undefined
+                : async (_params, signal) => ({ data: await getApp(detailAppId, signal) })
             }
           />
         </div>
@@ -1440,22 +1449,22 @@ export function AppList() {
 
 现有行为的对应：
 
-| 现有行为 | 改写后 |
-|---|---|
-| 关键字搜索，参数名 `description` | `options.search` |
-| 序号翻页连续 | `valueType: 'index'` |
-| 名称加粗、不截断 | `render`，不写 `ellipsis` |
-| Access Key 带复制按钮 | `render`，按 `type` 区分表格和详情 |
-| 状态徽标 | `valueEnum` |
-| 失效时间的「永久有效 / 已过期」 | `render`，表格和详情共用 |
-| 描述截断 | `ellipsis: true` |
-| 审计列默认隐藏 | `columnsState.defaultValue` |
-| 行操作 5 项，内置应用禁用 | `valueType: 'option'` + `TableDropdown` |
-| 新增 / 修改抽屉，zod 校验 | `BetaSchemaForm`，规则在列上 |
-| 表单顺序：名称、失效时间、描述、状态 | 数组顺序，状态列 `order: -1` |
-| 详情抽屉 | `EntityDrawer` + `ProDescriptions` |
-| 导出带当前筛选 | `formRef.current.getFieldsFormatValue()` |
-| 查看密钥、重置密钥、删除 | 原有弹窗，不变 |
+| 现有行为                             | 改写后                                   |
+| ------------------------------------ | ---------------------------------------- |
+| 关键字搜索，参数名 `description`     | `options.search`                         |
+| 序号翻页连续                         | `valueType: 'index'`                     |
+| 名称加粗、不截断                     | `render`，不写 `ellipsis`                |
+| Access Key 带复制按钮                | `render`，按 `type` 区分表格和详情       |
+| 状态徽标                             | `valueEnum`                              |
+| 失效时间的「永久有效 / 已过期」      | `render`，表格和详情共用                 |
+| 描述截断                             | `ellipsis: true`                         |
+| 审计列默认隐藏                       | `columnsState.defaultValue`              |
+| 行操作 5 项，内置应用禁用            | `valueType: 'option'` + `TableDropdown`  |
+| 新增 / 修改抽屉，zod 校验            | `BetaSchemaForm`，规则在列上             |
+| 表单顺序：名称、失效时间、描述、状态 | 数组顺序，状态列 `order: -1`             |
+| 详情抽屉                             | `EntityDrawer` + `ProDescriptions`       |
+| 导出带当前筛选                       | `formRef.current.getFieldsFormatValue()` |
+| 查看密钥、重置密钥、删除             | 原有弹窗，不变                           |
 
 和现状有三处细微差别：应用名称首尾空格会被去掉后再提交（现在 schema 里写了 `.trim()` 但提交的是原值）；详情里「应用描述」不再是灰色字；修改抽屉的骨架屏形状按列生成，不再手写。
 
@@ -1495,7 +1504,9 @@ export const userColumns = [
     title: '昵称',
     dataIndex: 'nickname',
     fieldProps: { maxLength: 30, placeholder: '请输入昵称' },
-    formItemProps: { rules: z.string().regex(NAME_PATTERN, '昵称长度为 2-30 个字符，支持中文、字母、数字、下划线、短横线') },
+    formItemProps: {
+      rules: z.string().regex(NAME_PATTERN, '昵称长度为 2-30 个字符，支持中文、字母、数字、下划线、短横线')
+    },
     render: (dom, user, _index, _action, { type }) => (type === 'table' ? <NicknameCell user={user} /> : dom)
   },
   // username …
@@ -1696,12 +1707,12 @@ export function UserList() {
 
 四个难点的落点：
 
-| 难点 | 做法 |
-|---|---|
-| 部门树筛选 | `deptId` 列 `valueType: 'deptTreeSelect'` + `search: true`，搜索栏里渲染成现在那个带「部门」前缀和「全部部门」的树选择 |
-| 角色多选 | `formItemRender` 直接接现有的 `UserRoleSelect`，不新增控件 |
-| 密码只在新增时出现 | 页面按模式过滤掉 `passwordColumn`，校验规则随列一起消失 |
-| 按权限显示操作 | `toolBarRender` 和 `TableDropdown.menus` 里用 `hasPermission(...) &&`，权限判断集中在页面一处 |
+| 难点               | 做法                                                                                                                   |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| 部门树筛选         | `deptId` 列 `valueType: 'deptTreeSelect'` + `search: true`，搜索栏里渲染成现在那个带「部门」前缀和「全部部门」的树选择 |
+| 角色多选           | `formItemRender` 直接接现有的 `UserRoleSelect`，不新增控件                                                             |
+| 密码只在新增时出现 | 页面按模式过滤掉 `passwordColumn`，校验规则随列一起消失                                                                |
+| 按权限显示操作     | `toolBarRender` 和 `TableDropdown.menus` 里用 `hasPermission(...) &&`，权限判断集中在页面一处                          |
 
 现有代码里 `email`、`phone`、`description` 的「空串转 `undefined`」「去首尾空格」都写进各列的 `rules`（`.trim().transform(value => value || undefined)`），`toUserReq` 不再需要。
 
@@ -1727,23 +1738,23 @@ export function UserList() {
 
 依据是这次读过的代码和各目录的文件构成；没逐个读完的页面标了「待确认」，迁移到那一页时再定。
 
-| 页面 | 表格 | 表单 | 详情 | 原因 |
-|---|---|---|---|---|
-| 应用管理 | 配置 | 配置 | 配置 | 样板 |
-| 用户管理 | 配置 | 配置 | 配置 | 见第四节；重置密码、分配角色两个弹窗手写 |
-| 租户管理 | 配置 | 待确认 | 配置 | 套餐下拉有骨架和空状态（标准 5） |
-| 字典、字典项 | 字典项表格配置 | 配置 | — | 双栏布局手写（标准 7） |
-| 在线用户、系统日志、任务日志、短信日志 | 配置 | — | 配置（日志详情待确认） | 只读列表 |
-| 配置页里的客户端、短信、存储列表 | 配置（`cardProps={false}`） | 待确认 | — | 在标签页里 |
-| 定时任务 | 配置 | 手写 | 配置 | 触发类型联动、分片参数动态行、提交前检查（标准 2、3） |
-| 通知公告 | 配置 | 手写 | 手写 | 富文本、用户选择器、定时发布、「存草稿」（标准 2、6） |
-| 角色管理 | 配置 | 待确认 | — | 权限抽屉、分配用户抽屉手写（标准 2、7） |
-| 租户套餐 | 配置 | 手写 | 待确认 | 菜单树勾选（标准 2） |
-| 部门管理 | 配置（树） | 待确认 | — | 上级部门树选择，根部门有只读行 |
-| 菜单管理 | 配置（树） | 手写 | — | 字段随菜单类型变化，图标选择器（标准 2、4） |
-| 系统配置（站点、安全、登录、邮件） | — | 手写 | — | 标准 1 |
-| 文件管理、仪表盘、个人中心 | — | 手写 | — | 标准 1 |
-| 各类确认弹窗 | — | — | — | 继续用 `ConfirmDialog` / `DeleteConfirmDialog` |
+| 页面                                   | 表格                        | 表单   | 详情                   | 原因                                                  |
+| -------------------------------------- | --------------------------- | ------ | ---------------------- | ----------------------------------------------------- |
+| 应用管理                               | 配置                        | 配置   | 配置                   | 样板                                                  |
+| 用户管理                               | 配置                        | 配置   | 配置                   | 见第四节；重置密码、分配角色两个弹窗手写              |
+| 租户管理                               | 配置                        | 待确认 | 配置                   | 套餐下拉有骨架和空状态（标准 5）                      |
+| 字典、字典项                           | 字典项表格配置              | 配置   | —                      | 双栏布局手写（标准 7）                                |
+| 在线用户、系统日志、任务日志、短信日志 | 配置                        | —      | 配置（日志详情待确认） | 只读列表                                              |
+| 配置页里的客户端、短信、存储列表       | 配置（`cardProps={false}`） | 待确认 | —                      | 在标签页里                                            |
+| 定时任务                               | 配置                        | 手写   | 配置                   | 触发类型联动、分片参数动态行、提交前检查（标准 2、3） |
+| 通知公告                               | 配置                        | 手写   | 手写                   | 富文本、用户选择器、定时发布、「存草稿」（标准 2、6） |
+| 角色管理                               | 配置                        | 待确认 | —                      | 权限抽屉、分配用户抽屉手写（标准 2、7）               |
+| 租户套餐                               | 配置                        | 手写   | 待确认                 | 菜单树勾选（标准 2）                                  |
+| 部门管理                               | 配置（树）                  | 待确认 | —                      | 上级部门树选择，根部门有只读行                        |
+| 菜单管理                               | 配置（树）                  | 手写   | —                      | 字段随菜单类型变化，图标选择器（标准 2、4）           |
+| 系统配置（站点、安全、登录、邮件）     | —                           | 手写   | —                      | 标准 1                                                |
+| 文件管理、仪表盘、个人中心             | —                           | 手写   | —                      | 标准 1                                                |
+| 各类确认弹窗                           | —                           | —      | —                      | 继续用 `ConfirmDialog` / `DeleteConfirmDialog`        |
 
 ---
 
@@ -1751,15 +1762,15 @@ export function UserList() {
 
 每一步结束都要能通过 `tsc --noEmit`、`oxlint`、`vitest run`，并且已迁移和未迁移的页面可以并存。行数是粗估。
 
-| 步骤 | 内容 | 规模 |
-|---|---|---|
-| 1 | `typing.ts`、`provider.tsx`、`field/*`（只读渲染、`valueEnum`、列级 `request`）、`ProTable`（`request`、分页、`options`、关键字、`columnsState`、`toolBarRender`）、`TableDropdown`；放宽 `ColumnMeta.valueType`；给列转换、query key、`valueEnum` 映射写单元测试。应用管理只换表格，两个抽屉暂时不动，用来验证「手写抽屉 + `ProTable`」能共存 | 新增约 700 行，应用管理减约 150 行 |
-| 2 | `BetaSchemaForm`（`Form`、`DrawerForm`、schema 推导、内置编辑控件、`formItemRender`、`dependencies`、`dependency`）、`ProDescriptions`；项目类型 `expiry`。应用管理换掉表单和详情抽屉，至此样板完整 | 新增约 500 行，应用管理再减约 300 行 |
-| 3 | 搜索栏（`search` 列、`form.initialValues`、`search.transform`、`dateRange` / `dateTimeRange`）；项目类型 `deptTreeSelect`；`dictColumn`。迁移用户管理 | 新增约 250 行，用户管理减约 500 行 |
-| 4 | 只读列表：在线用户、系统日志、任务日志、短信日志 | 每页减 100–200 行 |
-| 5 | 表格走配置、表单视情况：租户管理、租户套餐、通知公告、角色管理、定时任务、字典项，以及配置页里的三个列表 | 每页半天左右，表格部分各减 100–250 行 |
-| 6 | 树表：`expandable`、`pagination={false}`、`postData` 本地过滤。迁移部门、菜单的表格 | 新增约 120 行 |
-| 7 | 更新 `docs/components.md`；列出已经没有引用的文件（第三节第 3 点），由你决定怎么处理 | 文档 |
+| 步骤 | 内容                                                                                                                                                                                                                                                                                                                                           | 规模                                  |
+| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| 1    | `typing.ts`、`provider.tsx`、`field/*`（只读渲染、`valueEnum`、列级 `request`）、`ProTable`（`request`、分页、`options`、关键字、`columnsState`、`toolBarRender`）、`TableDropdown`；放宽 `ColumnMeta.valueType`；给列转换、query key、`valueEnum` 映射写单元测试。应用管理只换表格，两个抽屉暂时不动，用来验证「手写抽屉 + `ProTable`」能共存 | 新增约 700 行，应用管理减约 150 行    |
+| 2    | `BetaSchemaForm`（`Form`、`DrawerForm`、schema 推导、内置编辑控件、`formItemRender`、`dependencies`、`dependency`）、`ProDescriptions`；项目类型 `expiry`。应用管理换掉表单和详情抽屉，至此样板完整                                                                                                                                            | 新增约 500 行，应用管理再减约 300 行  |
+| 3    | 搜索栏（`search` 列、`form.initialValues`、`search.transform`、`dateRange` / `dateTimeRange`）；项目类型 `deptTreeSelect`；`dictColumn`。迁移用户管理                                                                                                                                                                                          | 新增约 250 行，用户管理减约 500 行    |
+| 4    | 只读列表：在线用户、系统日志、任务日志、短信日志                                                                                                                                                                                                                                                                                               | 每页减 100–200 行                     |
+| 5    | 表格走配置、表单视情况：租户管理、租户套餐、通知公告、角色管理、定时任务、字典项，以及配置页里的三个列表                                                                                                                                                                                                                                       | 每页半天左右，表格部分各减 100–250 行 |
+| 6    | 树表：`expandable`、`pagination={false}`、`postData` 本地过滤。迁移部门、菜单的表格                                                                                                                                                                                                                                                            | 新增约 120 行                         |
+| 7    | 更新 `docs/components.md`；列出已经没有引用的文件（第三节第 3 点），由你决定怎么处理                                                                                                                                                                                                                                                           | 文档                                  |
 
 步骤 1、2 做完后先停一下看效果，再决定 3 之后的范围。
 
@@ -1788,16 +1799,16 @@ export function UserList() {
 
 两个临时文件放在 `backups/pro-20261116/scratch/`（`backups/` 已被 git 忽略），用项目自带的 `tsc` 按现有 `tsconfig.json` 的严格配置编译通过。验证了下面几点：
 
-| 验证点 | 结果 |
-|---|---|
-| `ProColumns<T>` 按 `valueType` 展开成联合类型，`fieldProps` 随 `valueType` 收窄；项目类型通过声明合并加入 | 通过；`fieldProps` 写错、`valueType` 不存在都会报错 |
-| `dataIndex` 限定为 `keyof T` | 通过；写错报错 |
-| 写了 `request` 必须同时给 `proFieldProps.proFieldKey` | 通过；漏写报错 |
-| `as const satisfies readonly ProColumns<T>[]` 下，`render` 等回调的参数仍有类型 | 通过 |
-| `InferFormValues` 从列推出表单值类型：有 `rules` 取 zod 输出，没有取记录类型，`hideInForm` / `index` / `option` 排除 | 通过 |
-| 实体列展开后再追加操作列、按模式过滤出子集，仍然能当 `columns` 传 | 通过 |
-| `useAppForm` 的 `defaultValues` 用 `Record<string, unknown>` 时，`<form.AppField name={运行时字符串}>` 可以编译，字段级 `validators.onDynamic` 接受 zod schema，表单级接受运行时拼出来的 `z.object(...)` | 通过 |
-| `ProColumns` 能生成 `ColumnDef<DataTableFeatures, T>[]` | 通过；`meta.valueType` 受现有声明限制，需要按 2.3 放宽 |
+| 验证点                                                                                                                                                                                                   | 结果                                                   |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| `ProColumns<T>` 按 `valueType` 展开成联合类型，`fieldProps` 随 `valueType` 收窄；项目类型通过声明合并加入                                                                                                | 通过；`fieldProps` 写错、`valueType` 不存在都会报错    |
+| `dataIndex` 限定为 `keyof T`                                                                                                                                                                             | 通过；写错报错                                         |
+| 写了 `request` 必须同时给 `proFieldProps.proFieldKey`                                                                                                                                                    | 通过；漏写报错                                         |
+| `as const satisfies readonly ProColumns<T>[]` 下，`render` 等回调的参数仍有类型                                                                                                                          | 通过                                                   |
+| `InferFormValues` 从列推出表单值类型：有 `rules` 取 zod 输出，没有取记录类型，`hideInForm` / `index` / `option` 排除                                                                                     | 通过                                                   |
+| 实体列展开后再追加操作列、按模式过滤出子集，仍然能当 `columns` 传                                                                                                                                        | 通过                                                   |
+| `useAppForm` 的 `defaultValues` 用 `Record<string, unknown>` 时，`<form.AppField name={运行时字符串}>` 可以编译，字段级 `validators.onDynamic` 接受 zod schema，表单级接受运行时拼出来的 `z.object(...)` | 通过                                                   |
+| `ProColumns` 能生成 `ColumnDef<DataTableFeatures, T>[]`                                                                                                                                                  | 通过；`meta.valueType` 受现有声明限制，需要按 2.3 放宽 |
 
 没有验证的部分：
 

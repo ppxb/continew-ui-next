@@ -16,7 +16,11 @@ import { DeptDeleteDialog } from './dept-delete-dialog'
 import { DeptFormDrawer } from './dept-form-drawer'
 
 const EMPTY_TREE: DeptResp[] = []
-const HIDDEN_BY_DEFAULT = { createUserString: { show: false }, updateUserString: { show: false }, updateTime: { show: false } }
+const HIDDEN_BY_DEFAULT = {
+  createUserString: { show: false },
+  updateUserString: { show: false },
+  updateTime: { show: false }
+}
 
 /** Retain matching nodes and their parent paths, not unrelated descendants. */
 function filterDeptTree(nodes: DeptResp[], keyword: string): DeptResp[] {
@@ -30,7 +34,7 @@ function filterDeptTree(nodes: DeptResp[], keyword: string): DeptResp[] {
 }
 
 function expandableDeptIds(nodes: DeptResp[]): string[] {
-  return nodes.flatMap(node => node.children?.length ? [String(node.id), ...expandableDeptIds(node.children)] : [])
+  return nodes.flatMap(node => (node.children?.length ? [String(node.id), ...expandableDeptIds(node.children)] : []))
 }
 
 interface FormTarget {
@@ -47,7 +51,10 @@ export function DeptList() {
   const query = useQuery({ queryKey: deptKeys.trees(), queryFn: ({ signal }) => getDeptTree(undefined, signal) })
   const rawTree = query.data ?? EMPTY_TREE
   const filteredTree = React.useMemo(() => filterDeptTree(rawTree, keyword), [rawTree, keyword])
-  const expandedRowKeys = React.useMemo(() => expanded === 'all' ? expandableDeptIds(filteredTree) : expanded, [expanded, filteredTree])
+  const expandedRowKeys = React.useMemo(
+    () => (expanded === 'all' ? expandableDeptIds(filteredTree) : expanded),
+    [expanded, filteredTree]
+  )
 
   const handleRowAction = React.useCallback((action: DeptAction, dept: DeptResp) => {
     if (action === 'edit') setFormTarget({ deptId: dept.id, parentId: null })
@@ -57,34 +64,76 @@ export function DeptList() {
   const columns = React.useMemo(() => createDeptColumns(handleRowAction), [handleRowAction])
   const exportMutation = useMutation({
     mutationFn: () => exportDept({ description: keyword || undefined }),
-    onSuccess: () => { toast.add({ title: '部门数据导出成功', type: 'success' }) },
+    onSuccess: () => {
+      toast.add({ title: '部门数据导出成功', type: 'success' })
+    },
     onError: error => reportError(error, '导出失败，请重试')
   })
   const isExpanded = expanded === 'all' || expanded.length > 0
 
-  return <>
-    <ProTable<DeptResp> columns={columns} rowKey="id" dataSource={filteredTree} queryKey={deptKeys.trees()}
-      params={{ description: keyword || undefined }} pagination={false} loading={query.isPending || query.isFetching} isError={query.isError}
-      isShowingPreviousRows={query.isPlaceholderData} headerTitle="部门管理" toolbar={{ subTitle: '管理系统组织架构及部门层级' }}
-      columnsState={{ defaultValue: HIDDEN_BY_DEFAULT }}
-      expandable={{ expandedRowKeys, onExpandedRowsChange: setExpanded }}
-      options={{ search: { placeholder: '搜索部门名称或描述', delay: 0, onSearch: next => {
-        setKeyword(next)
-        if (next) setExpanded('all')
-        return false
-      } } }}
-      toolBarRender={() => [
-        hasPermission('system:dept:create') && <Button key="create" onClick={() => setFormTarget({ deptId: null, parentId: null })}><Plus />新增部门</Button>,
-        hasPermission('system:dept:export') && <Button key="export" variant="outline" size="icon" disabled={exportMutation.isPending} onClick={() => exportMutation.mutate()}>
-          {exportMutation.isPending ? <Spinner /> : <Download />}
-        </Button>,
-        <Button key="expand" variant="outline" size="icon" onClick={() => setExpanded(isExpanded ? [] : 'all')}>
-          {isExpanded ? <ChevronsDownUp /> : <ChevronsUpDown />}
-        </Button>
-      ]}
-    />
-    <DeptFormDrawer deptId={formTarget?.deptId ?? null} defaultParentId={formTarget?.parentId ?? null} open={formTarget !== null}
-      deptTree={rawTree} onClose={() => setFormTarget(null)} />
-    <DeptDeleteDialog dept={deletingDept} allDepts={rawTree} open={deletingDept !== null} onClose={() => setDeletingDept(null)} />
-  </>
+  return (
+    <>
+      <ProTable<DeptResp>
+        columns={columns}
+        rowKey="id"
+        dataSource={filteredTree}
+        queryKey={deptKeys.trees()}
+        params={{ description: keyword || undefined }}
+        pagination={false}
+        loading={query.isPending || query.isFetching}
+        isError={query.isError}
+        isShowingPreviousRows={query.isPlaceholderData}
+        headerTitle="部门管理"
+        toolbar={{ subTitle: '管理系统组织架构及部门层级' }}
+        columnsState={{ defaultValue: HIDDEN_BY_DEFAULT }}
+        expandable={{ expandedRowKeys, onExpandedRowsChange: setExpanded }}
+        options={{
+          search: {
+            placeholder: '搜索部门名称或描述',
+            delay: 0,
+            onSearch: next => {
+              setKeyword(next)
+              if (next) setExpanded('all')
+              return false
+            }
+          }
+        }}
+        toolBarRender={() => [
+          hasPermission('system:dept:create') && (
+            <Button key="create" onClick={() => setFormTarget({ deptId: null, parentId: null })}>
+              <Plus />
+              新增部门
+            </Button>
+          ),
+          hasPermission('system:dept:export') && (
+            <Button
+              key="export"
+              variant="outline"
+              size="icon"
+              disabled={exportMutation.isPending}
+              onClick={() => exportMutation.mutate()}
+            >
+              {exportMutation.isPending ? <Spinner /> : <Download />}
+            </Button>
+          ),
+          <Button key="expand" variant="outline" size="icon" onClick={() => setExpanded(isExpanded ? [] : 'all')}>
+            {isExpanded ? <ChevronsDownUp /> : <ChevronsUpDown />}
+          </Button>
+        ]}
+      />
+      <DeptFormDrawer
+        deptId={formTarget?.deptId ?? null}
+        defaultParentId={formTarget?.parentId ?? null}
+        open={formTarget !== null}
+        deptTree={rawTree}
+        onClose={() => setFormTarget(null)}
+      />
+      <DeptDeleteDialog
+        dept={deletingDept}
+        allDepts={rawTree}
+        open={deletingDept !== null}
+        onClose={() => setDeletingDept(null)}
+      />
+    </>
+  )
 }

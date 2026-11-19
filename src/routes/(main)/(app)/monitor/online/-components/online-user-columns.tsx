@@ -63,16 +63,40 @@ export const onlineUserColumns: readonly ProColumns<OnlineUserRecord>[] = [
   { title: '登录时间', dataIndex: 'loginTime', valueType: 'dateTime' },
   { title: '最后刷新时间', dataIndex: 'lastRefreshTime', valueType: 'dateTime' },
   {
-    title: '登录时间', dataIndex: 'dateRange', valueType: 'dateRange', hideInTable: true, hideInForm: true, hideInDescriptions: true,
+    title: '登录时间',
+    dataIndex: 'dateRange',
+    valueType: 'dateRange',
+    hideInTable: true,
+    hideInForm: true,
+    hideInDescriptions: true,
     search: { transform: value => ({ loginTime: toDateTimeRangeQuery(value as DateRange | undefined) }) },
-    formItemRender: (_, control) => <DateRangeFilter id={control.id} invalid={control.invalid} onBlur={control.onBlur}
-      value={control.value as DateRange | undefined} onChange={control.onChange} placeholder="登录时间" />
+    formItemRender: (_, control) => (
+      <DateRangeFilter
+        id={control.id}
+        invalid={control.invalid}
+        onBlur={control.onBlur}
+        value={control.value as DateRange | undefined}
+        onChange={control.onChange}
+        placeholder="登录时间"
+      />
+    )
   }
 ]
 
-export function createOnlineUserColumns({ canKickout, isCurrentSession, onKickout }: OnlineUserColumnOptions): readonly ProColumns<OnlineUserRecord>[] {
-  return canKickout ? [...onlineUserColumns, {
-    title: '操作', valueType: 'option', align: 'center',
-    render: (_, user) => <KickoutCell user={user} isCurrentSession={isCurrentSession} onKickout={onKickout} />
-  }] : onlineUserColumns
+export function createOnlineUserColumns({
+  canKickout,
+  isCurrentSession,
+  onKickout
+}: OnlineUserColumnOptions): readonly ProColumns<OnlineUserRecord>[] {
+  return canKickout
+    ? [
+        ...onlineUserColumns,
+        {
+          title: '操作',
+          valueType: 'option',
+          align: 'center',
+          render: (_, user) => <KickoutCell user={user} isCurrentSession={isCurrentSession} onKickout={onKickout} />
+        }
+      ]
+    : onlineUserColumns
 }

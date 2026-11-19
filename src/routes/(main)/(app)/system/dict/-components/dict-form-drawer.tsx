@@ -23,7 +23,9 @@ export function DictFormDrawer({ dict, open, onClose }: DictFormDrawerProps) {
       grid
       drawerProps={{ icon: <Bookmark className="size-4" /> }}
       open={open}
-      onOpenChange={next => { if (!next) onClose() }}
+      onOpenChange={next => {
+        if (!next) onClose()
+      }}
       columns={dictColumns}
       queryKey={[...dictKeys.lists(), 'form', dict?.id ?? null]}
       initialValues={dict ? { ...dict, description: dict.description ?? '' } : undefined}

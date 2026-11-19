@@ -32,9 +32,10 @@ export function useAvailableHeight<T extends HTMLElement>(ref: RefObject<T | nul
       let bottomSpacing = 0
       for (let ancestor: HTMLElement | null = element; ancestor; ancestor = ancestor.parentElement) {
         const style = getComputedStyle(ancestor)
-        bottomSpacing += (Number.parseFloat(style.paddingBottom) || 0)
-          + (Number.parseFloat(style.borderBottomWidth) || 0)
-          + (Number.parseFloat(style.marginBottom) || 0)
+        bottomSpacing +=
+          (Number.parseFloat(style.paddingBottom) || 0) +
+          (Number.parseFloat(style.borderBottomWidth) || 0) +
+          (Number.parseFloat(style.marginBottom) || 0)
         // A fullscreen container is positioned against the viewport, not its DOM ancestors.
         if (style.position === 'fixed') break
       }

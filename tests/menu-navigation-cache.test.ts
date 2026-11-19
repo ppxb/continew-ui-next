@@ -15,21 +15,39 @@ import { DEFAULT_STALE_TIME_MS, queryClient } from '@/lib/query-client'
 const requests = vi.hoisted(() => ({ getUserRoutes: vi.fn<(signal?: AbortSignal) => Promise<RouteResp[]>>() }))
 
 vi.mock('@/lib/api/auth', async importOriginal => ({
-  ...await importOriginal<typeof AuthApi>(),
+  ...(await importOriginal<typeof AuthApi>()),
   getUserRoutes: requests.getUserRoutes
 }))
 
-const restoredRoutes: RouteResp[] = [{
-  id: 1, parentId: 0, title: 'Restored menu', type: 2, path: '/restored', name: 'Restored', component: 'Restored'
-}]
-const freshRoutes: RouteResp[] = [{
-  id: 2, parentId: 0, title: 'Fresh menu', type: 2, path: '/fresh', name: 'Fresh', component: 'Fresh'
-}]
+const restoredRoutes: RouteResp[] = [
+  {
+    id: 1,
+    parentId: 0,
+    title: 'Restored menu',
+    type: 2,
+    path: '/restored',
+    name: 'Restored',
+    component: 'Restored'
+  }
+]
+const freshRoutes: RouteResp[] = [
+  {
+    id: 2,
+    parentId: 0,
+    title: 'Fresh menu',
+    type: 2,
+    path: '/fresh',
+    name: 'Fresh',
+    component: 'Fresh'
+  }
+]
 const startedAt = new Date('2026-11-17T08:00:00Z').getTime()
 
 function deferredRoutes() {
   let resolve!: (routes: RouteResp[]) => void
-  const promise = new Promise<RouteResp[]>(done => { resolve = done })
+  const promise = new Promise<RouteResp[]>(done => {
+    resolve = done
+  })
   return { promise, resolve }
 }
 
@@ -76,7 +94,9 @@ describe('menu navigation cache', () => {
     expect(await loading).toEqual(freshRoutes)
     expect(getCachedMenu()).toEqual(freshRoutes)
     expect(await Promise.all([ensureMenuLoaded(), ensureMenuLoaded(), ensureMenuLoaded()])).toEqual([
-      freshRoutes, freshRoutes, freshRoutes
+      freshRoutes,
+      freshRoutes,
+      freshRoutes
     ])
     expect(requests.getUserRoutes).toHaveBeenCalledTimes(1)
   })

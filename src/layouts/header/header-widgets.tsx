@@ -27,7 +27,6 @@ import { usePreferencesStore } from '@/stores/preferences/preferences-provider'
 
 import { useShellStore } from '../shell-store'
 
-
 export function HeaderIconButton({
   label,
   onClick,
@@ -36,7 +35,9 @@ export function HeaderIconButton({
 }: React.ComponentProps<typeof Button> & { label: string }) {
   return (
     <Tooltip>
-      <TooltipTrigger render={<Button variant="ghost" size="icon-sm" aria-label={label} onClick={onClick} {...props} />}>
+      <TooltipTrigger
+        render={<Button variant="ghost" size="icon-sm" aria-label={label} onClick={onClick} {...props} />}
+      >
         {children}
       </TooltipTrigger>
       <TooltipContent side="bottom" sideOffset={8}>
@@ -99,48 +100,54 @@ export function NotificationButton() {
 
   return (
     <>
-    <Popover open={open} onOpenChange={setOpen}>
-      <Tooltip>
-        <TooltipTrigger render={<PopoverTrigger render={<Button variant="ghost" size="icon-sm" aria-label="通知" />} />}>
-          <Bell />
-        </TooltipTrigger>
-        <TooltipContent side="bottom" sideOffset={8}>
-          通知
-        </TooltipContent>
-      </Tooltip>
-      <PopoverContent align="end" className="w-80 p-0">
-        <div className="flex items-center justify-between border-b px-4 py-3">
-          <span className="text-sm font-medium">最新公告</span>
-          <Link to="/dashboard" className="text-xs text-muted-foreground hover:text-foreground" onClick={() => setOpen(false)}>
-            查看全部
-          </Link>
-        </div>
-        <div className="max-h-80 overflow-y-auto p-1">
-          {query.isPending ? (
-            <p className="px-3 py-6 text-center text-xs text-muted-foreground">加载中…</p>
-          ) : notices.length === 0 ? (
-            <p className="px-3 py-6 text-center text-xs text-muted-foreground">暂无公告</p>
-          ) : (
-            notices.map(notice => (
-              <button
-                key={notice.id}
-                type="button"
-                onClick={() => {
-                  setOpen(false)
-                  setViewId(notice.id)
-                }}
-                className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm hover:bg-accent"
-              >
-                <Bell className="size-3.5 shrink-0 text-muted-foreground" />
-                <span className="min-w-0 flex-1 truncate">{notice.title}</span>
-                {notice.isTop && <span className="shrink-0 text-xs text-primary">置顶</span>}
-              </button>
-            ))
-          )}
-        </div>
-      </PopoverContent>
-    </Popover>
-    <NoticeViewDrawer noticeId={viewId} open={viewId !== null} onClose={() => setViewId(null)} />
+      <Popover open={open} onOpenChange={setOpen}>
+        <Tooltip>
+          <TooltipTrigger
+            render={<PopoverTrigger render={<Button variant="ghost" size="icon-sm" aria-label="通知" />} />}
+          >
+            <Bell />
+          </TooltipTrigger>
+          <TooltipContent side="bottom" sideOffset={8}>
+            通知
+          </TooltipContent>
+        </Tooltip>
+        <PopoverContent align="end" className="w-80 p-0">
+          <div className="flex items-center justify-between border-b px-4 py-3">
+            <span className="text-sm font-medium">最新公告</span>
+            <Link
+              to="/dashboard"
+              className="text-xs text-muted-foreground hover:text-foreground"
+              onClick={() => setOpen(false)}
+            >
+              查看全部
+            </Link>
+          </div>
+          <div className="max-h-80 overflow-y-auto p-1">
+            {query.isPending ? (
+              <p className="px-3 py-6 text-center text-xs text-muted-foreground">加载中…</p>
+            ) : notices.length === 0 ? (
+              <p className="px-3 py-6 text-center text-xs text-muted-foreground">暂无公告</p>
+            ) : (
+              notices.map(notice => (
+                <button
+                  key={notice.id}
+                  type="button"
+                  onClick={() => {
+                    setOpen(false)
+                    setViewId(notice.id)
+                  }}
+                  className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm hover:bg-accent"
+                >
+                  <Bell className="size-3.5 shrink-0 text-muted-foreground" />
+                  <span className="min-w-0 flex-1 truncate">{notice.title}</span>
+                  {notice.isTop && <span className="shrink-0 text-xs text-primary">置顶</span>}
+                </button>
+              ))
+            )}
+          </div>
+        </PopoverContent>
+      </Popover>
+      <NoticeViewDrawer noticeId={viewId} open={viewId !== null} onClose={() => setViewId(null)} />
     </>
   )
 }

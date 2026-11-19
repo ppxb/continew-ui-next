@@ -49,40 +49,65 @@ function toForm(optionMap: OptionMap): MailFormState {
   }
 }
 
-export function createMailColumns(optionMap: OptionMap, isEdit: boolean, showPassword: boolean, onTogglePassword: () => void) {
+export function createMailColumns(
+  optionMap: OptionMap,
+  isEdit: boolean,
+  showPassword: boolean,
+  onTogglePassword: () => void
+) {
   return [
     {
-      title: optionMap.MAIL_PROTOCOL?.name, dataIndex: 'MAIL_PROTOCOL',
+      title: optionMap.MAIL_PROTOCOL?.name,
+      dataIndex: 'MAIL_PROTOCOL',
       formItemProps: { rules: schema.shape.MAIL_PROTOCOL, description: optionMap.MAIL_PROTOCOL?.description },
-      formItemRender: (_, control) => <Input id={control.id} value={String(control.value ?? '').toUpperCase()} disabled />
+      formItemRender: (_, control) => (
+        <Input id={control.id} value={String(control.value ?? '').toUpperCase()} disabled />
+      )
     },
     {
-      title: optionMap.MAIL_HOST?.name, dataIndex: 'MAIL_HOST',
+      title: optionMap.MAIL_HOST?.name,
+      dataIndex: 'MAIL_HOST',
       fieldProps: { placeholder: '请输入邮件服务器地址', disabled: !isEdit },
       formItemProps: { rules: schema.shape.MAIL_HOST, description: optionMap.MAIL_HOST?.description }
     },
     {
-      title: optionMap.MAIL_PORT?.name, dataIndex: 'MAIL_PORT',
+      title: optionMap.MAIL_PORT?.name,
+      dataIndex: 'MAIL_PORT',
       fieldProps: { placeholder: '请输入服务器端口', type: 'number', min: 0, disabled: !isEdit },
       formItemProps: { rules: schema.shape.MAIL_PORT, description: optionMap.MAIL_PORT?.description }
     },
     {
-      title: optionMap.MAIL_USERNAME?.name, dataIndex: 'MAIL_USERNAME',
+      title: optionMap.MAIL_USERNAME?.name,
+      dataIndex: 'MAIL_USERNAME',
       fieldProps: { placeholder: '请输入发件人邮箱地址', disabled: !isEdit },
       formItemProps: { rules: schema.shape.MAIL_USERNAME, description: optionMap.MAIL_USERNAME?.description }
     },
     {
-      title: optionMap.MAIL_PASSWORD?.name, dataIndex: 'MAIL_PASSWORD', valueType: 'password',
+      title: optionMap.MAIL_PASSWORD?.name,
+      dataIndex: 'MAIL_PASSWORD',
+      valueType: 'password',
       formItemProps: { rules: schema.shape.MAIL_PASSWORD, description: optionMap.MAIL_PASSWORD?.description },
       formItemRender: (_, control) => (
         <InputGroup>
-          <InputGroupInput id={control.id} value={String(control.value ?? '')}
-            type={isEdit && showPassword ? 'text' : 'password'} placeholder="请输入邮箱授权码"
-            onChange={event => control.onChange(event.target.value)} onBlur={control.onBlur}
-            aria-invalid={control.invalid} disabled={!isEdit || control.disabled} />
+          <InputGroupInput
+            id={control.id}
+            value={String(control.value ?? '')}
+            type={isEdit && showPassword ? 'text' : 'password'}
+            placeholder="请输入邮箱授权码"
+            onChange={event => control.onChange(event.target.value)}
+            onBlur={control.onBlur}
+            aria-invalid={control.invalid}
+            disabled={!isEdit || control.disabled}
+          />
           <InputGroupAddon align="inline-end">
-            <InputGroupButton type="button" size="icon-xs" onClick={onTogglePassword} tabIndex={-1}
-              disabled={!isEdit || control.disabled} aria-label={showPassword ? '隐藏密码' : '显示密码'}>
+            <InputGroupButton
+              type="button"
+              size="icon-xs"
+              onClick={onTogglePassword}
+              tabIndex={-1}
+              disabled={!isEdit || control.disabled}
+              aria-label={showPassword ? '隐藏密码' : '显示密码'}
+            >
               {showPassword ? <EyeOff /> : <Eye />}
             </InputGroupButton>
           </InputGroupAddon>
@@ -90,17 +115,31 @@ export function createMailColumns(optionMap: OptionMap, isEdit: boolean, showPas
       )
     },
     {
-      valueType: 'dependency', name: ['MAIL_SSL_ENABLED'],
-      columns: values => values.MAIL_SSL_ENABLED === 1 ? [{
-        title: optionMap.MAIL_SSL_PORT?.name, dataIndex: 'MAIL_SSL_PORT',
-        fieldProps: { placeholder: '请输入 SSL 服务器端口', type: 'number', min: 0, disabled: !isEdit },
-        formItemProps: { rules: schema.shape.MAIL_SSL_PORT, description: optionMap.MAIL_SSL_PORT?.description }
-      }] : []
+      valueType: 'dependency',
+      name: ['MAIL_SSL_ENABLED'],
+      columns: values =>
+        values.MAIL_SSL_ENABLED === 1
+          ? [
+              {
+                title: optionMap.MAIL_SSL_PORT?.name,
+                dataIndex: 'MAIL_SSL_PORT',
+                fieldProps: { placeholder: '请输入 SSL 服务器端口', type: 'number', min: 0, disabled: !isEdit },
+                formItemProps: { rules: schema.shape.MAIL_SSL_PORT, description: optionMap.MAIL_SSL_PORT?.description }
+              }
+            ]
+          : []
     },
     {
-      title: optionMap.MAIL_SSL_ENABLED?.name, dataIndex: 'MAIL_SSL_ENABLED', valueType: 'switch',
+      title: optionMap.MAIL_SSL_ENABLED?.name,
+      dataIndex: 'MAIL_SSL_ENABLED',
+      valueType: 'switch',
       fieldProps: { checkedValue: 1, uncheckedValue: 0, disabled: !isEdit },
-      formItemProps: { rules: schema.shape.MAIL_SSL_ENABLED, required: false, description: optionMap.MAIL_SSL_ENABLED?.description, className: 'sm:col-span-2' }
+      formItemProps: {
+        rules: schema.shape.MAIL_SSL_ENABLED,
+        required: false,
+        description: optionMap.MAIL_SSL_ENABLED?.description,
+        className: 'sm:col-span-2'
+      }
     }
   ] satisfies ProColumns<MailFormState>[]
 }
@@ -111,8 +150,16 @@ export function ConfigMail() {
   const [showPassword, setShowPassword] = React.useState(false)
   return (
     <OptionSchemaForm
-      options={{ ...options, startEdit: () => { setShowPassword(false); options.startEdit() } }}
-      columns={createMailColumns(options.optionMap, options.isEdit, showPassword, () => setShowPassword(value => !value))}
+      options={{
+        ...options,
+        startEdit: () => {
+          setShowPassword(false)
+          options.startEdit()
+        }
+      }}
+      columns={createMailColumns(options.optionMap, options.isEdit, showPassword, () =>
+        setShowPassword(value => !value)
+      )}
       title="邮件服务配置"
       description="配置系统用于发送通知、验证码及报警邮件的 SMTP 邮箱服务"
       resetDescription="确认恢复邮件配置为系统默认值吗？该操作不可撤销。"

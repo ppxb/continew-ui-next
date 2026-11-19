@@ -11,7 +11,7 @@ import { MenuList } from '@/routes/(main)/(app)/system/menu/-components/menu-lis
 import { installBrowserAnimationApis } from './browser-apis'
 
 vi.mock('@/lib/api/menu', async importOriginal => ({
-  ...await importOriginal<typeof MenuApi>(),
+  ...(await importOriginal<typeof MenuApi>()),
   getMenuTree: vi.fn(),
   clearMenuCache: vi.fn()
 }))
@@ -21,29 +21,60 @@ vi.mock('@/routes/(main)/(app)/system/menu/-components/menu-delete-dialog', () =
 
 function menu(id: string, title: string, overrides: Partial<MenuResp> = {}): MenuResp {
   return {
-    id, title, parentId: null, type: 2, path: null, name: null, component: null,
-    redirect: null, icon: null, isExternal: false, isCache: false, isHidden: false,
-    permission: null, sort: 1, status: 1, ...overrides
+    id,
+    title,
+    parentId: null,
+    type: 2,
+    path: null,
+    name: null,
+    component: null,
+    redirect: null,
+    icon: null,
+    isExternal: false,
+    isCache: false,
+    isHidden: false,
+    permission: null,
+    sort: 1,
+    status: 1,
+    ...overrides
   }
 }
 
 // 156 total nodes make an accidental expand-all on clear observable through the real table.
 const MENU_TREE: MenuResp[] = [
-  menu('operations', 'Operations', { type: 1, children: [
-    menu('users', 'User group', { parentId: 'operations', type: 1, children: [
-      menu('target', 'Target user', { parentId: 'users' }),
-      menu('account', 'Account sibling', { parentId: 'users' })
-    ] })
-  ] }),
-  menu('manual', 'Manual branch', { type: 1, children: [
-    menu('manual-child', 'Manual child', { parentId: 'manual' })
-  ] }),
-  menu('reports', 'Reports', { type: 1, children: [
-    menu('daily', 'Daily view', { parentId: 'reports', path: '/reports/daily' }),
-    menu('export', 'Export action', { parentId: 'reports', type: 3, permission: 'report:export' })
-  ] }),
-  menu('filler', 'Other menus', { type: 1, children: Array.from({ length: 146 }, (_, index) =>
-    menu(`filler-${index}`, `Other action ${index}`, { parentId: 'filler', type: 3, permission: `other:action-${index}` }))
+  menu('operations', 'Operations', {
+    type: 1,
+    children: [
+      menu('users', 'User group', {
+        parentId: 'operations',
+        type: 1,
+        children: [
+          menu('target', 'Target user', { parentId: 'users' }),
+          menu('account', 'Account sibling', { parentId: 'users' })
+        ]
+      })
+    ]
+  }),
+  menu('manual', 'Manual branch', {
+    type: 1,
+    children: [menu('manual-child', 'Manual child', { parentId: 'manual' })]
+  }),
+  menu('reports', 'Reports', {
+    type: 1,
+    children: [
+      menu('daily', 'Daily view', { parentId: 'reports', path: '/reports/daily' }),
+      menu('export', 'Export action', { parentId: 'reports', type: 3, permission: 'report:export' })
+    ]
+  }),
+  menu('filler', 'Other menus', {
+    type: 1,
+    children: Array.from({ length: 146 }, (_, index) =>
+      menu(`filler-${index}`, `Other action ${index}`, {
+        parentId: 'filler',
+        type: 3,
+        permission: `other:action-${index}`
+      })
+    )
   })
 ]
 const ROOT_TITLES = ['Operations', 'Manual branch', 'Reports', 'Other menus']
@@ -53,12 +84,24 @@ let restoreAnimationApis: () => void
 beforeEach(() => {
   vi.clearAllMocks()
   vi.mocked(getMenuTree).mockResolvedValue(MENU_TREE)
-  vi.stubGlobal('ResizeObserver', class { observe() {} unobserve() {} disconnect() {} })
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    }
+  )
   vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => setTimeout(() => callback(0), 0))
   vi.stubGlobal('cancelAnimationFrame', (handle: number) => clearTimeout(handle))
   vi.stubGlobal('matchMedia', (query: string) => ({
-    matches: false, media: query, onchange: null,
-    addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {},
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener() {},
+    removeListener() {},
+    addEventListener() {},
+    removeEventListener() {},
     dispatchEvent: () => false
   }))
   restoreAnimationApis = installBrowserAnimationApis()
@@ -75,11 +118,23 @@ afterEach(() => {
 })
 
 async function mountMenu() {
-  client = new QueryClient({ defaultOptions: { queries: {
-    retry: false, gcTime: Infinity, staleTime: 5 * 60 * 1000,
-    refetchOnMount: false, refetchOnWindowFocus: false, refetchOnReconnect: false
-  } } })
-  render(<QueryClientProvider client={client}><MenuList /></QueryClientProvider>)
+  client = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+        gcTime: Infinity,
+        staleTime: 5 * 60 * 1000,
+        refetchOnMount: false,
+        refetchOnWindowFocus: false,
+        refetchOnReconnect: false
+      }
+    }
+  })
+  render(
+    <QueryClientProvider client={client}>
+      <MenuList />
+    </QueryClientProvider>
+  )
   await screen.findByText('Operations')
   // Let the real query settle first, then control only the search and animation timers.
   vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'], shouldClearNativeTimers: true })
@@ -87,7 +142,9 @@ async function mountMenu() {
 }
 
 async function advance(milliseconds = SEARCH_DEBOUNCE_MS) {
-  await act(async () => { await vi.advanceTimersByTimeAsync(milliseconds) })
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(milliseconds)
+  })
 }
 
 function expansionButton(title: string, expanded: boolean) {
@@ -110,7 +167,13 @@ function expectCollapsedRoots() {
 
 describe('MenuList debounced tree search', () => {
   it.each([
-    { field: 'name', keyword: '  TARGET USER  ', leaf: 'Target user', ancestors: ['Operations', 'User group'], rowCount: 3 },
+    {
+      field: 'name',
+      keyword: '  TARGET USER  ',
+      leaf: 'Target user',
+      ancestors: ['Operations', 'User group'],
+      rowCount: 3
+    },
     { field: 'path', keyword: '/REPORTS/DAILY', leaf: 'Daily view', ancestors: ['Reports'], rowCount: 2 },
     { field: 'permission', keyword: 'REPORT:EXPORT', leaf: 'Export action', ancestors: ['Reports'], rowCount: 2 }
   ])('retains the matching $field child and expands every ancestor', async ({ keyword, leaf, ancestors, rowCount }) => {
@@ -127,40 +190,43 @@ describe('MenuList debounced tree search', () => {
     expect(getMenuTree).toHaveBeenCalledTimes(1)
   })
 
-  it.each(['clear button', 'typed backspace'] as const)('restores manual expansion after clearing with $0', async method => {
-    const input = await mountMenu()
-    fireEvent.click(expansionButton('Manual branch', false))
-    expect(screen.getByText('Manual child')).toBeTruthy()
-    expectRows(5)
-    fireEvent.change(input, { target: { value: 'Target user' } })
-    await advance()
-    expect(screen.getByText('Target user')).toBeTruthy()
-
-    // Search results can still be collapsed and reopened without altering the saved manual view.
-    fireEvent.click(expansionButton('User group', true))
-    expect(screen.queryByText('Target user')).toBeNull()
-    fireEvent.click(expansionButton('User group', false))
-    expect(screen.getByText('Target user')).toBeTruthy()
-
-    if (method === 'clear button') fireEvent.click(screen.getByRole('button', { name: '清空搜索' }))
-    else {
-      fireEvent.change(input, { target: { value: '' } })
-      expect(input.value).toBe('')
+  it.each(['clear button', 'typed backspace'] as const)(
+    'restores manual expansion after clearing with $0',
+    async method => {
+      const input = await mountMenu()
+      fireEvent.click(expansionButton('Manual branch', false))
+      expect(screen.getByText('Manual child')).toBeTruthy()
+      expectRows(5)
+      fireEvent.change(input, { target: { value: 'Target user' } })
       await advance()
+      expect(screen.getByText('Target user')).toBeTruthy()
+
+      // Search results can still be collapsed and reopened without altering the saved manual view.
+      fireEvent.click(expansionButton('User group', true))
+      expect(screen.queryByText('Target user')).toBeNull()
+      fireEvent.click(expansionButton('User group', false))
+      expect(screen.getByText('Target user')).toBeTruthy()
+
+      if (method === 'clear button') fireEvent.click(screen.getByRole('button', { name: '清空搜索' }))
+      else {
+        fireEvent.change(input, { target: { value: '' } })
+        expect(input.value).toBe('')
+        await advance()
+      }
+      expect(input.value).toBe('')
+      ROOT_TITLES.forEach(title => expect(screen.getByText(title)).toBeTruthy())
+      expect(screen.getByText('Manual child')).toBeTruthy()
+      expect(expansionButton('Manual branch', true).getAttribute('aria-expanded')).toBe('true')
+      expect(expansionButton('Operations', false).getAttribute('aria-expanded')).toBe('false')
+      expect(screen.queryByText('User group')).toBeNull()
+      expect(screen.queryByText('Target user')).toBeNull()
+      expect(screen.queryByText('Other action 0')).toBeNull()
+      expectRows(5)
+      await advance()
+      expectRows(5)
+      expect(getMenuTree).toHaveBeenCalledTimes(1)
     }
-    expect(input.value).toBe('')
-    ROOT_TITLES.forEach(title => expect(screen.getByText(title)).toBeTruthy())
-    expect(screen.getByText('Manual child')).toBeTruthy()
-    expect(expansionButton('Manual branch', true).getAttribute('aria-expanded')).toBe('true')
-    expect(expansionButton('Operations', false).getAttribute('aria-expanded')).toBe('false')
-    expect(screen.queryByText('User group')).toBeNull()
-    expect(screen.queryByText('Target user')).toBeNull()
-    expect(screen.queryByText('Other action 0')).toBeNull()
-    expectRows(5)
-    await advance()
-    expectRows(5)
-    expect(getMenuTree).toHaveBeenCalledTimes(1)
-  })
+  )
 
   it('updates input immediately, defers filtering, and applies only the final keyword', async () => {
     const input = await mountMenu()

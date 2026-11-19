@@ -21,7 +21,15 @@ export function NoticeViewDrawer({ noticeId, open, onClose }: NoticeViewDrawerPr
   const detailQuery = useNoticeDetail(noticeId, { enabled: open })
   const detail = detailQuery.data
   const dicts = useNoticeDicts()
-  const columns = React.useMemo(() => noticeColumns(dicts, true).filter(column => column.valueType !== 'dependency' && ['title', 'createUserString', 'createTime', 'content'].includes(column.dataIndex ?? '')), [dicts])
+  const columns = React.useMemo(
+    () =>
+      noticeColumns(dicts, true).filter(
+        column =>
+          column.valueType !== 'dependency' &&
+          ['title', 'createUserString', 'createTime', 'content'].includes(column.dataIndex ?? '')
+      ),
+    [dicts]
+  )
 
   return (
     <EntityDrawer open={open} onClose={onClose} title="查看公告" icon={<Eye className="size-4" />} width={44}>

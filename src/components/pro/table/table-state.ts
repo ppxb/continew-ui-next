@@ -12,9 +12,15 @@ export interface ProTableSearchState {
 }
 
 export function getSearchColumns<T>(columns: readonly ProColumns<T>[], disabled = false): ProFieldColumn<T>[] {
-  return disabled ? [] : getFieldColumns(columns).filter(column =>
-    Boolean(column.search) && Boolean(column.dataIndex) && column.valueType !== 'index' && column.valueType !== 'option'
-  )
+  return disabled
+    ? []
+    : getFieldColumns(columns).filter(
+        column =>
+          Boolean(column.search) &&
+          Boolean(column.dataIndex) &&
+          column.valueType !== 'index' &&
+          column.valueType !== 'option'
+      )
 }
 
 function isNonempty(value: unknown) {
@@ -26,7 +32,8 @@ export function formatSearchValues<T>(columns: readonly ProFieldColumn<T>[], val
   for (const column of columns) {
     const name = column.dataIndex
     if (!name || !isNonempty(values[name])) continue
-    const transformed = typeof column.search === 'object' ? column.search.transform(values[name], name) : { [name]: values[name] }
+    const transformed =
+      typeof column.search === 'object' ? column.search.transform(values[name], name) : { [name]: values[name] }
     for (const [key, value] of Object.entries(transformed)) {
       if (isNonempty(value)) result[key] = value
     }

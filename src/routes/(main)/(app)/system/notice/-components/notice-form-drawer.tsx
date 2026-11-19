@@ -31,35 +31,102 @@ export function NoticeFormDrawer({ noticeId, open, onClose }: NoticeFormDrawerPr
   const submitStatusRef = React.useRef<NoticeStatus>(3)
   const columns = React.useMemo(() => noticeColumns(dicts), [dicts])
 
-  React.useEffect(() => { if (open) submitStatusRef.current = 3 }, [open, noticeId])
+  React.useEffect(() => {
+    if (open) submitStatusRef.current = 3
+  }, [open, noticeId])
 
-  return <div className="contents" onSubmitCapture={() => { submitStatusRef.current = 3 }}><BetaSchemaForm<NoticeRecord>
-    layoutType="DrawerForm"
-    title={noticeId === null ? '新增公告' : '修改公告'}
-    width={48}
-    grid
-    drawerProps={{ icon: <Megaphone className="size-4" />, badge: noticeId !== null && detail ? <NoticeStatusBadge status={detail.status} options={dicts.statusOptions} /> : undefined }}
-    open={open}
-    onOpenChange={next => { if (!next) onClose() }}
-    columns={columns}
-    formItemsRender={items => ['title', 'type', 'noticeScope', 'noticeUsers', 'noticeMethods', 'isTiming', 'publishTime', 'isTop', 'content'].flatMap(name => items.filter(item => item.name === name).map(item => item.dom))}
-    initialValues={{ noticeUsers: [], publishTime: null }}
-    queryKey={noticeKeys.detail(noticeId)}
-    request={noticeId === null ? undefined : (_params, signal) => getNotice(noticeId, signal)}
-    submitter={{ render: props => <DrawerFooter>
-      <Button type="button" variant="outline" disabled={props.isSubmitting} onClick={props.onCancel}>取消</Button>
-      {!isPublished ? <Button type="button" variant="outline" disabled={props.isSubmitting} onClick={() => { if (props.form.isSubmitting) return; submitStatusRef.current = 1; props.submit() }}>存草稿</Button> : null}
-      <Button type="button" disabled={props.isSubmitting} onClick={() => { if (props.form.isSubmitting) return; submitStatusRef.current = 3; props.submit() }}>
-        {props.isSubmitting ? <><Spinner />{isPublished ? '保存中' : '发布中'}</> : isPublished ? '保存' : '发布'}
-      </Button>
-    </DrawerFooter> }}
-    onFinish={async values => {
-      const body = toNoticeRequest(values, submitStatusRef.current)
-      if (noticeId === null) await createNotice(body)
-      else await updateNotice(noticeId, body)
-      void queryClient.invalidateQueries({ queryKey: noticeKeys.all })
-      toast.add({ title: noticeId === null ? '新增成功' : '修改成功', type: 'success' })
-      return true
-    }}
-  /></div>
+  return (
+    <div
+      className="contents"
+      onSubmitCapture={() => {
+        submitStatusRef.current = 3
+      }}
+    >
+      <BetaSchemaForm<NoticeRecord>
+        layoutType="DrawerForm"
+        title={noticeId === null ? '新增公告' : '修改公告'}
+        width={48}
+        grid
+        drawerProps={{
+          icon: <Megaphone className="size-4" />,
+          badge:
+            noticeId !== null && detail ? (
+              <NoticeStatusBadge status={detail.status} options={dicts.statusOptions} />
+            ) : undefined
+        }}
+        open={open}
+        onOpenChange={next => {
+          if (!next) onClose()
+        }}
+        columns={columns}
+        formItemsRender={items =>
+          [
+            'title',
+            'type',
+            'noticeScope',
+            'noticeUsers',
+            'noticeMethods',
+            'isTiming',
+            'publishTime',
+            'isTop',
+            'content'
+          ].flatMap(name => items.filter(item => item.name === name).map(item => item.dom))
+        }
+        initialValues={{ noticeUsers: [], publishTime: null }}
+        queryKey={noticeKeys.detail(noticeId)}
+        request={noticeId === null ? undefined : (_params, signal) => getNotice(noticeId, signal)}
+        submitter={{
+          render: props => (
+            <DrawerFooter>
+              <Button type="button" variant="outline" disabled={props.isSubmitting} onClick={props.onCancel}>
+                取消
+              </Button>
+              {!isPublished ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={props.isSubmitting}
+                  onClick={() => {
+                    if (props.form.isSubmitting) return
+                    submitStatusRef.current = 1
+                    props.submit()
+                  }}
+                >
+                  存草稿
+                </Button>
+              ) : null}
+              <Button
+                type="button"
+                disabled={props.isSubmitting}
+                onClick={() => {
+                  if (props.form.isSubmitting) return
+                  submitStatusRef.current = 3
+                  props.submit()
+                }}
+              >
+                {props.isSubmitting ? (
+                  <>
+                    <Spinner />
+                    {isPublished ? '保存中' : '发布中'}
+                  </>
+                ) : isPublished ? (
+                  '保存'
+                ) : (
+                  '发布'
+                )}
+              </Button>
+            </DrawerFooter>
+          )
+        }}
+        onFinish={async values => {
+          const body = toNoticeRequest(values, submitStatusRef.current)
+          if (noticeId === null) await createNotice(body)
+          else await updateNotice(noticeId, body)
+          void queryClient.invalidateQueries({ queryKey: noticeKeys.all })
+          toast.add({ title: noticeId === null ? '新增成功' : '修改成功', type: 'success' })
+          return true
+        }}
+      />
+    </div>
+  )
 }

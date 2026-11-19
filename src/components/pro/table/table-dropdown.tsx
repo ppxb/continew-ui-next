@@ -25,19 +25,21 @@ export function TableDropdown<K extends string>({ menus, onSelect, primary }: Ta
   return (
     <RowActionsMenu primary={primary} showMenu={items.length > 0}>
       <DropdownMenuGroup>
-        {items.map((item, index) => 'type' in item ? (
-          <DropdownMenuSeparator key={`divider-${index}`} />
-        ) : (
-          <DropdownMenuItem
-            key={item.key}
-            disabled={item.disabled}
-            variant={item.danger ? 'destructive' : 'default'}
-            onClick={() => onSelect(item.key)}
-          >
-            {item.icon}
-            {item.name}
-          </DropdownMenuItem>
-        ))}
+        {items.map((item, index) =>
+          'type' in item ? (
+            <DropdownMenuSeparator key={`divider-${index}`} />
+          ) : (
+            <DropdownMenuItem
+              key={item.key}
+              disabled={item.disabled}
+              variant={item.danger ? 'destructive' : 'default'}
+              onClick={() => onSelect(item.key)}
+            >
+              {item.icon}
+              {item.name}
+            </DropdownMenuItem>
+          )
+        )}
       </DropdownMenuGroup>
     </RowActionsMenu>
   )

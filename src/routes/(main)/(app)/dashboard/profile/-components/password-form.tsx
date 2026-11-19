@@ -50,9 +50,13 @@ export function PasswordForm() {
         await endSession({ revokeOnServer: false })
         return true
       }}
-      submitter={{ render: ({ isSubmitting }) => <Button className="self-start" type="submit" disabled={isSubmitting}>
-        {isSubmitting ? '修改中…' : '修改密码'}
-      </Button> }}
+      submitter={{
+        render: ({ isSubmitting }) => (
+          <Button className="self-start" type="submit" disabled={isSubmitting}>
+            {isSubmitting ? '修改中…' : '修改密码'}
+          </Button>
+        )
+      }}
     />
   )
 }

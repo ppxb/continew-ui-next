@@ -76,14 +76,50 @@ export function UserList() {
           return { data: page.list, total: page.total }
         }}
         toolBarRender={() => [
-          ...(hasPermission('system:user:create') ? [<Button key="create" onClick={() => setFormTarget({ userId: null })}><Plus />新增用户</Button>] : []),
-          ...(hasPermission('system:user:import') ? [<Button key="import" size="icon" variant="outline" aria-label="导入用户" title="导入用户" onClick={() => setImportOpen(true)}><Upload /></Button>] : []),
-          ...(hasPermission('system:user:export') ? [<Button key="export" size="icon" variant="outline" disabled={isExporting} onClick={() => void exportData({ ...formRef.current?.getFieldsFormatValue(), sort: DEFAULT_SORT })}>{isExporting ? <Spinner /> : <Download />}</Button>] : [])
+          ...(hasPermission('system:user:create')
+            ? [
+                <Button key="create" onClick={() => setFormTarget({ userId: null })}>
+                  <Plus />
+                  新增用户
+                </Button>
+              ]
+            : []),
+          ...(hasPermission('system:user:import')
+            ? [
+                <Button
+                  key="import"
+                  size="icon"
+                  variant="outline"
+                  aria-label="导入用户"
+                  title="导入用户"
+                  onClick={() => setImportOpen(true)}
+                >
+                  <Upload />
+                </Button>
+              ]
+            : []),
+          ...(hasPermission('system:user:export')
+            ? [
+                <Button
+                  key="export"
+                  size="icon"
+                  variant="outline"
+                  disabled={isExporting}
+                  onClick={() => void exportData({ ...formRef.current?.getFieldsFormatValue(), sort: DEFAULT_SORT })}
+                >
+                  {isExporting ? <Spinner /> : <Download />}
+                </Button>
+              ]
+            : [])
         ]}
       />
 
       <UserDetailDrawer userId={detailUserId} open={detailUserId !== null} onClose={() => setDetailUserId(null)} />
-      <UserFormDrawer userId={formTarget?.userId ?? null} open={formTarget !== null} onClose={() => setFormTarget(null)} />
+      <UserFormDrawer
+        userId={formTarget?.userId ?? null}
+        open={formTarget !== null}
+        onClose={() => setFormTarget(null)}
+      />
       <UserResetPasswordDialog user={resetUser} open={resetUser !== null} onClose={() => setResetUser(null)} />
       <UserAssignRolesDialog user={roleUser} open={roleUser !== null} onClose={() => setRoleUser(null)} />
       <UserDeleteDialog user={deletingUser} open={deletingUser !== null} onClose={() => setDeletingUser(null)} />

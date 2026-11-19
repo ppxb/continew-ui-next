@@ -10,13 +10,23 @@ let frame: FrameRequestCallback | undefined
 
 beforeEach(() => {
   vi.stubGlobal('innerHeight', 1000)
-  vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => { frame = callback; return 1 })
-  vi.stubGlobal('cancelAnimationFrame', () => { frame = undefined })
-  vi.stubGlobal('ResizeObserver', class {
-    constructor(callback: ResizeObserverCallback) { notifyResize = callback }
-    observe() {}
-    disconnect() {}
+  vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+    frame = callback
+    return 1
   })
+  vi.stubGlobal('cancelAnimationFrame', () => {
+    frame = undefined
+  })
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      constructor(callback: ResizeObserverCallback) {
+        notifyResize = callback
+      }
+      observe() {}
+      disconnect() {}
+    }
+  )
 })
 afterEach(() => {
   cleanup()
@@ -38,10 +48,30 @@ function fixture() {
   document.body.append(shell)
   let top = 251
   let visible = true
-  const rect = () => ({ top, bottom: top + 100, left: 0, right: 100, width: 100, height: 100, x: 0, y: top, toJSON: () => ({}) })
+  const rect = () => ({
+    top,
+    bottom: top + 100,
+    left: 0,
+    right: 100,
+    width: 100,
+    height: 100,
+    x: 0,
+    y: top,
+    toJSON: () => ({})
+  })
   vi.spyOn(area, 'getBoundingClientRect').mockImplementation(rect)
   vi.spyOn(area, 'getClientRects').mockImplementation(() => (visible ? [rect()] : []) as unknown as DOMRectList)
-  return { area, content, shell, setTop: (next: number) => { top = next }, setVisible: (next: boolean) => { visible = next } }
+  return {
+    area,
+    content,
+    shell,
+    setTop: (next: number) => {
+      top = next
+    },
+    setVisible: (next: boolean) => {
+      visible = next
+    }
+  }
 }
 function resize() {
   act(() => {

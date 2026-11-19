@@ -30,7 +30,9 @@ export function UserFormDrawer({ userId, open, onClose }: UserFormDrawerProps) {
       width={32}
       drawerProps={{ icon: isCreate ? <User2 className="size-4" /> : <Pen className="size-4" /> }}
       open={open}
-      onOpenChange={next => { if (!next) onClose() }}
+      onOpenChange={next => {
+        if (!next) onClose()
+      }}
       columns={columns}
       queryKey={userKeys.detail(userId)}
       request={userId === null ? undefined : (_params, signal) => getUser(userId, signal)}

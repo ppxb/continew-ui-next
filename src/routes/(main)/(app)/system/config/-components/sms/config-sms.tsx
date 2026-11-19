@@ -75,9 +75,15 @@ export function ConfigSms() {
     [setDefaultMutation]
   )
 
-  const columns = React.useMemo(() => createSmsColumns({
-    supplierOptions, onSupplierChange: setSupplier, onAction: handleRowAction
-  }), [supplierOptions, handleRowAction])
+  const columns = React.useMemo(
+    () =>
+      createSmsColumns({
+        supplierOptions,
+        onSupplierChange: setSupplier,
+        onAction: handleRowAction
+      }),
+    [supplierOptions, handleRowAction]
+  )
 
   const handleResetFilters = () => {
     formRef.current?.resetFields()
@@ -96,18 +102,39 @@ export function ConfigSms() {
         queryKey={smsKeys.lists()}
         formRef={formRef}
         columnsState={{ defaultValue: HIDDEN_BY_DEFAULT }}
-        options={{ search: { name: 'name', placeholder: '搜索配置名称', onSearch: next => { setKeyword(next) } } }}
+        options={{
+          search: {
+            name: 'name',
+            placeholder: '搜索配置名称',
+            onSearch: next => {
+              setKeyword(next)
+            }
+          }
+        }}
         request={async ({ current, pageSize, name, supplier: selectedSupplier }, _sort, _filter, signal) => {
-          const result = await listSmsConfig({ page: current, size: pageSize, name: name || undefined, supplier: selectedSupplier }, signal)
+          const result = await listSmsConfig(
+            { page: current, size: pageSize, name: name || undefined, supplier: selectedSupplier },
+            signal
+          )
           return { data: result.list, total: result.total, success: true }
         }}
         toolBarRender={() => [
-          ...(keyword !== '' || supplier !== undefined ? [
-            <Button key="reset" type="button" variant="ghost" onClick={handleResetFilters}><RefreshCw />重置</Button>
-          ] : []),
-          ...(hasPermission('system:smsConfig:create') ? [
-            <Button key="create" className="w-full sm:w-auto" onClick={() => setFormTarget({ smsId: null })}><Plus />新增配置</Button>
-          ] : [])
+          ...(keyword !== '' || supplier !== undefined
+            ? [
+                <Button key="reset" type="button" variant="ghost" onClick={handleResetFilters}>
+                  <RefreshCw />
+                  重置
+                </Button>
+              ]
+            : []),
+          ...(hasPermission('system:smsConfig:create')
+            ? [
+                <Button key="create" className="w-full sm:w-auto" onClick={() => setFormTarget({ smsId: null })}>
+                  <Plus />
+                  新增配置
+                </Button>
+              ]
+            : [])
         ]}
       />
 

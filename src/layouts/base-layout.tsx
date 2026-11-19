@@ -291,7 +291,9 @@ export function BaseLayout({ defaultOpen, children }: { defaultOpen: boolean; ch
         }))
   const mixedSelectedId =
     layout === 'header-mixed-nav'
-      ? (mixedPick && mixedEntries.some(e => e.id === mixedPick) ? mixedPick : mixedEntries.find(e => e.isActive)?.id)
+      ? mixedPick && mixedEntries.some(e => e.id === mixedPick)
+        ? mixedPick
+        : mixedEntries.find(e => e.isActive)?.id
       : selectedId
 
   const selectMixedImpl = (entry: MixedColumnEntry, options?: { navigate?: boolean }) => {
@@ -315,7 +317,10 @@ export function BaseLayout({ defaultOpen, children }: { defaultOpen: boolean; ch
   const selectMixed = useStableCallback(selectMixedImpl)
 
   const headerMenu = React.useMemo(
-    () => (flags.headerMenu ? { roots, mode: flags.headerMenu, selectedId, onSelect: flags.headerMenu === 'select' ? openRoot : undefined } : undefined),
+    () =>
+      flags.headerMenu
+        ? { roots, mode: flags.headerMenu, selectedId, onSelect: flags.headerMenu === 'select' ? openRoot : undefined }
+        : undefined,
     [flags.headerMenu, roots, selectedId, openRoot]
   )
 
@@ -323,8 +328,7 @@ export function BaseLayout({ defaultOpen, children }: { defaultOpen: boolean; ch
   // floating button; otherwise the preferences could become unreachable.
   const showPreferencesInHeader =
     headerShown && (p.buttonPosition === 'header' || (p.buttonPosition === 'auto' && !isMobile))
-  const showFixedPreferences =
-    p.buttonPosition === 'fixed' || !headerShown || (p.buttonPosition === 'auto' && isMobile)
+  const showFixedPreferences = p.buttonPosition === 'fixed' || !headerShown || (p.buttonPosition === 'auto' && isMobile)
 
   const header = headerShown && (
     <AdminHeader
@@ -350,7 +354,8 @@ export function BaseLayout({ defaultOpen, children }: { defaultOpen: boolean; ch
         data-transition={p.transitionEnable ? p.transitionName : undefined}
         className={cn(
           'relative flex min-h-0 min-w-0 flex-1 flex-col p-(--app-content-padding) has-data-[content-padding=false]:p-0',
-          p.contentLayout === 'centered' && '[&>[data-slot=page-surface]]:mx-auto [&>[data-slot=page-surface]]:max-w-(--app-content-width)'
+          p.contentLayout === 'centered' &&
+            '[&>[data-slot=page-surface]]:mx-auto [&>[data-slot=page-surface]]:max-w-(--app-content-width)'
         )}
       >
         <PageSurface key={`${pathname}:${refreshKey}`} showLoading={p.transitionLoading}>
@@ -373,7 +378,11 @@ export function BaseLayout({ defaultOpen, children }: { defaultOpen: boolean; ch
         } as React.CSSProperties
       }
     >
-      {flags.headerOnTop && <div inert={locked} className="contents">{header}</div>}
+      {flags.headerOnTop && (
+        <div inert={locked} className="contents">
+          {header}
+        </div>
+      )}
       <div
         inert={locked}
         className={cn(

@@ -197,7 +197,10 @@ export function AppBreadcrumb({ className }: { className?: string }) {
                       key={item.id}
                       render={
                         item.url ? (
-                          <Link<RegisteredRouter, string, string> href={item.url} className="flex w-full items-center gap-2" />
+                          <Link<RegisteredRouter, string, string>
+                            href={item.url}
+                            className="flex w-full items-center gap-2"
+                          />
                         ) : undefined
                       }
                     >

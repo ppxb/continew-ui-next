@@ -8,7 +8,6 @@ import { useLastRecord } from '@/hooks/use-last-record'
 import { appColumns } from './app-columns'
 import { useAppDetail } from './use-app-detail'
 
-
 interface AppDetailDrawerProps {
   /** The app to show, or `null` before the first one is picked. */
   readonly appId: string | number | null

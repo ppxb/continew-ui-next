@@ -99,14 +99,22 @@ function useOpenParents(groups: readonly MenuGroup[], pathname: string) {
  * `forceExpanded`: the collapsed rail is peeking at full width, so items render as in the
  * expanded sidebar (labels, collapsible parents, no tooltips).
  */
-export function NavMain({ items, forceExpanded = false }: { readonly items: readonly MenuGroup[]; readonly forceExpanded?: boolean }) {
+export function NavMain({
+  items,
+  forceExpanded = false
+}: {
+  readonly items: readonly MenuGroup[]
+  readonly forceExpanded?: boolean
+}) {
   const pathname = usePathname()
   const { open, toggle } = useOpenParents(items, pathname)
 
   return items.map(group => (
     <SidebarGroup key={group.id}>
       {group.label && (
-        <SidebarGroupLabel className="group-data-[collapsible=icon]:pointer-events-none">{group.label}</SidebarGroupLabel>
+        <SidebarGroupLabel className="group-data-[collapsible=icon]:pointer-events-none">
+          {group.label}
+        </SidebarGroupLabel>
       )}
       <SidebarGroupContent>
         <SidebarMenu className="gap-1">
@@ -175,10 +183,7 @@ const NavItem = React.memo(function NavItem({ item, pathname, open, onToggle, fo
         <SidebarMenuSub>
           {item.subItems.map(subItem => (
             <SidebarMenuSubItem key={subItem.id}>
-              <SidebarMenuSubButton
-                render={renderItemLink(subItem)}
-                isActive={toPathname(subItem.url) === pathname}
-              >
+              <SidebarMenuSubButton render={renderItemLink(subItem)} isActive={toPathname(subItem.url) === pathname}>
                 {subItem.icon && <subItem.icon />}
                 <span>{subItem.title}</span>
               </SidebarMenuSubButton>
