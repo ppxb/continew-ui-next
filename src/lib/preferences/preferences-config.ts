@@ -102,7 +102,7 @@ export const PREFERENCE_REGISTRY = {
   color_weak_mode: boolPref(false, { ...local, attribute: 'data-color-weak' }),
 
   // Layout
-  layout: enumPref(LAYOUT_MODE_VALUES, 'sidebar-nav', { ...local, attribute: 'data-layout' }),
+  layout: enumPref(LAYOUT_MODE_VALUES, 'sidebar-tree-nav', { ...local, attribute: 'data-layout' }),
   content_layout: enumPref(CONTENT_LAYOUT_VALUES, 'full-width', cookie('data-content-layout')),
   content_compact_width: numberPref(1536, 960, 1680, { ...local, cssVar: '--app-content-width', unit: 'px' }),
   content_padding: numberPref(24, 0, 48, { ...local, cssVar: '--app-content-padding', unit: 'px' }),
@@ -121,18 +121,18 @@ export const PREFERENCE_REGISTRY = {
   breadcrumb_style: enumPref(BREADCRUMB_STYLE_VALUES, 'normal'),
 
   // Sidebar & navigation
-  sidebar_variant: enumPref(SIDEBAR_VARIANT_VALUES, 'inset', cookie('data-sidebar-variant')),
+  sidebar_variant: enumPref(SIDEBAR_VARIANT_VALUES, 'sidebar', cookie('data-sidebar-variant')),
   sidebar_collapsible: enumPref(SIDEBAR_COLLAPSIBLE_VALUES, 'icon', cookie('data-sidebar-collapsible')),
   sidebar_enable: boolPref(true),
   sidebar_hidden: boolPref(false),
   sidebar_width: numberPref(272, 160, 320, { ...local, cssVar: '--app-sidebar-width', unit: 'px' }),
   sidebar_mixed_width: numberPref(80, 60, 120, { ...local, cssVar: '--app-sidebar-mixed-width', unit: 'px' }),
   sidebar_draggable: boolPref(true),
-  sidebar_expand_on_hover: boolPref(true),
-  sidebar_collapsed_show_title: boolPref(false, { ...local, attribute: 'data-sidebar-show-title' }),
+  sidebar_expand_on_hover: boolPref(false),
+  sidebar_collapsed_show_title: boolPref(true, { ...local, attribute: 'data-sidebar-show-title' }),
   sidebar_collapsed_button: boolPref(true),
   sidebar_fixed_button: boolPref(true),
-  sidebar_extra_collapsed: boolPref(false),
+  sidebar_extra_collapsed: boolPref(true),
   sidebar_auto_activate_child: boolPref(false),
   navigation_accordion: boolPref(true),
   navigation_style: enumPref(NAVIGATION_STYLE_VALUES, 'rounded', { ...local, attribute: 'data-navigation-style' }),
@@ -140,7 +140,7 @@ export const PREFERENCE_REGISTRY = {
 
   // Tabbar
   tabbar_enable: boolPref(true),
-  tabbar_style: enumPref(TABBAR_STYLE_VALUES, 'chrome'),
+  tabbar_style: enumPref(TABBAR_STYLE_VALUES, 'brisk'),
   tabbar_height: numberPref(38, 28, 56, { ...local, cssVar: '--app-tabbar-height', unit: 'px' }),
   tabbar_max_count: numberPref(0, 0, 50),
   tabbar_persist: boolPref(true),
@@ -161,12 +161,12 @@ export const PREFERENCE_REGISTRY = {
   transition_loading: boolPref(true),
 
   // Footer (content comes from the backend site options)
-  footer_enable: boolPref(false),
-  footer_fixed: boolPref(false),
+  footer_enable: boolPref(true),
+  footer_fixed: boolPref(true),
 
   // General
   app_dynamic_title: boolPref(true),
-  app_watermark: boolPref(false),
+  app_watermark: boolPref(true),
   app_watermark_content: textPref('', 64),
   app_preferences_button_position: enumPref(PREFERENCES_BUTTON_POSITION_VALUES, 'auto'),
   app_enable_copy_preferences: boolPref(true),
