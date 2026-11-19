@@ -19,20 +19,20 @@
 ### P1
 
 - [x] **【已核实】树级联勾选漏掉祖先节点**：`components/ui/tree.tsx:273-284`。`ancestorsMap` 中的顺序是从根到父（见 `:88`），向上补齐时先判断根节点，此时直接父节点还没加入 `nextChecked`，根节点因此被判为未全选。以 R→P→L 单链为例，勾选 L 后结果为 {L, P}，R 显示半选，提交的 menuIds/deptIds 会缺少上层节点。建议改为从父节点向根逆序遍历（`ancestors.toReversed()`）。**2026-11-10 复核：已修复**，现按“最近父 → 根”逆序补齐，级联逻辑抽至 `lib/tree-check.ts`，回归用例见 `tests/tree-cascade.test.ts`。
-- [ ] **【已核实】站点配置缓存不会刷新**：`hooks/use-site-options.ts:16-24`、`lib/query-client.ts:18-22`、`(app)/system/config/-components/use-option-form.ts:70,92`。`initialData` 读自 localStorage，又没有设置 `initialDataUpdatedAt`，再叠加全局 `refetchOnMount:false`，只要本地有缓存就不会发请求。保存配置时也只失效了 `optionKeys.list`。结果是修改标题、Logo、版权后，侧栏和登录页一直显示旧值。建议给该查询加 `initialDataUpdatedAt: 0`（或改用 `placeholderData`），保存 SITE 分类时同时失效 `siteOptionKeys.all`。
-- [ ] **【已核实】菜单编辑读到旧缓存，保存会覆盖上次修改**：`(app)/system/menu/-components/menu-form-drawer.tsx:178-185,164`。详情用的是裸 `useQuery`，继承 5 分钟 staleTime 和 `refetchOnMount:false`；保存后只失效了 `menuKeys.trees()`。5 分钟内再次编辑同一菜单，表单回填的是修改前的数据。建议改用 `useDetailQuery`，并失效 `menuKeys.all`。
-- [ ] **【已核实】【待确认后端是否净化】公告 HTML 未净化即渲染**：`components/rich-text-editor.tsx:29-34`。`RichTextContent` 直接用 `dangerouslySetInnerHTML` 渲染后端内容，调用点为 `(app)/system/notice/-components/notice-view-drawer.tsx:58`。只要有人绕过编辑器直接调接口写入 `<img onerror>`，就构成存储型 XSS。建议用 DOMPurify 净化，或改用 `editable:false` 的 tiptap 渲染。
-- [ ] **【已核实】个人资料页把 mock 数据当作用户数据展示**：`(app)/dashboard/profile/-components/profile-record.ts:70-97`、`profile-data.ts:61-133`。`user` 为 null 时整份返回 mock；字段为空时回退为他人的头像、邮箱、电话和英文简介。文档 tab 是假数据，按钮也没有 onClick；状态固定显示"启用"。建议字段缺失时显示 `EMPTY_PLACEHOLDER`，删除没有数据来源的字段和 tab。
+- [x] **【已核实】站点配置缓存不会刷新**：`hooks/use-site-options.ts:16-24`、`lib/query-client.ts:18-22`、`(app)/system/config/-components/use-option-form.ts:70,92`。`initialData` 读自 localStorage，又没有设置 `initialDataUpdatedAt`，再叠加全局 `refetchOnMount:false`，只要本地有缓存就不会发请求。保存配置时也只失效了 `optionKeys.list`。结果是修改标题、Logo、版权后，侧栏和登录页一直显示旧值。建议给该查询加 `initialDataUpdatedAt: 0`（或改用 `placeholderData`），保存 SITE 分类时同时失效 `siteOptionKeys.all`。**2026-11-19 复核：已修复**，`use-option-form.ts` 在保存与恢复默认值两条路径都调用 `refreshSiteOptions()` 失效 `siteOptionKeys.all`（与上游 1a82ac0 相同方案）。
+- [x] **【已核实】菜单编辑读到旧缓存，保存会覆盖上次修改**：`(app)/system/menu/-components/menu-form-drawer.tsx:178-185,164`。详情用的是裸 `useQuery`，继承 5 分钟 staleTime 和 `refetchOnMount:false`；保存后只失效了 `menuKeys.trees()`。5 分钟内再次编辑同一菜单，表单回填的是修改前的数据。建议改用 `useDetailQuery`，并失效 `menuKeys.all`。**2026-11-19 复核：已修复**，抽屉已改用 `BetaSchemaForm`（`queryKey={menuKeys.detail(menuId)}` + `request`），内部 `refetchOnMount:'always'` 每次打开强制刷新，保存同时失效 `menuKeys.trees()` 与 `MENU_QUERY_KEY`。
+- [x] **【已核实】【待确认后端是否净化】公告 HTML 未净化即渲染**：`components/rich-text-editor.tsx:29-34`。`RichTextContent` 直接用 `dangerouslySetInnerHTML` 渲染后端内容，调用点为 `(app)/system/notice/-components/notice-view-drawer.tsx:58`。只要有人绕过编辑器直接调接口写入 `<img onerror>`，就构成存储型 XSS。建议用 DOMPurify 净化，或改用 `editable:false` 的 tiptap 渲染。**2026-11-19 已修复**：上游未修；本地新增 `lib/sanitize.ts` 无 DOM 依赖的允许列表净化（剥离 on*/style 属性、javascript:/data: URL、script/style/iframe 等内容），`RichTextContent` 渲染前调用。回归测试 `tests/sanitize.test.ts` 9 例。
+- [x] **【已核实】个人资料页把 mock 数据当作用户数据展示**：`(app)/dashboard/profile/-components/profile-record.ts:70-97`、`profile-data.ts:61-133`。`user` 为 null 时整份返回 mock；字段为空时回退为他人的头像、邮箱、电话和英文简介。文档 tab 是假数据，按钮也没有 onClick；状态固定显示"启用"。建议字段缺失时显示 `EMPTY_PLACEHOLDER`，删除没有数据来源的字段和 tab。**2026-11-19 复核：已修复**，`toProfileRecord` 无 user 时返回 `emptyProfile()`（全字段 `EMPTY_PLACEHOLDER`），文档 tab 组件已删，与上游 6f2d7d0/d026264 等价。
 
 ### P2
 
 - [ ] **【已核实】数字框删空后立即被回填**：`(app)/system/config/-components/sms/form-drawer.tsx:446,474,508,535`、`storage/form-drawer.tsx:697`（`NaN → 1/0`）；`(app)/system/dept/-components/dept-form-drawer.tsx:248`、`role-form-drawer.tsx:262`、`menu-form-drawer.tsx:410`（`valueAsNumber || 1`）。删空后马上变成 1，接着输入 5 就成了 15，`min(1)` 校验也永远触发不到。`client/form-drawer.tsx:31-35` 已有正确写法：值存字符串，用 zod 校验，提交时再转数字。建议统一改成这种写法。
-- [ ] **【已核实】标签页右键"重新加载"无效**：`components/app-shell/header/header-tabs.tsx:171-179`。该操作只调用了 `router.invalidate()`，而只有 `(app)/route.tsx` 和 `(app)/$.tsx` 定义了 loader，页面数据都走 TanStack Query，所以当前页不会刷新。建议失效当前页的 query，或通过改变 key 让页面重挂载。
+- [x] **【已核实】标签页右键"重新加载"无效**：`components/app-shell/header/header-tabs.tsx:171-179`。该操作只调用了 `router.invalidate()`，而只有 `(app)/route.tsx` 和 `(app)/$.tsx` 定义了 loader，页面数据都走 TanStack Query，所以当前页不会刷新。建议失效当前页的 query，或通过改变 key 让页面重挂载。**2026-11-19 已修复**：上游未修（其 shell 不同）；本地 `layouts/shell-store.ts` 的 `refresh()` 现在先 `queryClient.invalidateQueries()` 再 bump `refreshKey` 重挂载，tabbar 右键刷新与头部刷新按钮共用此路径。
 - [ ] **【已核实】套餐表单提交中可以点取消**：`(app)/tenant/package/-components/package-form-drawer.tsx:334`。取消按钮在 `form.Subscribe` 外，读取的 `form.state.isSubmitting` 不是响应式的，`onClick={onClose}` 也绕过了 `canClose`。建议照 `tenant-form-drawer.tsx:506-524` 把取消按钮放进 Subscribe。
-- [ ] **【已核实】会话过期时提示弹两次**：`lib/http.ts:240-248`、`stores/auth/auth-provider.tsx:47-48`。`handleSessionExpired` 触发的 handler 先 toast 一次，随后 `fail(..., silent)` 再 toast 一次。建议 `throwSessionExpired` 改为构造 `notified=true` 的 `ApiError`，不再重复 toast。
+- [x] **【已核实】会话过期时提示弹两次**：`lib/http.ts:240-248`、`stores/auth/auth-provider.tsx:47-48`。`handleSessionExpired` 触发的 handler 先 toast 一次，随后 `fail(..., silent)` 再 toast 一次。建议 `throwSessionExpired` 改为构造 `notified=true` 的 `ApiError`，不再重复 toast。**2026-11-19 已修复**：上游未修；`throwSessionExpired` 现构造 `notified=true` 的 `ApiError` 并删除自带 toast，只保留 handler 提示。
 - [ ] **【已核实】公告查看把更新时间当作发布时间**：`(app)/system/notice/-components/notice-view-drawer.tsx:51-53`。代码显示 `updateTime || createTime`，而 `NoticeResp.publishTime` 已经存在。建议改用 `publishTime`，并加上标签。
-- [ ] **【已核实】无头像时显示第三方头像**：`components/app-shell/header/user-menu.tsx:19,32,39`。回退地址是 `https://github.com/shadcn.png`，`AvatarFallback` 的首字母永远不会出现，还多发一个外部请求。建议去掉这个回退。
-- [ ] **【已核实】编辑抽屉的详情不强制刷新**：`(app)/system/dept/-components/dept-form-drawer.tsx:59`、`(app)/system/config/-components/client/form-drawer.tsx:194-204`、`sms/form-drawer.tsx:142-146`、`storage/form-drawer.tsx:267-271`。这些地方用裸 `useQuery` 加 `id!`，可能拿到最长 5 分钟前的数据，与 `useDetailQuery`（打开即刷新）的约定不一致。建议统一改用 `useDetailQuery`。
+- [x] **【已核实】无头像时显示第三方头像**：`components/app-shell/header/user-menu.tsx:19,32,39`。回退地址是 `https://github.com/shadcn.png`，`AvatarFallback` 的首字母永远不会出现，还多发一个外部请求。建议去掉这个回退。**2026-11-19 已修复**：上游未修；`layouts/header/header-widgets.tsx`（迁移后同问题文件）删除 `AVATAR_URL`，无头像时走 `AvatarFallback` 首字母。
+- [x] **【已核实】编辑抽屉的详情不强制刷新**：`(app)/system/dept/-components/dept-form-drawer.tsx:59`、`(app)/system/config/-components/client/form-drawer.tsx:194-204`、`sms/form-drawer.tsx:142-146`、`storage/form-drawer.tsx:267-271`。这些地方用裸 `useQuery` 加 `id!`，可能拿到最长 5 分钟前的数据，与 `useDetailQuery`（打开即刷新）的约定不一致。建议统一改用 `useDetailQuery`。**2026-11-19 复核：已修复**，四处抽屉均已迁移到 `BetaSchemaForm`（`refetchOnMount:'always'`），打开即刷新。
 - [ ] **存储配置列表请求失败时显示为空**：`(app)/system/config/-components/storage/group-panel.tsx:50-58`、`config-storage.tsx:191-209`。组件没有错误分支，失败时显示"暂无配置"，也没有重试入口。建议传入 `isError`/`onRetry`，失败时渲染 `QueryState`。
 - [ ] **套餐详情关闭动画期间闪出骨架屏**：`(app)/tenant/package/-components/package-detail-drawer.tsx:40-50`。关闭时 id 置 null，查询变成 pending。建议照 `tenant-detail-drawer.tsx:47-49` 用 `useLastRecord` 保留上一条数据。
 - [ ] **表单抽屉关闭动画期间标题和字段错位**：`(app)/tenant/management/-components/tenant-form-drawer.tsx:123,227,232,319`、`(app)/tenant/package/-components/package-form-drawer.tsx:106,237`、`(app)/schedule/job/-components/job-form-drawer.tsx:174,362`。target 置 null 后 `isCreate` 变成 true，标题从"修改"跳成"新增"，租户表单还会多渲染出仅新增时才有的字段。建议保留上一次的 target 来计算 `isCreate`。
@@ -352,8 +352,8 @@
 
 ## 建议的处理顺序
 
-1. 第一节 P1：树级联、站点配置缓存、菜单详情缓存、公告 HTML 净化、个人资料 mock 数据。
-2. 第一节 P2 中用户能直接看到的问题：数字框回填、重新加载无效、提交中可取消、重复提示、发布时间显示错误、弹窗宽度。
+1. ~~第一节 P1：树级联、站点配置缓存、菜单详情缓存、公告 HTML 净化、个人资料 mock 数据。~~ **2026-11-19：P1 全部处理完毕**（公告净化本地实现，其余已核实修复）。
+2. 第一节 P2 中用户能直接看到的问题：数字框回填、~~重新加载无效~~、提交中可取消、~~重复提示~~、发布时间显示错误、弹窗宽度。
 3. 删除第二节的死代码和无用依赖（fullcalendar、flags.css、json-viewer 主题表），减小包体积。
 4. 修正几个默认值：TableSearch、PasswordInput 的高度，`globals.css` 的全局字号规则，Field/DrawerFooter 的间距。改完后可以删掉调用方大量的覆盖 class。
 5. 按第十一节逐步抽取公共件，先做 `RowActionsMenu`、`FormDrawerFooter`、`createFormHook` 字段组件，再顺带统一第十节的风格问题。

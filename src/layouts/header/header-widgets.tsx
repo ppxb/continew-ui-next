@@ -27,8 +27,6 @@ import { usePreferencesStore } from '@/stores/preferences/preferences-provider'
 
 import { useShellStore } from '../shell-store'
 
-/** Fallback avatar when the user does not have an avatar set. */
-const AVATAR_URL = 'https://github.com/shadcn.png'
 
 export function HeaderIconButton({
   label,
@@ -167,14 +165,14 @@ export function UserMenu({ showPreferences }: { showPreferences: boolean }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger nativeButton={false} render={<Avatar className="hover:cursor-pointer" />}>
-        <AvatarImage src={user?.avatar || AVATAR_URL} alt={name} />
+        <AvatarImage src={user?.avatar ?? undefined} alt={name} />
         <AvatarFallback>{getInitials(name)}</AvatarFallback>
         <AvatarBadge className="bg-green-600 dark:bg-green-800" />
       </DropdownMenuTrigger>
       <DropdownMenuContent className="min-w-56 space-y-1 rounded-lg" side="bottom" align="end" sideOffset={4}>
         <div className="flex items-center gap-2 px-1 py-1.5">
           <Avatar className="size-9 rounded-lg">
-            <AvatarImage src={user?.avatar || AVATAR_URL} alt={name} />
+            <AvatarImage src={user?.avatar ?? undefined} alt={name} />
             <AvatarFallback>{getInitials(name)}</AvatarFallback>
           </Avatar>
           <div className="grid min-w-0 flex-1 text-left text-sm leading-tight">

@@ -1,5 +1,7 @@
 import { create } from 'zustand'
 
+import { queryClient } from '@/lib/query-client'
+
 /**
  * Transient shell state shared by the header, tabbar and overlays.
  *
@@ -26,7 +28,12 @@ export const useShellStore = create<ShellState>()(set => ({
   preferencesOpen: false,
   searchOpen: false,
   lockSetupOpen: false,
-  refresh: () => set(state => ({ refreshKey: state.refreshKey + 1 })),
+  refresh: () => {
+    // The remount alone is not enough: page data lives in TanStack Query, which has
+    // refetchOnMount disabled, so without invalidation the fresh mount shows stale cache.
+    void queryClient.invalidateQueries()
+    set(state => ({ refreshKey: state.refreshKey + 1 }))
+  },
   setContentMaximized: contentMaximized => set({ contentMaximized }),
   setPreferencesOpen: preferencesOpen => set({ preferencesOpen }),
   setSearchOpen: searchOpen => set({ searchOpen }),
