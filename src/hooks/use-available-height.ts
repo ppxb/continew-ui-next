@@ -14,7 +14,7 @@ function stackedBelow(node: HTMLElement) {
   const gap = flexColumn ? Number.parseFloat(parentStyle.rowGap) || 0 : 0
 
   let height = 0
-  for (let sibling = node.nextElementSibling; sibling; sibling = sibling.nextElementSibling) {
+  for (let sibling: Element | null = node.nextElementSibling; sibling; sibling = sibling.nextElementSibling) {
     if (!(sibling instanceof HTMLElement) || sibling.offsetHeight === 0) continue
     const style = getComputedStyle(sibling)
     if (style.position === 'absolute' || style.position === 'fixed') continue
