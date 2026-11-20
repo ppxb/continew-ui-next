@@ -3,6 +3,7 @@ import { Eye, KeyRound, Pen, ShieldCheck, Trash2 } from 'lucide-react'
 
 import { FlagBadge, TagList } from '@/components/data-badge'
 import { CopyableText } from '@/components/copyable-text'
+import { SensitiveText } from '@/components/sensitive-text'
 import { DeptName, DeptTreeSelect } from '@/components/dept-tree-select'
 import { FilterSelect } from '@/components/filter-select'
 import { TableDropdown, type ProColumns, type ProSchemaValueEnumType } from '@/components/pro'
@@ -264,6 +265,9 @@ export const userColumns = [
   {
     title: (_, type) => (type === 'form' ? '手机号码' : '手机号'),
     dataIndex: 'phone',
+    // 详情接口返回明文才需要前端脱敏；列表接口已是脱敏值，保持原样。
+    render: (dom, user, _index, _action, { type }) =>
+      type === 'descriptions' ? <SensitiveText value={user.phone} type="phone" /> : dom,
     order: 7,
     fieldProps: { type: 'tel', maxLength: 14, placeholder: '请输入手机号码', autoComplete: 'off' },
     formItemProps: { rules: userRules.phone }
@@ -271,6 +275,8 @@ export const userColumns = [
   {
     title: '邮箱',
     dataIndex: 'email',
+    render: (dom, user, _index, _action, { type }) =>
+      type === 'descriptions' ? <SensitiveText value={user.email} type="email" /> : dom,
     order: 6,
     fieldProps: { type: 'email', maxLength: 255, placeholder: '请输入邮箱地址', autoComplete: 'off' },
     formItemProps: { rules: userRules.email }
