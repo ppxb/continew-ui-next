@@ -68,7 +68,10 @@ export function MixedSidebar({ entries, selectedId, onSelect, topOffset, showBra
         }, 200)
       }}
       className={cn(
-        'sticky z-20 hidden shrink-0 md:flex',
+        // The unpinned second column floats over the content, so it must clear all of the content's
+        // sticky chrome (header z-40, tabbar z-30, pinned table cells) yet stay under fullscreen
+        // tables, dialogs and popovers (z-50).
+        'sticky z-45 hidden shrink-0 md:flex',
         topOffset
           ? 'top-(--app-header-offset) h-[calc(100svh-var(--app-header-offset))] transition-[top,height] duration-200'
           : 'top-0 h-svh'
