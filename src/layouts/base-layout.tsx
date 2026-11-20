@@ -27,6 +27,7 @@ import { setTabsPersistence } from '@/stores/tabs'
 import { AdminHeader } from './header/admin-header'
 import { AppBreadcrumb } from './header/app-breadcrumb'
 import { SearchDialog } from './header/search-dialog'
+import { MessageSocket, NoticePopup } from './message-effects'
 import { DocumentTitle, GlobalShortcuts, RouteProgress, UpdateChecker, Watermark } from './page-effects'
 import { PageSurface } from './page-surface'
 import { usePathname } from './route-info'
@@ -427,6 +428,8 @@ export function BaseLayout({ defaultOpen, children }: { defaultOpen: boolean; ch
       <Watermark />
       {!locked && <GlobalShortcuts />}
       <UpdateChecker />
+      <MessageSocket />
+      <NoticePopup />
       <SearchDialog />
       <LockScreenSetupDialog onLock={lock} />
       {locked && <LockScreenOverlay onUnlock={unlock} onForget={clear} />}

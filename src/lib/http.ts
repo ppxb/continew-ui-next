@@ -11,7 +11,12 @@ import {
   setTenantId
 } from './auth-session'
 
-const BASE_URL = (import.meta.env.VITE_API_PREFIX || import.meta.env.VITE_API_BASE_URL || '').replace(/\/+$/, '')
+/** API origin or dev-proxy prefix every request is built on; also the base of the WebSocket URL. */
+export const API_BASE_URL = (import.meta.env.VITE_API_PREFIX || import.meta.env.VITE_API_BASE_URL || '').replace(
+  /\/+$/,
+  ''
+)
+
 const REQUEST_TIMEOUT_MS = 30_000
 
 const LOGIN_PATH = '/auth/login'
@@ -117,7 +122,7 @@ function assertGeneration(generation: number) {
 }
 
 function buildUrl(path: string, query?: Query) {
-  const url = `${BASE_URL}${path}`
+  const url = `${API_BASE_URL}${path}`
 
   if (!query) {
     return url

@@ -29,6 +29,8 @@ export default defineConfig(({ mode }) => {
         [VITE_API_PREFIX]: {
           target: VITE_API_BASE_URL,
           changeOrigin: true,
+          // The message socket (`/websocket`) shares the API prefix.
+          ws: true,
           rewrite: path => path.replace(VITE_API_PREFIX, '')
         }
       }

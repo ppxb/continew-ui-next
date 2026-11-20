@@ -142,6 +142,21 @@ export const noticeKeys = {
   detail: (id: string | number | null) => [...noticeKeys.details(), id] as const
 }
 
+export const messageKeys = {
+  all: ['user', 'message'] as const,
+  unread: () => [...messageKeys.all, 'unread'] as const,
+  unreadMessages: () => [...messageKeys.unread(), 'message'] as const,
+  unreadNotices: () => [...messageKeys.unread(), 'notice'] as const,
+  lists: () => [...messageKeys.all, 'list'] as const,
+  recent: () => [...messageKeys.lists(), 'recent'] as const,
+  detail: (id: string | number | null) => [...messageKeys.all, 'detail', id] as const,
+  noticeLists: () => [...messageKeys.all, 'notice-list'] as const,
+  recentNotices: () => [...messageKeys.noticeLists(), 'recent'] as const,
+  noticeDetail: (id: string | number | null) => [...messageKeys.all, 'notice-detail', id] as const,
+  /** Outside `all`, so a push or a read never re-opens the login popup. */
+  popup: () => ['user', 'notice-popup'] as const
+}
+
 export const captchaKeys = {
   all: ['captcha'] as const,
   image: () => [...captchaKeys.all, 'image'] as const

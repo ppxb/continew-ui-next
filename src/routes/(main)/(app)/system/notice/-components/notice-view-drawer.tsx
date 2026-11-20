@@ -5,6 +5,7 @@ import { EntityDrawer } from '@/components/entity-drawer'
 import { QueryState } from '@/components/query-state'
 import { ProDescriptions } from '@/components/pro'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useUserNoticeDetail } from '@/routes/(main)/(app)/user/message/-components/use-messages'
 
 import { useNoticeDetail } from './use-notice-detail'
 import { noticeColumns } from './notice-columns'
@@ -14,11 +15,18 @@ interface NoticeViewDrawerProps {
   readonly noticeId: string | number | null
   readonly open: boolean
   readonly onClose: () => void
+  /**
+   * `manage` reads `/system/notice/{id}` and needs the notice permission; `self` reads the
+   * current user's copy, which any signed-in user may open and which marks it read.
+   */
+  readonly source?: 'manage' | 'self'
 }
 
 /** The reader view: title, publisher, publish time, then the body. */
-export function NoticeViewDrawer({ noticeId, open, onClose }: NoticeViewDrawerProps) {
-  const detailQuery = useNoticeDetail(noticeId, { enabled: open })
+export function NoticeViewDrawer({ noticeId, open, onClose, source = 'manage' }: NoticeViewDrawerProps) {
+  const manageQuery = useNoticeDetail(source === 'manage' ? noticeId : null, { enabled: open })
+  const selfQuery = useUserNoticeDetail(source === 'self' ? noticeId : null, { enabled: open })
+  const detailQuery = source === 'self' ? selfQuery : manageQuery
   const detail = detailQuery.data
   const dicts = useNoticeDicts()
   const columns = React.useMemo(
