@@ -1,6 +1,33 @@
 import { type RefObject, useCallback, useLayoutEffect, useRef } from 'react'
 
 /**
+ * Height of the in-flow content stacked after `node` inside its parent (for example the shell
+ * footer after the content area). Only vertical stacking counts: siblings in a flex row or grid sit
+ * beside `node`, and out-of-flow siblings (overlays, fixed buttons) take no space.
+ */
+function stackedBelow(node: HTMLElement) {
+  const parent = node.parentElement
+  if (!parent || !node.nextElementSibling) return 0
+  const parentStyle = getComputedStyle(parent)
+  const flexColumn = parentStyle.display.endsWith('flex') && parentStyle.flexDirection.startsWith('column')
+  if (!flexColumn && parentStyle.display !== 'block') return 0
+  const gap = flexColumn ? Number.parseFloat(parentStyle.rowGap) || 0 : 0
+
+  let height = 0
+  for (let sibling = node.nextElementSibling; sibling; sibling = sibling.nextElementSibling) {
+    if (!(sibling instanceof HTMLElement) || sibling.offsetHeight === 0) continue
+    const style = getComputedStyle(sibling)
+    if (style.position === 'absolute' || style.position === 'fixed') continue
+    height +=
+      sibling.offsetHeight +
+      gap +
+      (Number.parseFloat(style.marginTop) || 0) +
+      (Number.parseFloat(style.marginBottom) || 0)
+  }
+  return height
+}
+
+/**
  * Measures the vertical space left below `ref` and exposes it as a CSS variable, so a descendant can
  * fill the viewport instead of hard-coding how tall the surrounding chrome is.
  *
@@ -31,8 +58,8 @@ export function useAvailableHeight<T extends HTMLElement>(ref: RefObject<T | nul
       let top = element.getBoundingClientRect().top
       let bottomSpacing = 0
       let fixed = false
-      for (let ancestor: HTMLElement | null = element; ancestor; ancestor = ancestor.parentElement) {
-        const style = getComputedStyle(ancestor)
+      for (let node: HTMLElement | null = element; node; node = node.parentElement) {
+        const style = getComputedStyle(node)
         bottomSpacing +=
           (Number.parseFloat(style.paddingBottom) || 0) +
           (Number.parseFloat(style.borderBottomWidth) || 0) +
@@ -42,20 +69,11 @@ export function useAvailableHeight<T extends HTMLElement>(ref: RefObject<T | nul
           fixed = true
           break
         }
+        bottomSpacing += stackedBelow(node)
       }
-      if (!fixed) {
-        // chrome = documentHeight - elementHeight covers everything the shell adds around the
-        // element (header, tabbar, paddings, footer, and any future chrome), so the element fills
-        // the viewport exactly: available = innerHeight - chrome. Growing the element grows the
-        // document, so overshooting shrinks the result back to fit — it converges instead of
-        // feeding back like a viewport-relative top would (a shrinking top grew the element, made
-        // the page taller, and kept it scrollable).
-        // Invariant this relies on: the element's own content must never overflow its box (the
-        // table/dict areas scroll inside). Overflow counts toward chrome and would shrink the
-        // element further every frame.
-        top = document.documentElement.scrollHeight - element.offsetHeight
-        bottomSpacing = 0
-      }
+      // Document-relative top: a viewport-relative top shrinks as the window scrolls, which grows
+      // the element, which makes the page taller and scrollable again (feedback loop).
+      if (!fixed) top += window.scrollY
       const available = `${Math.max(0, Math.round(window.innerHeight - top - bottomSpacing))}px`
       if (element.style.getPropertyValue(variable) !== available) {
         element.style.setProperty(variable, available)
@@ -70,8 +88,9 @@ export function useAvailableHeight<T extends HTMLElement>(ref: RefObject<T | nul
     applyRef.current = apply
     apply()
     const observer = new ResizeObserver(schedule)
-    observer.observe(document.documentElement)
-    observer.observe(element)
+    // Ancestors too: toggling chrome below the element (footer) resizes an ancestor such as the
+    // content area while the document and the element keep their size.
+    for (let node: HTMLElement | null = element; node; node = node.parentElement) observer.observe(node)
     window.addEventListener('resize', schedule)
 
     return () => {
