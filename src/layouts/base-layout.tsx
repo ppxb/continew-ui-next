@@ -344,7 +344,19 @@ export function BaseLayout({ defaultOpen, children }: { defaultOpen: boolean; ch
   const content = (
     <>
       {!flags.headerOnTop && header}
-      {tabbarShown && <Tabbar />}
+      {tabbarShown && (
+        // Pinned right under the header so they scroll as one block; the `scroll` navbar style
+        // lets both scroll away, and an auto-hidden header lets the tabbar slide up to the top.
+        <div
+          className={cn(
+            'z-30 bg-background',
+            p.navbarStyle !== 'scroll' && 'sticky transition-[top] duration-200',
+            headerShown && !headerHidden ? 'top-(--app-header-height)' : 'top-0'
+          )}
+        >
+          <Tabbar />
+        </div>
+      )}
       {/* Layouts with a horizontal menu have no room for the breadcrumb in the header. */}
       {headerShown && flags.headerMenu && p.breadcrumbEnable && (
         <AppBreadcrumb className="px-(--app-content-padding) pt-3" />
