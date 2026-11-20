@@ -1,5 +1,6 @@
 import { toast } from '@/components/ui/toast'
 
+import { API_ENCRYPT_HEADER, decryptResponseBody, encryptRequestBody, type SealedBody } from './api-encrypt'
 import type { ApiResponse, LoginResp } from './api/types'
 import {
   clearSession,
@@ -59,6 +60,12 @@ export interface RequestOptions extends Omit<RequestInit, 'body' | 'method'> {
   query?: Query
   skipAuthRefresh?: boolean
   silent?: boolean
+  /**
+   * Seals a JSON body for an `@ApiEncrypt` endpoint (see `./api-encrypt`). The backend only
+   * decrypts POST and PUT bodies, so other methods and `FormData` bodies are sent as is.
+   * Encrypted responses are opened automatically whatever this flag says.
+   */
+  encrypt?: boolean
 }
 
 let sessionExpiredHandler: SessionExpiredHandler | null = null
@@ -149,7 +156,13 @@ function buildHeaders(path: string, body?: unknown, extra?: HeadersInit) {
 }
 
 async function readPayload<T>(response: Response) {
-  return (await response.json().catch(() => null)) as ApiResponse<T> | null
+  try {
+    const text = await response.text()
+    const key = response.headers.get(API_ENCRYPT_HEADER)
+    return JSON.parse(key ? decryptResponseBody(text, key) : text) as ApiResponse<T>
+  } catch {
+    return null
+  }
 }
 
 function toRequestBody(body: unknown): BodyInit | undefined {
@@ -260,10 +273,23 @@ async function send<T>(
 ): Promise<T> {
   assertGeneration(generation)
 
-  const { body, query, skipAuthRefresh, silent, headers, ...init } = options
+  const { body, query, skipAuthRefresh, silent, encrypt, headers, ...init } = options
   const timeout = timeoutSignal()
   // A caller-provided signal cancels the request too, but the request timeout still applies.
   const signal = init.signal ? AbortSignal.any([init.signal, timeout]) : timeout
+  const requestHeaders = buildHeaders(path, body, headers)
+  let requestBody = toRequestBody(body)
+
+  if (encrypt && typeof requestBody === 'string' && (method === 'POST' || method === 'PUT')) {
+    let sealed: SealedBody
+    try {
+      sealed = encryptRequestBody(requestBody)
+    } catch {
+      throw fail('请求加密失败，请检查 VITE_API_ENCRYPT_PUBLIC_KEY 配置', {}, silent)
+    }
+    requestBody = sealed.body
+    requestHeaders.set(API_ENCRYPT_HEADER, sealed.key)
+  }
 
   let response: Response
   try {
@@ -271,8 +297,8 @@ async function send<T>(
       ...init,
       method,
       credentials: 'include',
-      headers: buildHeaders(path, body, headers),
-      body: toRequestBody(body),
+      headers: requestHeaders,
+      body: requestBody,
       signal
     })
   } catch (error) {

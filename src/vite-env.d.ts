@@ -9,6 +9,10 @@ interface ImportMetaEnv {
   readonly VITE_CLIENT_ID: string
   /** RSA public key matching the backend password-encryption key pair. */
   readonly VITE_APP_RSA_PUBLIC_KEY: string
+  /** RSA public key sealing `encrypt: true` request bodies; pairs with `continew-starter.encrypt.api.private-key`. */
+  readonly VITE_API_ENCRYPT_PUBLIC_KEY: string
+  /** RSA private key opening encrypted responses; pairs with `continew-starter.encrypt.api.public-key`. */
+  readonly VITE_API_ENCRYPT_PRIVATE_KEY: string
   /** Dev server port; build and `vite preview` ignore it. */
   readonly VITE_APP_PORT: string
   /** Public path the app is served from, e.g. `/continew-ui-next/` on GitHub Pages; defaults to `/`. */
