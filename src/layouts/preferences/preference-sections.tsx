@@ -97,6 +97,9 @@ export function LayoutPreferences() {
   const twoColumn = v.layout === 'sidebar-mixed-nav' || v.layout === 'header-mixed-nav'
   const hasHeaderMenu = ['header-nav', 'mixed-nav', 'header-mixed-nav'].includes(v.layout)
   const sidebarOff = !hasSidebar || !v.sidebarEnable
+  // Mixed two-column never renders a breadcrumb (see base-layout).
+  const noBreadcrumb = v.layout === 'header-mixed-nav'
+  const breadcrumbOff = noBreadcrumb || !v.breadcrumbEnable
 
   return (
     <>
@@ -177,15 +180,19 @@ export function LayoutPreferences() {
         <PreferenceSwitch field="navigation_accordion" label="侧边导航手风琴" disabled={!hasSidebar} />
       </PreferenceBlock>
       <PreferenceBlock title="面包屑">
-        <PreferenceSwitch field="breadcrumb_enable" label="开启面包屑" disabled={full || !v.headerVisible} />
-        <PreferenceSwitch field="breadcrumb_hide_only_one" label="仅一级时隐藏" disabled={!v.breadcrumbEnable} />
-        <PreferenceSwitch field="breadcrumb_show_icon" label="显示面包屑图标" disabled={!v.breadcrumbEnable} />
-        <PreferenceSwitch field="breadcrumb_show_home" label="显示首页按钮" disabled={!v.breadcrumbEnable} />
+        <PreferenceSwitch
+          field="breadcrumb_enable"
+          label="开启面包屑"
+          disabled={full || noBreadcrumb || !v.headerVisible}
+        />
+        <PreferenceSwitch field="breadcrumb_hide_only_one" label="仅一级时隐藏" disabled={breadcrumbOff} />
+        <PreferenceSwitch field="breadcrumb_show_icon" label="显示面包屑图标" disabled={breadcrumbOff} />
+        <PreferenceSwitch field="breadcrumb_show_home" label="显示首页按钮" disabled={breadcrumbOff} />
         <PreferenceSegmented
           field="breadcrumb_style"
           label="面包屑风格"
           options={BREADCRUMB_STYLE_OPTIONS}
-          disabled={!v.breadcrumbEnable}
+          disabled={breadcrumbOff}
         />
       </PreferenceBlock>
       <PreferenceBlock title="标签栏">

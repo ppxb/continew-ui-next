@@ -357,8 +357,9 @@ export function BaseLayout({ defaultOpen, children }: { defaultOpen: boolean; ch
           <Tabbar />
         </div>
       )}
-      {/* Layouts with a horizontal menu have no room for the breadcrumb in the header. */}
-      {headerShown && flags.headerMenu && p.breadcrumbEnable && (
+      {/* Layouts with a horizontal menu have no room for the breadcrumb in the header. Mixed
+          two-column skips it: header menu, first column and tabbar already show the location. */}
+      {headerShown && flags.headerMenu && layout !== 'header-mixed-nav' && p.breadcrumbEnable && (
         <AppBreadcrumb className="px-(--app-content-padding) pt-3" />
       )}
       <div
