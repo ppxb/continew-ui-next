@@ -714,3 +714,35 @@ helper 覆盖不到的列照常手写 `ColumnDef`，在 `meta` 里写上最接�
 还没迁移的页面继续传 `skeletonWidths`，行为和原来一样。
 
 列 helper 的手写示例：`src/routes/(main)/(app)/system/user/-components/user-columns.tsx`、`user-list.tsx`。应用管理已改为本页开头的配置式写法。
+
+---
+
+## 六、敏感信息：SensitiveText
+
+手机号、身份证、邮箱、密钥这类字段默认脱敏显示，旁边的眼睛按钮切换明文。规则在 `src/lib/mask.ts` 的 `MASK_RULES` 里维护。
+
+```tsx
+import { SensitiveText } from '@/components/sensitive-text'
+
+<SensitiveText value={detail.phone} type="phone" />    // 138****5678
+<SensitiveText value={secret} type="password" />       // ********
+// 自定义规则：String.replace 语义，pattern 捕获要保留的部分，mask 用 $1 引用
+<SensitiveText value={code} type={{ pattern: /^(.{4}).+$/, mask: '$1…' }} />
+```
+
+| 属性              | 默认值       | 说明                                          |
+| ----------------- | ------------ | --------------------------------------------- |
+| `value`           | 必填         | 原文；空值时不渲染                            |
+| `type`            | `'password'` | 内置规则名，或 `{ pattern, mask }` 自定义规则 |
+| `defaultRevealed` | `false`      | 初始是否显示明文                              |
+| `className`       | 无           | 外层样式                                      |
+| `textClassName`   | 无           | 文字样式，比如密钥用 `break-all select-all`   |
+
+内置规则：`phone`、`idCard`、`email`、`realName`、`bankCard`、`ipv4`、`address`、`password`。输入不符合规则时整体显示 `********`，规则写错也不会漏出原文。只要格式化、不要按钮时直接调 `maskText(value, type)`。
+
+**只对明文数据使用。** 后端的列表接口已经对手机号、邮箱脱敏（如 `138****5678`），再套一层会被当成不合规输入整体遮掉。用户管理的做法是列定义里只在详情里套组件：
+
+```tsx
+render: (dom, user, _index, _action, { type }) =>
+  type === 'descriptions' ? <SensitiveText value={user.phone} type="phone" /> : dom
+```
