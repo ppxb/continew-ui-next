@@ -129,7 +129,7 @@ function UserDeptField({
 
 /** Shared field definitions for the list, inline search, drawer form and details. */
 export const userColumns = [
-  { title: '序号', valueType: 'index' },
+  { title: '序号', valueType: 'index', fixed: 'left' },
   {
     title: 'ID',
     dataIndex: 'id',
@@ -141,6 +141,7 @@ export const userColumns = [
   {
     title: '昵称',
     dataIndex: 'nickname',
+    fixed: 'left',
     order: 10,
     fieldProps: { maxLength: 30, placeholder: '请输入昵称' },
     formItemProps: { rules: userRules.nickname },
@@ -315,6 +316,7 @@ export function createUserColumns(
     {
       title: '操作',
       valueType: 'option',
+      fixed: 'right',
       render: (_, user) => <RowActions user={user} onAction={onAction} permissions={permissions} />
     }
   ]

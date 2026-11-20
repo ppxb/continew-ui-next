@@ -173,7 +173,7 @@ function TenantPackageField({
 
 /** Shared field definitions for the list, inline search, drawer form and details. */
 export const tenantColumns = [
-  { title: '序号', valueType: 'index' },
+  { title: '序号', valueType: 'index', fixed: 'left' },
   {
     title: 'ID',
     dataIndex: 'id',
@@ -295,7 +295,12 @@ export function createTenantColumns(options: TenantColumnOptions): readonly ProC
   return canGet || canUpdate || canUpdateAdminPassword || canDelete
     ? [
         ...tenantColumns,
-        { title: '操作', valueType: 'option', render: (_, tenant) => <RowActions {...options} tenant={tenant} /> }
+        {
+          title: '操作',
+          valueType: 'option',
+          fixed: 'right',
+          render: (_, tenant) => <RowActions {...options} tenant={tenant} />
+        }
       ]
     : tenantColumns
 }

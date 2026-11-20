@@ -150,6 +150,11 @@ export function createDeptColumns(
 ): readonly ProColumns<DeptResp>[] {
   return [
     ...deptColumns(),
-    { title: '操作', valueType: 'option', render: (_, dept) => <DeptRowActions dept={dept} onAction={onAction} /> }
+    {
+      title: '操作',
+      valueType: 'option',
+      fixed: 'right',
+      render: (_, dept) => <DeptRowActions dept={dept} onAction={onAction} />
+    }
   ]
 }

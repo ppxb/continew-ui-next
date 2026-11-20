@@ -552,6 +552,7 @@ export function createJobColumns(options: JobColumnOptions): ProColumns<JobRecor
     columns.push({
       title: '操作',
       valueType: 'option',
+      fixed: 'right',
       render: (_, job) => (
         <RowActions
           job={job}

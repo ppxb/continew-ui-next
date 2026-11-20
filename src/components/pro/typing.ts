@@ -115,6 +115,8 @@ export interface ProColumnBase<T> {
   hideInForm?: boolean
   hideInDescriptions?: boolean
   hideInSetting?: boolean
+  /** Initial pinned side; users can change it in the column settings. */
+  fixed?: 'left' | 'right'
   search?: boolean | { transform: (value: unknown, field: string) => ProValues }
   ellipsis?: boolean
   copyable?: boolean
@@ -216,7 +218,14 @@ export type ProTableProps<T, U extends ProValues = ProValues> = {
   options?: false | OptionConfig
   search?: false
   form?: { initialValues?: Partial<U> }
-  columnsState?: { defaultValue?: Record<string, { show?: boolean }> }
+  columnsState?: { defaultValue?: Record<string, { show?: boolean; fixed?: 'left' | 'right' }> }
+  /**
+   * Names this table's saved column settings within its route; required when one route shows more
+   * than one table with column settings (tabs, side-by-side lists).
+   */
+  tableId?: string
+  /** Columns users cannot hide in the column settings. */
+  disabledColumnKeys?: readonly string[]
   expandable?: {
     childrenColumnName?: Extract<keyof T, string>
     defaultExpandAllRows?: boolean

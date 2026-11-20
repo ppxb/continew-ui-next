@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { hashKey, keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useRouter } from '@tanstack/react-router'
 import { useTable } from '@tanstack/react-table'
 import type {
   ColumnVisibilityState,
@@ -25,6 +26,7 @@ import type { DataTableFeatures } from '@/lib/data-table-features'
 import { getColumnKey, getColumnTitle, getFieldColumns } from '../column-utils'
 import type { ActionType, FilterValue, ProFormInstance, ProTableProps, ProValues, SortOrder } from '../typing'
 import { ProTableSearchFields } from './form-render'
+import { columnsStorageKey, useColumnsSetting, type ColumnsSetting } from './columns-setting'
 import { genProColumnToColumn } from './gen-pro-column-to-column'
 import { composeRequestParams, formatSearchValues, getSearchColumns, resetSearchPage } from './table-state'
 import type { ProTableSearchState } from './table-state'
@@ -280,16 +282,35 @@ export function ProTable<T extends RowData, U extends ProValues = ProValues>(pro
   React.useImperativeHandle(props.actionRef, () => action, [action])
   React.useImperativeHandle(props.formRef, () => form, [form])
 
-  const defaultVisibility = React.useMemo<ColumnVisibilityState>(() => {
-    const visibility: ColumnVisibilityState = {}
+  // Joined so screens can pass an inline array without recomputing the defaults every render.
+  const disabledKey = props.disabledColumnKeys?.join('\n') ?? ''
+  const disabledColumns = React.useMemo(() => new Set(disabledKey ? disabledKey.split('\n') : []), [disabledKey])
+  const defaultColumns = React.useMemo<ColumnsSetting>(() => {
+    const columnOrder: string[] = []
+    const columnVisibility: ColumnVisibilityState = {}
+    const start: string[] = []
+    const end: string[] = []
     getFieldColumns(props.columns).forEach((column, index) => {
-      if (column.hideInTable || column.valueType === 'index' || column.valueType === 'option') return
+      if (column.hideInTable) return
       const key = getColumnKey(column, index)
-      if (props.columnsState?.defaultValue?.[key]?.show === false) visibility[key] = false
+      columnOrder.push(key)
+      const state = props.columnsState?.defaultValue?.[key]
+      if (state?.show === false && !disabledColumns.has(key)) columnVisibility[key] = false
+      const fixed = state?.fixed ?? column.fixed
+      if (fixed === 'left') start.push(key)
+      else if (fixed === 'right') end.push(key)
     })
-    return visibility
-  }, [props.columns, props.columnsState])
-  const [columnVisibility, setColumnVisibility] = React.useState<ColumnVisibilityState>(defaultVisibility)
+    return { columnOrder, columnVisibility, columnPinning: { start, end } }
+  }, [props.columns, props.columnsState, disabledColumns])
+  // Only a table that shows the column settings can have saved a layout. The key comes from the
+  // matched route's template; outside a router (isolated renders) nothing is persisted.
+  const showSetting = props.options !== false && options?.setting !== false
+  const routePath = useRouter({ warn: false })?.state.matches.at(-1)?.fullPath
+  const columnsSetting = useColumnsSetting(
+    defaultColumns,
+    showSetting && routePath !== undefined ? columnsStorageKey(routePath, props.tableId) : undefined,
+    disabledColumns
+  )
   const [internalExpanded, setInternalExpanded] = React.useState<ExpandedState>(
     props.expandable?.defaultExpandAllRows ? true : {}
   )
@@ -305,7 +326,8 @@ export function ProTable<T extends RowData, U extends ProValues = ProValues>(pro
         action,
         rowOffset: localData || props.pagination === false ? 0 : state.pagination.pageIndex * state.pagination.pageSize,
         emptyText: props.columnEmptyText,
-        expandable: Boolean(props.expandable)
+        expandable: Boolean(props.expandable),
+        disabledColumns
       }),
     [
       props.columns,
@@ -315,7 +337,8 @@ export function ProTable<T extends RowData, U extends ProValues = ProValues>(pro
       state.pagination.pageIndex,
       state.pagination.pageSize,
       props.columnEmptyText,
-      props.expandable
+      props.expandable,
+      disabledColumns
     ]
   )
   const tableRef = React.useRef<ReactTable<DataTableFeatures, T> | null>(null)
@@ -323,14 +346,19 @@ export function ProTable<T extends RowData, U extends ProValues = ProValues>(pro
     features: dataTableFeatures,
     columns,
     data: rows,
-    state: { pagination: state.pagination, columnVisibility, expanded },
+    state: {
+      pagination: state.pagination,
+      columnVisibility: columnsSetting.setting.columnVisibility,
+      columnOrder: columnsSetting.setting.columnOrder,
+      columnPinning: columnsSetting.setting.columnPinning,
+      expanded
+    },
     manualPagination: !localData || props.pagination === false,
     autoResetPageIndex: false,
     autoResetExpanded: false,
     paginateExpandedRows: false,
     rowCount: total,
     onPaginationChange: setPagination,
-    onColumnVisibilityChange: setColumnVisibility,
     getRowId: record => (typeof props.rowKey === 'function' ? props.rowKey(record) : String(record[props.rowKey])),
     ...(props.expandable
       ? {
@@ -408,7 +436,13 @@ export function ProTable<T extends RowData, U extends ProValues = ProValues>(pro
       isFullscreen={fullscreen.isFullscreen}
       onRefresh={() => void action.reload()}
       onToggleFullscreen={action.fullScreen}
-      onResetColumns={() => setColumnVisibility(defaultVisibility)}
+      columnSetting={{
+        value: columnsSetting.setting,
+        definitionOrder: defaultColumns.columnOrder,
+        onChange: columnsSetting.change,
+        onSave: columnsSetting.save,
+        onReset: columnsSetting.reset
+      }}
       columnLabels={columnLabels}
     />
   ) : undefined
@@ -447,7 +481,7 @@ export function ProTable<T extends RowData, U extends ProValues = ProValues>(pro
           className={cn(
             'flex flex-col gap-4',
             props.embedded && 'min-h-0 flex-1',
-            fullscreen.isFullscreen && 'bg-background'
+            fullscreen.isFullscreen && 'bg-background [--table-surface:var(--color-background)]'
           )}
         >
           {props.headerTitle || props.toolbar?.subTitle ? (

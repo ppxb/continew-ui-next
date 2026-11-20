@@ -177,7 +177,7 @@ export function createClientColumns(options: ClientColumnOptions): readonly ProC
   const replacedRangeMap = toLabelMap(replacedRangeOptions)
   const logoutModeMap = toLabelMap(logoutModeOptions)
   return [
-    { title: '序号', valueType: 'index' },
+    { title: '序号', valueType: 'index', fixed: 'left' },
     { title: 'ID', dataIndex: 'id', hideInTable: true, hideInForm: true },
     {
       title: '客户端 ID',
@@ -477,6 +477,11 @@ export function createClientColumns(options: ClientColumnOptions): readonly ProC
     { title: '创建时间', dataIndex: 'createTime', valueType: 'dateTime', hideInForm: true },
     { title: '修改人', dataIndex: 'updateUserString', hideInForm: true },
     { title: '修改时间', dataIndex: 'updateTime', valueType: 'dateTime', hideInForm: true },
-    { title: '操作', valueType: 'option', render: (_, client) => <RowActions client={client} onAction={onAction} /> }
+    {
+      title: '操作',
+      valueType: 'option',
+      fixed: 'right',
+      render: (_, client) => <RowActions client={client} onAction={onAction} />
+    }
   ]
 }

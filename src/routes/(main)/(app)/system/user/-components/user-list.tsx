@@ -68,6 +68,7 @@ export function UserList() {
         rowKey="id"
         columns={columns}
         queryKey={userKeys.lists()}
+        disabledColumnKeys={['nickname']}
         formRef={formRef}
         options={{ search: { name: 'description', placeholder: '搜索用户名、昵称、描述' } }}
         columnsState={{ defaultValue: HIDDEN_BY_DEFAULT }}

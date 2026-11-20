@@ -67,7 +67,7 @@ function PackageMenuField({ control, form }: { control: ProFieldControlProps; fo
 }
 
 export const packageColumns = [
-  { title: '序号', valueType: 'index' },
+  { title: '序号', valueType: 'index', fixed: 'left' },
   {
     title: 'ID',
     dataIndex: 'id',
@@ -79,6 +79,7 @@ export const packageColumns = [
   {
     title: '名称',
     dataIndex: 'name',
+    fixed: 'left',
     fieldProps: { maxLength: 30, placeholder: '请输入名称' },
     formItemProps: { rules: z.string().trim().min(1, '请输入名称').max(30, '名称长度不能超过 30 个字符') }
   },
@@ -173,6 +174,7 @@ export function createPackageColumns({
     {
       title: '操作',
       valueType: 'option',
+      fixed: 'right',
       align: 'center',
       render: (_, pkg) => (
         <TableDropdown<PackageAction>

@@ -165,6 +165,7 @@ export function menuColumns({ menuTree = [], menuId = null }: MenuColumnOptions 
     {
       title: '菜单名称',
       dataIndex: 'title',
+      fixed: 'left',
       hideInForm: true,
       hideInSetting: true,
       render: (_, menu) => {
@@ -401,6 +402,11 @@ export function createMenuColumns(
 ): readonly ProColumns<MenuResp>[] {
   return [
     ...menuColumns(),
-    { title: '操作', valueType: 'option', render: (_, menu) => <MenuRowActions menu={menu} onAction={onAction} /> }
+    {
+      title: '操作',
+      valueType: 'option',
+      fixed: 'right',
+      render: (_, menu) => <MenuRowActions menu={menu} onAction={onAction} />
+    }
   ]
 }

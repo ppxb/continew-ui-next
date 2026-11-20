@@ -78,6 +78,7 @@ export function DeptList() {
         rowKey="id"
         dataSource={filteredTree}
         queryKey={deptKeys.trees()}
+        disabledColumnKeys={['name']}
         params={{ description: keyword || undefined }}
         pagination={false}
         loading={query.isPending || query.isFetching}

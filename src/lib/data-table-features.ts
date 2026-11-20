@@ -1,6 +1,8 @@
 import {
   columnFacetingFeature,
   columnFilteringFeature,
+  columnOrderingFeature,
+  columnPinningFeature,
   columnSizingFeature,
   columnVisibilityFeature,
   createExpandedRowModel,
@@ -31,6 +33,8 @@ import {
 export const dataTableFeatures = tableFeatures({
   columnFacetingFeature,
   columnFilteringFeature,
+  columnOrderingFeature,
+  columnPinningFeature,
   columnSizingFeature,
   columnVisibilityFeature,
   globalFilteringFeature,

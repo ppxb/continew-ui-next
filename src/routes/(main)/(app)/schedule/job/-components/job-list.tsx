@@ -148,6 +148,7 @@ export function JobList() {
         toolbar={{ subTitle: '管理定时任务、调度策略与执行状态' }}
         rowKey="id"
         queryKey={jobKeys.lists()}
+        disabledColumnKeys={['jobName']}
         columns={columns}
         columnsState={{ defaultValue: HIDDEN_BY_DEFAULT }}
         formRef={formRef}

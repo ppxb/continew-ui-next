@@ -100,6 +100,7 @@ export function ConfigSms() {
         columns={columns}
         rowKey="id"
         queryKey={smsKeys.lists()}
+        tableId="sms"
         formRef={formRef}
         columnsState={{ defaultValue: HIDDEN_BY_DEFAULT }}
         options={{

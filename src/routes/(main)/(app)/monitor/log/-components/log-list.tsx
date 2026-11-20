@@ -52,6 +52,7 @@ export function LogList({ mode }: LogListProps) {
         rowKey="id"
         columns={columns}
         queryKey={[...logKeys.lists(), mode]}
+        tableId={mode}
         params={{ module }}
         formRef={formRef}
         form={{ initialValues }}

@@ -94,6 +94,7 @@ export function createOnlineUserColumns({
         {
           title: '操作',
           valueType: 'option',
+          fixed: 'right',
           align: 'center',
           render: (_, user) => <KickoutCell user={user} isCurrentSession={isCurrentSession} onKickout={onKickout} />
         }

@@ -63,6 +63,7 @@ export function TenantList() {
         rowKey="id"
         columns={columns}
         queryKey={tenantKeys.lists()}
+        disabledColumnKeys={['name']}
         options={{ search: { name: 'description', placeholder: '搜索名称、描述' } }}
         columnsState={{ defaultValue: HIDDEN_BY_DEFAULT }}
         request={async ({ current, pageSize, ...search }, _sort, _filter, signal) => {

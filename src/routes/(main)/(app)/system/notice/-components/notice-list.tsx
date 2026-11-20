@@ -57,6 +57,7 @@ export function NoticeList() {
         toolbar={{ subTitle: '管理系统内部的通知与公告' }}
         rowKey="id"
         queryKey={noticeKeys.lists()}
+        disabledColumnKeys={['title']}
         columns={columns}
         columnsState={{ defaultValue: HIDDEN_BY_DEFAULT }}
         formRef={formRef}

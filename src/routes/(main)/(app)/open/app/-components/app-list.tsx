@@ -80,6 +80,7 @@ export function AppList() {
         rowKey="id"
         columns={columns}
         queryKey={appKeys.lists()}
+        disabledColumnKeys={['name']}
         formRef={formRef}
         options={{ search: { name: 'description', placeholder: '搜索应用名称、描述' } }}
         columnsState={{ defaultValue: HIDDEN_BY_DEFAULT }}

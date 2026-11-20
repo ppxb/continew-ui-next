@@ -23,12 +23,15 @@ export function genProColumnToColumn<T extends RowData>(
     action,
     rowOffset = 0,
     emptyText,
-    expandable = false
+    expandable = false,
+    disabledColumns
   }: {
     action?: ActionType
     rowOffset?: number
     emptyText?: string
     expandable?: boolean
+    /** Columns locked visible in the column settings. */
+    disabledColumns?: ReadonlySet<string>
   }
 ): ColumnDef<DataTableFeatures, T>[] {
   return getFieldColumns(columns).flatMap((column, index): ColumnDef<DataTableFeatures, T>[] => {
@@ -43,7 +46,7 @@ export function genProColumnToColumn<T extends RowData>(
         id,
         ...(column.dataIndex ? { accessorFn: (record: T) => record[column.dataIndex!] } : {}),
         header: () => <div className={textAlign}>{getColumnTitle(column, 'table')}</div>,
-        enableHiding: type !== 'index' && type !== 'option',
+        enableHiding: !disabledColumns?.has(id),
         enableSorting: false,
         enableColumnFilter: false,
         meta: { valueType: type, hideInSetting: column.hideInSetting },

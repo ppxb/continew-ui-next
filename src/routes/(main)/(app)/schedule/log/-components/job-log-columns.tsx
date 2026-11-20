@@ -181,6 +181,7 @@ export function createJobLogColumns({
     columns.push({
       title: '操作',
       valueType: 'option',
+      fixed: 'right',
       align: 'center',
       render: (_, log) => <RowActions log={log} canStop={canStop} canRetry={canRetry} onAction={onAction} />
     })

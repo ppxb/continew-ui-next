@@ -18,7 +18,7 @@ const STATUS_ENUM = new Map<AppStatus, ProSchemaValueEnumType>([
 
 /** One field definition shared by the table, search, form and descriptions. */
 export const appColumns = [
-  { title: '序号', valueType: 'index' },
+  { title: '序号', valueType: 'index', fixed: 'left' },
   {
     title: '应用 ID',
     dataIndex: 'id',
@@ -30,6 +30,7 @@ export const appColumns = [
   {
     title: '应用名称',
     dataIndex: 'name',
+    fixed: 'left',
     span: 2,
     fieldProps: { maxLength: 100, placeholder: '请输入应用名称，例如：商城接口服务' },
     formItemProps: { rules: z.string().trim().min(1, '应用名称不能为空').max(100, '应用名称长度不能超过 100 个字符') },
@@ -134,6 +135,7 @@ export function createAppColumns(
     {
       title: '操作',
       valueType: 'option',
+      fixed: 'right',
       render: (_, app) => {
         const disabled = Boolean(app.disabled)
         return [

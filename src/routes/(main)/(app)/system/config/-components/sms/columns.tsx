@@ -101,10 +101,11 @@ export function createSmsColumns(options: SmsColumnOptions): readonly ProColumns
   const { supplierOptions, onSupplierChange, onAction } = options
   const supplierMap = toLabelMap(supplierOptions)
   return [
-    { title: '序号', valueType: 'index' },
+    { title: '序号', valueType: 'index', fixed: 'left' },
     {
       title: '配置名称',
       dataIndex: 'name',
+      fixed: 'left',
       hideInSetting: true,
       fieldProps: { maxLength: 100, placeholder: '请输入配置名称' },
       formItemProps: { rules: z.string().trim().min(1, '请输入配置名称').max(100, '配置名称不能超过 100 个字符') },
@@ -332,6 +333,7 @@ export function createSmsColumns(options: SmsColumnOptions): readonly ProColumns
     {
       title: '操作',
       valueType: 'option',
+      fixed: 'right',
       align: 'right',
       render: (_, record) => <RowActions record={record} onAction={onAction} />
     }

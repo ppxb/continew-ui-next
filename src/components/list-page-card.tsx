@@ -41,7 +41,10 @@ export function ListPageCard({ title, description, filters, actions, fullscreen,
 
         <div
           ref={fullscreen.fullscreenRef}
-          className={cn('flex flex-col gap-4', fullscreen.isFullscreen && 'bg-background')}
+          className={cn(
+            'flex flex-col gap-4',
+            fullscreen.isFullscreen && 'bg-background [--table-surface:var(--color-background)]'
+          )}
         >
           <ListFilterRow filters={filters} actions={actions} />
 

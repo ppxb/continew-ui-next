@@ -60,6 +60,7 @@ export function PackageList() {
         columns={columns}
         rowKey="id"
         queryKey={packageKeys.lists()}
+        disabledColumnKeys={['name']}
         columnsState={{ defaultValue: HIDDEN_BY_DEFAULT }}
         options={{ search: { name: 'description', placeholder: '搜索名称、描述' } }}
         request={async ({ current, pageSize, description, status }, _sort, _filter, signal) => {

@@ -86,6 +86,8 @@ export function ConfigClient() {
         columns={columns}
         rowKey="id"
         queryKey={clientKeys.lists()}
+        tableId="client"
+        disabledColumnKeys={['clientId']}
         columnsState={{ defaultValue: HIDDEN_BY_DEFAULT }}
         request={async ({ current, pageSize, clientType, status }, _sort, _filter, signal) => {
           const result = await listClient({ page: current, size: pageSize, clientType, status }, signal)

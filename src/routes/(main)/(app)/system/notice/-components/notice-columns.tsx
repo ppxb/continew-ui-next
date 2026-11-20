@@ -303,6 +303,11 @@ export function createNoticeColumns(
 ): ProColumns<NoticeRecord>[] {
   return [
     ...noticeColumns(dicts),
-    { title: '操作', valueType: 'option', render: (_, notice) => <RowActions notice={notice} onAction={onAction} /> }
+    {
+      title: '操作',
+      valueType: 'option',
+      fixed: 'right',
+      render: (_, notice) => <RowActions notice={notice} onAction={onAction} />
+    }
   ]
 }

@@ -1,7 +1,15 @@
 // @vitest-environment jsdom
 import * as React from 'react'
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import {
+  createMemoryHistory,
+  createRootRoute,
+  createRoute,
+  createRouter,
+  Outlet,
+  RouterProvider
+} from '@tanstack/react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ProTable } from '@/components/pro/table/pro-table'
@@ -73,6 +81,35 @@ function renderTable(overrides: Partial<ProTableProps<Row>> = {}) {
   }
 }
 
+/** Renders the table as the page of a `routePath` route opened at `url`, as the app shell does. */
+function renderRoutedTable(routePath: string, url: string, overrides: Partial<ProTableProps<Row>> = {}) {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: Infinity } } })
+  clients.push(client)
+  const root = createRootRoute({ component: Outlet })
+  const page = createRoute({
+    getParentRoute: () => root,
+    path: routePath,
+    component: () => (
+      <ProTable
+        rowKey="id"
+        queryKey={['pro-table-routed']}
+        columns={COLUMNS}
+        request={async params => response(params)}
+        {...overrides}
+      />
+    )
+  })
+  const router = createRouter({
+    routeTree: root.addChildren([page]),
+    history: createMemoryHistory({ initialEntries: [url] })
+  })
+  return render(
+    <QueryClientProvider client={client}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>
+  )
+}
+
 beforeEach(() => {
   // jsdom has no layout observers; the real table and field components remain mounted.
   vi.stubGlobal(
@@ -87,6 +124,8 @@ beforeEach(() => {
     setTimeout(() => callback(performance.now()), 0)
   )
   vi.stubGlobal('cancelAnimationFrame', (handle: number) => clearTimeout(handle))
+  // The router restores scroll on navigation, which jsdom does not implement.
+  vi.stubGlobal('scrollTo', () => {})
   vi.stubGlobal('matchMedia', (query: string) => ({
     matches: false,
     media: query,
@@ -102,6 +141,7 @@ beforeEach(() => {
 
 afterEach(async () => {
   cleanup()
+  window.localStorage.clear()
   for (const client of clients.splice(0)) client.clear()
   await Promise.resolve()
   restoreAnimationApis()
@@ -348,23 +388,65 @@ describe('ProTable requests and actions', () => {
     expect(request).toHaveBeenCalledTimes(2)
   })
 
-  it('honors default hidden columns and resets visibility without exposing fixed or excluded columns', async () => {
-    renderTable({
+  it('applies column settings at once, keeps locked columns visible, and resets to the defaults', async () => {
+    // The key follows the route template, so every user id shares one saved layout.
+    const key = 'table-columns-settings-:system:user:$id'
+    renderRoutedTable('/system/user/$id', '/system/user/7', {
       columns: [...COLUMNS.slice(0, 2), { ...COLUMNS[2], hideInSetting: true }],
-      columnsState: { defaultValue: { name: { show: false }, index: { show: false } } }
+      columnsState: { defaultValue: { name: { show: false } } },
+      disabledColumnKeys: ['index']
     })
     await screen.findByRole('columnheader', { name: '序号' })
     expect(screen.queryByRole('columnheader', { name: '名称' })).toBeNull()
-    fireEvent.click(screen.getByRole('button', { name: '显示的列' }))
-    const nameItem = await screen.findByRole('menuitemcheckbox', { name: '名称' })
-    expect(screen.queryByRole('menuitemcheckbox', { name: '序号' })).toBeNull()
-    expect(screen.queryByRole('menuitemcheckbox', { name: '数量' })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: '列设置' }))
+    const nameItem = await screen.findByRole('checkbox', { name: '名称' })
+    // Locked columns are listed but cannot be hidden; excluded columns are not listed at all.
+    expect(screen.getByRole('checkbox', { name: '序号' }).getAttribute('aria-disabled')).toBe('true')
+    expect(screen.queryByRole('checkbox', { name: '数量' })).toBeNull()
     fireEvent.click(nameItem)
     await screen.findByRole('columnheader', { name: '名称' })
-    if (!screen.queryByRole('menuitem', { name: '重置' }))
-      fireEvent.click(screen.getByRole('button', { name: '显示的列' }))
-    fireEvent.click(await screen.findByRole('menuitem', { name: '重置' }))
+    // Unsaved changes stay in memory only.
+    expect(window.localStorage.getItem(key)).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: '保存' }))
+    expect(window.localStorage.getItem(key)).not.toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: '列设置' }))
+    fireEvent.click(await screen.findByRole('button', { name: '重置' }))
     await waitFor(() => expect(screen.queryByRole('columnheader', { name: '名称' })).toBeNull())
+    expect(window.localStorage.getItem(key)).toBeNull()
+  })
+
+  it('restores saved columns per table id, pins in definition order, and unpins hidden columns', async () => {
+    const columns = [...COLUMNS.slice(0, 2), { ...COLUMNS[2], search: false }]
+    const headers = () => screen.getAllByRole('columnheader').map(cell => cell.textContent)
+    const pinStart = (label: string) =>
+      fireEvent.click(
+        within(screen.getByRole('checkbox', { name: label }).closest('li')!).getByRole('button', { name: '左固定' })
+      )
+    const first = renderRoutedTable('/demo', '/demo', { columns, tableId: 'first' })
+    await screen.findByRole('columnheader', { name: '数量' })
+    fireEvent.click(screen.getByRole('button', { name: '列设置' }))
+    await screen.findByRole('checkbox', { name: '名称' })
+    // Pin 数量 and then 名称: both sit before 序号, in definition order rather than click order.
+    pinStart('数量')
+    pinStart('名称')
+    await waitFor(() => expect(headers()).toEqual(['名称', '数量', '序号']))
+    // Hiding a pinned column unpins it.
+    fireEvent.click(screen.getByRole('checkbox', { name: '名称' }))
+    await waitFor(() => expect(headers()).toEqual(['数量', '序号']))
+    fireEvent.click(screen.getByRole('checkbox', { name: '名称' }))
+    await waitFor(() => expect(headers()).toEqual(['数量', '序号', '名称']))
+    fireEvent.click(screen.getByRole('button', { name: '保存' }))
+    first.unmount()
+
+    renderRoutedTable('/demo', '/demo', { columns, tableId: 'first' })
+    await screen.findByRole('columnheader', { name: '数量' })
+    expect(headers()).toEqual(['数量', '序号', '名称'])
+    cleanup()
+
+    renderRoutedTable('/demo', '/demo', { columns, tableId: 'second' })
+    await screen.findByRole('columnheader', { name: '名称' })
+    expect(headers()).toEqual(['序号', '名称', '数量'])
   })
 
   it('expands controlled tree rows and changes local postData without requesting or paginating', async () => {
