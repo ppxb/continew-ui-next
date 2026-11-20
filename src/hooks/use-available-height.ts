@@ -28,7 +28,8 @@ export function useAvailableHeight<T extends HTMLElement>(ref: RefObject<T | nul
       if (element.getClientRects().length === 0) {
         return
       }
-      const top = element.getBoundingClientRect().top
+      let top = element.getBoundingClientRect().top
+      let fixed = false
       let bottomSpacing = 0
       for (let ancestor: HTMLElement | null = element; ancestor; ancestor = ancestor.parentElement) {
         const style = getComputedStyle(ancestor)
@@ -37,8 +38,15 @@ export function useAvailableHeight<T extends HTMLElement>(ref: RefObject<T | nul
           (Number.parseFloat(style.borderBottomWidth) || 0) +
           (Number.parseFloat(style.marginBottom) || 0)
         // A fullscreen container is positioned against the viewport, not its DOM ancestors.
-        if (style.position === 'fixed') break
+        if (style.position === 'fixed') {
+          fixed = true
+          break
+        }
       }
+      // Outside a fixed container use the document-relative top: the viewport-relative top shrinks as
+      // the window scrolls, which grows the element, which makes the page taller and scrollable again,
+      // an endless feedback loop.
+      if (!fixed) top += window.scrollY
       const available = `${Math.max(0, Math.round(window.innerHeight - top - bottomSpacing))}px`
       if (element.style.getPropertyValue(variable) !== available) {
         element.style.setProperty(variable, available)
@@ -56,13 +64,11 @@ export function useAvailableHeight<T extends HTMLElement>(ref: RefObject<T | nul
     observer.observe(document.documentElement)
     observer.observe(element)
     window.addEventListener('resize', schedule)
-    window.addEventListener('scroll', schedule, { passive: true })
 
     return () => {
       if (frame) cancelAnimationFrame(frame)
       observer.disconnect()
       window.removeEventListener('resize', schedule)
-      window.removeEventListener('scroll', schedule)
       element.style.removeProperty(variable)
       applyRef.current = () => {}
     }

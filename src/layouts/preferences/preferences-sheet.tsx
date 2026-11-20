@@ -37,6 +37,8 @@ export function PreferencesSheet() {
   const open = useShellStore(state => state.preferencesOpen)
   const setOpen = useShellStore(state => state.setPreferencesOpen)
   const [mounted, setMounted] = useState(false)
+  // Lives outside the sheet content, so the chosen tab survives closing and reopening the drawer.
+  const [tab, setTab] = useState<string>('appearance')
   const store = usePreferencesStoreApi()
   const logout = useLogout()
   const hasChanges = useHasChanges()
@@ -115,7 +117,7 @@ export function PreferencesSheet() {
           </div>
         </SheetHeader>
 
-        <Tabs defaultValue="appearance" className="min-h-0 flex-1 gap-0">
+        <Tabs value={tab} onValueChange={value => setTab(String(value))} className="min-h-0 flex-1 gap-0">
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
             <div className={cn('bg-popover px-4 pt-3 pb-2', sticky && 'sticky top-0 z-10')}>
               <TabsList className="grid w-full grid-cols-4">
