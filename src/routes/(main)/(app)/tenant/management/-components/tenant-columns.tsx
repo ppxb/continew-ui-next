@@ -88,6 +88,12 @@ const STATUS_ENUM = new Map<TenantStatus, ProSchemaValueEnumType>([
   [2, { text: '禁用', status: 'Error' }]
 ])
 
+/** A package's name from the package dictionary, for the applied 套餐 filter tag. */
+function PackageName({ id }: { readonly id: unknown }) {
+  const packages = useQuery({ queryKey: packageKeys.dicts(), queryFn: ({ signal }) => listPackageDict(signal) })
+  return packages.data?.find(option => String(option.value) === String(id))?.label ?? String(id)
+}
+
 function TenantPackageField({
   id,
   value,
@@ -181,7 +187,14 @@ export const tenantColumns = [
     hideInForm: true,
     render: (_, tenant) => <CopyableText value={String(tenant.id)} />
   },
-  { title: '编码', dataIndex: 'code', hideInForm: true, render: (_, tenant) => <CopyableText value={tenant.code} /> },
+  {
+    title: '编码',
+    dataIndex: 'code',
+    hideInForm: true,
+    search: true,
+    fieldProps: { placeholder: '编码' },
+    render: (_, tenant) => <CopyableText value={tenant.code} />
+  },
   {
     title: '名称',
     dataIndex: 'name',
@@ -197,7 +210,10 @@ export const tenantColumns = [
     hideInDescriptions: true,
     order: 2,
     initialValue: '',
-    search: { transform: value => ({ packageId: value || undefined }) },
+    search: {
+      transform: value => ({ packageId: value || undefined }),
+      renderValue: value => <PackageName id={value} />
+    },
     convertValue: value => (value == null ? '' : String(value)),
     formItemProps: { rules: tenantRules.packageId.min(1, '请选择套餐') },
     formItemRender: (_schema, control) => <TenantPackageField {...control} search={control.type === 'table'} />
@@ -206,7 +222,12 @@ export const tenantColumns = [
     title: '域名',
     dataIndex: 'domain',
     order: 6,
-    fieldProps: { addonStart: 'http(s)://', maxLength: 255, placeholder: '请输入需要绑定的域名' },
+    search: true,
+    // The form edits a bare host behind an `http(s)://` addon; the filter matches any part of it.
+    fieldProps: (_form, { type }) =>
+      type === 'table'
+        ? { placeholder: '域名' }
+        : { addonStart: 'http(s)://', maxLength: 255, placeholder: '请输入需要绑定的域名' },
     formItemProps: { rules: tenantRules.domain },
     render: (_, tenant) => <DomainCell domain={tenant.domain} />
   },

@@ -88,7 +88,7 @@ export const jobLogColumns: readonly ProColumns<JobLogRecord>[] = [
     dataIndex: 'taskBatchStatus',
     valueType: 'select',
     valueEnum: STATUS_ENUM,
-    search: true,
+    search: { inline: true },
     hideInForm: true,
     align: 'center',
     render: (_, log) => (

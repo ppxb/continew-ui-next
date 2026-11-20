@@ -40,6 +40,10 @@ export type TenantPageQuery = {
   /** Matched against both the name and the description. */
   description?: string
   packageId?: string | number
+  /** Exact tenant code. */
+  code?: string
+  /** Matched as a substring of the bound domain. */
+  domain?: string
 }
 
 /**

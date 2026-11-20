@@ -16,6 +16,8 @@ interface ListPageCardProps {
   readonly filters?: ReactNode
   /** Toolbar actions, on the right of the same row. */
   readonly actions?: ReactNode
+  /** Applied filter tags, under the filter row. */
+  readonly tags?: ReactNode
   readonly fullscreen: FullscreenControls
   readonly children: ReactNode
 }
@@ -24,7 +26,7 @@ interface ListPageCardProps {
  * The card every list screen shares: an optional title row, the filter and toolbar row above the
  * table, and the fullscreen spacer that keeps the page height stable while the table expands.
  */
-export function ListPageCard({ title, description, filters, actions, fullscreen, children }: ListPageCardProps) {
+export function ListPageCard({ title, description, filters, actions, tags, fullscreen, children }: ListPageCardProps) {
   return (
     <Card className="pb-0">
       {title ? (
@@ -46,7 +48,7 @@ export function ListPageCard({ title, description, filters, actions, fullscreen,
             fullscreen.isFullscreen && 'bg-background [--table-surface:var(--color-background)]'
           )}
         >
-          <ListFilterRow filters={filters} actions={actions} />
+          <ListFilterRow filters={filters} actions={actions} tags={tags} />
 
           {children}
         </div>

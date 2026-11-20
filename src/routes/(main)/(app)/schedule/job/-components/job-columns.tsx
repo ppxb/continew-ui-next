@@ -493,7 +493,7 @@ export function jobColumns(options: Partial<JobColumnOptions> = {}): ProColumns<
       title: (_, type) => (type === 'table' ? '状态' : '任务状态'),
       dataIndex: 'jobStatus',
       valueType: 'select',
-      search: true,
+      search: { inline: true },
       initialValue: 0,
       valueEnum: new Map([
         [1, '启用'],

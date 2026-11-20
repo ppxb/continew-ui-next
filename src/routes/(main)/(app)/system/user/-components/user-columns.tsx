@@ -3,7 +3,7 @@ import { Eye, KeyRound, Pen, ShieldCheck, Trash2 } from 'lucide-react'
 
 import { FlagBadge, TagList } from '@/components/data-badge'
 import { CopyableText } from '@/components/copyable-text'
-import { DeptTreeSelect } from '@/components/dept-tree-select'
+import { DeptName, DeptTreeSelect } from '@/components/dept-tree-select'
 import { FilterSelect } from '@/components/filter-select'
 import { TableDropdown, type ProColumns, type ProSchemaValueEnumType } from '@/components/pro'
 import { QueryState } from '@/components/query-state'
@@ -171,7 +171,10 @@ export const userColumns = [
     hideInDescriptions: true,
     initialValue: '',
     order: 4,
-    search: { transform: value => ({ deptId: value || undefined }) },
+    search: {
+      transform: value => ({ deptId: value || undefined }),
+      renderValue: value => <DeptName id={value as string} />
+    },
     convertValue: value => (value == null ? '' : String(value)),
     formItemProps: { rules: userRules.deptId },
     formItemRender: (_schema, control) =>
@@ -197,7 +200,7 @@ export const userColumns = [
     valueType: 'switch',
     valueEnum: STATUS_ENUM,
     initialValue: 1,
-    search: { transform: value => ({ status: value === 1 || value === 2 ? value : undefined }) },
+    search: { inline: true, transform: value => ({ status: value === 1 || value === 2 ? value : undefined }) },
     order: -1,
     formItemProps: form => ({
       rules: userRules.status,
@@ -298,7 +301,18 @@ export const userColumns = [
   { title: '创建人', dataIndex: 'createUserString', hideInForm: true },
   { title: '创建时间', dataIndex: 'createTime', valueType: 'dateTime', hideInForm: true },
   { title: '修改人', dataIndex: 'updateUserString', hideInForm: true },
-  { title: '修改时间', dataIndex: 'updateTime', valueType: 'dateTime', hideInForm: true }
+  { title: '修改时间', dataIndex: 'updateTime', valueType: 'dateTime', hideInForm: true },
+  // Search only: UserQuery.createTime takes a "start,end" range.
+  {
+    title: '创建时间',
+    key: 'createTimeRange',
+    dataIndex: 'createTime',
+    valueType: 'dateTimeRange',
+    hideInTable: true,
+    hideInForm: true,
+    hideInDescriptions: true,
+    search: { transform: value => ({ createTime: Array.isArray(value) ? value.join(',') : undefined }) }
+  }
 ] as const satisfies readonly ProColumns<UserRecord>[]
 
 export function getUserFormColumns(isCreate: boolean): readonly ProColumns<UserRecord>[] {

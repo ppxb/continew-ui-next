@@ -25,6 +25,8 @@ export interface ClientResp {
 
 export interface ClientQuery {
   clientType?: string
+  /** Matches any of the listed auth types. */
+  authType?: string[]
   status?: number | string
   page?: number
   size?: number

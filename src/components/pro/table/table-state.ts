@@ -23,8 +23,13 @@ export function getSearchColumns<T>(columns: readonly ProColumns<T>[], disabled 
       )
 }
 
-function isNonempty(value: unknown) {
+export function isNonempty(value: unknown): boolean {
   return value !== undefined && value !== null && value !== '' && (!Array.isArray(value) || value.some(isNonempty))
+}
+
+/** Filters that sit next to the keyword box; the rest live in the 筛选 drawer. */
+export function isInlineSearch<T>(column: ProFieldColumn<T>) {
+  return typeof column.search === 'object' && column.search.inline === true
 }
 
 export function formatSearchValues<T>(columns: readonly ProFieldColumn<T>[], values: ProValues): ProValues {
@@ -32,8 +37,8 @@ export function formatSearchValues<T>(columns: readonly ProFieldColumn<T>[], val
   for (const column of columns) {
     const name = column.dataIndex
     if (!name || !isNonempty(values[name])) continue
-    const transformed =
-      typeof column.search === 'object' ? column.search.transform(values[name], name) : { [name]: values[name] }
+    const transform = typeof column.search === 'object' ? column.search.transform : undefined
+    const transformed = transform ? transform(values[name], name) : { [name]: values[name] }
     for (const [key, value] of Object.entries(transformed)) {
       if (isNonempty(value)) result[key] = value
     }

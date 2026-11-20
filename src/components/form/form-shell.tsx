@@ -7,7 +7,7 @@ import { useFormContext } from './form-context'
 interface FormShellProps {
   /** The fields, rendered in the scrollable area. */
   readonly children: ReactNode
-  /** Rendered below the scrollable area, usually `<form.FormFooter onCancel={onClose} />`. */
+  /** Rendered below the scrollable area, usually `<form.FormFooter />`. */
   readonly footer?: ReactNode
   /** Classes for the scrollable area. */
   readonly className?: string

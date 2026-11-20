@@ -1,9 +1,19 @@
-import type { ReactNode } from 'react'
+import * as React from 'react'
 
 import { X } from 'lucide-react'
 
 import { cn } from 'cn'
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 
@@ -26,9 +36,9 @@ interface EntityDrawerProps {
   readonly open: boolean
   readonly onClose: () => void
   readonly title: string
-  readonly icon?: ReactNode
+  readonly icon?: React.ReactNode
   /** A short tag next to the title, such as the selected record's name. */
-  readonly badge?: ReactNode
+  readonly badge?: React.ReactNode
   /** A secondary line under the title. */
   readonly description?: string
   readonly width?: EntityDrawerWidth
@@ -38,7 +48,12 @@ interface EntityDrawerProps {
   readonly closeDisabled?: boolean
   /** Return false to keep the drawer open, such as while a save is in flight. */
   readonly canClose?: () => boolean
-  readonly children: ReactNode
+  /**
+   * Unsaved input is on screen. Every user close (outside press, Esc, swipe, ✕, a `DrawerClose`
+   * cancel button) then asks before discarding it; closing by setting `open` (after a save) does not.
+   */
+  readonly dirty?: boolean
+  readonly children: React.ReactNode
 }
 
 /**
@@ -57,15 +72,18 @@ export function EntityDrawer({
   contentClassName,
   closeDisabled = false,
   canClose,
+  dirty = false,
   children
 }: EntityDrawerProps) {
+  const [confirming, setConfirming] = React.useState(false)
+
   return (
     <Drawer
       open={open}
       onOpenChange={nextOpen => {
-        if (!nextOpen && !closeDisabled && (canClose?.() ?? true)) {
-          onClose()
-        }
+        if (nextOpen || closeDisabled || !(canClose?.() ?? true)) return
+        if (dirty) setConfirming(true)
+        else onClose()
       }}
       swipeDirection="right"
     >
@@ -92,6 +110,28 @@ export function EntityDrawer({
         </DrawerHeader>
 
         {children}
+
+        {/* Nested in the drawer, so pressing its backdrop never counts as a press outside the drawer. */}
+        <AlertDialog open={confirming} onOpenChange={setConfirming}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>放弃未保存的修改？</AlertDialogTitle>
+              <AlertDialogDescription>关闭后，本次填写的内容将丢失。</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>继续编辑</AlertDialogCancel>
+              <AlertDialogAction
+                variant="destructive"
+                onClick={() => {
+                  setConfirming(false)
+                  onClose()
+                }}
+              >
+                放弃修改
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </DrawerContent>
     </Drawer>
   )

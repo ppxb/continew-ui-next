@@ -5,7 +5,7 @@ import { Megaphone } from 'lucide-react'
 
 import { BetaSchemaForm } from '@/components/pro'
 import { Button } from '@/components/ui/button'
-import { DrawerFooter } from '@/components/ui/drawer'
+import { DrawerClose, DrawerFooter } from '@/components/ui/drawer'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
 import { createNotice, getNotice, noticeKeys, updateNotice, type NoticeStatus } from '@/lib/api/notice'
@@ -78,9 +78,9 @@ export function NoticeFormDrawer({ noticeId, open, onClose }: NoticeFormDrawerPr
         submitter={{
           render: props => (
             <DrawerFooter>
-              <Button type="button" variant="outline" disabled={props.isSubmitting} onClick={props.onCancel}>
+              <DrawerClose render={<Button type="button" variant="outline" disabled={props.isSubmitting} />}>
                 取消
-              </Button>
+              </DrawerClose>
               {!isPublished ? (
                 <Button
                   type="button"

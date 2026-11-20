@@ -4,7 +4,6 @@ import { FilterSelect } from '@/components/filter-select'
 import type { ProColumns, ProSchemaValueEnumType } from '@/components/pro'
 import { RowActionsMenu } from '@/components/row-actions-menu'
 import { SuccessFailureCell } from '@/components/status-cell'
-import { TableSearch } from '@/components/table-search'
 import { TextCell } from '@/components/text-cell'
 import { DropdownMenuGroup, DropdownMenuItem } from '@/components/ui/dropdown-menu'
 import type { SmsLogResp, SmsLogStatus } from '@/lib/api/sms-log'
@@ -51,18 +50,14 @@ export const smsLogColumns: readonly ProColumns<SmsLogResp>[] = [
     search: {
       transform: value => ({ configId: typeof value === 'string' && /^\d+$/.test(value) ? value : undefined })
     },
-    formItemRender: (_, control) => (
-      <TableSearch clearable placeholder="搜索配置 ID" onSearch={control.onChange} className="w-full md:w-44" />
-    )
+    fieldProps: { placeholder: '配置 ID' }
   },
   {
     title: '手机号',
     dataIndex: 'phone',
     search: true,
     hideInForm: true,
-    formItemRender: (_, control) => (
-      <TableSearch clearable placeholder="搜索手机号" onSearch={control.onChange} className="w-full md:w-48" />
-    )
+    fieldProps: { placeholder: '手机号' }
   },
   {
     title: '参数配置',
@@ -75,7 +70,7 @@ export const smsLogColumns: readonly ProColumns<SmsLogResp>[] = [
     dataIndex: 'status',
     valueType: 'select',
     valueEnum: STATUS_ENUM,
-    search: true,
+    search: { inline: true },
     hideInForm: true,
     formItemRender: (_, control) => (
       <FilterSelect

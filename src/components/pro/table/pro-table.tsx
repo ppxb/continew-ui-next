@@ -25,10 +25,18 @@ import { dataTableFeatures } from '@/lib/data-table-features'
 import type { DataTableFeatures } from '@/lib/data-table-features'
 import { getColumnKey, getColumnTitle, getFieldColumns } from '../column-utils'
 import type { ActionType, FilterValue, ProFormInstance, ProTableProps, ProValues, SortOrder } from '../typing'
+import { FilterDrawer } from './filter-drawer'
+import { FilterTags } from './filter-tags'
 import { ProTableSearchFields } from './form-render'
 import { columnsStorageKey, useColumnsSetting, type ColumnsSetting } from './columns-setting'
 import { genProColumnToColumn } from './gen-pro-column-to-column'
-import { composeRequestParams, formatSearchValues, getSearchColumns, resetSearchPage } from './table-state'
+import {
+  composeRequestParams,
+  formatSearchValues,
+  getSearchColumns,
+  isInlineSearch,
+  resetSearchPage
+} from './table-state'
 import type { ProTableSearchState } from './table-state'
 
 const EMPTY_SORT: Record<string, SortOrder> = {}
@@ -393,6 +401,10 @@ export function ProTable<T extends RowData, U extends ProValues = ProValues>(pro
       ),
     [props.columns]
   )
+  const inlineSearchColumns = searchColumns.filter(isInlineSearch)
+  const drawerSearchColumns = searchColumns.filter(column => !isInlineSearch(column))
+  const commitValues = (patch: ProValues) =>
+    commitState(resetSearchPage(stateRef.current, { values: { ...stateRef.current.values, ...patch } }))
   const filters =
     props.search === false || (!keywordName && !searchColumns.length) ? undefined : (
       <>
@@ -413,14 +425,30 @@ export function ProTable<T extends RowData, U extends ProValues = ProValues>(pro
           />
         ) : null}
         <ProTableSearchFields
-          columns={searchColumns}
+          columns={inlineSearchColumns}
           values={state.values}
           form={form as ProFormInstance}
-          onChange={(name, value) => {
-            commitState(resetSearchPage(stateRef.current, { values: { ...stateRef.current.values, [name]: value } }))
-          }}
+          onChange={(name, value) => commitValues({ [name]: value })}
         />
+        {drawerSearchColumns.length > 0 ? (
+          <FilterDrawer
+            columns={drawerSearchColumns}
+            values={state.values}
+            initialValues={props.form?.initialValues ?? {}}
+            form={form as ProFormInstance}
+            onApply={commitValues}
+          />
+        ) : null}
       </>
+    )
+  const filterTags =
+    props.search === false ? undefined : (
+      <FilterTags
+        columns={drawerSearchColumns}
+        values={state.values}
+        onRemove={name => commitValues({ [name]: props.form?.initialValues?.[name] })}
+        onClear={restoreSearch}
+      />
     )
   const toolbarButtons = React.Children.toArray(props.toolBarRender ? props.toolBarRender(action) : undefined)
   const showToolbar =
@@ -492,7 +520,7 @@ export function ProTable<T extends RowData, U extends ProValues = ProValues>(pro
               ) : null}
             </header>
           ) : null}
-          <ListFilterRow filters={filters} actions={actions} />
+          <ListFilterRow filters={filters} actions={actions} tags={filterTags} />
           {content}
         </div>
       </div>
@@ -503,6 +531,7 @@ export function ProTable<T extends RowData, U extends ProValues = ProValues>(pro
       description={props.toolbar?.subTitle}
       filters={filters}
       actions={actions}
+      tags={filterTags}
       fullscreen={fullscreen}
     >
       {content}

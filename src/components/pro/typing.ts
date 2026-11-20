@@ -117,7 +117,18 @@ export interface ProColumnBase<T> {
   hideInSetting?: boolean
   /** Initial pinned side; users can change it in the column settings. */
   fixed?: 'left' | 'right'
-  search?: boolean | { transform: (value: unknown, field: string) => ProValues }
+  /**
+   * Makes the field a table filter. Filters open in the 筛选 drawer and apply on 应用; `inline`
+   * ones sit next to the keyword box and apply as they change. `renderValue` names the applied
+   * value on its filter tag when the field's options cannot (a tree select, a remote picker).
+   */
+  search?:
+    | boolean
+    | {
+        transform?: (value: unknown, field: string) => ProValues
+        inline?: boolean
+        renderValue?: (value: unknown) => ReactNode
+      }
   ellipsis?: boolean
   copyable?: boolean
   align?: 'left' | 'center' | 'right'

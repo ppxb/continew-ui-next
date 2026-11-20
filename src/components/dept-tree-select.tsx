@@ -95,3 +95,16 @@ export function DeptTreeSelect({
     />
   )
 }
+
+/** A department's name from the shared dept tree query, such as on a filter tag. */
+export function DeptName({ id }: { readonly id: string | number }) {
+  const depts = useQuery({ queryKey: deptKeys.trees(), queryFn: ({ signal }) => getDeptTree(undefined, signal) })
+  const find = (nodes: readonly DeptResp[]): string | undefined => {
+    for (const node of nodes) {
+      if (String(node.id) === String(id)) return node.name
+      const found = find(node.children ?? EMPTY_NODES)
+      if (found !== undefined) return found
+    }
+  }
+  return find(depts.data ?? EMPTY_NODES) ?? String(id)
+}

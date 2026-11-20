@@ -13,7 +13,7 @@ import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import type { ProFieldFCRenderProps, ProValue, ProValueTypeMap } from '../typing'
 
-function TextControl({ fieldProps, light }: ProFieldFCRenderProps) {
+function TextControl({ fieldProps, light, label }: ProFieldFCRenderProps) {
   const { value, onChange, onBlur, id, invalid, addonStart, addonEnd, ...rest } = fieldProps
   const props = {
     ...(rest as ComponentProps<'input'>),
@@ -23,7 +23,9 @@ function TextControl({ fieldProps, light }: ProFieldFCRenderProps) {
     onBlur,
     'aria-invalid': invalid
   }
-  if (light)
+  // A filter has no visible label, so its placeholder names the field unless one is configured.
+  if (light) {
+    if (props.placeholder === undefined && typeof label === 'string') props.placeholder = label
     return (
       <InputGroup className="w-full sm:w-64">
         <InputGroupAddon>
@@ -32,6 +34,7 @@ function TextControl({ fieldProps, light }: ProFieldFCRenderProps) {
         <InputGroupInput {...props} />
       </InputGroup>
     )
+  }
   return addonStart || addonEnd ? (
     <InputGroup>
       {addonStart ? <InputGroupAddon>{addonStart as React.ReactNode}</InputGroupAddon> : null}

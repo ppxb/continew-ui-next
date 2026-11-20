@@ -80,6 +80,15 @@ export const onlineUserColumns: readonly ProColumns<OnlineUserRecord>[] = [
         placeholder="登录时间"
       />
     )
+  },
+  {
+    title: '客户端 ID',
+    dataIndex: 'clientId',
+    hideInTable: true,
+    hideInForm: true,
+    hideInDescriptions: true,
+    search: true,
+    fieldProps: { placeholder: '客户端 ID' }
   }
 ]
 

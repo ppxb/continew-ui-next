@@ -89,7 +89,7 @@ export const packageColumns = [
     valueType: 'switch',
     valueEnum: STATUS_ENUM,
     initialValue: 1,
-    search: true,
+    search: { inline: true },
     align: 'center',
     order: -1,
     formItemProps: form => ({

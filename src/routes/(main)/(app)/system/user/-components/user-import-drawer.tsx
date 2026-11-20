@@ -7,7 +7,7 @@ import { Download, FileSpreadsheet, RotateCcw, Upload } from 'lucide-react'
 import { cn } from 'cn'
 
 import { Button } from '@/components/ui/button'
-import { DrawerFooter } from '@/components/ui/drawer'
+import { DrawerClose, DrawerFooter } from '@/components/ui/drawer'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Spinner } from '@/components/ui/spinner'
 import { toast } from '@/components/ui/toast'
@@ -205,6 +205,7 @@ export function UserImportDrawer({ open, onClose }: UserImportDrawerProps) {
       width={36}
       closeDisabled={busy}
       canClose={() => !busyRef.current}
+      dirty={file !== null}
     >
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
         <div className="flex flex-col gap-4">
@@ -342,9 +343,7 @@ export function UserImportDrawer({ open, onClose }: UserImportDrawerProps) {
       </div>
 
       <DrawerFooter>
-        <Button type="button" variant="outline" disabled={busy} onClick={onClose}>
-          取消
-        </Button>
+        <DrawerClose render={<Button type="button" variant="outline" disabled={busy} />}>取消</DrawerClose>
         {parseResult ? (
           <Button type="button" variant="outline" disabled={busy} onClick={resetUpload}>
             <RotateCcw />

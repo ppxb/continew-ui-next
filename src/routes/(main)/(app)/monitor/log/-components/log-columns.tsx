@@ -3,7 +3,6 @@ import type { DateRange } from 'react-day-picker'
 import { DateRangeFilter } from '@/components/date-range-filter'
 import { FilterSelect } from '@/components/filter-select'
 import type { ProColumns, ProSchemaValueEnumType } from '@/components/pro'
-import { TableSearch } from '@/components/table-search'
 import { TextCell } from '@/components/text-cell'
 import { Button } from '@/components/ui/button'
 import type { LogDetailResp, LogExportQuery, LogResp, LogStatus } from '@/lib/api/log'
@@ -31,7 +30,7 @@ function statusColumn(): ProColumns<LogRecord> {
     dataIndex: 'status',
     valueType: 'select',
     valueEnum: STATUS_ENUM,
-    search: true,
+    search: { inline: true },
     hideInForm: true,
     formItemRender: (_, control) => (
       <FilterSelect
@@ -69,22 +68,20 @@ function dateRangeColumn(title: string): ProColumns<LogRecord> {
 }
 
 function ipColumn(title: string, placeholder: string): ProColumns<LogRecord> {
-  return {
-    title,
-    dataIndex: 'ip',
-    search: true,
-    hideInForm: true,
-    formItemRender: (_, control) => (
-      <TableSearch clearable placeholder={placeholder} onSearch={control.onChange} className="w-full md:w-56" />
-    )
-  }
+  return { title, dataIndex: 'ip', search: true, hideInForm: true, fieldProps: { placeholder } }
 }
 
 export const loginLogColumns: readonly ProColumns<LogRecord>[] = [
   { title: '序号', valueType: 'index' },
   { title: '登录时间', dataIndex: 'createTime', valueType: 'dateTime', hideInForm: true },
   { title: '用户昵称', dataIndex: 'createUserString', hideInForm: true },
-  { title: '登录行为', dataIndex: 'description', hideInForm: true },
+  {
+    title: '登录行为',
+    dataIndex: 'description',
+    search: true,
+    hideInForm: true,
+    fieldProps: { placeholder: '登录行为' }
+  },
   statusColumn(),
   ipColumn('登录 IP', '搜索登录 IP 或地点'),
   { title: '登录地点', dataIndex: 'address', hideInForm: true },
@@ -111,7 +108,13 @@ export const operationLogColumns: readonly ProColumns<LogRecord>[] = [
   },
   { title: '操作时间', dataIndex: 'createTime', valueType: 'dateTime', hideInForm: true },
   { title: '操作人', dataIndex: 'createUserString', hideInForm: true },
-  { title: '操作内容', dataIndex: 'description', hideInForm: true },
+  {
+    title: '操作内容',
+    dataIndex: 'description',
+    search: true,
+    hideInForm: true,
+    fieldProps: { placeholder: '操作内容' }
+  },
   { title: '所属模块', dataIndex: 'module', hideInForm: true },
   statusColumn(),
   ipColumn('操作 IP', '搜索操作 IP 或地点'),

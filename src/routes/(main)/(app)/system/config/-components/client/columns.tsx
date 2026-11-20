@@ -201,7 +201,7 @@ export function createClientColumns(options: ClientColumnOptions): readonly ProC
       title: '客户端类型',
       dataIndex: 'clientType',
       valueType: 'select',
-      search: true,
+      search: { renderValue: value => clientTypeMap[value as string] || String(value) },
       initialValue: 'PC',
       span: 2,
       valueEnum: clientTypeMap,
@@ -234,6 +234,7 @@ export function createClientColumns(options: ClientColumnOptions): readonly ProC
       dataIndex: 'authType',
       valueType: 'select',
       valueEnum: authTypeMap,
+      search: true,
       initialValue: ['ACCOUNT'],
       span: 2,
       convertValue: value => value ?? ['ACCOUNT'],
@@ -269,7 +270,7 @@ export function createClientColumns(options: ClientColumnOptions): readonly ProC
       initialValue: 1,
       order: -1,
       span: 2,
-      search: true,
+      search: { inline: true },
       valueEnum: new Map([
         [1, '启用'],
         [2, '禁用']

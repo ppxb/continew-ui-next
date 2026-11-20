@@ -34,8 +34,8 @@ export type OnlineUserPageQuery = {
    * into its `List<LocalDateTime>` filter.
    */
   loginTime?: string
-  // The backend also filters by `clientId`; the screen follows the Vue client and offers
-  // only the two filters above.
+  /** Exact client id. */
+  clientId?: string
 }
 
 /** One page of login sessions. */

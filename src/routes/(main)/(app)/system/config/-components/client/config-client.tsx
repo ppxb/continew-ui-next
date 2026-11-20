@@ -79,7 +79,7 @@ export function ConfigClient() {
 
   return (
     <>
-      <ProTable<ClientResp, { clientType?: string; status?: number }>
+      <ProTable<ClientResp, { clientType?: string; authType?: string[]; status?: number }>
         cardProps={false}
         headerTitle="客户端配置"
         toolbar={{ subTitle: '管理客户端凭据、令牌策略与登录限制' }}
@@ -89,8 +89,8 @@ export function ConfigClient() {
         tableId="client"
         disabledColumnKeys={['clientId']}
         columnsState={{ defaultValue: HIDDEN_BY_DEFAULT }}
-        request={async ({ current, pageSize, clientType, status }, _sort, _filter, signal) => {
-          const result = await listClient({ page: current, size: pageSize, clientType, status }, signal)
+        request={async ({ current, pageSize, clientType, authType, status }, _sort, _filter, signal) => {
+          const result = await listClient({ page: current, size: pageSize, clientType, authType, status }, signal)
           return { data: result.list, total: result.total, success: true }
         }}
         toolBarRender={() =>

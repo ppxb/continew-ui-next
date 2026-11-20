@@ -9,7 +9,7 @@ import { EntityDrawer } from '@/components/entity-drawer'
 import { QueryState } from '@/components/query-state'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { DrawerFooter } from '@/components/ui/drawer'
+import { DrawerClose, DrawerFooter } from '@/components/ui/drawer'
 import { Field, FieldContent, FieldDescription, FieldLabel } from '@/components/ui/field'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Spinner } from '@/components/ui/spinner'
@@ -116,6 +116,14 @@ export function RolePermissionDrawer({ role, open, onClose }: RolePermissionDraw
 
   const isLoading = detail.isPending || detail.fetchStatus !== 'idle' || permTree.isPending
   const isLoadError = !isLoading && (detail.isError || permTree.isError)
+  // Checked permissions differ from the saved ones, so a close asks before discarding them.
+  const saved = detail.data
+  const savedMenuIds = React.useMemo(() => new Set(saved?.menuIds.map(String)), [saved])
+  const dirty =
+    saved !== undefined &&
+    (menuCheckStrictly !== saved.menuCheckStrictly ||
+      selectedMenuIds.length !== savedMenuIds.size ||
+      selectedMenuIds.some(id => !savedMenuIds.has(String(id))))
 
   return (
     <EntityDrawer
@@ -126,6 +134,7 @@ export function RolePermissionDrawer({ role, open, onClose }: RolePermissionDraw
       badge={shownRole ? <Badge variant="secondary">{shownRole.name}</Badge> : undefined}
       width={36}
       closeDisabled={isSubmitting}
+      dirty={dirty}
     >
       {isLoading ? (
         <div className="flex flex-col gap-4 p-4">
@@ -165,9 +174,7 @@ export function RolePermissionDrawer({ role, open, onClose }: RolePermissionDraw
           </div>
 
           <DrawerFooter>
-            <Button type="button" variant="outline" disabled={isSubmitting} onClick={onClose}>
-              取消
-            </Button>
+            <DrawerClose render={<Button type="button" variant="outline" disabled={isSubmitting} />}>取消</DrawerClose>
             <Button type="button" disabled={isSubmitting} onClick={handleSave}>
               {isSubmitting ? (
                 <>

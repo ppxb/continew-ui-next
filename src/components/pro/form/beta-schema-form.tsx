@@ -104,6 +104,8 @@ export function BetaSchemaForm<T, const C extends readonly ProColumns<T>[] = rea
   })
   const values = useStore(form.store, state => state.values)
   const formSubmitting = useStore(form.store, state => state.isSubmitting)
+  // Edited by the user since the last fill; asks before a drawer close discards it.
+  const dirty = useStore(form.store, state => state.isDirty)
   const [isAttemptSubmitting, setAttemptSubmitting] = useState(false)
   const isSubmitting = formSubmitting || isAttemptSubmitting
   const submit = useCallback(async () => {
@@ -188,7 +190,7 @@ export function BetaSchemaForm<T, const C extends readonly ProColumns<T>[] = rea
   const texts = shownProps.submitter === false ? undefined : shownProps.submitter?.searchConfig
   const defaultFooter =
     shownProps.submitter === false ? undefined : drawer ? (
-      <form.FormFooter onCancel={close} cancelText={texts?.resetText} submitText={texts?.submitText} />
+      <form.FormFooter cancelText={texts?.resetText} submitText={texts?.submitText} />
     ) : (
       <div className="flex items-center gap-2">
         <Button type="button" variant="outline" disabled={isSubmitting} onClick={instance.resetFields}>
@@ -346,6 +348,7 @@ export function BetaSchemaForm<T, const C extends readonly ProColumns<T>[] = rea
       {...header.drawerProps}
       closeDisabled={isSubmitting}
       canClose={() => !form.state.isSubmitting && !submittingRef.current}
+      dirty={dirty}
     >
       {body}
     </EntityDrawer>

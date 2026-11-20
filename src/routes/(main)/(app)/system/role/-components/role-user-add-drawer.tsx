@@ -15,7 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import { DrawerFooter } from '@/components/ui/drawer'
+import { DrawerClose, DrawerFooter } from '@/components/ui/drawer'
 import { Pagination, PaginationContent, PaginationItem } from '@/components/ui/pagination'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -208,6 +208,7 @@ export function RoleUserAddDrawer({ role, open, onClose, onSuccess }: RoleUserAd
       icon={<UserPlus className="size-4" />}
       badge={shownRole ? <Badge variant="secondary">{shownRole.name}</Badge> : undefined}
       contentClassName="data-[swipe-axis=x]:[--drawer-content-width:89%] data-[swipe-axis=x]:sm:[--drawer-content-width:89%] data-[swipe-axis=x]:md:[--drawer-content-width:47.5rem]"
+      dirty={selected.size > 0}
     >
       <div className="flex min-h-0 flex-1 flex-col gap-3 p-4">
         <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center">
@@ -413,9 +414,7 @@ export function RoleUserAddDrawer({ role, open, onClose, onSuccess }: RoleUserAd
       </div>
 
       <DrawerFooter>
-        <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
-          取消
-        </Button>
+        <DrawerClose render={<Button variant="outline" disabled={isSubmitting} />}>取消</DrawerClose>
         <Button onClick={() => void handleSubmit()} disabled={selected.size === 0 || isSubmitting}>
           {isSubmitting ? '添加中' : selected.size > 0 ? `确定添加 (${selected.size})` : '确定添加'}
         </Button>

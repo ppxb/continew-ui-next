@@ -33,7 +33,7 @@ const COLUMNS = [
     dataIndex: 'count',
     title: '数量',
     valueType: 'digit',
-    search: true,
+    search: { inline: true },
     initialValue: 99,
     fieldProps: { placeholder: '筛选数量' }
   }
@@ -447,6 +447,28 @@ describe('ProTable requests and actions', () => {
     renderRoutedTable('/demo', '/demo', { columns, tableId: 'second' })
     await screen.findByRole('columnheader', { name: '名称' })
     expect(headers()).toEqual(['序号', '名称', '数量'])
+  })
+
+  it('applies drawer filters only on 应用, guards unapplied edits, and removes them by tag', async () => {
+    const request = vi.fn(async (params: ProValues) => response(params))
+    renderTable({ request, columns: [COLUMNS[0], { ...COLUMNS[1], search: true }, COLUMNS[2]] })
+    await screen.findByText('Page 1')
+    fireEvent.click(screen.getByRole('button', { name: '筛选' }))
+    fireEvent.change(await screen.findByPlaceholderText('名称'), { target: { value: 'needle' } })
+    expect(request.mock.calls.some(([params]) => params.name === 'needle')).toBe(false)
+
+    // A close with unapplied edits asks first; 继续编辑 keeps the draft.
+    fireEvent.keyDown(document.activeElement ?? document.body, { key: 'Escape' })
+    fireEvent.click(await screen.findByRole('button', { name: '继续编辑' }))
+    expect((screen.getByPlaceholderText('名称') as HTMLInputElement).value).toBe('needle')
+
+    fireEvent.click(screen.getByRole('button', { name: '应用' }))
+    await waitFor(() => expect(request.mock.calls.at(-1)?.[0]).toMatchObject({ current: 1, name: 'needle' }))
+    expect(screen.getByLabelText('已选条件').textContent).toContain('名称：needle')
+
+    fireEvent.click(screen.getByRole('button', { name: '移除筛选条件 名称' }))
+    await waitFor(() => expect(request.mock.calls.at(-1)?.[0].name).toBeUndefined())
+    expect(screen.queryByLabelText('已选条件')).toBeNull()
   })
 
   it('expands controlled tree rows and changes local postData without requesting or paginating', async () => {
