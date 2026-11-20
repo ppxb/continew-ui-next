@@ -4,7 +4,6 @@ import { Link } from '@tanstack/react-router'
 import { cn } from 'cn'
 import { useShallow } from 'zustand/react/shallow'
 
-import { Separator } from '@/components/ui/separator'
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar'
 import { useSiteOptions } from '@/hooks/use-site-options'
 import type { MenuRoot } from '@/navigation/menu'
@@ -111,12 +110,6 @@ export const AdminHeader = React.memo(function AdminHeader({
       <div className="flex shrink-0 items-center gap-1 lg:gap-2">
         {showBrand && <HeaderBrand wide={brandAlignsSidebar} />}
         {showSidebarToggle && <SidebarTrigger className="-ml-1" />}
-        {(showSidebarToggle || showBrand) && (showBreadcrumb || w.search) && (
-          <Separator
-            orientation="vertical"
-            className="mx-1 data-[orientation=vertical]:h-4 data-[orientation=vertical]:self-center"
-          />
-        )}
         {showBreadcrumb && <AppBreadcrumb className="hidden md:flex" />}
       </div>
 
