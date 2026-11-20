@@ -62,12 +62,13 @@ export function FilterDrawer<T>({ columns, values, initialValues, form, onApply 
         width={30}
         dirty={dirty}
       >
-        {/* Full-width stack of the same compact controls the inline row uses. */}
-        <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4 *:*:w-full *:*:sm:w-full [&_[data-slot=popover-trigger]]:w-full">
+        {/* A labelled form; controls fill the drawer width, whatever width they take inline. */}
+        <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-4 *:*:w-full *:*:sm:w-full [&_[data-slot=popover-trigger]]:w-full">
           <ProTableSearchFields
             columns={columns}
             values={draft}
             form={form}
+            labelled
             onChange={(name, value) => setDraft(current => ({ ...current, [name]: value }))}
           />
         </div>

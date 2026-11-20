@@ -210,11 +210,11 @@ export function createClientColumns(options: ClientColumnOptions): readonly ProC
       formItemRender: (_schema, control) =>
         control.type === 'table' ? (
           <FilterSelect
-            label="客户端类型"
+            label={control.labelled ? undefined : '客户端类型'}
             options={[{ value: 'all', label: '全部' }, ...clientTypeOptions]}
             value={typeof control.value === 'string' ? control.value : 'all'}
             onValueChange={value => control.onChange(!value || value === 'all' ? undefined : value)}
-            className="w-full sm:w-40"
+            className={control.labelled ? undefined : 'w-full sm:w-40'}
           />
         ) : (
           control.defaultRender()

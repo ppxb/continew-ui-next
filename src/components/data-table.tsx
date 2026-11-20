@@ -146,6 +146,9 @@ export function DataTable<TRow extends RowData>({
         'flex flex-1 flex-col',
         fillHeight && 'min-h-0',
         fillHeight && '*:data-[slot=table-container]:min-h-0 *:data-[slot=table-container]:flex-1',
+        // The scroll port cuts rows mid-way when they overflow; its own bottom edge closes the column
+        // dividers there instead of leaving them hanging into the clipped row.
+        fillHeight && '*:data-[slot=table-container]:border-b',
         !hasFooter && 'pb-4',
         containerClassName
       )}

@@ -16,6 +16,8 @@ export interface ProFieldProps<T> {
   type: ProSchemaComponentTypes
   mode?: 'read' | 'edit'
   light?: boolean
+  /** With `light`: the label sits above the control (the filter drawer), so the control drops its inline prefix. */
+  labelled?: boolean
   form?: ProFormInstance
   control?: ProFieldControlProps
   emptyText?: ReactNode
@@ -28,6 +30,7 @@ export function ProField<T>({
   type,
   mode = 'read',
   light,
+  labelled,
   form,
   control,
   emptyText = EMPTY_PLACEHOLDER
@@ -47,6 +50,7 @@ export function ProField<T>({
       mode,
       type,
       light,
+      labelled,
       label: getColumnTitle(column, type),
       options: options.options,
       fieldProps: {

@@ -61,7 +61,7 @@ function dateRangeColumn(title: string): ProColumns<LogRecord> {
         onBlur={control.onBlur}
         value={control.value as DateRange | undefined}
         onChange={control.onChange}
-        placeholder={title}
+        placeholder={control.labelled ? '请选择日期范围' : title}
       />
     )
   }
@@ -75,15 +75,9 @@ export const loginLogColumns: readonly ProColumns<LogRecord>[] = [
   { title: '序号', valueType: 'index' },
   { title: '登录时间', dataIndex: 'createTime', valueType: 'dateTime', hideInForm: true },
   { title: '用户昵称', dataIndex: 'createUserString', hideInForm: true },
-  {
-    title: '登录行为',
-    dataIndex: 'description',
-    search: true,
-    hideInForm: true,
-    fieldProps: { placeholder: '登录行为' }
-  },
+  { title: '登录行为', dataIndex: 'description', search: true, hideInForm: true },
   statusColumn(),
-  ipColumn('登录 IP', '搜索登录 IP 或地点'),
+  ipColumn('登录 IP', '请输入 IP 或地点'),
   { title: '登录地点', dataIndex: 'address', hideInForm: true },
   { title: '浏览器', dataIndex: 'browser', hideInForm: true },
   { title: '终端系统', dataIndex: 'os', hideInForm: true },
@@ -108,16 +102,10 @@ export const operationLogColumns: readonly ProColumns<LogRecord>[] = [
   },
   { title: '操作时间', dataIndex: 'createTime', valueType: 'dateTime', hideInForm: true },
   { title: '操作人', dataIndex: 'createUserString', hideInForm: true },
-  {
-    title: '操作内容',
-    dataIndex: 'description',
-    search: true,
-    hideInForm: true,
-    fieldProps: { placeholder: '操作内容' }
-  },
+  { title: '操作内容', dataIndex: 'description', search: true, hideInForm: true },
   { title: '所属模块', dataIndex: 'module', hideInForm: true },
   statusColumn(),
-  ipColumn('操作 IP', '搜索操作 IP 或地点'),
+  ipColumn('操作 IP', '请输入 IP 或地点'),
   { title: '操作地点', dataIndex: 'address', hideInForm: true },
   {
     title: '耗时',

@@ -130,8 +130,8 @@ export function createJobLogColumns({
         ...column,
         formItemRender: (_, control) => (
           <FilterSelect
-            label="任务组"
-            className="w-full sm:w-40"
+            label={control.labelled ? undefined : '任务组'}
+            className={control.labelled ? undefined : 'w-full sm:w-40'}
             options={[{ value: 'all', label: '全部' }, ...groupOptions.map(group => ({ value: group, label: group }))]}
             value={typeof control.value === 'string' ? control.value : 'all'}
             onValueChange={value => {
@@ -168,6 +168,7 @@ export function createJobLogColumns({
             invalid={control.invalid}
             onBlur={control.onBlur}
             value={control.value as DateRange | undefined}
+            placeholder={control.labelled ? '请选择日期范围' : undefined}
             onChange={value => {
               control.onChange(value)
               onFilterChange()

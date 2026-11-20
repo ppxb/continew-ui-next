@@ -454,13 +454,13 @@ describe('ProTable requests and actions', () => {
     renderTable({ request, columns: [COLUMNS[0], { ...COLUMNS[1], search: true }, COLUMNS[2]] })
     await screen.findByText('Page 1')
     fireEvent.click(screen.getByRole('button', { name: '筛选' }))
-    fireEvent.change(await screen.findByPlaceholderText('名称'), { target: { value: 'needle' } })
+    fireEvent.change(await screen.findByLabelText('名称'), { target: { value: 'needle' } })
     expect(request.mock.calls.some(([params]) => params.name === 'needle')).toBe(false)
 
     // A close with unapplied edits asks first; 继续编辑 keeps the draft.
     fireEvent.keyDown(document.activeElement ?? document.body, { key: 'Escape' })
     fireEvent.click(await screen.findByRole('button', { name: '继续编辑' }))
-    expect((screen.getByPlaceholderText('名称') as HTMLInputElement).value).toBe('needle')
+    expect((screen.getByLabelText('名称') as HTMLInputElement).value).toBe('needle')
 
     fireEvent.click(screen.getByRole('button', { name: '应用' }))
     await waitFor(() => expect(request.mock.calls.at(-1)?.[0]).toMatchObject({ current: 1, name: 'needle' }))

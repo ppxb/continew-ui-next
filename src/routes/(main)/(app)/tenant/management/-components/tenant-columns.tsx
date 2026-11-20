@@ -100,6 +100,7 @@ function TenantPackageField({
   onChange,
   invalid,
   search,
+  labelled,
   disabled,
   onBlur
 }: {
@@ -109,6 +110,8 @@ function TenantPackageField({
   onBlur: () => void
   invalid: boolean
   search: boolean
+  /** The filter drawer labels the select above it. */
+  labelled?: boolean
   disabled?: boolean
 }) {
   const packages = useQuery({ queryKey: packageKeys.dicts(), queryFn: ({ signal }) => listPackageDict(signal) })
@@ -117,11 +120,11 @@ function TenantPackageField({
   if (search)
     return (
       <FilterSelect
-        label="套餐"
+        label={labelled ? undefined : '套餐'}
         options={[{ value: 'all', label: '全部' }, ...items]}
         value={typeof value === 'string' ? value : 'all'}
         onValueChange={next => onChange(!next || next === 'all' ? undefined : next)}
-        className="w-full sm:w-40"
+        className={labelled ? undefined : 'w-full sm:w-40'}
       />
     )
   if (packages.isPending) return <Skeleton className="h-8 w-full" />
@@ -192,7 +195,6 @@ export const tenantColumns = [
     dataIndex: 'code',
     hideInForm: true,
     search: true,
-    fieldProps: { placeholder: '编码' },
     render: (_, tenant) => <CopyableText value={tenant.code} />
   },
   {
@@ -225,9 +227,7 @@ export const tenantColumns = [
     search: true,
     // The form edits a bare host behind an `http(s)://` addon; the filter matches any part of it.
     fieldProps: (_form, { type }) =>
-      type === 'table'
-        ? { placeholder: '域名' }
-        : { addonStart: 'http(s)://', maxLength: 255, placeholder: '请输入需要绑定的域名' },
+      type === 'table' ? {} : { addonStart: 'http(s)://', maxLength: 255, placeholder: '请输入需要绑定的域名' },
     formItemProps: { rules: tenantRules.domain },
     render: (_, tenant) => <DomainCell domain={tenant.domain} />
   },

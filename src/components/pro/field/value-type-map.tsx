@@ -13,7 +13,7 @@ import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import type { ProFieldFCRenderProps, ProValue, ProValueTypeMap } from '../typing'
 
-function TextControl({ fieldProps, light, label }: ProFieldFCRenderProps) {
+function TextControl({ fieldProps, light, labelled, label }: ProFieldFCRenderProps) {
   const { value, onChange, onBlur, id, invalid, addonStart, addonEnd, ...rest } = fieldProps
   const props = {
     ...(rest as ComponentProps<'input'>),
@@ -23,9 +23,11 @@ function TextControl({ fieldProps, light, label }: ProFieldFCRenderProps) {
     onBlur,
     'aria-invalid': invalid
   }
-  // A filter has no visible label, so its placeholder names the field unless one is configured.
-  if (light) {
-    if (props.placeholder === undefined && typeof label === 'string') props.placeholder = label
+  // A filter's placeholder names the field unless one is configured: the inline control has no
+  // visible label, and the drawer's labelled one asks for input.
+  if (light && props.placeholder === undefined && typeof label === 'string')
+    props.placeholder = labelled ? `请输入${label}` : label
+  if (light && !labelled)
     return (
       <InputGroup className="w-full sm:w-64">
         <InputGroupAddon>
@@ -34,7 +36,6 @@ function TextControl({ fieldProps, light, label }: ProFieldFCRenderProps) {
         <InputGroupInput {...props} />
       </InputGroup>
     )
-  }
   return addonStart || addonEnd ? (
     <InputGroup>
       {addonStart ? <InputGroupAddon>{addonStart as React.ReactNode}</InputGroupAddon> : null}
@@ -68,7 +69,7 @@ function DigitControl({ fieldProps }: ProFieldFCRenderProps) {
   )
 }
 
-function SelectControl({ fieldProps, options = [], label, light }: ProFieldFCRenderProps) {
+function SelectControl({ fieldProps, options = [], label, light, labelled }: ProFieldFCRenderProps) {
   const { value, onChange, onBlur, id, invalid, placeholder, disabled, mode } = fieldProps
   // Search uses index tokens to keep string, number and boolean enum keys distinct.
   const multiple = mode === 'multiple'
@@ -103,8 +104,13 @@ function SelectControl({ fieldProps, options = [], label, light }: ProFieldFCRen
         } else onChange?.(next ?? (multiple ? [] : ''))
       }}
     >
-      <SelectTrigger id={id} onBlur={onBlur} aria-invalid={invalid} className={light ? 'w-full sm:w-44' : 'w-full'}>
-        {light ? <span className="shrink-0 text-muted-foreground">{label}</span> : null}
+      <SelectTrigger
+        id={id}
+        onBlur={onBlur}
+        aria-invalid={invalid}
+        className={light && !labelled ? 'w-full sm:w-44' : 'w-full'}
+      >
+        {light && !labelled ? <span className="shrink-0 text-muted-foreground">{label}</span> : null}
         <SelectValue placeholder={(placeholder ?? (light ? '全部' : undefined)) as string | undefined} />
       </SelectTrigger>
       <SelectContent alignItemWithTrigger={false}>
@@ -120,7 +126,7 @@ function SelectControl({ fieldProps, options = [], label, light }: ProFieldFCRen
   )
 }
 
-function RangeControl({ fieldProps, label, type }: ProFieldFCRenderProps, withTime: boolean) {
+function RangeControl({ fieldProps, label, labelled, type }: ProFieldFCRenderProps, withTime: boolean) {
   const { value, onChange, id, invalid, onBlur, placeholder, disabled } = fieldProps
   const range = value as string[] | undefined
   const selected = range?.[0] ? { from: parseISO(range[0]), to: range[1] ? parseISO(range[1]) : undefined } : undefined
@@ -132,7 +138,11 @@ function RangeControl({ fieldProps, label, type }: ProFieldFCRenderProps, withTi
         disabled={Boolean(disabled)}
         onBlur={onBlur}
         value={selected}
-        placeholder={(placeholder ?? (typeof label === 'string' ? label : undefined)) as string | undefined}
+        placeholder={
+          (placeholder ?? (labelled ? '请选择日期范围' : typeof label === 'string' ? label : undefined)) as
+            | string
+            | undefined
+        }
         onChange={next => {
           if (!next?.from) {
             onChange?.(undefined)

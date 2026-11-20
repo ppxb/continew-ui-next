@@ -49,15 +49,13 @@ export const smsLogColumns: readonly ProColumns<SmsLogResp>[] = [
     hideInDescriptions: true,
     search: {
       transform: value => ({ configId: typeof value === 'string' && /^\d+$/.test(value) ? value : undefined })
-    },
-    fieldProps: { placeholder: '配置 ID' }
+    }
   },
   {
     title: '手机号',
     dataIndex: 'phone',
     search: true,
-    hideInForm: true,
-    fieldProps: { placeholder: '手机号' }
+    hideInForm: true
   },
   {
     title: '参数配置',

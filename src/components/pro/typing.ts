@@ -88,6 +88,8 @@ export interface ProFieldControlProps {
 
 export interface ProFormItemRenderConfig extends ProFieldControlProps {
   type: ProSchemaComponentTypes
+  /** A table filter whose label renders above it (the filter drawer); drop any inline label prefix. */
+  labelled?: boolean
   defaultRender: () => ReactNode
 }
 
@@ -162,6 +164,8 @@ export interface ProFieldFCRenderProps {
   mode: ProFieldFCMode
   type: ProSchemaComponentTypes
   light?: boolean
+  /** With `light`: the label renders above the control, so the control omits its inline prefix. */
+  labelled?: boolean
   label?: ReactNode
   options?: readonly RequestOptionsType[]
   fieldProps: ProValues & Partial<ProFieldControlProps>

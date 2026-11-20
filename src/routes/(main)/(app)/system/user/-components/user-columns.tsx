@@ -181,14 +181,14 @@ export const userColumns = [
       control.type === 'table' ? (
         <DeptTreeSelect
           id={control.id}
-          triggerPrefix="部门"
+          triggerPrefix={control.labelled ? undefined : '部门'}
           placeholder="全部部门"
           placeholderColor="foreground"
           showAllOption
           allOptionLabel="全部部门"
           value={typeof control.value === 'string' || typeof control.value === 'number' ? control.value : undefined}
           onChange={control.onChange}
-          className="sm:w-44"
+          className={control.labelled ? 'w-full' : 'sm:w-44'}
         />
       ) : (
         <UserDeptField {...control} />

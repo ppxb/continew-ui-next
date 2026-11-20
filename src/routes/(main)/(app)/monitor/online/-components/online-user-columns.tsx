@@ -77,7 +77,7 @@ export const onlineUserColumns: readonly ProColumns<OnlineUserRecord>[] = [
         onBlur={control.onBlur}
         value={control.value as DateRange | undefined}
         onChange={control.onChange}
-        placeholder="登录时间"
+        placeholder={control.labelled ? '请选择日期范围' : '登录时间'}
       />
     )
   },
@@ -87,8 +87,7 @@ export const onlineUserColumns: readonly ProColumns<OnlineUserRecord>[] = [
     hideInTable: true,
     hideInForm: true,
     hideInDescriptions: true,
-    search: true,
-    fieldProps: { placeholder: '客户端 ID' }
+    search: true
   }
 ]
 

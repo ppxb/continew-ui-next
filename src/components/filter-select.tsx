@@ -6,7 +6,8 @@ interface FilterSelectOption {
 }
 
 interface FilterSelectProps {
-  readonly label: string
+  /** Inline prefix naming the filter; omitted where a label already sits above the select. */
+  readonly label?: string
   readonly options: readonly FilterSelectOption[]
   readonly value: string
   readonly onValueChange: (value: string | null) => void
@@ -21,7 +22,7 @@ export function FilterSelect({ label, options, value, onValueChange, className }
     <div className={className}>
       <Select items={options} value={value} onValueChange={onValueChange}>
         <SelectTrigger className="w-full">
-          <span className="shrink-0 text-muted-foreground">{label}</span>
+          {label ? <span className="shrink-0 text-muted-foreground">{label}</span> : null}
           <span className="block min-w-0 flex-1 overflow-hidden text-left" title={selectedLabel}>
             <SelectValue className="block truncate" />
           </span>
