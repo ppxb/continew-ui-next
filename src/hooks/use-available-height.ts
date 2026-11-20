@@ -29,8 +29,8 @@ export function useAvailableHeight<T extends HTMLElement>(ref: RefObject<T | nul
         return
       }
       let top = element.getBoundingClientRect().top
-      let fixed = false
       let bottomSpacing = 0
+      let fixed = false
       for (let ancestor: HTMLElement | null = element; ancestor; ancestor = ancestor.parentElement) {
         const style = getComputedStyle(ancestor)
         bottomSpacing +=
@@ -43,10 +43,19 @@ export function useAvailableHeight<T extends HTMLElement>(ref: RefObject<T | nul
           break
         }
       }
-      // Outside a fixed container use the document-relative top: the viewport-relative top shrinks as
-      // the window scrolls, which grows the element, which makes the page taller and scrollable again,
-      // an endless feedback loop.
-      if (!fixed) top += window.scrollY
+      if (!fixed) {
+        // chrome = documentHeight - elementHeight covers everything the shell adds around the
+        // element (header, tabbar, paddings, footer, and any future chrome), so the element fills
+        // the viewport exactly: available = innerHeight - chrome. Growing the element grows the
+        // document, so overshooting shrinks the result back to fit — it converges instead of
+        // feeding back like a viewport-relative top would (a shrinking top grew the element, made
+        // the page taller, and kept it scrollable).
+        // Invariant this relies on: the element's own content must never overflow its box (the
+        // table/dict areas scroll inside). Overflow counts toward chrome and would shrink the
+        // element further every frame.
+        top = document.documentElement.scrollHeight - element.offsetHeight
+        bottomSpacing = 0
+      }
       const available = `${Math.max(0, Math.round(window.innerHeight - top - bottomSpacing))}px`
       if (element.style.getPropertyValue(variable) !== available) {
         element.style.setProperty(variable, available)
