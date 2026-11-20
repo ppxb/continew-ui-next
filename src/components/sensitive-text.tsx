@@ -33,6 +33,12 @@ export function SensitiveText({
   textClassName
 }: SensitiveTextProps) {
   const [revealed, setRevealed] = React.useState(defaultRevealed)
+  // A reused instance (drawer switching records) must not show the next value in plain text.
+  const [shownValue, setShownValue] = React.useState(value)
+  if (value !== shownValue) {
+    setShownValue(value)
+    setRevealed(defaultRevealed)
+  }
 
   if (!value) {
     return null
@@ -50,6 +56,7 @@ export function SensitiveText({
               type="button"
               variant="ghost"
               size="icon-xs"
+              aria-label={revealed ? '隐藏敏感信息' : '显示敏感信息'}
               onClick={event => {
                 // Sensitive text often sits inside clickable rows.
                 event.stopPropagation()

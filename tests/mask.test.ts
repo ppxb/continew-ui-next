@@ -44,6 +44,21 @@ describe('maskText', () => {
     expect(maskText('62220202001122', custom)).toBe('6222...22')
   })
 
+  it('does not leak raw input through a sticky or global custom rule', () => {
+    expect(maskText('abcde', { pattern: /^\w+/y, mask: '***' })).toBe('***')
+    const global = { pattern: /^(\d{3})\d+$/g, mask: '$1***' }
+    expect(maskText('1234567', global)).toBe('123***')
+    expect(maskText('1234567', global)).toBe('123***')
+  })
+
+  it('fully masks a bank card that is only its tail', () => {
+    expect(maskText('1234', 'bankCard')).toBe('********')
+  })
+
+  it('keeps whole characters outside the BMP', () => {
+    expect(maskText('𠮷野', 'realName')).toBe('𠮷*')
+  })
+
   it('returns empty string for empty values', () => {
     expect(maskText('', 'phone')).toBe('')
   })
