@@ -87,7 +87,7 @@ const cookie = (attribute: `data-${string}`) => ({ persistence: 'client-cookie',
 
 export const PREFERENCE_REGISTRY = {
   // Appearance
-  theme_mode: enumPref(THEME_MODE_VALUES, 'light', cookie('data-theme-mode')),
+  theme_mode: enumPref(THEME_MODE_VALUES, 'system', cookie('data-theme-mode')),
   theme_color: enumPref(THEME_COLOR_VALUES, 'blue', cookie('data-theme-color')),
   theme_color_primary: textPref('', 32, {
     ...local,
@@ -105,7 +105,7 @@ export const PREFERENCE_REGISTRY = {
   color_weak_mode: boolPref(false, { ...local, attribute: 'data-color-weak' }),
 
   // Layout
-  layout: enumPref(LAYOUT_MODE_VALUES, 'sidebar-tree-nav', { ...local, attribute: 'data-layout' }),
+  layout: enumPref(LAYOUT_MODE_VALUES, 'header-sidebar-nav', { ...local, attribute: 'data-layout' }),
   content_layout: enumPref(CONTENT_LAYOUT_VALUES, 'full-width', cookie('data-content-layout')),
   content_compact_width: numberPref(1536, 960, 1680, { ...local, cssVar: '--app-content-width', unit: 'px' }),
   content_padding: numberPref(24, 0, 48, { ...local, cssVar: '--app-content-padding', unit: 'px' }),
@@ -128,14 +128,14 @@ export const PREFERENCE_REGISTRY = {
   sidebar_collapsible: enumPref(SIDEBAR_COLLAPSIBLE_VALUES, 'icon', cookie('data-sidebar-collapsible')),
   sidebar_enable: boolPref(true),
   sidebar_hidden: boolPref(false),
-  sidebar_width: numberPref(272, 160, 320, { ...local, cssVar: '--app-sidebar-width', unit: 'px' }),
+  sidebar_width: numberPref(200, 160, 320, { ...local, cssVar: '--app-sidebar-width', unit: 'px' }),
   sidebar_mixed_width: numberPref(80, 60, 120, { ...local, cssVar: '--app-sidebar-mixed-width', unit: 'px' }),
   sidebar_draggable: boolPref(true),
   sidebar_expand_on_hover: boolPref(false),
   sidebar_collapsed_show_title: boolPref(true, { ...local, attribute: 'data-sidebar-show-title' }),
   sidebar_collapsed_button: boolPref(true),
   sidebar_fixed_button: boolPref(true),
-  sidebar_extra_collapsed: boolPref(true),
+  sidebar_extra_collapsed: boolPref(false),
   sidebar_auto_activate_child: boolPref(false),
   navigation_accordion: boolPref(true),
   navigation_style: enumPref(NAVIGATION_STYLE_VALUES, 'rounded', { ...local, attribute: 'data-navigation-style' }),
@@ -143,13 +143,13 @@ export const PREFERENCE_REGISTRY = {
 
   // Tabbar
   tabbar_enable: boolPref(true),
-  tabbar_style: enumPref(TABBAR_STYLE_VALUES, 'brisk'),
+  tabbar_style: enumPref(TABBAR_STYLE_VALUES, 'card'),
   tabbar_height: numberPref(38, 28, 56, { ...local, cssVar: '--app-tabbar-height', unit: 'px' }),
   tabbar_max_count: numberPref(0, 0, 50),
   tabbar_persist: boolPref(true),
   tabbar_draggable: boolPref(true),
   tabbar_wheelable: boolPref(true),
-  tabbar_middle_click_close: boolPref(false),
+  tabbar_middle_click_close: boolPref(true),
   tabbar_visit_history: boolPref(true),
   tabbar_show_icon: boolPref(true),
   tabbar_show_maximize: boolPref(true),
