@@ -90,7 +90,8 @@ export const TRANSITION_NAME_OPTIONS = [
   { label: '渐隐', value: 'fade' },
   { label: '滑动', value: 'fade-slide' },
   { label: '上浮', value: 'fade-up' },
-  { label: '下沉', value: 'fade-down' }
+  { label: '下沉', value: 'fade-down' },
+  { label: '抖动', value: 'fade-shake' }
 ] as const
 export const TRANSITION_NAME_VALUES = TRANSITION_NAME_OPTIONS.map(v => v.value)
 export type TransitionName = (typeof TRANSITION_NAME_VALUES)[number]

@@ -2,6 +2,7 @@ import { TinyColor } from '@ctrl/tinycolor'
 import { cn } from 'cn'
 import { Check, Monitor, Moon, RotateCcw, Sun } from 'lucide-react'
 import { useShallow } from 'zustand/react/shallow'
+import { motion, useReducedMotion } from 'motion/react'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -266,6 +267,7 @@ export function RadiusPicker() {
 
 export function TransitionPicker() {
   const [name, setName] = usePreferenceField('transition_name')
+  const reduceMotion = useReducedMotion()
 
   return (
     <div className="grid grid-cols-4 gap-3 px-2 py-1">
@@ -277,7 +279,15 @@ export function TransitionPicker() {
           onClick={() => setName(option.value)}
         >
           <span className="flex h-12 w-full items-center justify-center">
-            <span className={cn('h-7 w-8 rounded-sm bg-primary', `transition-preview-${option.value}`)} />
+            {option.value === 'fade-shake' ? (
+              <motion.span
+                className="h-7 w-8 rounded-sm bg-primary"
+                animate={reduceMotion ? { opacity: 1 } : { opacity: [0, 1, 1, 1, 1, 1], x: [0, -8, 6, -4, 2, 0] }}
+                transition={{ duration: 0.38, ease: 'easeOut', repeat: Infinity, repeatDelay: 1 }}
+              />
+            ) : (
+              <span className={cn('h-7 w-8 rounded-sm bg-primary', `transition-preview-${option.value}`)} />
+            )}
           </span>
         </ChoiceTile>
       ))}

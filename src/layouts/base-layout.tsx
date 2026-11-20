@@ -364,14 +364,18 @@ export function BaseLayout({ defaultOpen, children }: { defaultOpen: boolean; ch
       )}
       <div
         data-slot="app-content"
-        data-transition={p.transitionEnable ? p.transitionName : undefined}
+        data-transition={p.transitionEnable && p.transitionName !== 'fade-shake' ? p.transitionName : undefined}
         className={cn(
           'relative flex min-h-0 min-w-0 flex-1 flex-col p-(--app-content-padding) has-data-[content-padding=false]:p-0',
           p.contentLayout === 'centered' &&
             '[&>[data-slot=page-surface]]:mx-auto [&>[data-slot=page-surface]]:max-w-(--app-content-width)'
         )}
       >
-        <PageSurface key={`${pathname}:${refreshKey}`} showLoading={p.transitionLoading}>
+        <PageSurface
+          key={`${pathname}:${refreshKey}`}
+          showLoading={p.transitionLoading}
+          transition={p.transitionEnable ? p.transitionName : undefined}
+        >
           {children}
         </PageSurface>
       </div>
