@@ -6,7 +6,7 @@ import { useShallow } from 'zustand/react/shallow'
 
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsContent, TabsIndicator, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { toast } from '@/components/ui/toast'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useLogout } from '@/hooks/use-logout'
@@ -120,16 +120,26 @@ export function PreferencesSheet() {
         <Tabs value={tab} onValueChange={value => setTab(String(value))} className="min-h-0 flex-1 gap-0">
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
             <div className={cn('bg-popover px-4 pt-3 pb-2', sticky && 'sticky top-0 z-10')}>
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="relative grid w-full grid-cols-4">
                 {TABS.map(tab => (
-                  <TabsTrigger key={tab.value} value={tab.value}>
+                  <TabsTrigger
+                    key={tab.value}
+                    value={tab.value}
+                    // The pill indicator paints the surface; the trigger only carries the label.
+                    className="z-10 data-active:bg-transparent data-active:shadow-none dark:data-active:border-transparent dark:data-active:bg-transparent"
+                  >
                     {tab.label}
                   </TabsTrigger>
                 ))}
+                <TabsIndicator className="top-(--active-tab-top) bottom-auto h-(--active-tab-height) rounded-md bg-background shadow-sm duration-250 ease-[cubic-bezier(0.32,0.72,0,1)] dark:bg-input/30" />
               </TabsList>
             </div>
             {TABS.map(({ value, Content }) => (
-              <TabsContent key={value} value={value} className="px-3 pb-6">
+              <TabsContent
+                key={value}
+                value={value}
+                className="px-3 pb-6 motion-safe:animate-in motion-safe:duration-200 motion-safe:ease-out motion-safe:fade-in-0 motion-safe:slide-in-from-bottom-1"
+              >
                 <Content />
               </TabsContent>
             ))}
